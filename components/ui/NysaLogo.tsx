@@ -11,7 +11,7 @@ export function NysaLogo({ size = 28, color = 'currentColor', className }: NysaL
     <svg
       width={size}
       height={size}
-      viewBox="0 0 983.04 983.04"
+      viewBox="130 425 610 400"
       xmlns="http://www.w3.org/2000/svg"
       fill={color}
       className={className}

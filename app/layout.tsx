@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Syne, Sora } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { Analytics } from '@vercel/analytics/next'
 
 const syne = Syne({
   subsets: ['latin'],
@@ -31,6 +32,7 @@ export default function RootLayout({
     <html lang="fr" className={`${syne.variable} ${sora.variable} h-full`}>
       <body className="h-full antialiased" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
         <ThemeProvider>{children}</ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
