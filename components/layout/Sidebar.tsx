@@ -9,6 +9,7 @@ import {
   Footprints, Wallet, BarChart2, Sparkles,
   ChevronDown, Settings, User,
 } from 'lucide-react'
+import { NysaLogo } from '@/components/ui/NysaLogo'
 
 type NavItem = {
   href:     string
@@ -58,14 +59,7 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/logo.svg"
-          alt="NYSA"
-          width={28}
-          height={28}
-          style={{ filter: 'invert(40%) sepia(80%) saturate(500%) hue-rotate(330deg) brightness(105%)' }}
-        />
+        <NysaLogo size={28} color="var(--accent)" />
         <div>
           <p
             className="text-sm tracking-widest uppercase"
