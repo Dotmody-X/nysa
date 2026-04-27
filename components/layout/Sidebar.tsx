@@ -58,16 +58,30 @@ export function Sidebar() {
       style={{ width: 'var(--sidebar-width)', background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)' }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
-        <NysaLogo size={28} color="var(--accent)" />
-        <div>
+      <div
+        className="flex flex-col items-center justify-center gap-2 py-6 px-4"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <NysaLogo size={64} color="var(--accent)" />
+        <div className="flex flex-col items-center gap-0.5">
           <p
-            className="text-sm tracking-widest uppercase"
-            style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)', fontWeight: 800 }}
+            className="tracking-[0.2em] uppercase leading-none"
+            style={{
+              color: 'var(--wheat)',
+              fontFamily: 'var(--font-display)',
+              fontWeight: 800,
+              fontSize: '11px',
+              letterSpacing: '0.25em',
+            }}
           >
             NYSA
           </p>
-          <p className="text-[9px] tracking-wider uppercase" style={{ color: 'var(--text-muted)' }}>Life OS</p>
+          <p
+            className="tracking-widest uppercase"
+            style={{ color: 'var(--text-subtle)', fontSize: '8px', letterSpacing: '0.2em' }}
+          >
+            Life OS
+          </p>
         </div>
       </div>
 
