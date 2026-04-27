@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+/* ============================================================
+   NYSA — Design System
+   Palette :
+     Wheat          #F5DFBB
+     Dark Cyan      #0E9594
+     Stormy Teal    #11686A
+     Fiery Terrac.  #F2542D
+     Espresso       #562C2C
+   ============================================================ */
+
+:root {
+  /* Couleurs brand */
+  --wheat:          #F5DFBB;
+  --dark-cyan:      #0E9594;
+  --stormy-teal:    #11686A;
+  --fiery:          #F2542D;
+  --espresso:       #562C2C;
+
+  /* Surfaces */
+  --bg:             #0C0C0C;
+  --bg-card:        #161616;
+  --bg-card-hover:  #1E1E1E;
+  --bg-sidebar:     #111111;
+  --bg-input:       #1A1A1A;
+  --border:         rgba(245, 223, 187, 0.08);
+  --border-active:  rgba(242, 84, 45, 0.4);
+
+  /* Texte */
+  --text:           #F5DFBB;
+  --text-muted:     rgba(245, 223, 187, 0.45);
+  --text-subtle:    rgba(245, 223, 187, 0.25);
+
+  /* États */
+  --success:        #0E9594;
+  --warning:        #F5DFBB;
+  --danger:         #F2542D;
+
+  /* Sidebar */
+  --sidebar-width:  220px;
+
+  /* Radius */
+  --radius-sm:      6px;
+  --radius-md:      10px;
+  --radius-lg:      16px;
+}
+
+/* ============================================================
+   Thème Tailwind v4 (variables custom utilisables via bg-*, text-*, etc.)
+   ============================================================ */
+@theme inline {
+  --color-bg:           var(--bg);
+  --color-bg-card:      var(--bg-card);
+  --color-bg-sidebar:   var(--bg-sidebar);
+  --color-bg-input:     var(--bg-input);
+  --color-border:       var(--border);
+
+  --color-wheat:        var(--wheat);
+  --color-cyan:         var(--dark-cyan);
+  --color-teal:         var(--stormy-teal);
+  --color-fiery:        var(--fiery);
+  --color-espresso:     var(--espresso);
+
+  --color-text:         var(--text);
+  --color-muted:        var(--text-muted);
+
+  --font-sans:          'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   Scrollbar custom
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(245, 223, 187, 0.15);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 223, 187, 0.3);
+}
+
+/* ============================================================
+   Sélection texte
+   ============================================================ */
+::selection {
+  background: rgba(242, 84, 45, 0.3);
+  color: var(--wheat);
+}
+
+/* ============================================================
+   Focus visible global
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--fiery);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   Utilitaires NYSA
+   ============================================================ */
+
+/* Gradient de titre hero */
+.nysa-gradient-text {
+  background: linear-gradient(135deg, var(--wheat) 0%, var(--fiery) 60%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Lueur teal */
+.nysa-glow-teal {
+  box-shadow: 0 0 20px rgba(14, 149, 148, 0.3);
+}
+
+/* Lueur orange */
+.nysa-glow-fiery {
+  box-shadow: 0 0 20px rgba(242, 84, 45, 0.25);
+}
+
+/* Card standard */
+.nysa-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+/* Transition globale */
+.nysa-transition {
+  transition: all 0.15s ease;
+}
+
+/* Tag / Badge de couleur */
+.tag-fiery  { background: rgba(242, 84, 45,   0.15); color: #F2542D; border: 1px solid rgba(242, 84, 45,   0.25); }
+.tag-cyan   { background: rgba(14,  149, 148,  0.15); color: #0E9594; border: 1px solid rgba(14,  149, 148,  0.25); }
+.tag-teal   { background: rgba(17,  104, 106,  0.25); color: #4ECDC4; border: 1px solid rgba(17,  104, 106,  0.3);  }
+.tag-wheat  { background: rgba(245, 223, 187,  0.1);  color: #F5DFBB; border: 1px solid rgba(245, 223, 187,  0.2);  }
+.tag-espresso { background: rgba(86, 44, 44,   0.3);  color: #C99;    border: 1px solid rgba(86,  44,  44,   0.4);  }
