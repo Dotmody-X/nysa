@@ -10,32 +10,15 @@
      Espresso       #562C2C
    ============================================================ */
 
+/* ── Couleurs brand (constantes) ─────────────────────────── */
 :root {
-  /* Couleurs brand */
-  --wheat:          #F5DFBB;
   --dark-cyan:      #0E9594;
   --stormy-teal:    #11686A;
-  --fiery:          #F2542D;
   --espresso:       #562C2C;
 
-  /* Surfaces */
-  --bg:             #0C0C0C;
-  --bg-card:        #161616;
-  --bg-card-hover:  #1E1E1E;
-  --bg-sidebar:     #111111;
-  --bg-input:       #1A1A1A;
-  --border:         rgba(245, 223, 187, 0.08);
-  --border-active:  rgba(242, 84, 45, 0.4);
-
-  /* Texte */
-  --text:           #F5DFBB;
-  --text-muted:     rgba(245, 223, 187, 0.45);
-  --text-subtle:    rgba(245, 223, 187, 0.25);
-
-  /* États */
-  --success:        #0E9594;
-  --warning:        #F5DFBB;
-  --danger:         #F2542D;
+  /* Accent principal — peut être overridé par le thème custom */
+  --accent:         #F2542D;
+  --accent-alt:     #F5DFBB;
 
   /* Sidebar */
   --sidebar-width:  220px;
@@ -44,6 +27,106 @@
   --radius-sm:      6px;
   --radius-md:      10px;
   --radius-lg:      16px;
+}
+
+/* ── Thème sombre (défaut) ───────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --wheat:          #F5DFBB;
+  --fiery:          var(--accent);
+
+  --bg:             #0C0C0C;
+  --bg-card:        #161616;
+  --bg-card-hover:  #1E1E1E;
+  --bg-sidebar:     #111111;
+  --bg-input:       #1A1A1A;
+  --border:         rgba(245, 223, 187, 0.08);
+  --border-active:  rgba(242, 84, 45, 0.4);
+
+  --text:           #F5DFBB;
+  --text-muted:     rgba(245, 223, 187, 0.45);
+  --text-subtle:    rgba(245, 223, 187, 0.25);
+
+  --success:        #0E9594;
+  --warning:        #F5DFBB;
+  --danger:         #F2542D;
+}
+
+/* ── Thème clair ──────────────────────────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --wheat:          #1A1A1A;
+  --fiery:          var(--accent);
+
+  --bg:             #F5F4F0;
+  --bg-card:        #FFFFFF;
+  --bg-card-hover:  #F0EFEB;
+  --bg-sidebar:     #ECEAE4;
+  --bg-input:       #F5F4F0;
+  --border:         rgba(0, 0, 0, 0.1);
+  --border-active:  rgba(242, 84, 45, 0.5);
+
+  --text:           #1A1A1A;
+  --text-muted:     rgba(26, 26, 26, 0.55);
+  --text-subtle:    rgba(26, 26, 26, 0.3);
+
+  --success:        #0A7A79;
+  --warning:        #C47D00;
+  --danger:         #D94020;
+}
+
+/* ── Thème système (OS) ───────────────────────────────────── */
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] {
+    color-scheme: light;
+
+    --wheat:          #1A1A1A;
+    --fiery:          var(--accent);
+
+    --bg:             #F5F4F0;
+    --bg-card:        #FFFFFF;
+    --bg-card-hover:  #F0EFEB;
+    --bg-sidebar:     #ECEAE4;
+    --bg-input:       #F5F4F0;
+    --border:         rgba(0, 0, 0, 0.1);
+    --border-active:  rgba(242, 84, 45, 0.5);
+
+    --text:           #1A1A1A;
+    --text-muted:     rgba(26, 26, 26, 0.55);
+    --text-subtle:    rgba(26, 26, 26, 0.3);
+
+    --success:        #0A7A79;
+    --warning:        #C47D00;
+    --danger:         #D94020;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    color-scheme: dark;
+
+    --wheat:          #F5DFBB;
+    --fiery:          var(--accent);
+
+    --bg:             #0C0C0C;
+    --bg-card:        #161616;
+    --bg-card-hover:  #1E1E1E;
+    --bg-sidebar:     #111111;
+    --bg-input:       #1A1A1A;
+    --border:         rgba(245, 223, 187, 0.08);
+    --border-active:  rgba(242, 84, 45, 0.4);
+
+    --text:           #F5DFBB;
+    --text-muted:     rgba(245, 223, 187, 0.45);
+    --text-subtle:    rgba(245, 223, 187, 0.25);
+
+    --success:        #0E9594;
+    --warning:        #F5DFBB;
+    --danger:         #F2542D;
+  }
 }
 
 /* ============================================================
@@ -76,7 +159,7 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: dark light;
 }
 
 body {
