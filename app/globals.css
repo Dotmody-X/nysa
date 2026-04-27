@@ -148,7 +148,8 @@
   --color-text:         var(--text);
   --color-muted:        var(--text-muted);
 
-  --font-sans:          'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans:          var(--font-sora), 'Sora', system-ui, -apple-system, sans-serif;
+  --font-display:       var(--font-syne), 'Syne', system-ui, -apple-system, sans-serif;
 }
 
 /* ============================================================
@@ -165,12 +166,17 @@ html {
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 800;
 }
 
 /* ============================================================

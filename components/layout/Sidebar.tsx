@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Calendar, Timer, FolderKanban,
   CheckSquare, Heart, UtensilsCrossed, ShoppingCart,
   Footprints, Wallet, BarChart2, Sparkles,
-  Star, ChevronDown, Settings, User,
+  ChevronDown, Settings, User,
 } from 'lucide-react'
 
 type NavItem = {
@@ -58,9 +58,21 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
-        <Star size={22} fill="currentColor" style={{ color: '#F2542D' }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo.svg"
+          alt="NYSA"
+          width={28}
+          height={28}
+          style={{ filter: 'invert(40%) sepia(80%) saturate(500%) hue-rotate(330deg) brightness(105%)' }}
+        />
         <div>
-          <p className="text-sm font-bold tracking-widest uppercase" style={{ color: 'var(--wheat)' }}>NYSA</p>
+          <p
+            className="text-sm tracking-widest uppercase"
+            style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)', fontWeight: 800 }}
+          >
+            NYSA
+          </p>
           <p className="text-[9px] tracking-wider uppercase" style={{ color: 'var(--text-muted)' }}>Life OS</p>
         </div>
       </div>

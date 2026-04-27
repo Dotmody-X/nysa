@@ -1,11 +1,19 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Syne, Sora } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 
-const inter = Inter({
+const syne = Syne({
   subsets: ['latin'],
-  variable: '--font-inter',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-syne',
+  display: 'swap',
+})
+
+const sora = Sora({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-sora',
   display: 'swap',
 })
 
@@ -20,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" className={`${inter.variable} h-full`}>
+    <html lang="fr" className={`${syne.variable} ${sora.variable} h-full`}>
       <body className="h-full antialiased" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
