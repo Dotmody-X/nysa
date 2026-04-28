@@ -1,262 +1,236 @@
 'use client'
-
 import { useState, useEffect, useRef } from 'react'
-import { Play, Square, Trash2, Clock, TrendingUp, Folders, Zap } from 'lucide-react'
+import { Play, Square, Plus, Clock } from 'lucide-react'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjects }    from '@/hooks/useProjects'
-import { PageHeader }     from '@/components/layout/PageHeader'
-import { Card }           from '@/components/ui/Card'
-import { Badge }          from '@/components/ui/Badge'
-import { Button }         from '@/components/ui/Button'
-import type { TimeEntry } from '@/types'
+import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
 
-// ─── Utils ───────────────────────────────────────────────────────────────────
-function fmt(sec: number) {
-  const h = Math.floor(sec / 3600)
-  const m = Math.floor((sec % 3600) / 60)
-  const s = sec % 60
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-}
-function fmtShort(sec: number) {
-  const h = Math.floor(sec / 3600)
-  const m = Math.floor((sec % 3600) / 60)
-  return h > 0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}m`
-}
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-BE', { day: '2-digit', month: 'short' })
-}
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
-}
+const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
-// ─── Composant ───────────────────────────────────────────────────────────────
+function fmtSec(s: number) {
+  const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); const sec = s%60
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+}
+function fmtDur(s: number) {
+  const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60)
+  return h>0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}min`
+}
+function fmtEur(n: number) { return n.toLocaleString('fr-BE', { style:'currency', currency:'EUR', minimumFractionDigits:0 }) }
+
 export default function TimeTrackerPage() {
-  const { entries, loading, start, stop, remove, totalSecondsToday, totalSecondsWeek } = useTimeEntries()
+  const { entries, loading, start, stop } = useTimeEntries()
   const { projects } = useProjects()
+  const [desc, setDesc] = useState('')
+  const [projId, setProjId] = useState('')
+  const [billable, setBillable] = useState(true)
+  const [elapsed, setElapsed] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval>|null>(null)
 
-  // Timer actif
-  const [activeEntry, setActiveEntry]       = useState<TimeEntry | null>(null)
-  const [elapsed,     setElapsed]           = useState(0)
-  const [description, setDescription]       = useState('')
-  const [selectedProj, setSelectedProj]     = useState('')
-  const [isBillable,  setIsBillable]        = useState(true)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const running = entries.find(e => !e.ended_at)
 
-  // Reprendre un timer en cours au reload (entrée sans ended_at)
   useEffect(() => {
-    if (!entries.length) return
-    const running = entries.find(e => !e.ended_at)
     if (running) {
-      setActiveEntry(running)
-      setDescription(running.description ?? '')
-      setSelectedProj(running.project_id ?? '')
-    }
-  }, [entries])
-
-  // Tick
-  useEffect(() => {
-    if (activeEntry) {
-      intervalRef.current = setInterval(() => {
-        setElapsed(Math.floor((Date.now() - new Date(activeEntry.started_at).getTime()) / 1000))
-      }, 1000)
+      setElapsed(Math.floor((Date.now() - new Date(running.started_at).getTime())/1000))
+      timerRef.current = setInterval(() => setElapsed(s => s+1), 1000)
     } else {
+      if (timerRef.current) clearInterval(timerRef.current)
       setElapsed(0)
-      if (intervalRef.current) clearInterval(intervalRef.current)
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [activeEntry])
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [running?.id])
+
+  const today = new Date().toISOString().slice(0,10)
+  const todayEntries  = entries.filter(e => e.started_at.slice(0,10) === today)
+  const todaySec      = todayEntries.filter(e => e.duration_seconds).reduce((s,e) => s+(e.duration_seconds??0), 0)
+  const weekSec       = entries.filter(e => e.duration_seconds).reduce((s,e) => s+(e.duration_seconds??0), 0)
+  const activeProjs   = new Set(entries.map(e => e.project_id).filter(Boolean)).size
+  const weekRev       = entries.filter(e=>e.is_billable&&e.duration_seconds).reduce((s,e)=>s+(e.duration_seconds??0)/3600*75,0)
+
+  const byProject = projects.map(p => ({
+    ...p,
+    seconds: entries.filter(e=>e.project_id===p.id&&e.duration_seconds).reduce((s,e)=>s+(e.duration_seconds??0),0)
+  })).filter(p=>p.seconds>0).sort((a,b)=>b.seconds-a.seconds)
 
   async function handleStart() {
-    if (!description.trim()) return
-    const { data } = await start(selectedProj || null, description.trim(), isBillable)
-    if (data) setActiveEntry(data as TimeEntry)
+    if (!desc.trim()) return
+    await start(projId||null, desc.trim(), billable)
+    setDesc('')
   }
-
   async function handleStop() {
-    if (!activeEntry) return
-    await stop(activeEntry.id, activeEntry.started_at)
-    setActiveEntry(null)
-    setDescription('')
-  }
-
-  // Stats
-  const todayEntries = entries.filter(e =>
-    e.started_at.startsWith(new Date().toISOString().slice(0, 10)) && e.ended_at
-  )
-
-  const projColor = (id: string | undefined) => {
-    const p = projects.find(x => x.id === id)
-    return p?.color ?? '#F5DFBB'
-  }
-  const projName = (id: string | undefined) => {
-    const p = projects.find(x => x.id === id)
-    return p?.name ?? '—'
+    if (!running) return
+    await stop(running.id, running.started_at)
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1400px]">
-      <PageHeader
-        title="Time Tracker"
-        sub="Suivi du temps par projet"
+    <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
+      <PageTitle
+        title="Time Trackers"
+        sub="Suivi · Facturation · Analyse · Reporting"
+        right={
+          running ? (
+            <div className="flex items-center gap-3">
+              <div style={{ background:'rgba(242,84,45,0.1)', border:'1px solid rgba(242,84,45,0.3)', borderRadius:12, padding:'8px 16px', display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ width:8, height:8, borderRadius:'50%', background:'#F2542D', animation:'pulse 1s infinite' }} />
+                <span style={{ ...DF, fontWeight:900, fontSize:20, color:'#F2542D', letterSpacing:'0.05em' }}>{fmtSec(elapsed)}</span>
+                <span style={{ fontSize:11, color:'var(--text-muted)' }}>{running.description}</span>
+              </div>
+              <button onClick={handleStop} className="flex items-center gap-2 px-4 py-2 rounded-xl"
+                style={{ background:'#F2542D', color:'#fff', ...DF, fontWeight:700, fontSize:12 }}>
+                <Square size={12} fill="#fff" /> Arrêter
+              </button>
+            </div>
+          ) : null
+        }
       />
 
-      {/* ── TIMER ACTIF ────────────────────────────────────────────────── */}
-      <Card padding="none" className="overflow-hidden">
-        <div
-          className="flex items-center gap-4 px-5 py-4"
-          style={{ borderBottom: '1px solid var(--border)', background: activeEntry ? 'rgba(242,84,45,0.05)' : undefined }}
-        >
-          {/* Description */}
-          <input
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !activeEntry && handleStart()}
-            placeholder="Sur quoi tu travailles ?"
-            disabled={!!activeEntry}
-            className="flex-1 bg-transparent outline-none text-sm placeholder:text-[var(--text-subtle)]"
-            style={{ color: 'var(--wheat)' }}
-          />
+      <KpiGrid>
+        <KpiCard label="Total semaine"    value={fmtDur(weekSec)}               sub="temps enregistré"   color="#F2542D" />
+        <KpiCard label="Aujourd'hui"      value={fmtDur(todaySec+elapsed)}      sub={`${todayEntries.length} sessions`} color="#F5DFBB" />
+        <KpiCard label="Projets actifs"   value={String(activeProjs)}           sub="cette semaine"     color="#0E9594" />
+        <KpiCard label="Revenus estimés"  value={fmtEur(weekRev)}               sub="heures facturables" />
+      </KpiGrid>
 
-          {/* Projet */}
-          <select
-            value={selectedProj}
-            onChange={e => setSelectedProj(e.target.value)}
-            disabled={!!activeEntry}
-            className="text-xs px-2 py-1.5 rounded-[6px] outline-none"
-            style={{ background: 'var(--bg-input)', color: 'var(--wheat)', border: '1px solid var(--border)' }}
-          >
+      {/* Start new timer */}
+      {!running && (
+        <div className="flex gap-2" style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:12 }}>
+          <input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Sur quoi travailles-tu ?" autoFocus
+            onKeyDown={e => e.key==='Enter' && handleStart()}
+            style={{ flex:1, background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }} />
+          <select value={projId} onChange={e=>setProjId(e.target.value)}
+            style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 12px', color:'var(--text)', fontSize:12, minWidth:140 }}>
             <option value="">Sans projet</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
-
-          {/* Facturable */}
-          <button
-            onClick={() => !activeEntry && setIsBillable(b => !b)}
-            className="text-xs px-2 py-1.5 rounded-[6px] transition-colors"
-            style={{
-              background: isBillable ? 'rgba(14,149,148,0.15)' : 'transparent',
-              color:      isBillable ? '#0E9594' : 'var(--text-muted)',
-              border:     `1px solid ${isBillable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`,
-            }}
-          >
-            Fact.
+          <button onClick={()=>setBillable(b=>!b)}
+            className="px-3 rounded-lg"
+            style={{ background: billable ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', color: billable ? '#0E9594' : 'var(--text-muted)', border:'1px solid var(--border)', ...DF, fontSize:10, fontWeight:700 }}>
+            {billable ? '€ Fact.' : 'Non fact.'}
           </button>
-
-          {/* Timer display */}
-          <span
-            className="font-mono text-lg font-bold w-28 text-center"
-            style={{ color: activeEntry ? '#F2542D' : 'var(--text-muted)' }}
-          >
-            {fmt(elapsed)}
-          </span>
-
-          {/* Start / Stop */}
-          {activeEntry ? (
-            <Button variant="danger" size="md" onClick={handleStop}>
-              <Square size={14} /> Arrêter
-            </Button>
-          ) : (
-            <Button variant="primary" size="md" onClick={handleStart} disabled={!description.trim()}>
-              <Play size={14} /> Démarrer
-            </Button>
-          )}
+          <button onClick={handleStart} disabled={!desc.trim()}
+            className="flex items-center gap-2 px-5 py-2 rounded-xl"
+            style={{ background: desc.trim() ? '#F2542D' : 'var(--bg-input)', color: desc.trim() ? '#fff' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:12, transition:'all 0.15s' }}>
+            <Play size={13} fill={desc.trim() ? '#fff' : 'var(--text-muted)'} /> Démarrer
+          </button>
         </div>
+      )}
 
-        {/* Stat bar */}
-        <div className="grid grid-cols-4 divide-x" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
-          {[
-            { icon: <Clock size={13}/>,      label: "Aujourd'hui", value: fmtShort(totalSecondsToday) },
-            { icon: <TrendingUp size={13}/>, label: 'Cette semaine', value: fmtShort(totalSecondsWeek) },
-            { icon: <Folders size={13}/>,    label: 'Projets actifs', value: String(projects.filter(p => p.status === 'active').length) },
-            { icon: <Zap size={13}/>,        label: 'Entrées aujourd\'hui', value: String(todayEntries.length) },
-          ].map(({ icon, label, value }) => (
-            <div key={label} className="flex items-center gap-3 px-5 py-3">
-              <span style={{ color: '#F2542D' }}>{icon}</span>
-              <div>
-                <p className="text-lg font-bold leading-none" style={{ color: 'var(--wheat)' }}>{value}</p>
-                <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{label}</p>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
+        {/* Entries list */}
+        <div className="md:col-span-2 flex flex-col gap-[10px]">
+          {/* Weekly bars */}
+          <div style={{ background:'#11686A', borderRadius:12, padding:20 }}>
+            <div className="flex items-center justify-between mb-4">
+              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F0E4CC', textTransform:'uppercase' }}>Temps enregistrés</p>
+              <span style={{ fontSize:11, color:'rgba(240,228,204,0.6)' }}>{fmtDur(weekSec)} cette semaine</span>
             </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* ── ENTRÉES ────────────────────────────────────────────────────── */}
-      <Card padding="none">
-        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-          <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
-            Temps enregistrés — cette semaine
-          </p>
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {entries.filter(e => e.ended_at).length} entrées
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="px-4 py-8 text-center text-xs" style={{ color: 'var(--text-muted)' }}>Chargement…</div>
-        ) : entries.filter(e => e.ended_at).length === 0 ? (
-          <div className="px-4 py-8 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
-            Aucune entrée cette semaine. Démarre un timer pour commencer.
+            <div className="flex items-end gap-2" style={{ height:72 }}>
+              {['L','M','M','J','V','S','D'].map((day, i) => {
+                const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1 + i)
+                const iso = d.toISOString().slice(0,10)
+                const sec = entries.filter(e=>e.started_at.slice(0,10)===iso&&e.duration_seconds).reduce((s,e)=>s+(e.duration_seconds??0),0)
+                const maxSec = Math.max(...['L','M','M','J','V','S','D'].map((_,j)=>{
+                  const dd=new Date(); dd.setDate(dd.getDate()-dd.getDay()+1+j)
+                  return entries.filter(e=>e.started_at.slice(0,10)===dd.toISOString().slice(0,10)&&e.duration_seconds).reduce((s,e)=>s+(e.duration_seconds??0),0)
+                }), 1)
+                const h = sec>0 ? Math.max(8,(sec/maxSec)*64) : 4
+                const isToday = iso === today
+                return (
+                  <div key={i} className="flex flex-col items-center gap-1" style={{ flex:1 }}>
+                    <div style={{ width:'100%', height:h, borderRadius:4, background: isToday ? '#F2542D' : sec>0 ? '#F0E4CC' : 'rgba(240,228,204,0.12)' }} />
+                    <span style={{ fontSize:9, color: isToday ? '#F2542D' : 'rgba(240,228,204,0.5)', ...DF, fontWeight:isToday?800:500 }}>{day}</span>
+                    {sec>0 && <span style={{ fontSize:9, color:'rgba(240,228,204,0.7)' }}>{fmtDur(sec)}</span>}
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        ) : (
-          <table className="w-full text-xs">
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['Projet', 'Description', 'Catégorie', 'Date', 'Durée', 'Fact.', ''].map(h => (
-                  <th key={h} className="px-4 py-2 text-left font-medium uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {entries.filter(e => e.ended_at).map(e => (
-                <tr
-                  key={e.id}
-                  className="group transition-colors"
-                  style={{ borderBottom: '1px solid var(--border)' }}
-                  onMouseEnter={ev => (ev.currentTarget.style.background = 'var(--bg-card-hover)')}
-                  onMouseLeave={ev => (ev.currentTarget.style.background = '')}
-                >
-                  <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: projColor(e.project_id ?? undefined) }} />
-                      <span style={{ color: 'var(--wheat)' }}>{projName(e.project_id ?? undefined)}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-2.5 max-w-[200px] truncate" style={{ color: 'var(--text-muted)' }}>
-                    {e.description ?? '—'}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {e.category ? <Badge variant="teal">{e.category}</Badge> : <span style={{ color: 'var(--text-subtle)' }}>—</span>}
-                  </td>
-                  <td className="px-4 py-2.5" style={{ color: 'var(--text-muted)' }}>
-                    {fmtDate(e.started_at)} · {fmtTime(e.started_at)}
-                  </td>
-                  <td className="px-4 py-2.5 font-mono font-medium" style={{ color: 'var(--wheat)' }}>
-                    {e.duration_seconds ? fmtShort(e.duration_seconds) : '—'}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {e.is_billable
-                      ? <Badge variant="cyan">Fact.</Badge>
-                      : <span style={{ color: 'var(--text-subtle)' }}>—</span>
-                    }
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <button
-                      onClick={() => remove(e.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-[rgba(242,84,45,0.1)]"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </Card>
+
+          {/* Entries table */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)' }}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
+              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F2542D', textTransform:'uppercase' }}>Entrées récentes</p>
+              <span style={{ fontSize:10, color:'var(--text-muted)' }}>{entries.length} cette semaine</span>
+            </div>
+            {loading ? <p className="p-5 text-xs" style={{ color:'var(--text-muted)' }}>Chargement…</p>
+            : entries.length === 0 ? (
+              <div className="flex flex-col items-center py-12 gap-2">
+                <Clock size={32} style={{ color:'var(--text-muted)' }} />
+                <p style={{ fontSize:13, color:'var(--text-muted)' }}>Aucune entrée cette semaine</p>
+              </div>
+            ) : entries.slice(0,12).map(e => (
+              <div key={e.id} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom:'1px solid var(--border)', background: !e.ended_at ? 'rgba(242,84,45,0.04)' : 'transparent' }}>
+                <div style={{ width:10, height:10, borderRadius:'50%', background:e.project_color??'#F5DFBB', flexShrink:0 }} />
+                <div className="flex-1 min-w-0">
+                  <p style={{ fontSize:13, color:'var(--wheat)' }}>{e.description||'Sans description'}</p>
+                  <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>
+                    {e.project_name??'Sans projet'} · {new Date(e.started_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+                    {e.ended_at ? ` → ${new Date(e.ended_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}` : ' · En cours'}
+                  </p>
+                </div>
+                {e.is_billable && <span style={{ fontSize:9, padding:'2px 7px', borderRadius:4, background:'rgba(14,149,148,0.12)', color:'#0E9594', ...DF, fontWeight:700 }}>Fact.</span>}
+                {!e.ended_at ? (
+                  <button onClick={handleStop} style={{ fontSize:11, color:'#F2542D', ...DF, fontWeight:700, padding:'4px 10px', borderRadius:6, background:'rgba(242,84,45,0.1)', border:'1px solid rgba(242,84,45,0.2)' }}>
+                    ■ Stop
+                  </button>
+                ) : (
+                  <span style={{ ...DF, fontWeight:700, fontSize:13, color:'var(--text-muted)', flexShrink:0 }}>
+                    {e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right */}
+        <div className="flex flex-col gap-[10px]">
+          {/* Répartition par projet */}
+          <div style={{ background:'#F2542D', borderRadius:12, padding:20 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:12 }}>Répartition du temps</p>
+            {byProject.length === 0 ? <p style={{ fontSize:12, color:'rgba(26,10,10,0.6)' }}>Aucune donnée</p> : byProject.slice(0,5).map(p => {
+              const pct = weekSec > 0 ? Math.round(p.seconds/weekSec*100) : 0
+              return (
+                <div key={p.id} className="mb-3">
+                  <div className="flex justify-between mb-1">
+                    <span style={{ fontSize:11, color:'#1A0A0A' }}>{p.name}</span>
+                    <span style={{ ...DF, fontSize:11, fontWeight:700, color:'#1A0A0A' }}>{fmtDur(p.seconds)} · {pct}%</span>
+                  </div>
+                  <div style={{ height:4, borderRadius:99, background:'rgba(0,0,0,0.2)', overflow:'hidden' }}>
+                    <div style={{ height:'100%', borderRadius:99, background: p.color??'#1A0A0A', width:`${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Objectifs */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase', marginBottom:10 }}>Objectif semaine</p>
+            <p style={{ ...DF, fontWeight:900, fontSize:32, color:'var(--wheat)', lineHeight:1 }}>
+              {Math.round((weekSec/3600)*10)/10} <span style={{ fontSize:16, fontWeight:500 }}>h</span>
+            </p>
+            <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:2, marginBottom:10 }}>/ 35h objectif</p>
+            <div style={{ height:5, borderRadius:99, background:'var(--border)', overflow:'hidden' }}>
+              <div style={{ height:'100%', borderRadius:99, background:'#0E9594', width:`${Math.min(100,weekSec/3600/35*100)}%` }} />
+            </div>
+            <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:4 }}>{Math.round(weekSec/3600/35*100)}% atteint</p>
+          </div>
+
+          {/* Top projets */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--text-muted)', textTransform:'uppercase', marginBottom:10 }}>Top projets</p>
+            {byProject.slice(0,4).map((p,i) => (
+              <div key={p.id} className="flex items-center gap-2 py-2" style={{ borderBottom:'1px solid var(--border)' }}>
+                <span style={{ ...DF, fontWeight:900, fontSize:16, color:'var(--text-subtle)', width:16 }}>{i+1}</span>
+                <span style={{ width:8, height:8, borderRadius:2, background:p.color??'#F2542D', flexShrink:0 }} />
+                <span style={{ flex:1, fontSize:11, color:'var(--wheat)' }}>{p.name}</span>
+                <span style={{ ...DF, fontWeight:700, fontSize:12, color:'var(--text-muted)' }}>{fmtDur(p.seconds)}</span>
+              </div>
+            ))}
+            {byProject.length === 0 && <p style={{ fontSize:12, color:'var(--text-muted)' }}>Aucune donnée</p>}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

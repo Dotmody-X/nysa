@@ -1,339 +1,192 @@
 'use client'
-
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Clock, CheckSquare, Wallet, Activity, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts'
-import { useRapports, RapportPeriod } from '@/hooks/useRapports'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { Card } from '@/components/ui/Card'
+import Link from 'next/link'
+import { ArrowRight, TrendingUp } from 'lucide-react'
+import { useRapports } from '@/hooks/useRapports'
+import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
-function fmtHours(sec: number) {
-  const h = Math.floor(sec / 3600)
-  const m = Math.floor((sec % 3600) / 60)
-  return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`
+function fmtSec(sec: number) {
+  const h = Math.floor(sec/3600); const m = Math.floor((sec%3600)/60)
+  return h > 0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}min`
 }
-
 function fmtEur(n: number) {
-  return n.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 })
+  return n.toLocaleString('fr-BE', { style:'currency', currency:'EUR', minimumFractionDigits:0 })
 }
-
-const MONTH_NAMES = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
-
-function addPeriod(ref: Date, period: RapportPeriod, n: number): Date {
-  const d = new Date(ref)
-  if (period === 'week') d.setDate(d.getDate() + n * 7)
-  else d.setMonth(d.getMonth() + n)
-  return d
-}
-
-function periodLabel(ref: Date, period: RapportPeriod): string {
-  if (period === 'week') {
-    const day  = ref.getDay()
-    const diff = day === 0 ? -6 : 1 - day
-    const mon  = new Date(ref); mon.setDate(ref.getDate() + diff)
-    const sun  = new Date(mon); sun.setDate(mon.getDate() + 6)
-    return `${mon.getDate()} ${MONTH_NAMES[mon.getMonth()]} — ${sun.getDate()} ${MONTH_NAMES[sun.getMonth()]} ${sun.getFullYear()}`
-  }
-  return `${MONTH_NAMES[ref.getMonth()]} ${ref.getFullYear()}`
-}
-
-// ── Custom tooltip ─────────────────────────────────────────────────────────────
-
-function TimeTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="px-2.5 py-2 rounded-[8px] text-xs" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-      <p style={{ color: 'var(--text-muted)' }}>{label}</p>
-      <p className="font-semibold mt-0.5" style={{ color: 'var(--wheat)' }}>{fmtHours(payload[0].value)}</p>
-    </div>
-  )
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function RapportsPage() {
-  const [period, setPeriod] = useState<RapportPeriod>('week')
-  const [ref, setRef]       = useState(new Date())
+  const [period, setPeriod] = useState<'week'|'month'>('week')
+  const ref = period === 'week'
+    ? (() => { const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); d.setHours(0,0,0,0); return d })()
+    : (() => { const d=new Date(); d.setDate(1); d.setHours(0,0,0,0); return d })()
+  const { data, loading } = useRapports(period, ref)
 
-  const { data, loading, range } = useRapports(period, ref)
-
-  function prev() { setRef(r => addPeriod(r, period, -1)) }
-  function next() { setRef(r => addPeriod(r, period, +1)) }
-  function goNow() { setRef(new Date()) }
-
-  const billablePct = data && data.totalSeconds > 0
-    ? Math.round((data.billableSeconds / data.totalSeconds) * 100)
-    : 0
-
-  const taskPct = data && data.tasksTotal > 0
-    ? Math.round((data.tasksDone / data.tasksTotal) * 100)
-    : 0
+  const tabs = [{ key:'week', label:'Cette semaine' }, { key:'month', label:'Ce mois' }]
 
   return (
-    <div className="flex flex-col gap-5 max-w-[1200px]">
-      <PageHeader title="Rapports" sub="KPIs globaux · Activité · Facturation" />
+    <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
+      <PageTitle
+        title="Rapports"
+        sub="Semaine · Mensuel · Période · Personnel"
+        right={
+          <div className="flex gap-1">
+            {tabs.map(t => (
+              <button key={t.key} onClick={() => setPeriod(t.key as typeof period)}
+                className="px-4 py-2 rounded-lg"
+                style={{ background: period===t.key ? '#F2542D' : 'var(--bg-card)', color: period===t.key ? '#fff' : 'var(--text-muted)', border:'1px solid var(--border)', ...DF, fontSize:11, fontWeight:700 }}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
-      {/* Period nav */}
-      <div className="flex items-center gap-3">
-        {/* Toggle semaine/mois */}
-        <div className="flex rounded-[8px] overflow-hidden p-0.5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          {(['week', 'month'] as const).map(p => (
-            <button key={p} onClick={() => { setPeriod(p); setRef(new Date()) }}
-              className="px-3 py-1.5 text-xs font-medium rounded-[6px] transition-all"
-              style={{ background: period === p ? 'var(--bg)' : 'transparent', color: period === p ? 'var(--wheat)' : 'var(--text-muted)' }}>
-              {p === 'week' ? 'Semaine' : 'Mois'}
-            </button>
-          ))}
+      <KpiGrid>
+        <KpiCard label="Temps logué"     value={loading ? '…' : fmtSec(data?.totalSeconds??0)}     color="#F2542D" />
+        <KpiCard label="Tâches actives"  value={loading ? '…' : String(data?.totalTasks??0)}        color="#F5DFBB" />
+        <KpiCard label="Tâches complétées" value={loading ? '…' : String(data?.doneTasks??0)}       color="#0E9594" />
+        <KpiCard label="Revenus"         value={loading ? '…' : fmtEur(data?.totalIncome??0)}       color="#F0E4CC" />
+      </KpiGrid>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
+        {/* Left — time analysis */}
+        <div className="md:col-span-2 flex flex-col gap-[10px]">
+
+          {/* Daily activity bars */}
+          <div style={{ background:'#11686A', borderRadius:12, padding:20 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F0E4CC', textTransform:'uppercase', marginBottom:16 }}>Analyse de l'activité</p>
+            {loading ? <p style={{ color:'rgba(240,228,204,0.5)', fontSize:12 }}>Chargement…</p> : (
+              <div className="flex items-end gap-2" style={{ height:100 }}>
+                {(data?.dailyData ?? []).map((d, i) => {
+                  const maxSec = Math.max(...(data?.dailyData??[]).map(x=>x.seconds), 1)
+                  const h = Math.max(4, (d.seconds/maxSec)*90)
+                  const label = new Date(d.date).toLocaleDateString('fr-FR',{weekday:'short'}).slice(0,1).toUpperCase()
+                  return (
+                    <div key={i} className="flex flex-col items-center gap-1" style={{ flex:1 }}>
+                      <div style={{ width:'100%', height:h, borderRadius:4, background: d.seconds>0 ? '#F2542D' : 'rgba(240,228,204,0.15)' }} />
+                      <span style={{ fontSize:9, color:'rgba(240,228,204,0.6)' }}>{label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Time tracker detail */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)' }}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
+              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F2542D', textTransform:'uppercase' }}>Time Tracker</p>
+              <Link href="/time-tracker" style={{ fontSize:10, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:4 }}>
+                Voir tout <ArrowRight size={10} />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5">
+              {[
+                { label:'Total heures',    value: loading ? '…' : fmtSec(data?.totalSeconds??0) },
+                { label:'Moy. / jour',     value: loading ? '…' : fmtSec(Math.round((data?.totalSeconds??0)/(period==='week'?7:30))) },
+                { label:'Sessions',        value: '—' },
+                { label:'Facturable',      value: '—' },
+              ].map(stat => (
+                <div key={stat.label}>
+                  <p style={{ ...DF, fontWeight:900, fontSize:22, color:'var(--wheat)', lineHeight:1 }}>{stat.value}</p>
+                  <p style={{ fontSize:9, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:3 }}>{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tasks breakdown */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)' }}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
+              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase' }}>Bien-être & activité</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5">
+              {[
+                { label:'Tâches totales',    value: loading ? '…' : String(data?.totalTasks??0), color:'var(--wheat)' },
+                { label:'Terminées',         value: loading ? '…' : String(data?.doneTasks??0),  color:'#0E9594' },
+                { label:'Événements',        value: loading ? '…' : String(data?.totalEvents??0), color:'#F5DFBB' },
+                { label:'Taux complétion',   value: loading||!(data?.totalTasks) ? '—' : `${Math.round((data!.doneTasks/data!.totalTasks)*100)}%`, color:'#F2542D' },
+              ].map(stat => (
+                <div key={stat.label}>
+                  <p style={{ ...DF, fontWeight:900, fontSize:22, color:stat.color, lineHeight:1 }}>{stat.value}</p>
+                  <p style={{ fontSize:9, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:3 }}>{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <button onClick={prev} className="p-1.5 rounded-[6px]" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <ChevronLeft size={14} style={{ color: 'var(--text-muted)' }} />
-        </button>
-        <span className="text-sm font-semibold" style={{ color: 'var(--wheat)' }}>{periodLabel(ref, period)}</span>
-        <button onClick={next} className="p-1.5 rounded-[6px]" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
-        </button>
-        <button onClick={goNow} className="px-3 py-1 text-xs rounded-[6px]" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-          Aujourd'hui
-        </button>
-
-        {loading && <span className="text-xs ml-2" style={{ color: 'var(--text-muted)' }}>Chargement…</span>}
-      </div>
-
-      {/* ── KPI row ── */}
-      <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <Clock size={13} style={{ color: '#F2542D' }} />
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Temps total</span>
-          </div>
-          <p className="text-2xl font-black" style={{ color: 'var(--wheat)' }}>{data ? fmtHours(data.totalSeconds) : '—'}</p>
-          <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>
-            {data ? `${fmtHours(data.billableSeconds)} facturable (${billablePct}%)` : ''}
-          </p>
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <CheckSquare size={13} style={{ color: '#0E9594' }} />
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Tâches</span>
-          </div>
-          <p className="text-2xl font-black" style={{ color: 'var(--wheat)' }}>
-            {data ? `${data.tasksDone}/${data.tasksTotal}` : '—'}
-          </p>
-          {data && data.tasksLate > 0 && (
-            <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: '#F2542D' }}>
-              <AlertTriangle size={10} /> {data.tasksLate} en retard
-            </p>
-          )}
-          {data && data.tasksLate === 0 && data.tasksTotal > 0 && (
-            <p className="text-[10px] mt-1" style={{ color: '#0E9594' }}>{taskPct}% complété</p>
-          )}
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <Wallet size={13} style={{ color: '#F5DFBB' }} />
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Solde</span>
-          </div>
-          {data ? (
-            <>
-              <p className="text-2xl font-black" style={{ color: (data.totalIncome - data.totalExpense) >= 0 ? '#0E9594' : '#F2542D' }}>
-                {(data.totalIncome - data.totalExpense) >= 0 ? '+' : ''}{fmtEur(data.totalIncome - data.totalExpense)}
-              </p>
-              <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>
-                <span style={{ color: '#0E9594' }}>+{fmtEur(data.totalIncome)}</span>
-                {' / '}
-                <span style={{ color: '#F2542D' }}>-{fmtEur(data.totalExpense)}</span>
-              </p>
-            </>
-          ) : <p className="text-2xl font-black" style={{ color: 'var(--wheat)' }}>—</p>}
-        </Card>
-
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <Activity size={13} style={{ color: '#11686A' }} />
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Running</span>
-          </div>
-          <p className="text-2xl font-black" style={{ color: 'var(--wheat)' }}>
-            {data ? `${data.totalKm.toFixed(1)} km` : '—'}
-          </p>
-          <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>
-            {data ? `${data.totalRuns} sortie${data.totalRuns !== 1 ? 's' : ''}${data.latestWeight ? ` · ${data.latestWeight} kg` : ''}` : ''}
-          </p>
-        </Card>
-      </div>
-
-      {/* ── Charts row ── */}
-      <div className="grid grid-cols-[1fr_300px] gap-5">
-
-        {/* Daily time chart */}
-        <Card>
-          <p className="text-[10px] uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Temps par jour</p>
-          {data && data.dailyStats.some(d => d.seconds > 0) ? (
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={data.dailyStats} barSize={period === 'week' ? 28 : 10}>
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip content={<TimeTooltip />} cursor={{ fill: 'var(--bg)', opacity: 0.5 }} />
-                <Bar dataKey="seconds" radius={[4, 4, 0, 0]} name="Temps">
-                  {data.dailyStats.map((d, i) => (
-                    <Cell key={i} fill={d.seconds > 0 ? '#F2542D' : 'var(--border)'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-40" style={{ color: 'var(--text-muted)' }}>
-              <p className="text-xs">Aucune entrée de temps sur cette période.</p>
-            </div>
-          )}
-        </Card>
-
-        {/* Projects breakdown */}
-        <Card>
-          <p className="text-[10px] uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Temps par projet</p>
-          {data && data.projectStats.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={120}>
-                <PieChart>
-                  <Pie
-                    data={data.projectStats}
-                    dataKey="total_seconds"
-                    nameKey="project_name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={30}
-                    outerRadius={55}
-                    paddingAngle={2}
-                  >
-                    {data.projectStats.map((p, i) => (
-                      <Cell key={i} fill={p.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(v: number) => fmtHours(v)}
-                    contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11 }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex flex-col gap-1.5 mt-2">
-                {data.projectStats.slice(0, 5).map((p, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
-                    <span className="text-[10px] flex-1 truncate" style={{ color: 'var(--wheat)' }}>{p.project_name}</span>
-                    <span className="text-[10px] font-semibold" style={{ color: p.color }}>{fmtHours(p.total_seconds)}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-32" style={{ color: 'var(--text-muted)' }}>
-              <p className="text-xs">Aucun projet loggué.</p>
-            </div>
-          )}
-        </Card>
-      </div>
-
-      {/* ── Budget + Tasks row ── */}
-      <div className="grid grid-cols-2 gap-5">
-
-        {/* Budget bar */}
-        <Card>
-          <p className="text-[10px] uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Budget</p>
-          {data && (data.totalIncome > 0 || data.totalExpense > 0) ? (
-            <>
-              <div className="flex items-end gap-4 mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <TrendingUp size={11} style={{ color: '#0E9594' }} />
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Revenus</span>
-                  </div>
-                  <p className="text-lg font-bold" style={{ color: '#0E9594' }}>{fmtEur(data.totalIncome)}</p>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <TrendingDown size={11} style={{ color: '#F2542D' }} />
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Dépenses</span>
-                  </div>
-                  <p className="text-lg font-bold" style={{ color: '#F2542D' }}>{fmtEur(data.totalExpense)}</p>
-                </div>
-              </div>
-              {/* Visual ratio bar */}
-              {data.totalIncome > 0 && (
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: '#F2542D' }}>
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, (data.totalIncome / (data.totalIncome + data.totalExpense)) * 100)}%`, background: '#0E9594' }} />
-                </div>
-              )}
-              <p className="text-[10px] mt-2" style={{ color: 'var(--text-muted)' }}>
-                Taux d'épargne : {data.totalIncome > 0 ? `${Math.round(((data.totalIncome - data.totalExpense) / data.totalIncome) * 100)}%` : '—'}
-              </p>
-            </>
-          ) : (
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Aucune transaction sur cette période.</p>
-          )}
-        </Card>
-
-        {/* Tasks breakdown */}
-        <Card>
-          <p className="text-[10px] uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Avancement des tâches</p>
-          {data && data.tasksTotal > 0 ? (
-            <>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="relative w-20 h-20">
-                  <svg viewBox="0 0 36 36" className="w-20 h-20 -rotate-90">
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--border)" strokeWidth="2.5" />
-                    <circle cx="18" cy="18" r="15.9" fill="none"
-                      stroke={taskPct === 100 ? '#0E9594' : '#F2542D'}
-                      strokeWidth="2.5"
-                      strokeDasharray={`${taskPct} ${100 - taskPct}`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-black" style={{ color: 'var(--wheat)' }}>{taskPct}%</span>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: '#0E9594' }} />
-                    <span className="text-xs" style={{ color: 'var(--wheat)' }}>{data.tasksDone} terminée{data.tasksDone !== 1 ? 's' : ''}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: 'var(--border)' }} />
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{data.tasksTotal - data.tasksDone} restante{data.tasksTotal - data.tasksDone !== 1 ? 's' : ''}</span>
-                  </div>
-                  {data.tasksLate > 0 && (
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle size={10} style={{ color: '#F2542D' }} />
-                      <span className="text-xs" style={{ color: '#F2542D' }}>{data.tasksLate} en retard</span>
+        {/* Right column */}
+        <div className="flex flex-col gap-[10px]">
+          {/* Time distribution donut-like */}
+          <div style={{ background:'#F2542D', borderRadius:12, padding:20 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:12 }}>Répartition du temps</p>
+            {loading ? <p style={{ fontSize:12, color:'rgba(26,10,10,0.6)' }}>…</p> : (
+              (data?.byProject ?? []).slice(0,6).map(p => {
+                const totalSec = data?.totalSeconds ?? 1
+                const pct = Math.round(p.seconds/totalSec*100)
+                return (
+                  <div key={p.project_name} className="mb-3">
+                    <div className="flex justify-between mb-1">
+                      <span style={{ fontSize:11, color:'#1A0A0A' }}>{p.project_name}</span>
+                      <span style={{ ...DF, fontSize:11, fontWeight:800, color:'#1A0A0A' }}>{pct}%</span>
                     </div>
-                  )}
+                    <div style={{ height:4, borderRadius:99, background:'rgba(0,0,0,0.2)', overflow:'hidden' }}>
+                      <div style={{ height:'100%', borderRadius:99, background:'#1A0A0A', width:`${pct}%` }} />
+                    </div>
+                  </div>
+                )
+              })
+            )}
+            {(!loading && !(data?.byProject?.length)) && (
+              <p style={{ fontSize:12, color:'rgba(26,10,10,0.5)' }}>Aucune donnée</p>
+            )}
+          </div>
+
+          {/* Budget */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--text-muted)', textTransform:'uppercase', marginBottom:12 }}>Budget</p>
+            {loading ? <p style={{ fontSize:12, color:'var(--text-muted)' }}>…</p> : (
+              <>
+                <p style={{ ...DF, fontWeight:900, fontSize:28, color:(data?.totalIncome??0)>=(data?.totalExpense??0)?'#0E9594':'#F2542D', lineHeight:1 }}>
+                  {fmtEur((data?.totalIncome??0)-(data?.totalExpense??0))}
+                </p>
+                <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:4 }}>solde {period==='week'?'semaine':'mois'}</p>
+                <div className="mt-3 pt-3 flex flex-col gap-1" style={{ borderTop:'1px solid var(--border)' }}>
+                  <div className="flex justify-between">
+                    <span style={{ fontSize:10, color:'#0E9594' }}>Revenus</span>
+                    <span style={{ ...DF, fontSize:11, fontWeight:700, color:'#0E9594' }}>{fmtEur(data?.totalIncome??0)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span style={{ fontSize:10, color:'#F2542D' }}>Dépenses</span>
+                    <span style={{ ...DF, fontSize:11, fontWeight:700, color:'#F2542D' }}>{fmtEur(data?.totalExpense??0)}</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Objectifs */}
+          <div style={{ background:'#0E9594', borderRadius:12, padding:16 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:10 }}>Objectifs</p>
+            {[
+              { label:'Tâches / jour', target:5, current: loading ? 0 : Math.round((data?.doneTasks??0)/(period==='week'?7:30)) },
+              { label:'Heures / jour', target:6, current: loading ? 0 : Math.round((data?.totalSeconds??0)/3600/(period==='week'?7:30)) },
+            ].map(obj => (
+              <div key={obj.label} className="mb-3">
+                <div className="flex justify-between mb-1">
+                  <span style={{ fontSize:11, color:'#1A0A0A' }}>{obj.label}</span>
+                  <span style={{ ...DF, fontSize:11, fontWeight:700, color:'#1A0A0A' }}>{obj.current}/{obj.target}</span>
+                </div>
+                <div style={{ height:4, borderRadius:99, background:'rgba(0,0,0,0.2)', overflow:'hidden' }}>
+                  <div style={{ height:'100%', borderRadius:99, background:'#1A0A0A', width:`${Math.min(100,obj.current/obj.target*100)}%` }} />
                 </div>
               </div>
-              {/* Daily tasks done bar */}
-              {data.dailyStats.some(d => d.tasks_done > 0) && (
-                <ResponsiveContainer width="100%" height={60}>
-                  <BarChart data={data.dailyStats} barSize={period === 'week' ? 22 : 6}>
-                    <XAxis dataKey="label" tick={{ fontSize: 9, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
-                    <YAxis hide />
-                    <Bar dataKey="tasks_done" radius={[3,3,0,0]} fill="#0E9594" name="Tâches" />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </>
-          ) : (
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Aucune tâche créée sur cette période.</p>
-          )}
-        </Card>
+            ))}
+          </div>
+        </div>
       </div>
-
-      {/* ── Footer note ── */}
-      <p className="text-[10px] text-center pb-2" style={{ color: 'var(--text-muted)' }}>
-        Données du {range.start} au {range.end} · NYSA Life OS
-      </p>
     </div>
   )
 }

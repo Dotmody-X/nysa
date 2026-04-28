@@ -1,291 +1,237 @@
 'use client'
+import { useState } from 'react'
+import Link from 'next/link'
+import { Plus, Search, Calendar, CheckCircle2, Circle, Star, Clock, ChevronDown } from 'lucide-react'
+import { useTasks } from '@/hooks/useTasks'
+import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
 
-import { useState, useMemo } from 'react'
-import { Plus, Trash2, AlertCircle, Calendar, Clock, ChevronDown } from 'lucide-react'
-import { useTasks }    from '@/hooks/useTasks'
-import { useProjects } from '@/hooks/useProjects'
-import { PageHeader }  from '@/components/layout/PageHeader'
-import { Card }        from '@/components/ui/Card'
-import { Badge }       from '@/components/ui/Badge'
-import { Button }      from '@/components/ui/Button'
-import type { Task }   from '@/types'
+const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
-// ─── Utils ───────────────────────────────────────────────────────────────────
-function today()    { return new Date().toISOString().slice(0, 10) }
-function inDays(n: number) {
-  const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10)
+const PRIORITY_COLOR: Record<string, string> = {
+  urgent: '#F2542D', high: '#F5DFBB', medium: '#0E9594', low: '#555',
 }
-const priorityColor = {
-  urgent: '#F2542D', high: '#F5DFBB', medium: '#0E9594', low: '#11686A',
-} as Record<string, string>
-
-// ─── TaskRow ─────────────────────────────────────────────────────────────────
-function TaskRow({
-  task, onToggle, onDelete, projectName,
-}: {
-  task: Task
-  onToggle: () => void
-  onDelete: () => void
-  projectName?: string
-}) {
-  const done = task.status === 'done'
-  return (
-    <div
-      className="flex items-center gap-3 px-4 py-2.5 group transition-colors"
-      style={{ borderBottom: '1px solid var(--border)' }}
-      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(245,223,187,0.02)')}
-      onMouseLeave={e => (e.currentTarget.style.background = '')}
-    >
-      {/* Checkbox */}
-      <button
-        onClick={onToggle}
-        className="w-4 h-4 rounded-[4px] shrink-0 flex items-center justify-center border transition-colors"
-        style={{
-          background:   done ? '#0E9594' : 'transparent',
-          borderColor:  done ? '#0E9594' : 'var(--border)',
-        }}
-      >
-        {done && <span className="text-[9px] font-bold" style={{ color: 'var(--bg)' }}>✓</span>}
-      </button>
-
-      {/* Titre */}
-      <span
-        className="flex-1 text-xs leading-snug"
-        style={{
-          color:          done ? 'var(--text-muted)' : 'var(--wheat)',
-          textDecoration: done ? 'line-through' : 'none',
-        }}
-      >
-        {task.title}
-      </span>
-
-      {/* Projet */}
-      {projectName && (
-        <Badge variant="teal" className="text-[9px] shrink-0">{projectName}</Badge>
-      )}
-
-      {/* Priorité */}
-      <span
-        className="w-1.5 h-1.5 rounded-full shrink-0"
-        style={{ background: priorityColor[task.priority] ?? 'var(--text-muted)' }}
-        title={task.priority}
-      />
-
-      {/* Date */}
-      {task.due_date && (
-        <span className="text-[10px] shrink-0" style={{ color: 'var(--text-muted)' }}>
-          {new Date(task.due_date).toLocaleDateString('fr-BE', { day: '2-digit', month: 'short' })}
-        </span>
-      )}
-
-      {/* Supprimer */}
-      <button
-        onClick={onDelete}
-        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        <Trash2 size={11} />
-      </button>
-    </div>
-  )
+const PRIORITY_BG: Record<string, string> = {
+  urgent: 'rgba(242,84,45,0.15)', high: 'rgba(245,223,187,0.1)', medium: 'rgba(14,149,148,0.12)', low: 'rgba(80,80,80,0.15)',
 }
 
-// ─── Section ─────────────────────────────────────────────────────────────────
-function Section({
-  title, icon, tasks, onToggle, onDelete, getProjectName, accent,
-}: {
-  title:          string
-  icon:           React.ReactNode
-  tasks:          Task[]
-  onToggle:       (t: Task) => void
-  onDelete:       (id: string) => void
-  getProjectName: (id?: string) => string | undefined
-  accent?:        string
-}) {
-  const [open, setOpen] = useState(true)
-  if (!tasks.length) return null
-  return (
-    <div>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2 px-4 py-2.5"
-        style={{ borderBottom: '1px solid var(--border)', background: 'rgba(245,223,187,0.02)' }}
-      >
-        <span style={{ color: accent ?? 'var(--text-muted)' }}>{icon}</span>
-        <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: accent ?? 'var(--text-muted)' }}>
-          {title}
-        </span>
-        <Badge variant="wheat" className="text-[9px]">{tasks.length}</Badge>
-        <ChevronDown size={12} className="ml-auto transition-transform" style={{ color: 'var(--text-muted)', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
-      </button>
-      {open && tasks.map(t => (
-        <TaskRow
-          key={t.id}
-          task={t}
-          onToggle={() => onToggle(t)}
-          onDelete={() => onDelete(t.id)}
-          projectName={getProjectName(t.project_id ?? undefined)}
-        />
-      ))}
-    </div>
-  )
-}
-
-// ─── Page ────────────────────────────────────────────────────────────────────
 export default function TodoPage() {
-  const { tasks, loading, create, toggle, remove } = useTasks()
-  const { projects } = useProjects()
-
-  const [form, setForm] = useState({
-    title: '', priority: 'medium' as Task['priority'],
-    due_date: today(), project_id: '',
-  })
+  const { tasks, loading, create, toggle } = useTasks()
+  const [search, setSearch] = useState('')
+  const [tab, setTab] = useState<'toutes' | 'priorites' | 'auto'>('toutes')
   const [showForm, setShowForm] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newPriority, setNewPriority] = useState<'urgent'|'high'|'medium'|'low'>('medium')
 
-  const getProjectName = (id?: string) => projects.find(p => p.id === id)?.name
+  const today = new Date().toISOString().slice(0, 10)
 
-  // Sections
-  const { late, todayTasks, weekTasks, futureTasks } = useMemo(() => {
-    const t0 = today()
-    const t7 = inDays(7)
-    const pending = tasks.filter(t => t.status !== 'done')
-    return {
-      late:       pending.filter(t => t.due_date && t.due_date < t0),
-      todayTasks: pending.filter(t => t.due_date === t0 || (!t.due_date && t.status === 'todo')),
-      weekTasks:  pending.filter(t => t.due_date && t.due_date > t0 && t.due_date <= t7),
-      futureTasks:pending.filter(t => t.due_date && t.due_date > t7),
-    }
-  }, [tasks])
+  const filtered = tasks.filter(t =>
+    !search || t.title.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const todayTasks    = filtered.filter(t => t.due_date === today && t.status !== 'done')
+  const weekTasks     = filtered.filter(t => t.due_date && t.due_date > today && t.status !== 'done')
+  const lateTasks     = filtered.filter(t => t.due_date && t.due_date < today && t.status !== 'done')
+  const doneTasks     = filtered.filter(t => t.status === 'done')
+  const urgentTasks   = filtered.filter(t => t.priority === 'urgent' && t.status !== 'done')
+  const noDateTasks   = filtered.filter(t => !t.due_date && t.status !== 'done')
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title.trim()) return
-    await create({
-      title:      form.title.trim(),
-      priority:   form.priority,
-      due_date:   form.due_date || undefined,
-      project_id: form.project_id || undefined,
-    })
-    setForm({ title: '', priority: 'medium', due_date: today(), project_id: '' })
-    setShowForm(false)
+    if (!newTitle.trim()) return
+    await create({ title: newTitle.trim(), priority: newPriority, due_date: today })
+    setNewTitle(''); setShowForm(false)
   }
 
-  const doneTasks  = tasks.filter(t => t.status === 'done')
-  const totalTasks = tasks.length
+  const tabs = [
+    { key: 'toutes', label: 'Toutes les tâches' },
+    { key: 'priorites', label: 'Priorités' },
+    { key: 'auto', label: 'Automatiques' },
+  ]
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
-      <PageHeader
-        title="To-Do List"
-        sub={`${doneTasks.length} / ${totalTasks} tâches complétées`}
-        actions={
-          <Button variant="primary" size="sm" onClick={() => setShowForm(s => !s)}>
-            <Plus size={13} /> Nouvelle tâche
-          </Button>
+    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
+      <PageTitle
+        title="To Do List"
+        sub="Organisées · Priorités · Automatiques"
+        right={
+          <button onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl"
+            style={{ background: '#F2542D', color: '#fff', ...DF, fontWeight: 700, fontSize: 12 }}>
+            <Plus size={14} /> Ajouter une tâche
+          </button>
         }
       />
 
-      {/* ── FORMULAIRE ─────────────────────────────────────────────────── */}
-      {showForm && (
-        <Card>
-          <form onSubmit={handleCreate} className="flex flex-col gap-3">
-            <input
-              autoFocus
-              value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              placeholder="Titre de la tâche…"
-              className="w-full bg-transparent outline-none text-sm"
-              style={{ color: 'var(--wheat)' }}
-            />
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Priorité */}
-              <select
-                value={form.priority}
-                onChange={e => setForm(f => ({ ...f, priority: e.target.value as Task['priority'] }))}
-                className="text-xs px-2 py-1.5 rounded-[6px] outline-none"
-                style={{ background: 'var(--bg-input)', color: 'var(--wheat)', border: '1px solid var(--border)' }}
-              >
-                <option value="low">Basse</option>
-                <option value="medium">Moyenne</option>
-                <option value="high">Haute</option>
-                <option value="urgent">Urgente</option>
-              </select>
+      {/* KPIs */}
+      <KpiGrid>
+        <KpiCard label="Tâches totales"    value={String(tasks.filter(t=>t.status!=='done').length)} sub="actives" />
+        <KpiCard label="Proches deadline"  value={String(weekTasks.length)}  color="#F5DFBB" />
+        <KpiCard label="Urgentes"          value={String(urgentTasks.length)} color="#F2542D" />
+        <KpiCard label="Terminées"         value={String(doneTasks.length)}   color="#0E9594" />
+      </KpiGrid>
 
-              {/* Date */}
-              <input
-                type="date"
-                value={form.due_date}
-                onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))}
-                className="text-xs px-2 py-1.5 rounded-[6px] outline-none"
-                style={{ background: 'var(--bg-input)', color: 'var(--wheat)', border: '1px solid var(--border)' }}
-              />
-
-              {/* Projet */}
-              <select
-                value={form.project_id}
-                onChange={e => setForm(f => ({ ...f, project_id: e.target.value }))}
-                className="text-xs px-2 py-1.5 rounded-[6px] outline-none"
-                style={{ background: 'var(--bg-input)', color: 'var(--wheat)', border: '1px solid var(--border)' }}
-              >
-                <option value="">Sans projet</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-
-              <div className="flex gap-2 ml-auto">
-                <Button type="button" variant="ghost" size="sm" onClick={() => setShowForm(false)}>Annuler</Button>
-                <Button type="submit" variant="primary" size="sm">Ajouter</Button>
-              </div>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      {/* ── STATS RAPIDES ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label: 'En retard',       value: late.length,        color: '#F2542D' },
-          { label: "Aujourd'hui",     value: todayTasks.length,  color: '#F5DFBB' },
-          { label: 'Cette semaine',   value: weekTasks.length,   color: '#0E9594' },
-          { label: 'Terminées',       value: doneTasks.length,   color: '#11686A' },
-        ].map(({ label, value, color }) => (
-          <Card key={label} padding="sm" className="text-center">
-            <p className="text-xl font-bold" style={{ color }}>{value}</p>
-            <p className="text-[10px] mt-0.5 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{label}</p>
-          </Card>
+      {/* Tabs */}
+      <div className="flex gap-1">
+        {tabs.map(t => (
+          <button key={t.key} onClick={() => setTab(t.key as typeof tab)}
+            className="px-4 py-2 rounded-lg"
+            style={{ background: tab === t.key ? '#F2542D' : 'var(--bg-card)', color: tab === t.key ? '#fff' : 'var(--text-muted)', border: '1px solid var(--border)', ...DF, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
+            {t.label}
+          </button>
         ))}
+        <div className="flex-1" />
+        <div className="flex items-center gap-2 px-3 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <Search size={12} style={{ color: 'var(--text-muted)' }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…"
+            style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)', width: 160 }} />
+        </div>
       </div>
 
-      {/* ── LISTE ──────────────────────────────────────────────────────── */}
-      <Card padding="none">
-        {loading ? (
-          <div className="px-4 py-8 text-center text-xs" style={{ color: 'var(--text-muted)' }}>Chargement…</div>
-        ) : tasks.length === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Aucune tâche pour l&apos;instant.</p>
-            <p className="text-xs mt-1" style={{ color: 'var(--text-subtle)' }}>Clique sur &quot;Nouvelle tâche&quot; pour commencer.</p>
-          </div>
-        ) : (
-          <>
-            <Section title="En retard"      icon={<AlertCircle size={13}/>} tasks={late}        onToggle={t => toggle(t.id, t.status)} onDelete={remove} getProjectName={getProjectName} accent="#F2542D" />
-            <Section title="Aujourd'hui"    icon={<Clock size={13}/>}       tasks={todayTasks}  onToggle={t => toggle(t.id, t.status)} onDelete={remove} getProjectName={getProjectName} accent="#F5DFBB" />
-            <Section title="Cette semaine"  icon={<Calendar size={13}/>}    tasks={weekTasks}   onToggle={t => toggle(t.id, t.status)} onDelete={remove} getProjectName={getProjectName} accent="#0E9594" />
-            <Section title="Plus tard"      icon={<Calendar size={13}/>}    tasks={futureTasks} onToggle={t => toggle(t.id, t.status)} onDelete={remove} getProjectName={getProjectName} />
+      {/* Add form */}
+      {showForm && (
+        <form onSubmit={handleCreate} className="flex gap-2 p-4 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-active)' }}>
+          <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Titre de la tâche…" autoFocus
+            style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13 }} />
+          <select value={newPriority} onChange={e => setNewPriority(e.target.value as typeof newPriority)}
+            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }}>
+            <option value="urgent">Urgent</option>
+            <option value="high">Haute</option>
+            <option value="medium">Moyenne</option>
+            <option value="low">Basse</option>
+          </select>
+          <button type="submit" style={{ background: '#F2542D', color: '#fff', borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12 }}>Créer</button>
+        </form>
+      )}
 
-            {/* Terminées */}
-            {doneTasks.length > 0 && (
-              <Section
-                title="Terminées"
-                icon={<span>✓</span>}
-                tasks={doneTasks}
-                onToggle={t => toggle(t.id, t.status)}
-                onDelete={remove}
-                getProjectName={getProjectName}
-                accent="#11686A"
-              />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
+        {/* Main task lists */}
+        <div className="md:col-span-2 flex flex-col gap-[10px]">
+          <TaskSection title="Aujourd'hui" color="#F2542D" tasks={todayTasks} onToggle={toggle} loading={loading} />
+          <TaskSection title="Cette semaine" color="#0E9594" tasks={weekTasks} onToggle={toggle} loading={loading} />
+          {lateTasks.length > 0 && <TaskSection title="En retard" color="#F2542D" tasks={lateTasks} onToggle={toggle} loading={loading} bg="rgba(242,84,45,0.05)" />}
+          <TaskSection title="Sans date" color="var(--text-muted)" tasks={noDateTasks} onToggle={toggle} loading={loading} />
+          {doneTasks.length > 0 && <TaskSection title="Terminées" color="#0E9594" tasks={doneTasks.slice(0,10)} onToggle={toggle} loading={loading} collapsed />}
+        </div>
+
+        {/* Right sidebar */}
+        <div className="flex flex-col gap-[10px]">
+          {/* Mini calendar */}
+          <MiniCalendar tasks={tasks} />
+
+          {/* Distribution par priorité */}
+          <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F2542D', textTransform: 'uppercase', marginBottom: 12 }}>Répartition priorités</p>
+            {(['urgent','high','medium','low'] as const).map(p => {
+              const count = tasks.filter(t => t.priority === p && t.status !== 'done').length
+              const total = tasks.filter(t => t.status !== 'done').length
+              const pct = total ? Math.round(count/total*100) : 0
+              const labels: Record<string,string> = { urgent:'Urgent', high:'Haute', medium:'Moyenne', low:'Basse' }
+              return (
+                <div key={p} className="flex items-center gap-2 mb-2">
+                  <span style={{ ...DF, fontSize: 10, fontWeight: 600, color: PRIORITY_COLOR[p], width: 56 }}>{labels[p]}</span>
+                  <div style={{ flex: 1, height: 6, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 99, background: PRIORITY_COLOR[p], width: `${pct}%` }} />
+                  </div>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', width: 28, textAlign: 'right' }}>{count}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Filtres rapides */}
+          <div style={{ background: '#F2542D', borderRadius: 12, padding: 16 }}>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#1A0A0A', textTransform: 'uppercase', marginBottom: 10 }}>Filtres rapides</p>
+            {[
+              { label: 'Sans projet', count: tasks.filter(t => !t.project_id && t.status !== 'done').length },
+              { label: 'Avec date', count: tasks.filter(t => t.due_date && t.status !== 'done').length },
+              { label: 'Favoris', count: 0 },
+            ].map(f => (
+              <div key={f.label} className="flex items-center justify-between py-1.5">
+                <span style={{ fontSize: 12, color: '#1A0A0A' }}>{f.label}</span>
+                <span style={{ ...DF, fontWeight: 800, fontSize: 14, color: '#1A0A0A' }}>{f.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TaskSection({ title, color, tasks, onToggle, loading, collapsed = false, bg }: {
+  title: string; color: string; tasks: any[]; onToggle: (id:string,s:any)=>void; loading: boolean; collapsed?: boolean; bg?: string
+}) {
+  const [open, setOpen] = useState(!collapsed)
+  return (
+    <div style={{ background: bg ?? 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between px-5 py-3"
+        style={{ borderBottom: open ? '1px solid var(--border)' : 'none' }}>
+        <span style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color, textTransform: 'uppercase' }}>{title}</span>
+        <div className="flex items-center gap-2">
+          <span style={{ ...DF, fontSize: 12, fontWeight: 700, color }}>{tasks.length}</span>
+          <ChevronDown size={12} style={{ color: 'var(--text-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        </div>
+      </button>
+      {open && (
+        loading ? <p className="text-xs p-5" style={{ color: 'var(--text-muted)' }}>Chargement…</p>
+        : tasks.length === 0 ? <p className="text-xs p-5" style={{ color: 'var(--text-muted)' }}>Aucune tâche</p>
+        : tasks.map(t => (
+          <div key={t.id} className="flex items-center gap-3 px-5 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+            <button onClick={() => onToggle(t.id, t.status)}>
+              {t.status === 'done'
+                ? <CheckCircle2 size={16} style={{ color: '#0E9594' }} />
+                : <Circle size={16} style={{ color: 'var(--text-muted)' }} />}
+            </button>
+            <div className="flex-1 min-w-0">
+              <p style={{ fontSize: 13, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>
+                {t.title}
+              </p>
+              {t.due_date && <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}><Clock size={9} style={{ display:'inline', marginRight:3 }} />{t.due_date}</p>}
+            </div>
+            {t.priority && (
+              <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 4, background: PRIORITY_BG[t.priority], color: PRIORITY_COLOR[t.priority], ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {t.priority}
+              </span>
             )}
-          </>
-        )}
-      </Card>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+function MiniCalendar({ tasks }: { tasks: any[] }) {
+  const today = new Date()
+  const year = today.getFullYear(); const month = today.getMonth()
+  const firstDay = new Date(year, month, 1).getDay() || 7
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const days = Array.from({ length: firstDay - 1 }, () => null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1))
+  const taskDates = new Set(tasks.map(t => t.due_date))
+  const monthName = today.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+
+  return (
+    <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+      <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#0E9594', textTransform: 'uppercase', marginBottom: 10 }}>Calendrier</p>
+      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'capitalize' }}>{monthName}</p>
+      <div className="grid grid-cols-7 gap-0.5 text-center">
+        {['L','M','M','J','V','S','D'].map((d,i) => (
+          <span key={i} style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, padding: '2px 0' }}>{d}</span>
+        ))}
+        {days.map((d, i) => {
+          if (!d) return <span key={i} />
+          const iso = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+          const isToday = d === today.getDate()
+          const hasTasks = taskDates.has(iso)
+          return (
+            <span key={i} style={{
+              fontSize: 10, padding: '3px 2px', borderRadius: 4,
+              background: isToday ? '#F2542D' : 'transparent',
+              color: isToday ? '#fff' : hasTasks ? '#0E9594' : 'var(--text-muted)',
+              fontWeight: isToday || hasTasks ? 700 : 400,
+            }}>{d}</span>
+          )
+        })}
+      </div>
     </div>
   )
 }

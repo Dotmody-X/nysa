@@ -1,370 +1,216 @@
 'use client'
-
 import { useState } from 'react'
-import { Plus, X, Trash2, TrendingUp, TrendingDown, Wallet, ChevronLeft, ChevronRight } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { useBudget, NewTransaction } from '@/hooks/useBudget'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { Plus, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react'
+import { useBudget, type NewTransaction, type NewCategory } from '@/hooks/useBudget'
+import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
 
-function fmt(n: number) {
-  return n.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 })
-}
-
-const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
-
-const DEFAULT_COLORS = ['#F2542D','#0E9594','#F5DFBB','#562C2C','#11686A','#888','#e67e22','#9b59b6']
+const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+function fmtEur(n: number) { return n.toLocaleString('fr-BE', { style:'currency', currency:'EUR', minimumFractionDigits:0 }) }
 
 export default function BudgetPage() {
   const now = new Date()
   const [year,  setYear]  = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
+  const { transactions, categories, loading, addTransaction, addCategory } = useBudget(year, month)
+  const [tab, setTab] = useState<'transactions'|'categories'|'objectifs'>('transactions')
+  const [showTxForm, setShowTxForm] = useState(false)
+  const [txForm, setTxForm] = useState<NewTransaction>({ amount:0, type:'expense', date: now.toISOString().slice(0,10), description:'' })
 
-  const {
-    transactions, categories, loading,
-    addTransaction, removeTransaction,
-    totalIncome, totalExpense, balance,
-    byCategory, dailyData,
-  } = useBudget(year, month)
+  const income   = transactions.filter(t => t.type==='income').reduce((s,t) => s+t.amount, 0)
+  const expense  = transactions.filter(t => t.type==='expense').reduce((s,t) => s+t.amount, 0)
+  const balance  = income - expense
+  const savings  = income > 0 ? Math.round(balance/income*100) : 0
 
-  // Form state
-  const [tab,     setTab]     = useState<'expense' | 'income'>('expense')
-  const [form,    setForm]    = useState({ amount: '', description: '', date: now.toISOString().slice(0,10), budget_category_id: '' })
-  const [saving,  setSaving]  = useState(false)
-  const [deleting, setDeleting] = useState<string | null>(null)
+  const byCategory = categories.map(cat => ({
+    ...cat,
+    total: transactions.filter(t => t.budget_category_id === cat.id).reduce((s,t) => s+t.amount, 0),
+  })).filter(c => c.total > 0).sort((a,b) => b.total-a.total)
 
-  // Category modal
-  const [catModal, setCatModal] = useState(false)
-  const [catForm,  setCatForm]  = useState({ name: '', type: 'expense' as 'income'|'expense', color: '#F2542D', budget_monthly: '' })
+  const monthName = new Date(year, month-1, 1).toLocaleDateString('fr-FR', { month:'long', year:'numeric' })
 
-  function prevMonth() {
-    if (month === 1) { setMonth(12); setYear(y => y - 1) }
-    else setMonth(m => m - 1)
+  function prevMonth() { if (month===1) { setMonth(12); setYear(y=>y-1) } else setMonth(m=>m-1) }
+  function nextMonth() { if (month===12) { setMonth(1); setYear(y=>y+1) } else setMonth(m=>m+1) }
+
+  async function handleAddTx(e: React.FormEvent) {
+    e.preventDefault()
+    if (!txForm.amount) return
+    await addTransaction(txForm)
+    setShowTxForm(false); setTxForm({ amount:0, type:'expense', date: now.toISOString().slice(0,10), description:'' })
   }
-  function nextMonth() {
-    if (month === 12) { setMonth(1); setYear(y => y + 1) }
-    else setMonth(m => m + 1)
-  }
-
-  async function handleAdd() {
-    if (!form.amount || parseFloat(form.amount) <= 0) return
-    setSaving(true)
-    const t: NewTransaction = {
-      amount: parseFloat(form.amount),
-      type: tab,
-      description: form.description || undefined,
-      date: form.date,
-      budget_category_id: form.budget_category_id || undefined,
-    }
-    await addTransaction(t)
-    setForm(f => ({ ...f, amount: '', description: '', budget_category_id: '' }))
-    setSaving(false)
-  }
-
-  async function handleDelete(id: string) {
-    setDeleting(id)
-    await removeTransaction(id)
-    setDeleting(null)
-  }
-
-  // Chart data — last 15 days with activity
-  const chartData = dailyData.filter(d => d.income > 0 || d.expense > 0)
-
-  const catColors: Record<string, string> = {}
-  categories.forEach((c, i) => { catColors[c.id] = c.color ?? DEFAULT_COLORS[i % DEFAULT_COLORS.length] })
-
-  const expenseCats  = categories.filter(c => c.type === 'expense')
-  const incomeCats   = categories.filter(c => c.type === 'income')
-  const relevantCats = tab === 'expense' ? expenseCats : incomeCats
 
   return (
-    <div className="flex flex-col gap-5 max-w-[1200px]">
-      <PageHeader
+    <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
+      <PageTitle
         title="Budget"
-        sub="Transactions · Catégories · Rapport mensuel"
-        actions={
-          <Button variant="secondary" size="sm" onClick={() => setCatModal(true)}>
-            <Plus size={13} /> Catégorie
-          </Button>
+        sub="Mensuel · Trimestiel · Prévision · Analyse"
+        right={
+          <div className="flex items-center gap-2">
+            <button onClick={prevMonth} style={{ padding:'6px 12px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:8, color:'var(--text-muted)', fontSize:12 }}>←</button>
+            <span style={{ ...DF, fontWeight:700, fontSize:12, color:'var(--wheat)', textTransform:'capitalize', minWidth:120, textAlign:'center' }}>{monthName}</span>
+            <button onClick={nextMonth} style={{ padding:'6px 12px', background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:8, color:'var(--text-muted)', fontSize:12 }}>→</button>
+            <button onClick={()=>setShowTxForm(!showTxForm)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl"
+              style={{ background:'#F2542D', color:'#fff', ...DF, fontWeight:700, fontSize:12 }}>
+              <Plus size={14} /> Transaction
+            </button>
+          </div>
         }
       />
 
-      {/* Month nav */}
-      <div className="flex items-center gap-3">
-        <button onClick={prevMonth} className="p-1.5 rounded-[6px]" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <ChevronLeft size={14} style={{ color: 'var(--text-muted)' }} />
-        </button>
-        <span className="text-sm font-semibold" style={{ color: 'var(--wheat)' }}>{MONTH_NAMES[month-1]} {year}</span>
-        <button onClick={nextMonth} className="p-1.5 rounded-[6px]" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
-        </button>
-      </div>
+      <KpiGrid>
+        <KpiCard label="Dépenses du mois"  value={fmtEur(expense)}   sub={`${byCategory.length} catégorie${byCategory.length!==1?'s':''}`} color="#F2542D" />
+        <KpiCard label="Revenus du mois"   value={fmtEur(income)}    sub={`${transactions.filter(t=>t.type==='income').length} transactions`} color="#0E9594" />
+        <KpiCard label="Trésorerie"        value={fmtEur(balance)}   sub={balance>=0?'Positif':'Négatif'} color={balance>=0?'#0E9594':'#F2542D'} />
+        <KpiCard label="Taux d'épargne"    value={`${savings} %`}    sub="du revenu" color="#F5DFBB" />
+      </KpiGrid>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp size={14} style={{ color: '#0E9594' }} />
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Revenus</span>
-          </div>
-          <p className="text-2xl font-black" style={{ color: '#0E9594' }}>{fmt(totalIncome)}</p>
-        </Card>
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingDown size={14} style={{ color: '#F2542D' }} />
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Dépenses</span>
-          </div>
-          <p className="text-2xl font-black" style={{ color: '#F2542D' }}>{fmt(totalExpense)}</p>
-        </Card>
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <Wallet size={14} style={{ color: balance >= 0 ? '#0E9594' : '#F2542D' }} />
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Solde</span>
-          </div>
-          <p className="text-2xl font-black" style={{ color: balance >= 0 ? '#0E9594' : '#F2542D' }}>
-            {balance >= 0 ? '+' : ''}{fmt(balance)}
-          </p>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-[1fr_320px] gap-5">
-
-        {/* Left col */}
-        <div className="flex flex-col gap-5">
-
-          {/* Chart */}
-          {chartData.length > 0 && (
-            <Card>
-              <p className="text-[10px] uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Activité du mois</p>
-              <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={chartData} barGap={2}>
-                  <XAxis dataKey="day" tick={{ fontSize: 9, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <Tooltip
-                    contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11 }}
-                    labelStyle={{ color: 'var(--text-muted)' }}
-                    formatter={(v: number) => fmt(v)}
-                  />
-                  <Bar dataKey="income"  fill="#0E9594" radius={[3,3,0,0]} name="Revenus" />
-                  <Bar dataKey="expense" fill="#F2542D" radius={[3,3,0,0]} name="Dépenses" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          )}
-
-          {/* Dépenses par catégorie */}
-          {byCategory.length > 0 && (
-            <Card>
-              <p className="text-[10px] uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Dépenses par catégorie</p>
-              <div className="flex flex-col gap-2">
-                {byCategory.map((cat, i) => {
-                  const pct = totalExpense > 0 ? (cat.spent / totalExpense) * 100 : 0
-                  const color = cat.color ?? DEFAULT_COLORS[i % DEFAULT_COLORS.length]
-                  return (
-                    <div key={cat.id} className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full" style={{ background: color }} />
-                          <span className="text-xs" style={{ color: 'var(--wheat)' }}>{cat.name}</span>
-                        </div>
-                        <span className="text-xs font-semibold" style={{ color }}>{fmt(cat.spent)}</span>
-                      </div>
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg)' }}>
-                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </Card>
-          )}
-
-          {/* Transactions list */}
-          <Card padding="none">
-            <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-              <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-                Transactions ({transactions.length})
-              </p>
-            </div>
-            {loading ? (
-              <p className="text-xs p-4" style={{ color: 'var(--text-muted)' }}>Chargement…</p>
-            ) : transactions.length === 0 ? (
-              <p className="text-xs p-4" style={{ color: 'var(--text-muted)' }}>Aucune transaction ce mois-ci.</p>
-            ) : transactions.map(tx => {
-              const cat = tx.budget_categories
-              const color = cat?.color ?? (tx.type === 'income' ? '#0E9594' : '#F2542D')
-              return (
-                <div key={tx.id} className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate" style={{ color: 'var(--wheat)' }}>
-                      {tx.description || cat?.name || (tx.type === 'income' ? 'Revenu' : 'Dépense')}
-                    </p>
-                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                      {new Date(tx.date + 'T12:00:00').toLocaleDateString('fr-BE', { day: '2-digit', month: 'short' })}
-                      {cat ? ` · ${cat.name}` : ''}
-                    </p>
-                  </div>
-                  <span className="text-sm font-bold flex-shrink-0" style={{ color: tx.type === 'income' ? '#0E9594' : '#F2542D' }}>
-                    {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount)}
-                  </span>
-                  <button
-                    onClick={() => handleDelete(tx.id)}
-                    disabled={deleting === tx.id}
-                    className="flex-shrink-0 opacity-30 hover:opacity-80 transition-opacity"
-                  >
-                    <Trash2 size={11} style={{ color: 'var(--text-muted)' }} />
-                  </button>
-                </div>
-              )
-            })}
-          </Card>
-        </div>
-
-        {/* Right col — form */}
-        <div className="flex flex-col gap-4">
-          <Card>
-            {/* Tabs */}
-            <div className="flex gap-0 mb-4 rounded-[8px] overflow-hidden p-1" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
-              {(['expense', 'income'] as const).map(t => (
-                <button key={t} onClick={() => setTab(t)}
-                  className="flex-1 py-1.5 text-xs font-medium rounded-[6px] transition-all"
-                  style={{ background: tab === t ? 'var(--bg-card)' : 'transparent', color: tab === t ? (t === 'income' ? '#0E9594' : '#F2542D') : 'var(--text-muted)' }}>
-                  {t === 'income' ? '＋ Revenu' : '－ Dépense'}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Montant (€) *</label>
-                <input type="number" min="0" step="0.01" value={form.amount}
-                  onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                  onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                  placeholder="0.00"
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}
-                />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Description</label>
-                <input type="text" value={form.description}
-                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  placeholder="Loyer, courses…"
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}
-                />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Catégorie</label>
-                <select value={form.budget_category_id}
-                  onChange={e => setForm(f => ({ ...f, budget_category_id: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
-                  <option value="">— Aucune —</option>
-                  {relevantCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Date</label>
-                <input type="date" value={form.date}
-                  onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}
-                />
-              </div>
-              <Button variant="primary" size="sm" loading={saving} onClick={handleAdd} className="w-full justify-center">
-                <Plus size={13} /> Ajouter
-              </Button>
-            </div>
-          </Card>
-
-          {/* Categories list */}
-          {categories.length > 0 && (
-            <Card padding="none">
-              <div className="px-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
-                <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Catégories</p>
-              </div>
-              {categories.map((c, i) => (
-                <div key={c.id} className="flex items-center gap-2 px-3 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color ?? DEFAULT_COLORS[i % DEFAULT_COLORS.length] }} />
-                  <span className="text-[10px] flex-1 truncate" style={{ color: 'var(--wheat)' }}>{c.name}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: c.type === 'income' ? '#0E9594' + '22' : '#F2542D' + '22', color: c.type === 'income' ? '#0E9594' : '#F2542D' }}>
-                    {c.type === 'income' ? 'revenu' : 'dépense'}
-                  </span>
-                </div>
-              ))}
-            </Card>
-          )}
-        </div>
-      </div>
-
-      {/* Category modal */}
-      {catModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.65)' }} onClick={() => setCatModal(false)}>
-          <div className="w-full max-w-xs rounded-[14px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold" style={{ color: 'var(--wheat)' }}>Nouvelle catégorie</p>
-              <button onClick={() => setCatModal(false)}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Nom *</label>
-                <input autoFocus type="text" value={catForm.name} onChange={e => setCatForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="Loyer, Salaire…"
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Type</label>
-                <select value={catForm.type} onChange={e => setCatForm(f => ({ ...f, type: e.target.value as 'income'|'expense' }))}
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
-                  <option value="expense">Dépense</option>
-                  <option value="income">Revenu</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Couleur</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={catForm.color} onChange={e => setCatForm(f => ({ ...f, color: e.target.value }))}
-                    className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent" />
-                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{catForm.color}</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Budget mensuel (€)</label>
-                <input type="number" min="0" step="0.01" value={catForm.budget_monthly}
-                  onChange={e => setCatForm(f => ({ ...f, budget_monthly: e.target.value }))}
-                  placeholder="500"
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" size="sm" onClick={() => setCatModal(false)}>Annuler</Button>
-              <Button variant="primary" size="sm" onClick={async () => {
-                if (!catForm.name.trim()) return
-                await (async () => {
-                  const supabase = (await import('@/lib/supabase/client')).createClient()
-                  const { data: { user } } = await supabase.auth.getUser()
-                  if (!user) return
-                  await supabase.from('budget_categories').insert({
-                    name: catForm.name,
-                    type: catForm.type,
-                    color: catForm.color,
-                    budget_monthly: catForm.budget_monthly ? parseFloat(catForm.budget_monthly) : null,
-                    user_id: user.id,
-                  })
-                })()
-                setCatModal(false)
-                window.location.reload()
-              }}>Créer</Button>
-            </div>
-          </div>
-        </div>
+      {/* Add tx form */}
+      {showTxForm && (
+        <form onSubmit={handleAddTx} className="flex gap-2 flex-wrap p-4 rounded-xl" style={{ background:'var(--bg-card)', border:'1px solid var(--border-active)' }}>
+          <select value={txForm.type} onChange={e=>setTxForm(f=>({...f,type:e.target.value as 'income'|'expense'}))}
+            style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 12px', color:'var(--text)', fontSize:12 }}>
+            <option value="expense">Dépense</option>
+            <option value="income">Revenu</option>
+          </select>
+          <input type="number" min="0" step="0.01" value={txForm.amount||''} onChange={e=>setTxForm(f=>({...f,amount:parseFloat(e.target.value)||0}))} placeholder="Montant (€)" autoFocus
+            style={{ width:130, background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 12px', color:'var(--text)', fontSize:13 }} />
+          <input type="text" value={txForm.description||''} onChange={e=>setTxForm(f=>({...f,description:e.target.value}))} placeholder="Description…"
+            style={{ flex:1, minWidth:160, background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 12px', color:'var(--text)', fontSize:13 }} />
+          <input type="date" value={txForm.date} onChange={e=>setTxForm(f=>({...f,date:e.target.value}))}
+            style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 12px', color:'var(--text)', fontSize:12 }} />
+          <select value={txForm.budget_category_id||''} onChange={e=>setTxForm(f=>({...f,budget_category_id:e.target.value||undefined}))}
+            style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 12px', color:'var(--text)', fontSize:12 }}>
+            <option value="">Catégorie…</option>
+            {categories.filter(c=>c.type===txForm.type).map(c=>(
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <button type="submit" style={{ background:'#F2542D', color:'#fff', borderRadius:8, padding:'8px 20px', ...DF, fontWeight:700, fontSize:12 }}>Ajouter</button>
+        </form>
       )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
+        {/* Left+Center — main content */}
+        <div className="md:col-span-2 flex flex-col gap-[10px]">
+          {/* Répartition dépenses */}
+          <div style={{ background:'#11686A', borderRadius:12, padding:20 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F0E4CC', textTransform:'uppercase', marginBottom:16 }}>Répartition des dépenses</p>
+            {loading ? <p style={{ color:'rgba(240,228,204,0.5)', fontSize:12 }}>Chargement…</p>
+            : byCategory.filter(c=>c.type==='expense').length === 0 ? (
+              <p style={{ color:'rgba(240,228,204,0.5)', fontSize:12 }}>Aucune dépense ce mois</p>
+            ) : (
+              byCategory.filter(c=>c.type==='expense').slice(0,6).map(cat => {
+                const pct = expense > 0 ? Math.round(cat.total/expense*100) : 0
+                return (
+                  <div key={cat.id} className="flex items-center gap-3 mb-3">
+                    <div style={{ width:8, height:8, borderRadius:2, background:cat.color??'#F2542D', flexShrink:0 }} />
+                    <span style={{ fontSize:11, color:'#F0E4CC', flex:1 }}>{cat.name}</span>
+                    <span style={{ ...DF, fontSize:11, fontWeight:700, color:'#F0E4CC', width:60, textAlign:'right' }}>{fmtEur(cat.total)}</span>
+                    <div style={{ width:80, height:4, borderRadius:99, background:'rgba(240,228,204,0.15)', overflow:'hidden' }}>
+                      <div style={{ height:'100%', borderRadius:99, background: cat.color??'#F2542D', width:`${pct}%` }} />
+                    </div>
+                    <span style={{ fontSize:10, color:'rgba(240,228,204,0.6)', width:28, textAlign:'right' }}>{pct}%</span>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {/* Transactions récentes */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)' }}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
+              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F2542D', textTransform:'uppercase' }}>Récentes transactions</p>
+              <span style={{ fontSize:10, color:'var(--text-muted)' }}>{transactions.length} ce mois</span>
+            </div>
+            {loading ? <p className="p-5 text-xs" style={{ color:'var(--text-muted)' }}>Chargement…</p>
+            : transactions.length === 0 ? (
+              <div className="flex flex-col items-center py-10 gap-2">
+                <p style={{ fontSize:12, color:'var(--text-muted)' }}>Aucune transaction ce mois</p>
+                <button onClick={()=>setShowTxForm(true)} style={{ fontSize:11, color:'#F2542D', ...DF, fontWeight:700 }}>+ Ajouter</button>
+              </div>
+            ) : transactions.slice(0,10).map(tx => (
+              <div key={tx.id} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom:'1px solid var(--border)' }}>
+                <div style={{ width:36, height:36, borderRadius:'50%', background: tx.type==='income' ? 'rgba(14,149,148,0.15)' : 'rgba(242,84,45,0.12)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  {tx.type==='income' ? <TrendingUp size={14} style={{ color:'#0E9594' }} /> : <TrendingDown size={14} style={{ color:'#F2542D' }} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p style={{ fontSize:13, color:'var(--wheat)' }}>{tx.description || 'Sans description'}</p>
+                  <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>
+                    {tx.budget_categories?.name ?? 'Autre'} · {new Date(tx.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' })}
+                  </p>
+                </div>
+                <p style={{ ...DF, fontWeight:800, fontSize:15, color: tx.type==='income' ? '#0E9594' : '#F2542D', flexShrink:0 }}>
+                  {tx.type==='income' ? '+' : '-'}{fmtEur(tx.amount)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right */}
+        <div className="flex flex-col gap-[10px]">
+          {/* Synthèse */}
+          <div style={{ background:'#F2542D', borderRadius:12, padding:20 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:12 }}>Bilan du mois</p>
+            <p style={{ ...DF, fontWeight:900, fontSize:36, color:'#1A0A0A', lineHeight:1 }}>{fmtEur(balance)}</p>
+            <p style={{ fontSize:11, color:'rgba(26,10,10,0.7)', marginBottom:12 }}>{balance>=0?'Excédent':'Déficit'} ce mois</p>
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between">
+                <span style={{ fontSize:11, color:'rgba(26,10,10,0.7)' }}>Revenus</span>
+                <span style={{ ...DF, fontWeight:700, fontSize:12, color:'#1A0A0A' }}>{fmtEur(income)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ fontSize:11, color:'rgba(26,10,10,0.7)' }}>Dépenses</span>
+                <span style={{ ...DF, fontWeight:700, fontSize:12, color:'#1A0A0A' }}>{fmtEur(expense)}</span>
+              </div>
+              {income > 0 && (
+                <>
+                  <div style={{ height:5, borderRadius:99, background:'rgba(0,0,0,0.2)', marginTop:4, overflow:'hidden' }}>
+                    <div style={{ height:'100%', borderRadius:99, background:'#1A0A0A', width:`${Math.min(100,expense/income*100)}%` }} />
+                  </div>
+                  <p style={{ fontSize:9, color:'rgba(26,10,10,0.6)', textAlign:'right' }}>{Math.round(expense/income*100)}% du revenu dépensé</p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Comptes */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase', marginBottom:10 }}>Catégories revenus</p>
+            {loading ? <p style={{ fontSize:12, color:'var(--text-muted)' }}>…</p>
+            : byCategory.filter(c=>c.type==='income').length === 0 ? (
+              <p style={{ fontSize:12, color:'var(--text-muted)' }}>Aucun revenu ce mois</p>
+            ) : byCategory.filter(c=>c.type==='income').map(cat => (
+              <div key={cat.id} className="flex items-center justify-between py-2.5" style={{ borderBottom:'1px solid var(--border)' }}>
+                <div className="flex items-center gap-2">
+                  <span style={{ width:7, height:7, borderRadius:2, background:cat.color??'#0E9594', flexShrink:0 }} />
+                  <span style={{ fontSize:11, color:'var(--text-muted)' }}>{cat.name}</span>
+                </div>
+                <span style={{ ...DF, fontWeight:700, fontSize:13, color:'#0E9594' }}>{fmtEur(cat.total)}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Objectifs financiers */}
+          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--text-muted)', textTransform:'uppercase', marginBottom:10 }}>Objectifs financiers</p>
+            {[
+              { label:'Épargne mensuelle', target:500, current:Math.max(0,balance) },
+              { label:'Budget courses',    target:300, current:byCategory.find(c=>c.name?.toLowerCase().includes('course'))?.total??0 },
+            ].map(obj => (
+              <div key={obj.label} className="mb-3">
+                <div className="flex justify-between mb-1">
+                  <span style={{ fontSize:11, color:'var(--text-muted)' }}>{obj.label}</span>
+                  <span style={{ ...DF, fontSize:11, fontWeight:700, color:'var(--wheat)' }}>{fmtEur(obj.current)} / {fmtEur(obj.target)}</span>
+                </div>
+                <div style={{ height:4, borderRadius:99, background:'var(--border)', overflow:'hidden' }}>
+                  <div style={{ height:'100%', borderRadius:99, background: obj.current>=obj.target?'#0E9594':'#F2542D', width:`${Math.min(100,obj.current/obj.target*100)}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
