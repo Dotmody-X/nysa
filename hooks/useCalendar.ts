@@ -17,6 +17,7 @@ export type CalendarEvent = {
   color?: string | null
   location?: string | null
   source: string
+  external_id?: string | null
   created_at: string
 }
 
@@ -38,6 +39,25 @@ function getSupabase() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+}
+
+// Push silencieux vers Apple Calendar (fire & forget)
+function pushToApple(event: CalendarEvent) {
+  fetch('/api/calendar/apple/push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event }),
+  }).catch(() => {})
+}
+
+// Suppression silencieuse depuis Apple Calendar
+function deleteFromApple(externalId: string | null | undefined) {
+  if (!externalId) return
+  fetch('/api/calendar/apple/push', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ externalId }),
+  }).catch(() => {})
 }
 
 export function useCalendar(weekStart: Date) {
@@ -74,6 +94,8 @@ export function useCalendar(weekStart: Date) {
       .single()
     if (error || !data) return null
     setEvents(prev => [...prev, data].sort((a, b) => a.start_at.localeCompare(b.start_at)))
+    // Push vers Apple Calendar si connecté
+    pushToApple(data)
     return data
   }
 
@@ -85,13 +107,21 @@ export function useCalendar(weekStart: Date) {
       .eq('id', id)
       .select()
       .single()
-    if (data) setEvents(prev => prev.map(e => e.id === id ? data : e))
+    if (data) {
+      setEvents(prev => prev.map(e => e.id === id ? data : e))
+      // Sync mise à jour vers Apple
+      pushToApple(data)
+    }
   }
 
   async function removeEvent(id: string) {
     const supabase = getSupabase()
+    // Récupère l'external_id avant de supprimer
+    const event = events.find(e => e.id === id)
     await supabase.from('events').delete().eq('id', id)
     setEvents(prev => prev.filter(e => e.id !== id))
+    // Supprime depuis Apple Calendar si l'événement y avait été pushé
+    if (event?.external_id) deleteFromApple(event.external_id)
   }
 
   return { events, loading, addEvent, updateEvent, removeEvent, refetch: fetchEvents }
