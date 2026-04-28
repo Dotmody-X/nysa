@@ -291,7 +291,7 @@ function EventModal({
 function CalendrierContent() {
   const params = useSearchParams()
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()))
-  const { events, loading, addEvent, removeEvent } = useCalendar(weekStart)
+  const { events, loading, addEvent, removeEvent, refetch } = useCalendar(weekStart)
   const { tasks } = useTasks()
 
   const [selected, setSelected]           = useState<CalendarEvent | null>(null)
@@ -307,13 +307,30 @@ function CalendrierContent() {
   const nowPx      = Math.max(0, (nowMins / 60) * SLOT_PX)
   const todayInWeek = weekDays.some(d => d.getTime() === today.getTime())
 
-  // Strava / Apple notif from query params
+  // Notif query params
   useEffect(() => {
     const n = params.get('calendar')
     if (n === 'connected') setNotification('✅ Apple Calendar connecté')
     else if (n === 'error') setNotification('❌ Erreur de connexion Apple Calendar')
     if (n) setTimeout(() => setNotification(null), 4000)
   }, [params])
+
+  // Auto-sync Apple Calendar au chargement + toutes les 5 minutes
+  useEffect(() => {
+    async function bgSync() {
+      try {
+        const res = await fetch('/api/calendar/apple/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+        const json = await res.json()
+        if (!json.skipped && (json.synced > 0 || json.removed > 0)) {
+          refetch() // recharge les événements si changements
+        }
+      } catch {}
+    }
+    bgSync()
+    const interval = setInterval(bgSync, 5 * 60 * 1000) // toutes les 5 min
+    return () => clearInterval(interval)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function prevWeek() { setWeekStart(d => addDays(d, -7)); setSelected(null) }
   function nextWeek() { setWeekStart(d => addDays(d, 7));  setSelected(null) }
