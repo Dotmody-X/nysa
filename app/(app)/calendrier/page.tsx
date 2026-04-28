@@ -343,10 +343,15 @@ function CalendrierContent() {
   function nextWeek() { setWeekStart(d => addDays(d, 7));  setSelected(null) }
   function goToday()  { setWeekStart(getMonday(new Date())); setSelected(null) }
 
+  function localDateStr(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
   function eventsForDay(day: Date): CalendarEvent[] {
-    const iso = day.toISOString().slice(0, 10)
+    const dayStr = localDateStr(day)
     return events.filter(ev => {
-      if (ev.start_at.slice(0, 10) !== iso) return false
+      // Comparer en heure locale pour éviter le décalage UTC
+      if (localDateStr(new Date(ev.start_at)) !== dayStr) return false
       if (activeCategories.length > 0 && ev.category && !activeCategories.includes(ev.category)) return false
       return true
     })
@@ -491,7 +496,7 @@ function CalendrierContent() {
       </div>
 
       {/* ── ROW 2 : Calendar grid ──────────────────────────────────────────── */}
-      <div style={{ ...card(), flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
+      <div style={{ ...card(), flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 260 }}>
 
         {/* Day headers */}
         <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(7, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
@@ -701,7 +706,7 @@ function CalendrierContent() {
           </div>
         </div>
 
-        {/* Filtres catégories */}
+        {/* Filtres catégories — pills horizontaux compacts */}
         <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <p style={labelStyle}>Filtres</p>
@@ -711,19 +716,19 @@ function CalendrierContent() {
               </button>
             )}
           </div>
-          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div style={{ padding: '10px 14px', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
             {Object.entries(CATEGORIES).map(([cat, color]) => {
               const active = activeCategories.includes(cat)
               return (
                 <button key={cat} onClick={() => toggleCategory(cat)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px',
-                    borderRadius: 7, fontSize: 11, textAlign: 'left', cursor: 'pointer',
-                    background: active ? color + '18' : 'transparent',
-                    border: `1px solid ${active ? color : 'transparent'}`,
+                    display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px',
+                    borderRadius: 99, fontSize: 10, cursor: 'pointer',
+                    background: active ? color + '22' : 'rgba(245,223,187,0.04)',
+                    border: `1px solid ${active ? color : 'var(--border)'}`,
                     color: active ? color : 'var(--text-muted)',
                   }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
                   {cat}
                 </button>
               )
