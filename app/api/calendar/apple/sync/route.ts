@@ -191,18 +191,40 @@ export async function POST(req: NextRequest) {
 
   const auth = 'Basic ' + Buffer.from(`${email}:${appPassword}`).toString('base64')
 
-  // 1. Discover principal
+  // 1. Discover principal — avec debug détaillé
+  const debugInfo: Record<string, unknown> = {}
+  const body0 = `<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:">
+  <D:prop><D:current-user-principal/></D:prop>
+</D:propfind>`
+
+  for (const testUrl of [`${CALDAV_BASE}/`, `${CALDAV_BASE}/.well-known/caldav`]) {
+    const r0 = await fetch(testUrl, {
+      method: 'PROPFIND',
+      headers: { Authorization: auth, Depth: '0', 'Content-Type': 'application/xml; charset=utf-8', 'User-Agent': 'NYSA/1.0' },
+      body: body0,
+      redirect: 'manual',
+    })
+    debugInfo[testUrl] = {
+      status: r0.status,
+      location: r0.headers.get('location'),
+      wwwAuth: r0.headers.get('www-authenticate'),
+      body: r0.status < 400 ? (await r0.text()).slice(0, 500) : (await r0.text()).slice(0, 200),
+    }
+  }
+
   const principal = await discoverPrincipal(email, appPassword)
   if (!principal) {
     return NextResponse.json({
-      error: 'Connexion iCloud échouée. Vérifie que tu utilises bien un mot de passe spécifique à l\'app (pas ton mot de passe Apple ID)',
+      error: 'Connexion iCloud échouée — voir debug ci-dessous',
+      debug: debugInfo,
     }, { status: 401 })
   }
 
   // 2. Calendar home set
   const homeSet = await getCalendarHomeSet(principal, auth)
   if (!homeSet) {
-    return NextResponse.json({ error: 'Impossible de trouver les calendriers iCloud' }, { status: 500 })
+    return NextResponse.json({ error: 'Impossible de trouver les calendriers iCloud', debug: debugInfo }, { status: 500 })
   }
 
   // 3. Fetch events
