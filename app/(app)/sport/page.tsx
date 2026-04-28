@@ -1,12 +1,13 @@
 'use client'
-import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { Upload, Plus, Activity, ChevronRight, Zap } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Upload, Plus, Activity, ChevronRight, Zap, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth'
 import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
 import { parseGpx } from '@/lib/parseGpx'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+const STRAVA_ORANGE = '#FC4C02'
 
 function fmtPace(sec: number) {
   if (!sec || sec === Infinity) return '—'
@@ -17,13 +18,45 @@ function fmtDur(sec: number) {
   return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`
 }
 
+function stravaAuthUrl() {
+  const clientId    = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin}/api/strava/callback`
+  return `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=activity:read_all`
+}
+
 export default function SportPage() {
-  const router  = useRouter()
-  const { activities, loading, addRun } = useHealth()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const { activities, loading, addRun, refetch } = useHealth()
   const fileRef = useRef<HTMLInputElement>(null)
-  const [importing, setImporting] = useState(false)
+  const [importing, setImporting]   = useState(false)
+  const [syncing, setSyncing]       = useState(false)
+  const [syncMsg, setSyncMsg]       = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [showManual, setShowManual] = useState(false)
   const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 10), distance: '', duration: '', notes: '' })
+
+  // Notification après retour OAuth
+  useEffect(() => {
+    const strava = searchParams.get('strava')
+    if (strava === 'connected') setSyncMsg({ type: 'ok', text: 'Strava connecté ! Lance une synchronisation.' })
+    if (strava === 'denied')    setSyncMsg({ type: 'err', text: 'Autorisation Strava refusée.' })
+    if (strava === 'error')     setSyncMsg({ type: 'err', text: 'Erreur lors de la connexion Strava.' })
+  }, [searchParams])
+
+  async function handleStravaSync() {
+    setSyncing(true); setSyncMsg(null)
+    try {
+      const res  = await fetch('/api/strava/sync', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Erreur inconnue')
+      setSyncMsg({ type: 'ok', text: json.message })
+      if (json.synced > 0) refetch()
+    } catch (err: any) {
+      setSyncMsg({ type: 'err', text: err.message })
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   // ── Stats semaine ───────────────────────────────────────
   const weekStart = (() => {
@@ -92,27 +125,63 @@ export default function SportPage() {
         title="Running"
         sub="Strava import · Cartes · Analyses · Objectifs"
         right={
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {/* Bouton Strava connect */}
+            <a
+              href={typeof window !== 'undefined' ? stravaAuthUrl() : '#'}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl"
+              style={{ background: STRAVA_ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 12, textDecoration: 'none' }}
+            >
+              {/* Logo Strava SVG inline */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0 4 13.828h4.17"/></svg>
+              Connecter
+            </a>
+            {/* Bouton sync */}
+            <button
+              onClick={handleStravaSync}
+              disabled={syncing}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl"
+              style={{ background: syncing ? 'var(--bg-card)' : '#11686A', color: syncing ? 'var(--text-muted)' : '#F0E4CC', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)' }}
+            >
+              <RefreshCw size={13} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
+              {syncing ? 'Sync…' : 'Synchroniser'}
+            </button>
+            {/* Import GPX manuel */}
             <label
               className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
-              style={{ background: '#11686A', color: '#F0E4CC', ...DF, fontWeight: 700, fontSize: 12 }}
+              style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)' }}
             >
               <input ref={fileRef} type="file" accept=".gpx" className="hidden" onChange={handleGpxFile} />
-              {importing
-                ? <><span>⟳</span> Import…</>
-                : <><Upload size={13} /> Import GPX</>
-              }
+              {importing ? <><span>⟳</span> Import…</> : <><Upload size={13} /> GPX</>}
             </label>
             <button
               onClick={() => setShowManual(v => !v)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl"
               style={{ background: '#F2542D', color: '#fff', ...DF, fontWeight: 700, fontSize: 12 }}
             >
-              <Plus size={13} /> Saisie manuelle
+              <Plus size={13} />
             </button>
           </div>
         }
       />
+
+      {/* Notification Strava */}
+      {syncMsg && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
+          style={{ background: syncMsg.type === 'ok' ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', border: `1px solid ${syncMsg.type === 'ok' ? 'rgba(14,149,148,0.3)' : 'rgba(242,84,45,0.3)'}` }}>
+          {syncMsg.type === 'ok'
+            ? <CheckCircle2 size={14} style={{ color: '#0E9594', flexShrink: 0 }} />
+            : <AlertCircle size={14} style={{ color: '#F2542D', flexShrink: 0 }} />
+          }
+          <span style={{ fontSize: 12, color: syncMsg.type === 'ok' ? '#0E9594' : '#F2542D', ...DF, fontWeight: 600 }}>
+            {syncMsg.text}
+          </span>
+          <button onClick={() => setSyncMsg(null)} style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: 16, lineHeight: 1 }}>×</button>
+        </div>
+      )}
+
+      {/* CSS spin */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       <KpiGrid>
         <KpiCard label="Distance semaine" value={`${totalKm.toFixed(1)} km`}   sub={`${thisWeek.length} sortie${thisWeek.length > 1 ? 's' : ''}`} color="#F2542D" bg="#11686A" />

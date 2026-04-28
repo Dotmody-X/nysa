@@ -140,8 +140,17 @@ export default function ActivityDetailPage() {
     )
   }
 
-  const gpxData = (activity.raw_data as any)?.gpx as GpxStored | undefined
-  const hasGpx  = !!gpxData && gpxData.points?.length > 1
+  const rawData = activity.raw_data as any
+  const gpxData = rawData?.gpx as GpxStored | undefined
+
+  // Support Strava polyline (stocké comme tableau {lat, lon, ele})
+  const stravaPoints = rawData?.polyline as { lat: number; lon: number; ele: number }[] | undefined
+  const mapPoints: GpxPoint[] = gpxData?.points
+    ?? stravaPoints?.map(p => ({ lat: p.lat, lon: p.lon, ele: p.ele ?? 0, time: null }))
+    ?? []
+  const hasGpx = mapPoints.length > 1
+
+  const isFromStrava = activity.source === 'strava'
 
   const pace = activity.pace_sec_per_km
     ?? (activity.duration_seconds && activity.distance_km
@@ -169,7 +178,12 @@ export default function ActivityDetailPage() {
           <p style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
             <MapPin size={11} />
             {fmtDate(activity.date)}
-            {hasGpx && (
+            {isFromStrava && (
+              <span style={{ marginLeft: 8, fontSize: 9, padding: '2px 7px', borderRadius: 4, background: 'rgba(252,76,2,0.15)', color: '#FC4C02', ...DF, fontWeight: 700 }}>
+                STRAVA
+              </span>
+            )}
+            {!isFromStrava && hasGpx && (
               <span style={{ marginLeft: 8, fontSize: 9, padding: '2px 7px', borderRadius: 4, background: 'rgba(242,84,45,0.15)', color: '#F2542D', ...DF, fontWeight: 700 }}>
                 GPX
               </span>
@@ -242,7 +256,7 @@ export default function ActivityDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
           {/* Carte grande */}
           <div className="md:col-span-2">
-            <ActivityMap points={gpxData!.points} height={360} />
+            <ActivityMap points={mapPoints} height={360} />
           </div>
 
           {/* Colonne droite — profil élévation + allure */}
