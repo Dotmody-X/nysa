@@ -1,100 +1,319 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Plus, X, MapPin, Tag, Clock, Trash2, Calendar } from 'lucide-react'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import {
+  ChevronLeft, ChevronRight, Plus, X, MapPin, Tag, Clock,
+  Trash2, Calendar, Bell, RefreshCw, Link2, CheckCircle2, Circle,
+  Apple,
+} from 'lucide-react'
 import { useCalendar, CalendarEvent, NewEvent } from '@/hooks/useCalendar'
 import { useTasks } from '@/hooks/useTasks'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+const DAY_LABELS   = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM']
+const HOUR_START   = 8
+const HOUR_END     = 21
+const TOTAL_HOURS  = HOUR_END - HOUR_START
+const SLOT_PX      = 60
+const TIME_COL     = 48
 
-const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-const HOUR_START = 7
-const HOUR_END   = 22
-const TOTAL_HOURS = HOUR_END - HOUR_START
-const SLOT_PX = 60 // px per hour
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Travail:   '#F2542D',
-  Perso:     '#0E9594',
-  Santé:     '#562C2C',
-  Running:   '#11686A',
-  Réunion:   '#F5DFBB',
-  Autre:     '#888',
+const CATEGORIES: Record<string, string> = {
+  Travail:  '#F2542D',
+  Perso:    '#0E9594',
+  Santé:    '#562C2C',
+  Running:  '#11686A',
+  Réunion:  '#F5DFBB',
+  Autre:    '#555',
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
 function getMonday(d: Date): Date {
-  const dt = new Date(d)
+  const dt  = new Date(d)
   const day = dt.getDay()
-  const diff = (day === 0 ? -6 : 1 - day)
-  dt.setDate(dt.getDate() + diff)
+  dt.setDate(dt.getDate() + (day === 0 ? -6 : 1 - day))
   dt.setHours(0, 0, 0, 0)
   return dt
 }
-
 function addDays(d: Date, n: number): Date {
-  const dt = new Date(d)
-  dt.setDate(dt.getDate() + n)
-  return dt
+  const dt = new Date(d); dt.setDate(dt.getDate() + n); return dt
 }
-
 function fmtTime(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
 }
-
-function fmtDateLong(d: Date): string {
-  return d.toLocaleDateString('fr-BE', { weekday: 'long', day: 'numeric', month: 'long' })
+function fmtShortDate(d: Date): string {
+  return d.toLocaleDateString('fr-BE', { weekday: 'short', day: 'numeric', month: 'short' })
 }
-
-function isoLocal(date: Date, hour: number, min = 0): string {
-  const d = new Date(date)
-  d.setHours(hour, min, 0, 0)
-  return d.toISOString()
+function fmtMonthYear(d: Date): string {
+  return d.toLocaleDateString('fr-BE', { month: 'long', year: 'numeric' })
 }
-
-function eventTopPx(iso: string): number {
-  const d = new Date(iso)
-  const mins = (d.getHours() - HOUR_START) * 60 + d.getMinutes()
-  return (mins / 60) * SLOT_PX
+function isoLocal(date: Date, h: number, m = 0): string {
+  const d = new Date(date); d.setHours(h, m, 0, 0); return d.toISOString()
 }
-
-function eventHeightPx(start: string, end: string): number {
-  const s = new Date(start), e = new Date(end)
-  const mins = (e.getTime() - s.getTime()) / 60000
-  return Math.max((mins / 60) * SLOT_PX, 18)
+function eventTop(iso: string): number {
+  const d   = new Date(iso)
+  const min = (d.getHours() - HOUR_START) * 60 + d.getMinutes()
+  return (min / 60) * SLOT_PX
 }
-
-function eventColor(ev: CalendarEvent): string {
+function eventHeight(start: string, end: string): number {
+  const min = (new Date(end).getTime() - new Date(start).getTime()) / 60000
+  return Math.max((min / 60) * SLOT_PX, 20)
+}
+function evColor(ev: CalendarEvent): string {
   if (ev.color) return ev.color
-  if (ev.category && CATEGORY_COLORS[ev.category]) return CATEGORY_COLORS[ev.category]
+  if (ev.category && CATEGORIES[ev.category]) return CATEGORIES[ev.category]
   return '#F2542D'
 }
 
-export default function CalendrierPage() {
+// ─────────────────────────────────────────────────────────────────────────────
+// Apple Modal
+// ─────────────────────────────────────────────────────────────────────────────
+function AppleModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep]     = useState<1 | 2>(1)
+  const [email, setEmail]   = useState('')
+  const [pass, setPass]     = useState('')
+  const [syncing, setSyncing] = useState(false)
+  const [result, setResult] = useState<string | null>(null)
+
+  async function handleSync() {
+    if (!email || !pass) return
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/calendar/apple/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, appPassword: pass }),
+      })
+      const json = await res.json()
+      setResult(res.ok ? `✅ ${json.synced ?? 0} événement(s) importé(s)` : `❌ ${json.error ?? 'Erreur'}`)
+    } catch {
+      setResult('❌ Impossible de contacter le serveur')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
+      <div className="w-full max-w-md rounded-[16px] p-6 flex flex-col gap-5" style={{ background: '#111', border: '1px solid rgba(245,223,187,0.12)' }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-[8px] flex items-center justify-center" style={{ background: 'rgba(245,223,187,0.08)' }}>
+              <Apple size={16} style={{ color: 'var(--wheat)' }} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>Apple Calendar</p>
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Synchronisation CalDAV</p>
+            </div>
+          </div>
+          <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
+        </div>
+
+        {step === 1 ? (
+          <>
+            <div className="rounded-[10px] p-4 flex flex-col gap-2" style={{ background: 'rgba(14,149,148,0.08)', border: '1px solid rgba(14,149,148,0.2)' }}>
+              <p className="text-xs font-semibold" style={{ color: '#0E9594' }}>Avant de continuer</p>
+              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                Apple exige un <strong style={{ color: 'var(--wheat)' }}>mot de passe spécifique à l'app</strong> pour les accès tiers. Votre mot de passe Apple ID principal ne fonctionnera pas.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              {[
+                { n: '1', t: 'Ouvre', link: 'appleid.apple.com', desc: 'et connecte-toi' },
+                { n: '2', t: 'Section', link: 'Connexion et sécurité', desc: '→ Mots de passe spécifiques aux apps' },
+                { n: '3', t: 'Clique sur', link: '+', desc: ', donne le nom "NYSA", copie le mdp' },
+              ].map(s => (
+                <div key={s.n} className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold" style={{ background: '#F2542D', color: '#fff' }}>{s.n}</div>
+                  <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                    {s.t} <span style={{ color: 'var(--wheat)' }}>{s.link}</span> {s.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setStep(2)} className="w-full py-2.5 rounded-[8px] text-sm font-semibold" style={{ background: '#F2542D', color: '#fff' }}>
+              J'ai mon mot de passe →
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Apple ID (email)</label>
+                <input autoFocus type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="nom@icloud.com"
+                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
+                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Mot de passe spécifique</label>
+                <input type="password" value={pass} onChange={e => setPass(e.target.value)}
+                  placeholder="xxxx-xxxx-xxxx-xxxx"
+                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
+                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+              </div>
+            </div>
+
+            {result && (
+              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? '#0E9594' : '#F2542D' }}>
+                {result}
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <button onClick={() => setStep(1)} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                ← Retour
+              </button>
+              <button onClick={handleSync} disabled={syncing || !email || !pass}
+                className="flex-2 flex-1 py-2 rounded-[8px] text-sm font-semibold disabled:opacity-40"
+                style={{ background: '#F2542D', color: '#fff' }}>
+                {syncing ? 'Sync…' : 'Synchroniser'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Event Modal (create)
+// ─────────────────────────────────────────────────────────────────────────────
+function EventModal({
+  date, hour, onSave, onClose,
+}: {
+  date: string
+  hour: number
+  onSave: (ev: NewEvent) => Promise<unknown>
+  onClose: () => void
+}) {
+  const [form, setForm]     = useState({
+    title: '', description: '', category: 'Travail', location: '',
+    startTime: `${String(hour).padStart(2, '0')}:00`,
+    endTime:   `${String(Math.min(hour + 1, 22)).padStart(2, '0')}:00`,
+  })
+  const [saving, setSaving] = useState(false)
+
+  async function submit() {
+    if (!form.title.trim()) return
+    setSaving(true)
+    const [sh, sm] = form.startTime.split(':').map(Number)
+    const [eh, em] = form.endTime.split(':').map(Number)
+    const base = new Date(date + 'T00:00:00')
+    await onSave({
+      title:       form.title,
+      description: form.description || undefined,
+      category:    form.category || undefined,
+      location:    form.location || undefined,
+      start_at:    isoLocal(base, sh, sm),
+      end_at:      isoLocal(base, eh, em),
+      all_day:     false,
+    })
+    setSaving(false)
+    onClose()
+  }
+
+  const displayDate = new Date(date + 'T12:00:00').toLocaleDateString('fr-BE', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.65)' }} onClick={onClose}>
+      <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: '#111', border: '1px solid rgba(245,223,187,0.12)' }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>Nouvel événement</p>
+            <p className="text-[10px] capitalize mt-0.5" style={{ color: 'var(--text-muted)' }}>{displayDate}</p>
+          </div>
+          <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <input autoFocus type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+            onKeyDown={e => e.key === 'Enter' && submit()}
+            placeholder="Titre de l'événement…"
+            className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
+            style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="text-[9px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Début</label>
+              <input type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))}
+                className="w-full px-2.5 py-1.5 rounded-[7px] text-xs outline-none"
+                style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+            </div>
+            <div className="flex-1">
+              <label className="text-[9px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Fin</label>
+              <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))}
+                className="w-full px-2.5 py-1.5 rounded-[7px] text-xs outline-none"
+                style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+            </div>
+          </div>
+
+          <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+            className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
+            style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
+            {Object.keys(CATEGORIES).map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          <input type="text" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
+            placeholder="Lieu (optionnel)…"
+            className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
+            style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+
+          <textarea rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            placeholder="Notes…"
+            className="w-full px-3 py-2 rounded-[8px] text-sm outline-none resize-none"
+            style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+        </div>
+
+        <div className="flex gap-2 justify-end">
+          <button onClick={onClose} className="px-4 py-2 rounded-[8px] text-xs" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+            Annuler
+          </button>
+          <button onClick={submit} disabled={saving || !form.title.trim()}
+            className="px-4 py-2 rounded-[8px] text-xs font-semibold disabled:opacity-40"
+            style={{ background: '#F2542D', color: '#fff' }}>
+            {saving ? '…' : 'Créer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main calendar content
+// ─────────────────────────────────────────────────────────────────────────────
+function CalendrierContent() {
+  const params = useSearchParams()
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()))
   const { events, loading, addEvent, removeEvent } = useCalendar(weekStart)
   const { tasks } = useTasks()
 
-  const [selected, setSelected] = useState<CalendarEvent | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalDate, setModalDate] = useState('')
-  const [modalHour, setModalHour] = useState(9)
-  const [form, setForm] = useState({ title: '', description: '', category: 'Travail', location: '', startTime: '09:00', endTime: '10:00' })
-  const [saving, setSaving] = useState(false)
+  const [selected, setSelected]           = useState<CalendarEvent | null>(null)
+  const [modalDate, setModalDate]         = useState<string | null>(null)
+  const [modalHour, setModalHour]         = useState(9)
+  const [appleOpen, setAppleOpen]         = useState(false)
   const [activeCategories, setActiveCategories] = useState<string[]>([])
+  const [notification, setNotification]   = useState<string | null>(null)
 
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  // Current time indicator in px
-  const nowMins = (new Date().getHours() - HOUR_START) * 60 + new Date().getMinutes()
-  const nowPx   = Math.max(0, (nowMins / 60) * SLOT_PX)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const weekDays   = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+  const nowMins    = (new Date().getHours() - HOUR_START) * 60 + new Date().getMinutes()
+  const nowPx      = Math.max(0, (nowMins / 60) * SLOT_PX)
   const todayInWeek = weekDays.some(d => d.getTime() === today.getTime())
+
+  // Strava / Apple notif from query params
+  useEffect(() => {
+    const n = params.get('calendar')
+    if (n === 'connected') setNotification('✅ Apple Calendar connecté')
+    else if (n === 'error') setNotification('❌ Erreur de connexion Apple Calendar')
+    if (n) setTimeout(() => setNotification(null), 4000)
+  }, [params])
 
   function prevWeek() { setWeekStart(d => addDays(d, -7)); setSelected(null) }
   function nextWeek() { setWeekStart(d => addDays(d, 7));  setSelected(null) }
@@ -109,35 +328,8 @@ export default function CalendrierPage() {
     })
   }
 
-  function openModal(day: Date, hour: number) {
-    setModalDate(day.toISOString().slice(0, 10))
-    setModalHour(hour)
-    setForm({
-      title: '', description: '', category: 'Travail', location: '',
-      startTime: `${String(hour).padStart(2, '0')}:00`,
-      endTime:   `${String(Math.min(hour + 1, 23)).padStart(2, '0')}:00`,
-    })
-    setModalOpen(true)
-  }
-
-  async function handleSave() {
-    if (!form.title.trim()) return
-    setSaving(true)
-    const [sh, sm] = form.startTime.split(':').map(Number)
-    const [eh, em] = form.endTime.split(':').map(Number)
-    const base = new Date(modalDate + 'T00:00:00')
-    const ev: NewEvent = {
-      title: form.title,
-      description: form.description || undefined,
-      category: form.category || undefined,
-      location: form.location || undefined,
-      start_at: isoLocal(base, sh, sm),
-      end_at:   isoLocal(base, eh, em),
-      all_day:  false,
-    }
-    await addEvent(ev)
-    setSaving(false)
-    setModalOpen(false)
+  function toggleCategory(cat: string) {
+    setActiveCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
   }
 
   async function handleDelete(id: string) {
@@ -145,297 +337,438 @@ export default function CalendrierPage() {
     setSelected(null)
   }
 
-  function toggleCategory(cat: string) {
-    setActiveCategories(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    )
-  }
+  // Upcoming events (next 5 from now)
+  const now = new Date()
+  const upcoming = events
+    .filter(ev => new Date(ev.start_at) >= now)
+    .slice(0, 5)
 
-  const weekTasksDue = tasks.filter(t => {
+  // Week tasks
+  const weekTasks = tasks.filter(t => {
     if (!t.due_date) return false
     const d = new Date(t.due_date + 'T00:00:00')
     return d >= weekStart && d < addDays(weekStart, 7)
   })
 
+  // Reminders = events in next 24h
+  const tomorrow = new Date(now.getTime() + 24 * 3600_000)
+  const reminders = events.filter(ev => {
+    const s = new Date(ev.start_at)
+    return s >= now && s <= tomorrow
+  })
+
+  // Overview — count per category this week
+  const categoryCount: Record<string, number> = {}
+  events.forEach(ev => {
+    const cat = ev.category ?? 'Autre'
+    categoryCount[cat] = (categoryCount[cat] ?? 0) + 1
+  })
+
+  // ── Card style helper
+  const card = (extra?: React.CSSProperties): React.CSSProperties => ({
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    borderRadius: 12,
+    ...extra,
+  })
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase',
+    color: 'var(--text-muted)', fontFamily: 'var(--font-display)',
+  }
+
+  // ── Render
   return (
-    <div className="flex flex-col gap-0 max-w-[1400px]" style={{ height: 'calc(100vh - 48px)' }}>
-      <PageHeader
-        title="Calendrier"
-        sub="Vue semaine · Événements · Planning"
-        actions={
-          <Button variant="primary" size="sm" onClick={() => openModal(weekDays[0], 9)}>
-            <Plus size={13} /> Événement
-          </Button>
-        }
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, height: 'calc(100vh - 48px)', overflow: 'hidden' }}>
 
-      {/* Nav bar */}
-      <div className="flex items-center gap-3 mb-4">
-        <button onClick={prevWeek} className="p-1.5 rounded-[6px] transition-opacity hover:opacity-70" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <ChevronLeft size={14} style={{ color: 'var(--text-muted)' }} />
-        </button>
-        <button onClick={nextWeek} className="p-1.5 rounded-[6px] transition-opacity hover:opacity-70" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
-        </button>
-        <span className="text-sm font-semibold capitalize" style={{ color: 'var(--wheat)' }}>
-          {weekStart.toLocaleDateString('fr-BE', { month: 'long', year: 'numeric' })}
-        </span>
-        <button onClick={goToday} className="px-3 py-1 text-xs rounded-[6px]" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-          Aujourd'hui
-        </button>
-        <span className="ml-auto text-xs" style={{ color: 'var(--text-muted)' }}>
-          {loading ? 'Chargement…' : `${events.length} événement${events.length !== 1 ? 's' : ''}`}
-        </span>
-      </div>
+      {/* Notification toast */}
+      {notification && (
+        <div className="fixed top-4 right-4 z-50 px-4 py-2.5 rounded-[10px] text-sm font-semibold"
+          style={{ background: '#111', border: '1px solid rgba(245,223,187,0.15)', color: 'var(--wheat)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+          {notification}
+        </div>
+      )}
 
-      {/* Main */}
-      <div className="flex gap-4 flex-1 min-h-0">
+      {/* ── ROW 1 : Header + À VENIR ──────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 10, flexShrink: 0 }}>
 
-        {/* Grid */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden" style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)' }}>
+        {/* Header card */}
+        <div style={{ ...card(), padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <p style={{ fontSize: 10, ...labelStyle, marginBottom: 4 }}>Planning</p>
+            <h1 style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--wheat)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              CALENDRIER
+            </h1>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Votre journée. Votre plan.</p>
+          </div>
 
-          {/* Day headers */}
-          <div className="flex-shrink-0 grid" style={{ gridTemplateColumns: '44px repeat(7, 1fr)', borderBottom: '1px solid var(--border)' }}>
-            <div />
-            {weekDays.map((day, i) => {
-              const isToday = day.getTime() === today.getTime()
+          {/* Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* View switcher */}
+            <div style={{ display: 'flex', background: 'var(--bg)', borderRadius: 8, padding: 2, border: '1px solid var(--border)' }}>
+              {['SEMAINE'].map(v => (
+                <button key={v} style={{ padding: '4px 12px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', background: '#F2542D', color: '#fff' }}>
+                  {v}
+                </button>
+              ))}
+            </div>
+
+            {/* Nav */}
+            <button onClick={prevWeek} style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+              <ChevronLeft size={13} style={{ color: 'var(--text-muted)' }} />
+            </button>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)', fontFamily: 'var(--font-display)', minWidth: 120, textAlign: 'center', textTransform: 'capitalize' }}>
+              {fmtMonthYear(weekStart)}
+            </span>
+            <button onClick={nextWeek} style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+              <ChevronRight size={13} style={{ color: 'var(--text-muted)' }} />
+            </button>
+
+            <button onClick={goToday} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 11, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              Aujourd'hui
+            </button>
+
+            <button
+              onClick={() => setModalDate(today.toISOString().slice(0, 10))}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: '#F2542D', color: '#fff', cursor: 'pointer', border: 'none' }}>
+              <Plus size={12} /> ÉVÉNEMENT
+            </button>
+          </div>
+        </div>
+
+        {/* À VENIR */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '12px 16px 10px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <p style={labelStyle}>À venir</p>
+            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{loading ? '…' : `${upcoming.length}`}</span>
+          </div>
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {upcoming.length === 0 ? (
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', padding: '12px 16px' }}>Aucun événement à venir.</p>
+            ) : upcoming.map(ev => {
+              const color = evColor(ev)
               return (
-                <div key={i} className="py-2.5 text-center" style={{ borderLeft: '1px solid var(--border)' }}>
-                  <p className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{DAY_LABELS[i]}</p>
-                  <div className="mx-auto w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold mt-0.5"
-                    style={{ background: isToday ? '#F2542D' : 'transparent', color: isToday ? '#fff' : 'var(--wheat)' }}>
-                    {day.getDate()}
+                <div key={ev.id} onClick={() => setSelected(ev)}
+                  style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'flex-start' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(245,223,187,0.03)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                  <div style={{ width: 3, height: '100%', minHeight: 32, borderRadius: 2, background: color, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</p>
+                    <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
+                      {fmtShortDate(new Date(ev.start_at))} · {fmtTime(ev.start_at)}
+                    </p>
                   </div>
                 </div>
               )
             })}
           </div>
-
-          {/* Scrollable time grid */}
-          <div className="overflow-y-auto flex-1">
-            <div className="relative" style={{ height: TOTAL_HOURS * SLOT_PX }}>
-
-              {/* Hour lines */}
-              {Array.from({ length: TOTAL_HOURS }, (_, h) => (
-                <div key={h} className="absolute w-full flex pointer-events-none" style={{ top: h * SLOT_PX }}>
-                  <div className="w-11 text-right pr-2" style={{ paddingTop: 2 }}>
-                    <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{String(HOUR_START + h).padStart(2, '0')}h</span>
-                  </div>
-                  <div className="flex-1" style={{ borderTop: '1px solid var(--border)', opacity: 0.4 }} />
-                </div>
-              ))}
-
-              {/* Now indicator */}
-              {todayInWeek && nowMins >= 0 && nowMins <= TOTAL_HOURS * 60 && (
-                <div className="absolute pointer-events-none z-20 flex items-center" style={{ top: nowPx, left: 44, right: 0 }}>
-                  <div className="w-2 h-2 rounded-full -ml-1" style={{ background: '#F2542D' }} />
-                  <div className="h-px flex-1" style={{ background: '#F2542D', opacity: 0.8 }} />
-                </div>
-              )}
-
-              {/* Day columns */}
-              <div className="absolute inset-0" style={{ left: 44, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-                {weekDays.map((day, di) => {
-                  const dayEvs = eventsForDay(day)
-                  return (
-                    <div key={di} className="relative" style={{ borderLeft: '1px solid var(--border)' }}>
-                      {/* Click zones */}
-                      {Array.from({ length: TOTAL_HOURS }, (_, h) => (
-                        <div key={h} className="absolute w-full cursor-pointer" style={{ top: h * SLOT_PX, height: SLOT_PX, zIndex: 1 }}
-                          onClick={() => openModal(day, HOUR_START + h)} />
-                      ))}
-                      {/* Events */}
-                      {dayEvs.map(ev => {
-                        const top    = eventTopPx(ev.start_at)
-                        const height = eventHeightPx(ev.start_at, ev.end_at)
-                        const color  = eventColor(ev)
-                        const isSel  = selected?.id === ev.id
-                        return (
-                          <div key={ev.id}
-                            onClick={e => { e.stopPropagation(); setSelected(ev) }}
-                            className="absolute left-0.5 right-0.5 rounded-[5px] px-1.5 py-1 cursor-pointer overflow-hidden"
-                            style={{
-                              top, height,
-                              background: color + '20',
-                              borderLeft: `3px solid ${color}`,
-                              zIndex: 10,
-                              outline: isSel ? `2px solid ${color}` : 'none',
-                              outlineOffset: 1,
-                            }}
-                          >
-                            <p className="text-[10px] font-semibold leading-tight truncate" style={{ color }}>{ev.title}</p>
-                            {height > 28 && <p className="text-[9px] mt-0.5 leading-tight" style={{ color: 'var(--text-muted)' }}>{fmtTime(ev.start_at)}</p>}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right panel */}
-        <div className="w-60 flex-shrink-0 flex flex-col gap-3 overflow-y-auto">
-
-          {/* Event detail */}
-          <Card padding="none">
-            <div className="px-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
-              <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-                {selected ? 'Événement sélectionné' : 'Sélectionner'}
-              </p>
-            </div>
-            {selected ? (
-              <div className="p-3 flex flex-col gap-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: eventColor(selected) }} />
-                    <p className="text-xs font-semibold leading-snug" style={{ color: 'var(--wheat)' }}>{selected.title}</p>
-                  </div>
-                  <button onClick={() => setSelected(null)}><X size={11} style={{ color: 'var(--text-muted)' }} /></button>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock size={10} style={{ color: 'var(--text-muted)' }} />
-                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{fmtTime(selected.start_at)} → {fmtTime(selected.end_at)}</span>
-                </div>
-                {selected.location && (
-                  <div className="flex items-center gap-1.5">
-                    <MapPin size={10} style={{ color: 'var(--text-muted)' }} />
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{selected.location}</span>
-                  </div>
-                )}
-                {selected.category && (
-                  <div className="flex items-center gap-1.5">
-                    <Tag size={10} style={{ color: 'var(--text-muted)' }} />
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: eventColor(selected) + '22', color: eventColor(selected) }}>{selected.category}</span>
-                  </div>
-                )}
-                {selected.description && <p className="text-[10px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>{selected.description}</p>}
-                <button onClick={() => handleDelete(selected.id)} className="flex items-center gap-1.5 mt-1 text-[10px]" style={{ color: '#F2542D', opacity: 0.7 }}>
-                  <Trash2 size={10} /> Supprimer
-                </button>
-              </div>
-            ) : (
-              <p className="text-[10px] p-3" style={{ color: 'var(--text-muted)' }}>Clique sur un événement pour voir ses détails.</p>
-            )}
-          </Card>
-
-          {/* Tasks this week */}
-          <Card padding="none">
-            <div className="px-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
-              <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Tâches cette semaine</p>
-            </div>
-            {weekTasksDue.length === 0 ? (
-              <p className="text-[10px] p-3" style={{ color: 'var(--text-muted)' }}>Aucune tâche due.</p>
-            ) : weekTasksDue.slice(0, 8).map(t => (
-              <div key={t.id} className="flex items-center gap-2 px-3 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ background: t.status === 'done' ? '#0E9594' : t.priority === 'urgent' ? '#F2542D' : 'var(--text-muted)' }} />
-                <span className="text-[10px] truncate" style={{ color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>{t.title}</span>
-              </div>
-            ))}
-          </Card>
-
-          {/* Filters */}
-          <Card padding="none">
-            <div className="px-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
-              <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Catégories</p>
-            </div>
-            <div className="p-3 flex flex-col gap-1.5">
-              {Object.entries(CATEGORY_COLORS).map(([cat, color]) => {
-                const active = activeCategories.includes(cat)
-                return (
-                  <button key={cat} onClick={() => toggleCategory(cat)}
-                    className="flex items-center gap-2 text-[10px] rounded-[5px] px-2 py-1.5 text-left"
-                    style={{ background: active ? color + '22' : 'transparent', color: active ? color : 'var(--text-muted)', border: `1px solid ${active ? color : 'transparent'}` }}>
-                    <div className="w-2 h-2 rounded-full" style={{ background: color }} />
-                    {cat}
-                  </button>
-                )
-              })}
-              {activeCategories.length > 0 && (
-                <button onClick={() => setActiveCategories([])} className="text-[10px] mt-0.5 opacity-50 text-left" style={{ color: 'var(--text-muted)' }}>
-                  Effacer les filtres
-                </button>
-              )}
-            </div>
-          </Card>
         </div>
       </div>
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.65)' }} onClick={() => setModalOpen(false)}>
-          <div className="w-full max-w-sm rounded-[14px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold" style={{ color: 'var(--wheat)' }}>Nouvel événement</p>
-              <button onClick={() => setModalOpen(false)}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
-            </div>
+      {/* ── ROW 2 : Calendar grid ──────────────────────────────────────────── */}
+      <div style={{ ...card(), flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
 
-            <div className="flex flex-col gap-3">
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Titre *</label>
-                <input autoFocus type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  onKeyDown={e => e.key === 'Enter' && handleSave()}
-                  placeholder="Réunion client…"
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
-              </div>
-
-              <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                <Calendar size={11} />
-                <span className="capitalize">{fmtDateLong(new Date(modalDate + 'T12:00:00'))}</span>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Début</label>
-                  <input type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                    style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
-                </div>
-                <div className="flex-1">
-                  <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Fin</label>
-                  <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                    style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+        {/* Day headers */}
+        <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(7, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+          <div style={{ borderRight: '1px solid var(--border)' }} />
+          {weekDays.map((day, i) => {
+            const isToday = day.getTime() === today.getTime()
+            return (
+              <div key={i} style={{ padding: '10px 0', textAlign: 'center', borderRight: i < 6 ? '1px solid var(--border)' : 'none' }}>
+                <p style={{ ...labelStyle, fontSize: 8, marginBottom: 4 }}>{DAY_LABELS[i]}</p>
+                <div style={{
+                  width: 26, height: 26, borderRadius: '50%', margin: '0 auto',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: isToday ? '#F2542D' : 'transparent',
+                  fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-display)',
+                  color: isToday ? '#fff' : 'var(--wheat)',
+                }}>
+                  {day.getDate()}
                 </div>
               </div>
+            )
+          })}
+        </div>
 
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Catégorie</label>
-                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
-                  {Object.keys(CATEGORY_COLORS).map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+        {/* Scrollable grid */}
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          <div style={{ position: 'relative', height: TOTAL_HOURS * SLOT_PX }}>
+
+            {/* Hour lines */}
+            {Array.from({ length: TOTAL_HOURS }, (_, h) => (
+              <div key={h} style={{ position: 'absolute', top: h * SLOT_PX, left: 0, right: 0, display: 'flex', pointerEvents: 'none' }}>
+                <div style={{ width: TIME_COL, textAlign: 'right', paddingRight: 10, paddingTop: 2, flexShrink: 0 }}>
+                  <span style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>{String(HOUR_START + h).padStart(2, '0')}h</span>
+                </div>
+                <div style={{ flex: 1, borderTop: '1px solid var(--border)', opacity: 0.35 }} />
               </div>
+            ))}
 
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Lieu (facultatif)</label>
-                <input type="text" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
-                  placeholder="Bureau, Zoom…"
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+            {/* Now line */}
+            {todayInWeek && nowMins >= 0 && nowMins <= TOTAL_HOURS * 60 && (
+              <div style={{ position: 'absolute', top: nowPx, left: TIME_COL, right: 0, display: 'flex', alignItems: 'center', zIndex: 20, pointerEvents: 'none' }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#F2542D', marginLeft: -3.5 }} />
+                <div style={{ flex: 1, height: 1, background: '#F2542D', opacity: 0.85 }} />
               </div>
+            )}
 
-              <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Notes</label>
-                <textarea rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  placeholder="Détails…"
-                  className="w-full px-3 py-2 rounded-[8px] text-sm outline-none resize-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
-              </div>
-            </div>
-
-            <div className="flex gap-2 justify-end">
-              <Button variant="ghost" size="sm" onClick={() => setModalOpen(false)}>Annuler</Button>
-              <Button variant="primary" size="sm" loading={saving} onClick={handleSave}>Créer</Button>
+            {/* Day columns */}
+            <div style={{ position: 'absolute', inset: 0, left: TIME_COL, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+              {weekDays.map((day, di) => {
+                const dayEvs = eventsForDay(day)
+                return (
+                  <div key={di} style={{ position: 'relative', borderRight: di < 6 ? '1px solid var(--border)' : 'none' }}>
+                    {/* Click zones */}
+                    {Array.from({ length: TOTAL_HOURS }, (_, h) => (
+                      <div key={h} style={{ position: 'absolute', top: h * SLOT_PX, height: SLOT_PX, left: 0, right: 0, cursor: 'pointer', zIndex: 1 }}
+                        onClick={() => { setModalDate(day.toISOString().slice(0, 10)); setModalHour(HOUR_START + h) }} />
+                    ))}
+                    {/* Events */}
+                    {dayEvs.map(ev => {
+                      const top    = eventTop(ev.start_at)
+                      const height = eventHeight(ev.start_at, ev.end_at)
+                      const color  = evColor(ev)
+                      const isSel  = selected?.id === ev.id
+                      return (
+                        <div key={ev.id}
+                          onClick={e => { e.stopPropagation(); setSelected(ev) }}
+                          style={{
+                            position: 'absolute', top, height, left: 2, right: 2,
+                            borderRadius: 6, padding: '3px 6px',
+                            background: color + '1A',
+                            borderLeft: `3px solid ${color}`,
+                            zIndex: 10, cursor: 'pointer',
+                            outline: isSel ? `1.5px solid ${color}` : 'none',
+                            outlineOffset: 1, overflow: 'hidden',
+                          }}>
+                          <p style={{ fontSize: 10, fontWeight: 600, color, lineHeight: 1.2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{ev.title}</p>
+                          {height > 28 && <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{fmtTime(ev.start_at)}</p>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── ROW 3 : Bottom panels ──────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, flexShrink: 0 }}>
+
+        {/* Event detail */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <p style={labelStyle}>{selected ? 'Événement sélectionné' : 'Détail'}</p>
+            {selected && (
+              <button onClick={() => setSelected(null)}>
+                <X size={10} style={{ color: 'var(--text-muted)' }} />
+              </button>
+            )}
+          </div>
+          {selected ? (
+            <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: evColor(selected), flexShrink: 0, marginTop: 3 }} />
+                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)', lineHeight: 1.3 }}>{selected.title}</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Clock size={9} style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{fmtTime(selected.start_at)} → {fmtTime(selected.end_at)}</span>
+              </div>
+              {selected.location && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <MapPin size={9} style={{ color: 'var(--text-muted)' }} />
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{selected.location}</span>
+                </div>
+              )}
+              {selected.category && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Tag size={9} style={{ color: 'var(--text-muted)' }} />
+                  <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: evColor(selected) + '22', color: evColor(selected) }}>{selected.category}</span>
+                </div>
+              )}
+              {selected.description && (
+                <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>{selected.description}</p>
+              )}
+              <button onClick={() => handleDelete(selected.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: '#F2542D', opacity: 0.7, marginTop: 2, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <Trash2 size={10} /> Supprimer
+              </button>
+            </div>
+          ) : (
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', padding: '12px 14px' }}>Clique sur un événement pour voir ses détails.</p>
+          )}
+        </div>
+
+        {/* Rappels / Today */}
+        <div style={{ ...card({ background: 'rgba(242,84,45,0.06)', borderColor: 'rgba(242,84,45,0.18)' }), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(242,84,45,0.15)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Bell size={10} style={{ color: '#F2542D' }} />
+            <p style={{ ...labelStyle, color: '#F2542D' }}>Rappels — prochaines 24h</p>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {reminders.length === 0 ? (
+              <p style={{ fontSize: 10, color: 'rgba(242,84,45,0.5)', padding: '12px 14px' }}>Rien dans les 24 prochaines heures.</p>
+            ) : reminders.map(ev => (
+              <div key={ev.id} style={{ padding: '8px 14px', borderBottom: '1px solid rgba(242,84,45,0.08)', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F2542D', flexShrink: 0, marginTop: 4 }} />
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>{ev.title}</p>
+                  <p style={{ fontSize: 9, color: 'rgba(245,223,187,0.4)', marginTop: 1 }}>{fmtTime(ev.start_at)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Vue d'ensemble */}
+        <div style={{ ...card({ background: 'rgba(14,149,148,0.06)', borderColor: 'rgba(14,149,148,0.18)' }), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(14,149,148,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <p style={{ ...labelStyle, color: '#0E9594' }}>Vue d'ensemble</p>
+            <span style={{ fontSize: 9, color: 'rgba(14,149,148,0.6)' }}>{events.length} événement{events.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {Object.entries(categoryCount).length === 0 ? (
+              <p style={{ fontSize: 10, color: 'rgba(14,149,148,0.5)' }}>Aucun événement cette semaine.</p>
+            ) : Object.entries(categoryCount).map(([cat, count]) => {
+              const color = CATEGORIES[cat] ?? '#888'
+              const pct   = Math.round((count / events.length) * 100)
+              return (
+                <div key={cat}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ fontSize: 10, color: 'var(--wheat)' }}>{cat}</span>
+                    <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{count}</span>
+                  </div>
+                  <div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)' }}>
+                    <div style={{ height: '100%', borderRadius: 2, width: `${pct}%`, background: color }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── ROW 4 : Bottom panels 2 ────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, flexShrink: 0 }}>
+
+        {/* Tâches */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)' }}>
+            <p style={labelStyle}>Tâches cette semaine</p>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}>
+            {weekTasks.length === 0 ? (
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', padding: '10px 14px' }}>Aucune tâche cette semaine.</p>
+            ) : weekTasks.slice(0, 6).map(t => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderBottom: '1px solid var(--border)' }}>
+                {t.status === 'done'
+                  ? <CheckCircle2 size={11} style={{ color: '#0E9594', flexShrink: 0 }} />
+                  : <Circle size={11} style={{ color: t.priority === 'urgent' ? '#F2542D' : 'var(--text-muted)', flexShrink: 0 }} />
+                }
+                <span style={{ fontSize: 10, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  {t.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Filtres catégories */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <p style={labelStyle}>Filtres</p>
+            {activeCategories.length > 0 && (
+              <button onClick={() => setActiveCategories([])} style={{ fontSize: 9, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer' }}>
+                Réinitialiser
+              </button>
+            )}
+          </div>
+          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {Object.entries(CATEGORIES).map(([cat, color]) => {
+              const active = activeCategories.includes(cat)
+              return (
+                <button key={cat} onClick={() => toggleCategory(cat)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px',
+                    borderRadius: 7, fontSize: 11, textAlign: 'left', cursor: 'pointer',
+                    background: active ? color + '18' : 'transparent',
+                    border: `1px solid ${active ? color : 'transparent'}`,
+                    color: active ? color : 'var(--text-muted)',
+                  }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                  {cat}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Sync & Intégrations */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Link2 size={10} style={{ color: 'var(--text-muted)' }} />
+            <p style={labelStyle}>Sync & Intégrations</p>
+          </div>
+          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Apple Calendar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'rgba(245,223,187,0.04)', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Apple size={13} style={{ color: 'var(--wheat)' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>Apple Calendar</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>CalDAV</p>
+                </div>
+              </div>
+              <button onClick={() => setAppleOpen(true)}
+                style={{ padding: '4px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--wheat)', cursor: 'pointer' }}>
+                Connecter
+              </button>
+            </div>
+
+            {/* Google Calendar (placeholder) */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'rgba(245,223,187,0.04)', border: '1px solid var(--border)', opacity: 0.5 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Calendar size={13} style={{ color: 'var(--wheat)' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>Google Calendar</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>Bientôt disponible</p>
+                </div>
+              </div>
+              <span style={{ fontSize: 9, color: 'var(--text-muted)', padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)' }}>Soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {modalDate && (
+        <EventModal
+          date={modalDate}
+          hour={modalHour}
+          onSave={addEvent}
+          onClose={() => setModalDate(null)}
+        />
       )}
+      {appleOpen && <AppleModal onClose={() => setAppleOpen(false)} />}
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page export (Suspense for useSearchParams)
+// ─────────────────────────────────────────────────────────────────────────────
+export default function CalendrierPage() {
+  return (
+    <Suspense fallback={null}>
+      <CalendrierContent />
+    </Suspense>
   )
 }
