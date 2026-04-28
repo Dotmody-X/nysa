@@ -136,13 +136,50 @@ export function parseVCalendar(ics: string, etag?: string): CalDAVEvent[] {
   return events
 }
 
-// ── Fetch all events (large range) ───────────────────────────────────────────
+// ── Enumère tous les calendriers sous le homeSet ─────────────────────────────
 
-export async function fetchAllEvents(homeSetUrl: string, auth: string): Promise<CalDAVEvent[]> {
-  const url   = toAbsolute(homeSetUrl)
-  const start = '20260101T000000Z'                             // depuis Jan 2026
-  const end   = fmt(new Date(Date.now() + 730 * 24 * 3600_000)) // + 2 ans
+export async function listCalendarUrls(homeSetUrl: string, auth: string): Promise<string[]> {
+  const url  = toAbsolute(homeSetUrl)
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:prop><D:resourcetype/><D:displayname/></D:prop>
+</D:propfind>`
 
+  const { status, text } = await caldavRequest('PROPFIND', url, auth, body, { Depth: '1' })
+  if (status !== 207) return []
+
+  const urls: string[] = []
+  // Chaque <D:response> contient une ressource
+  const blocks = text.split(/<[^>]*:response[^/][^>]*>/).slice(1)
+  for (const block of blocks) {
+    // Vérifie que c'est un calendrier (resourcetype contient calendar)
+    const isCalendar = /<[^>]*:calendar\s*\/>/.test(block) || /<calendar\s*\/>/.test(block)
+    if (!isCalendar) continue
+    const hrefMatch = block.match(/<[^>]*:href[^>]*>([\s\S]*?)<\/[^>]*:href>/)
+    if (!hrefMatch) continue
+    const href = hrefMatch[1].trim()
+    // Exclut les collections système
+    if (/inbox|outbox|notification|dropbox|freebusy/i.test(href)) continue
+    urls.push(toAbsolute(href))
+  }
+  return urls
+}
+
+// ── Requête REPORT sur un calendrier individuel ───────────────────────────────
+
+function parseCalendarReport(text: string): CalDAVEvent[] {
+  const all: CalDAVEvent[] = []
+  const rx = /<[^>]*:?calendar-data[^>]*>([\s\S]*?)<\/[^>]*:?calendar-data>/g
+  let m: RegExpExecArray | null
+  while ((m = rx.exec(text)) !== null) {
+    const ics = m[1]
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&#xD;/g, '')
+    all.push(...parseVCalendar(ics))
+  }
+  return all
+}
+
+async function queryCalendarEvents(calUrl: string, auth: string, start: string, end: string): Promise<CalDAVEvent[]> {
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <C:calendar-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
   <D:prop>
@@ -158,25 +195,35 @@ export async function fetchAllEvents(homeSetUrl: string, auth: string): Promise<
   </C:filter>
 </C:calendar-query>`
 
-  const { status, text } = await caldavRequest('REPORT', url, auth, body, { Depth: '1' })
+  const { status, text } = await caldavRequest('REPORT', calUrl, auth, body, { Depth: '1' })
   if (status !== 207) return []
+  return parseCalendarReport(text)
+}
 
-  const all: CalDAVEvent[] = []
-  const rx = /<[^>]*:?calendar-data[^>]*>([\s\S]*?)<\/[^>]*:?calendar-data>/g
-  const etagRx = /<[^>]*:?getetag[^>]*>"?([^"<]+)"?<\/[^>]*:?getetag>/g
+// ── Fetch all events (Jan 2026 → +2 ans, tous les calendriers) ───────────────
 
-  const etags: string[] = []
-  let em: RegExpExecArray | null
-  while ((em = etagRx.exec(text)) !== null) etags.push(em[1])
+export async function fetchAllEvents(homeSetUrl: string, auth: string): Promise<CalDAVEvent[]> {
+  const start = '20260101T000000Z'
+  const end   = fmt(new Date(Date.now() + 730 * 24 * 3600_000))
 
-  let idx = 0
-  let m: RegExpExecArray | null
-  while ((m = rx.exec(text)) !== null) {
-    const ics = m[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&#xD;/g, '')
-    all.push(...parseVCalendar(ics, etags[idx]))
-    idx++
+  // 1. Énumère tous les calendriers individuels
+  const calUrls = await listCalendarUrls(homeSetUrl, auth)
+
+  // Si on ne trouve aucun calendrier, essaie directement sur homeSet (fallback)
+  if (calUrls.length === 0) {
+    return queryCalendarEvents(toAbsolute(homeSetUrl), auth, start, end)
   }
-  return all
+
+  // 2. Requête chaque calendrier et combine
+  const all: CalDAVEvent[] = []
+  for (const calUrl of calUrls) {
+    const events = await queryCalendarEvents(calUrl, auth, start, end)
+    all.push(...events)
+  }
+
+  // Déduplique par UID
+  const seen = new Set<string>()
+  return all.filter(e => { if (seen.has(e.uid)) return false; seen.add(e.uid); return true })
 }
 
 // ── iCal builder ─────────────────────────────────────────────────────────────
