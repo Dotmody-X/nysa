@@ -1,4 +1,5 @@
 'use client'
+import { Suspense } from 'react'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Upload, Plus, Activity, ChevronRight, Zap, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react'
@@ -24,7 +25,7 @@ function stravaAuthUrl() {
   return `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=activity:read_all`
 }
 
-export default function SportPage() {
+function SportPageInner() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const { activities, loading, addRun, refetch } = useHealth()
@@ -368,5 +369,13 @@ export default function SportPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SportPage() {
+  return (
+    <Suspense fallback={null}>
+      <SportPageInner />
+    </Suspense>
   )
 }
