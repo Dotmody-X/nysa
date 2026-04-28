@@ -14,11 +14,11 @@ import { useTasks } from '@/hooks/useTasks'
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 const DAY_LABELS   = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM']
-const HOUR_START   = 8
-const HOUR_END     = 21
+const HOUR_START   = 0
+const HOUR_END     = 24
 const TOTAL_HOURS  = HOUR_END - HOUR_START
-const SLOT_PX      = 60
-const TIME_COL     = 48
+const SLOT_PX      = 52
+const TIME_COL     = 44
 
 const CATEGORIES: Record<string, string> = {
   Travail:  '#F2542D',
@@ -421,46 +421,40 @@ function CalendrierContent() {
       {/* ── ROW 1 : Header + À VENIR ──────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 10, flexShrink: 0 }}>
 
-        {/* Header card */}
-        <div style={{ ...card(), padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <p style={{ fontSize: 10, ...labelStyle, marginBottom: 4 }}>Planning</p>
-            <h1 style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--wheat)', letterSpacing: '-0.02em', lineHeight: 1 }}>
-              CALENDRIER
-            </h1>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Votre journée. Votre plan.</p>
+        {/* Header card — compact */}
+        <div style={{ ...card(), padding: '10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div>
+              <p style={{ fontSize: 9, ...labelStyle, marginBottom: 2 }}>Planning</p>
+              <h1 style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--wheat)', letterSpacing: '-0.01em', lineHeight: 1 }}>
+                CALENDRIER
+              </h1>
+            </div>
+            {/* View switcher */}
+            <div style={{ display: 'flex', background: 'var(--bg)', borderRadius: 7, padding: 2, border: '1px solid var(--border)' }}>
+              <button style={{ padding: '3px 10px', borderRadius: 5, fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                SEMAINE
+              </button>
+            </div>
           </div>
 
           {/* Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* View switcher */}
-            <div style={{ display: 'flex', background: 'var(--bg)', borderRadius: 8, padding: 2, border: '1px solid var(--border)' }}>
-              {['SEMAINE'].map(v => (
-                <button key={v} style={{ padding: '4px 12px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', background: '#F2542D', color: '#fff' }}>
-                  {v}
-                </button>
-              ))}
-            </div>
-
-            {/* Nav */}
-            <button onClick={prevWeek} style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
-              <ChevronLeft size={13} style={{ color: 'var(--text-muted)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={prevWeek} style={{ width: 26, height: 26, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+              <ChevronLeft size={12} style={{ color: 'var(--text-muted)' }} />
             </button>
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)', fontFamily: 'var(--font-display)', minWidth: 120, textAlign: 'center', textTransform: 'capitalize' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)', fontFamily: 'var(--font-display)', minWidth: 110, textAlign: 'center', textTransform: 'capitalize' }}>
               {fmtMonthYear(weekStart)}
             </span>
-            <button onClick={nextWeek} style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
-              <ChevronRight size={13} style={{ color: 'var(--text-muted)' }} />
+            <button onClick={nextWeek} style={{ width: 26, height: 26, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+              <ChevronRight size={12} style={{ color: 'var(--text-muted)' }} />
             </button>
-
-            <button onClick={goToday} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 11, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
+            <button onClick={goToday} style={{ padding: '4px 12px', borderRadius: 7, fontSize: 10, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
               Aujourd'hui
             </button>
-
-            <button
-              onClick={() => setModalDate(today.toISOString().slice(0, 10))}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: '#F2542D', color: '#fff', cursor: 'pointer', border: 'none' }}>
-              <Plus size={12} /> ÉVÉNEMENT
+            <button onClick={() => setModalDate(today.toISOString().slice(0, 10))}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 7, fontSize: 10, fontWeight: 600, background: '#F2542D', color: '#fff', cursor: 'pointer', border: 'none' }}>
+              <Plus size={11} /> ÉVÉNEMENT
             </button>
           </div>
         </div>
