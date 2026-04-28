@@ -300,6 +300,9 @@ function CalendrierContent() {
   const [appleOpen, setAppleOpen]         = useState(false)
   const [activeCategories, setActiveCategories] = useState<string[]>([])
   const [notification, setNotification]   = useState<string | null>(null)
+  const [appleConnected, setAppleConnected] = useState(false)
+  const [syncing, setSyncing]             = useState(false)
+  const [lastSync, setLastSync]           = useState<Date | null>(null)
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const weekDays   = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
@@ -317,17 +320,21 @@ function CalendrierContent() {
 
   // Auto-sync Apple Calendar au chargement + toutes les 5 minutes
   useEffect(() => {
-    async function bgSync() {
+    async function bgSync(showSpinner = false) {
+      if (showSpinner) setSyncing(true)
       try {
-        const res = await fetch('/api/calendar/apple/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+        const res  = await fetch('/api/calendar/apple/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
         const json = await res.json()
-        if (!json.skipped && (json.synced > 0 || json.removed > 0)) {
-          refetch() // recharge les événements si changements
+        if (!json.skipped) {
+          setAppleConnected(true)
+          setLastSync(new Date())
+          if (json.synced > 0 || json.removed > 0) refetch()
         }
       } catch {}
+      if (showSpinner) setSyncing(false)
     }
-    bgSync()
-    const interval = setInterval(bgSync, 5 * 60 * 1000) // toutes les 5 min
+    bgSync(true)
+    const interval = setInterval(() => bgSync(false), 5 * 60 * 1000)
     return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -732,19 +739,33 @@ function CalendrierContent() {
           </div>
           <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {/* Apple Calendar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'rgba(245,223,187,0.04)', border: '1px solid var(--border)' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '8px 10px', borderRadius: 8,
+              background: appleConnected ? 'rgba(14,149,148,0.06)' : 'rgba(245,223,187,0.04)',
+              border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.2)' : 'var(--border)'}`,
+            }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Apple size={13} style={{ color: 'var(--wheat)' }} />
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: appleConnected ? 'rgba(14,149,148,0.15)' : 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Apple size={13} style={{ color: appleConnected ? '#0E9594' : 'var(--wheat)' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>Apple Calendar</p>
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>CalDAV</p>
+                  <p style={{ fontSize: 9, color: appleConnected ? '#0E9594' : 'var(--text-muted)' }}>
+                    {appleConnected
+                      ? (syncing ? 'Sync en cours…' : lastSync ? `Sync ${lastSync.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}` : 'Connecté')
+                      : 'CalDAV'}
+                  </p>
                 </div>
               </div>
               <button onClick={() => setAppleOpen(true)}
-                style={{ padding: '4px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--wheat)', cursor: 'pointer' }}>
-                Connecter
+                style={{
+                  padding: '4px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600, cursor: 'pointer',
+                  background: appleConnected ? 'rgba(14,149,148,0.12)' : 'var(--bg)',
+                  border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`,
+                  color: appleConnected ? '#0E9594' : 'var(--wheat)',
+                }}>
+                {appleConnected ? '⟳ Reconnecter' : 'Connecter'}
               </button>
             </div>
 
