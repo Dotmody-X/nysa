@@ -159,11 +159,11 @@ export default function TimeTrackerPage() {
               </div>
             ) : entries.slice(0,12).map(e => (
               <div key={e.id} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom:'1px solid var(--border)', background: !e.ended_at ? 'rgba(242,84,45,0.04)' : 'transparent' }}>
-                <div style={{ width:10, height:10, borderRadius:'50%', background:e.project_color??'#F5DFBB', flexShrink:0 }} />
+                <div style={{ width:10, height:10, borderRadius:'50%', background:(e as any).projects?.color ?? e.project?.color ?? '#F5DFBB', flexShrink:0 }} />
                 <div className="flex-1 min-w-0">
                   <p style={{ fontSize:13, color:'var(--wheat)' }}>{e.description||'Sans description'}</p>
                   <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>
-                    {e.project_name??'Sans projet'} · {new Date(e.started_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+                    {(e as any).projects?.name ?? e.project?.name ?? 'Sans projet'} · {new Date(e.started_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
                     {e.ended_at ? ` → ${new Date(e.ended_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}` : ' · En cours'}
                   </p>
                 </div>

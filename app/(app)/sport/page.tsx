@@ -40,7 +40,7 @@ export default function RunningPage() {
     if (!form.distance) return
     const parts = form.duration.split(':').map(Number)
     const dur = form.duration ? (parts[0]*3600 + (parts[1]||0)*60) : undefined
-    await addRun({ date: form.date, distance_km: parseFloat(form.distance), duration_seconds: dur, notes: form.notes||undefined, type:'run' })
+    await addRun({ date: form.date, distance_km: parseFloat(form.distance), duration_seconds: dur, notes: form.notes||undefined })
     setShowForm(false); setForm({ date: new Date().toISOString().slice(0,10), distance:'', duration:'', notes:'' })
   }
 

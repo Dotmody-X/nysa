@@ -44,8 +44,8 @@ export default function RapportsPage() {
 
       <KpiGrid>
         <KpiCard label="Temps logué"     value={loading ? '…' : fmtSec(data?.totalSeconds??0)}     color="#F2542D" />
-        <KpiCard label="Tâches actives"  value={loading ? '…' : String(data?.totalTasks??0)}        color="#F5DFBB" />
-        <KpiCard label="Tâches complétées" value={loading ? '…' : String(data?.doneTasks??0)}       color="#0E9594" />
+        <KpiCard label="Tâches actives"  value={loading ? '…' : String(data?.tasksTotal??0)}        color="#F5DFBB" />
+        <KpiCard label="Tâches complétées" value={loading ? '…' : String(data?.tasksDone??0)}       color="#0E9594" />
         <KpiCard label="Revenus"         value={loading ? '…' : fmtEur(data?.totalIncome??0)}       color="#F0E4CC" />
       </KpiGrid>
 
@@ -58,8 +58,8 @@ export default function RapportsPage() {
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F0E4CC', textTransform:'uppercase', marginBottom:16 }}>Analyse de l'activité</p>
             {loading ? <p style={{ color:'rgba(240,228,204,0.5)', fontSize:12 }}>Chargement…</p> : (
               <div className="flex items-end gap-2" style={{ height:100 }}>
-                {(data?.dailyData ?? []).map((d, i) => {
-                  const maxSec = Math.max(...(data?.dailyData??[]).map(x=>x.seconds), 1)
+                {(data?.dailyStats ?? []).map((d, i) => {
+                  const maxSec = Math.max(...(data?.dailyStats??[]).map(x=>x.seconds), 1)
                   const h = Math.max(4, (d.seconds/maxSec)*90)
                   const label = new Date(d.date).toLocaleDateString('fr-FR',{weekday:'short'}).slice(0,1).toUpperCase()
                   return (
@@ -103,10 +103,10 @@ export default function RapportsPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5">
               {[
-                { label:'Tâches totales',    value: loading ? '…' : String(data?.totalTasks??0), color:'var(--wheat)' },
-                { label:'Terminées',         value: loading ? '…' : String(data?.doneTasks??0),  color:'#0E9594' },
-                { label:'Événements',        value: loading ? '…' : String(data?.totalEvents??0), color:'#F5DFBB' },
-                { label:'Taux complétion',   value: loading||!(data?.totalTasks) ? '—' : `${Math.round((data!.doneTasks/data!.totalTasks)*100)}%`, color:'#F2542D' },
+                { label:'Tâches totales',    value: loading ? '…' : String(data?.tasksTotal??0), color:'var(--wheat)' },
+                { label:'Terminées',         value: loading ? '…' : String(data?.tasksDone??0),  color:'#0E9594' },
+                { label:'En retard',         value: loading ? '…' : String(data?.tasksLate??0), color:'#F5DFBB' },
+                { label:'Taux complétion',   value: loading||!(data?.tasksTotal) ? '—' : `${Math.round((data!.tasksDone/data!.tasksTotal)*100)}%`, color:'#F2542D' },
               ].map(stat => (
                 <div key={stat.label}>
                   <p style={{ ...DF, fontWeight:900, fontSize:22, color:stat.color, lineHeight:1 }}>{stat.value}</p>
@@ -123,9 +123,9 @@ export default function RapportsPage() {
           <div style={{ background:'#F2542D', borderRadius:12, padding:20 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:12 }}>Répartition du temps</p>
             {loading ? <p style={{ fontSize:12, color:'rgba(26,10,10,0.6)' }}>…</p> : (
-              (data?.byProject ?? []).slice(0,6).map(p => {
+              (data?.projectStats ?? []).slice(0,6).map(p => {
                 const totalSec = data?.totalSeconds ?? 1
-                const pct = Math.round(p.seconds/totalSec*100)
+                const pct = Math.round(p.total_seconds/totalSec*100)
                 return (
                   <div key={p.project_name} className="mb-3">
                     <div className="flex justify-between mb-1">
@@ -139,7 +139,7 @@ export default function RapportsPage() {
                 )
               })
             )}
-            {(!loading && !(data?.byProject?.length)) && (
+            {(!loading && !(data?.projectStats?.length)) && (
               <p style={{ fontSize:12, color:'rgba(26,10,10,0.5)' }}>Aucune donnée</p>
             )}
           </div>
@@ -171,7 +171,7 @@ export default function RapportsPage() {
           <div style={{ background:'#0E9594', borderRadius:12, padding:16 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:10 }}>Objectifs</p>
             {[
-              { label:'Tâches / jour', target:5, current: loading ? 0 : Math.round((data?.doneTasks??0)/(period==='week'?7:30)) },
+              { label:'Tâches / jour', target:5, current: loading ? 0 : Math.round((data?.tasksDone??0)/(period==='week'?7:30)) },
               { label:'Heures / jour', target:6, current: loading ? 0 : Math.round((data?.totalSeconds??0)/3600/(period==='week'?7:30)) },
             ].map(obj => (
               <div key={obj.label} className="mb-3">

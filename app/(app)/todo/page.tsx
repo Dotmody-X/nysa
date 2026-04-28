@@ -205,7 +205,10 @@ function MiniCalendar({ tasks }: { tasks: any[] }) {
   const year = today.getFullYear(); const month = today.getMonth()
   const firstDay = new Date(year, month, 1).getDay() || 7
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const days = Array.from({ length: firstDay - 1 }, () => null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1))
+  const days: (number | null)[] = [
+    ...Array.from({ length: firstDay - 1 }, (): number | null => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ]
   const taskDates = new Set(tasks.map(t => t.due_date))
   const monthName = today.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
 

@@ -42,7 +42,7 @@ export default function HealthPage() {
     if (!rForm.distance) return
     const [h,m] = rForm.duration.split(':').map(Number)
     const dur = rForm.duration ? (h*3600 + m*60) : undefined
-    await addRun({ date: rForm.date, distance_km: parseFloat(rForm.distance), duration_seconds: dur, notes: rForm.notes || undefined, type: 'run' })
+    await addRun({ date: rForm.date, distance_km: parseFloat(rForm.distance), duration_seconds: dur, notes: rForm.notes || undefined })
     setShowRunForm(false); setRForm({ date: new Date().toISOString().slice(0,10), distance: '', duration: '', notes: '' })
   }
 

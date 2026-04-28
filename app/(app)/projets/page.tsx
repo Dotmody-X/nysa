@@ -17,10 +17,10 @@ export default function ProjetsPage() {
   const [form, setForm] = useState({ name: '', color: '#0E9594', description: '' })
 
   const activeProjects  = projects.filter(p => p.status === 'active')
-  const doneProjects    = projects.filter(p => p.status === 'done')
+  const doneProjects    = projects.filter(p => p.status === 'completed')
   const filtered = projects.filter(p => {
     if (filter === 'actifs')   return p.status === 'active'
-    if (filter === 'termines') return p.status === 'done'
+    if (filter === 'termines') return p.status === 'completed'
     if (filter === 'archives') return p.status === 'archived'
     return true
   }).filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()))
@@ -32,7 +32,7 @@ export default function ProjetsPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     if (!form.name.trim()) return
-    await create({ name: form.name.trim(), color: form.color, description: form.description, status: 'active', progress: 0 })
+    await create({ name: form.name.trim(), color: form.color, description: form.description, status: 'active', priority: 'medium', progress: 0 })
     setShowForm(false); setForm({ name: '', color: '#0E9594', description: '' })
   }
 
