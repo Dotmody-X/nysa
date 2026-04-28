@@ -271,58 +271,60 @@ export default function ActivityDetailPage() {
       {/* ── Carte + Graphiques ── */}
       {hasGpx ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
-          {/* Carte grande */}
-          <div className="md:col-span-2">
+          {/* Carte — prend toute la largeur si pas de données GPX détaillées */}
+          <div className={gpxData ? 'md:col-span-2' : 'md:col-span-3'}>
             <SafeMap>
               <ActivityMap points={mapPoints} height={360} />
             </SafeMap>
           </div>
 
-          {/* Colonne droite — profil élévation + allure */}
-          <div className="flex flex-col gap-[10px]">
-            {/* Profil d'élévation */}
-            <div style={{ background: '#11686A', borderRadius: 12, padding: 16, flex: 1 }}>
-              <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F0E4CC', textTransform: 'uppercase', marginBottom: 8 }}>
-                Profil d'élévation
-              </p>
-              <div style={{ height: 100, borderRadius: 8, overflow: 'hidden', marginBottom: 4 }}>
-                <ElevationProfile
-                  points={gpxData!.points}
-                  elevationMin={gpxData!.elevationMin}
-                  elevationMax={gpxData!.elevationMax}
-                />
+          {/* Colonne droite — uniquement si données GPX disponibles */}
+          {gpxData && (
+            <div className="flex flex-col gap-[10px]">
+              {/* Profil d'élévation */}
+              <div style={{ background: '#11686A', borderRadius: 12, padding: 16, flex: 1 }}>
+                <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F0E4CC', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Profil d'élévation
+                </p>
+                <div style={{ height: 100, borderRadius: 8, overflow: 'hidden', marginBottom: 4 }}>
+                  <ElevationProfile
+                    points={gpxData.points}
+                    elevationMin={gpxData.elevationMin}
+                    elevationMax={gpxData.elevationMax}
+                  />
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)' }}>min {Math.round(gpxData.elevationMin)}m</span>
+                  <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)' }}>max {Math.round(gpxData.elevationMax)}m</span>
+                </div>
               </div>
-              <div className="flex justify-between mt-2">
-                <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)' }}>min {Math.round(gpxData!.elevationMin)}m</span>
-                <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)' }}>max {Math.round(gpxData!.elevationMax)}m</span>
-              </div>
-            </div>
 
-            {/* Allure par km */}
-            {gpxData!.kmSplits.length > 0 && (
-              <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
-                <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F2542D', textTransform: 'uppercase', marginBottom: 8 }}>
-                  Allure par km
-                </p>
-                <PaceChart splits={gpxData!.kmSplits} />
-                <p style={{ fontSize: 9, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4 }}>
-                  Teal = rapide · Orange = lent
-                </p>
-              </div>
-            )}
-          </div>
+              {/* Allure par km */}
+              {gpxData.kmSplits.length > 0 && (
+                <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+                  <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F2542D', textTransform: 'uppercase', marginBottom: 8 }}>
+                    Allure par km
+                  </p>
+                  <PaceChart splits={gpxData.kmSplits} />
+                  <p style={{ fontSize: 9, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4 }}>
+                    Teal = rapide · Orange = lent
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
-        /* Pas de GPX — juste un placeholder carte */
+        /* Saisie manuelle — pas de carte */
         <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, textAlign: 'center' }}>
           <MapPin size={28} style={{ color: 'var(--text-subtle)', margin: '0 auto 8px' }} />
-          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Pas de données GPX — saisie manuelle</p>
-          <p style={{ fontSize: 11, color: 'var(--text-subtle)', marginTop: 4 }}>Importe un fichier GPX depuis Strava pour voir la carte et les graphiques</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Saisie manuelle — pas de trace GPS</p>
+          <p style={{ fontSize: 11, color: 'var(--text-subtle)', marginTop: 4 }}>Synchronise depuis Strava pour afficher la carte</p>
         </div>
       )}
 
-      {/* ── Tableau des splits ── */}
-      {hasGpx && gpxData!.kmSplits.length > 0 && (
+      {/* ── Tableau des splits — GPX uniquement ── */}
+      {gpxData && gpxData.kmSplits.length > 0 && (
         <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)' }}>
           <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#0E9594', textTransform: 'uppercase' }}>
@@ -339,8 +341,8 @@ export default function ActivityDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {gpxData!.kmSplits.map((s, i) => {
-                  const avgPaceSec = gpxData!.kmSplits.reduce((sum, x) => sum + x.paceSecPerKm, 0) / gpxData!.kmSplits.length
+                {gpxData.kmSplits.map((s, i) => {
+                  const avgPaceSec = gpxData.kmSplits.reduce((sum, x) => sum + x.paceSecPerKm, 0) / gpxData.kmSplits.length
                   const isFast = s.paceSecPerKm <= avgPaceSec
                   return (
                     <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
