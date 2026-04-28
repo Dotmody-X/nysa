@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Calendar, Timer, CheckSquare,
-  Heart, Wallet, BarChart2,
+  Heart, Wallet, BarChart2, Footprints,
 } from 'lucide-react'
 
 const mobileItems = [
@@ -12,6 +12,7 @@ const mobileItems = [
   { href: '/calendrier',   label: 'Agenda',    icon: Calendar },
   { href: '/time-tracker', label: 'Timer',     icon: Timer },
   { href: '/todo',         label: 'Tâches',    icon: CheckSquare },
+  { href: '/sport',        label: 'Running',   icon: Footprints },
   { href: '/health',       label: 'Health',    icon: Heart },
   { href: '/budget',       label: 'Budget',    icon: Wallet },
   { href: '/rapports',     label: 'Rapports',  icon: BarChart2 },

@@ -13,6 +13,7 @@ const navItems: NavItem[] = [
   { href: '/time-tracker', label: 'Time Trackers', color: 'var(--dark-cyan)' },
   { href: '/projets',      label: 'Projets',       color: 'var(--dark-cyan)' },
   { href: '/todo',         label: 'To Do List',    color: 'var(--dark-cyan)' },
+  { href: '/sport',        label: 'Running',       color: 'var(--dark-cyan)' },
   { href: '/health',       label: 'Health',        color: 'var(--dark-cyan)' },
   { href: '/recettes',     label: 'Recettes',      color: 'var(--dark-cyan)' },
   { href: '/courses',      label: 'Courses',       color: 'var(--dark-cyan)' },

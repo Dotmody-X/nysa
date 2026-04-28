@@ -46,7 +46,7 @@ export function useHealth() {
       .insert({ ...payload, user_id: user!.id, source: 'manual' })
       .select().single()
     if (!error && data) setActivities(a => [data as RunningActivity, ...a])
-    return { error }
+    return { data: data as RunningActivity | null, error }
   }
 
   const latestWeight = metrics[0]?.weight_kg ?? null
