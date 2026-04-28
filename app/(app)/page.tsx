@@ -1,14 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import {
-  Calendar, Timer, FolderKanban, CheckSquare,
-  Heart, Wallet, TrendingUp, Clock, ArrowRight,
-  AlertTriangle, Activity, Check,
-} from 'lucide-react'
-import { Card }         from '@/components/ui/Card'
-import { Badge }        from '@/components/ui/Badge'
-import { StatCard }     from '@/components/ui/StatCard'
+import { ArrowRight, Clock, Sparkles } from 'lucide-react'
+import { NysaLogo } from '@/components/ui/NysaLogo'
 import { useDashboard } from '@/hooks/useDashboard'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -16,341 +10,448 @@ import { useDashboard } from '@/hooks/useDashboard'
 function fmtSeconds(sec: number) {
   const h = Math.floor(sec / 3600)
   const m = Math.floor((sec % 3600) / 60)
-  if (h > 0) return `${h}h${String(m).padStart(2,'0')}`
+  if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`
   return `${m}min`
-}
-
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })
 }
 
 function fmtEur(n: number) {
   return n.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 })
 }
 
-const PRIORITY_COLOR: Record<string, string> = {
-  urgent: '#F2542D', high: '#F5DFBB', medium: '#0E9594', low: '#888',
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h >= 5  && h < 12) return 'Bonjour'
+  if (h >= 12 && h < 18) return 'Bon après-midi'
+  if (h >= 18 && h < 22) return 'Bonsoir'
+  return 'Bonne nuit'
 }
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
+// ── Shared styles ─────────────────────────────────────────────────────────────
+
+const CARD_RADIUS = '12px'
+
+function card(bg: string, extra?: React.CSSProperties): React.CSSProperties {
+  return { background: bg, borderRadius: CARD_RADIUS, overflow: 'hidden', ...extra }
+}
+
+const FONT_DISPLAY: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { data, loading } = useDashboard()
 
-  const todayLabel = new Date().toLocaleDateString('fr-BE', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  const greeting  = getGreeting()
+  const todayLabel = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
+  const todayCapitalized = todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)
 
-  const hasAlert = data && (data.lateTasks > 0 || data.urgentTasks > 0)
-  const balance  = data ? data.monthIncome - data.monthExpense : 0
+  const balance     = data ? data.monthIncome - data.monthExpense : 0
+  const doneTasks   = data?.todayTasks.filter(t => t.status === 'done').length ?? 0
+  const totalTasks  = data?.todayTasks.length ?? 0
+
+  // ── Bento grid ────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1400px]">
+    <div
+      className="grid grid-cols-2 md:grid-cols-4"
+      style={{ gap: 10, padding: 30, minHeight: '100%' }}
+    >
 
-      {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
+      {/* ═══════════════════════════════════════════════════════════ ROW 1 */}
+
+      {/* Hero — col-span-2 */}
+      <div
+        className="col-span-2 flex flex-col justify-between"
+        style={card('transparent', { border: 'none', padding: '10px 0 20px 0', minHeight: 220 })}
+      >
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight leading-none nysa-gradient-text">
-            Focus.<br />Plan.<br />Progress.
+          <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 600, letterSpacing: '0.2em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 8 }}>
+            {greeting}
+          </p>
+          <h1 style={{ ...FONT_DISPLAY, fontWeight: 900, fontSize: 'clamp(36px, 5vw, 64px)', lineHeight: 1, color: 'var(--wheat)', letterSpacing: '-0.01em' }}>
+            FOCUS.<br />PLAN.<br />PROGRESS.
           </h1>
-          <p className="text-xs mt-3 capitalize" style={{ color: 'var(--text-muted)' }}>{todayLabel}</p>
+        </div>
+        <p style={{ ...FONT_DISPLAY, fontSize: 12, fontWeight: 500, color: 'var(--dark-cyan)', marginTop: 12 }}>
+          {todayCapitalized}
+        </p>
+      </div>
+
+      {/* Agent IA — col-span-2, orange */}
+      <div
+        className="col-span-2 flex flex-col justify-between p-6"
+        style={card('#F2542D', { minHeight: 220 })}
+      >
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={14} style={{ color: '#1A0A0A' }} />
+            <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', color: '#1A0A0A', textTransform: 'uppercase' }}>
+              Agent IA
+            </p>
+          </div>
+          <p style={{ fontSize: 13, color: '#1A0A0A', lineHeight: 1.6, opacity: 0.85 }}>
+            Bonjour !<br />
+            {totalTasks > 0
+              ? `Tu as ${totalTasks} tâche${totalTasks > 1 ? 's' : ''} aujourd'hui.`
+              : "Ta journée est libre."}<br />
+            Veux-tu que je t'aide à planifier ?
+          </p>
+        </div>
+        <Link
+          href="/agent"
+          className="flex items-center justify-between px-4 py-2.5 rounded-lg mt-4"
+          style={{ background: 'rgba(0,0,0,0.2)', color: '#1A0A0A' }}
+        >
+          <span style={{ ...FONT_DISPLAY, fontSize: 12, fontWeight: 600 }}>Discuter</span>
+          <ArrowRight size={14} />
+        </Link>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════ ROW 2 — 4 nav cards */}
+
+      {/* Calendrier — cream */}
+      <NavCard
+        href="/calendrier"
+        bg="#F0E4CC"
+        logoColor="#F2542D"
+        label="CALENDRIER"
+        value={loading ? '…' : `${data?.todayEvents.length ?? 0} événement${(data?.todayEvents.length ?? 0) !== 1 ? 's' : ''}`}
+        sub="aujourd'hui"
+        textColor="#1A0A0A"
+      />
+
+      {/* Time Trackers — stormy teal */}
+      <NavCard
+        href="/time-tracker"
+        bg="#11686A"
+        logoColor="#F0E4CC"
+        label="TIME TRACKERS"
+        value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)}
+        sub="aujourd'hui"
+        textColor="#F0E4CC"
+      />
+
+      {/* Projets — dark cyan */}
+      <NavCard
+        href="/projets"
+        bg="#0E9594"
+        logoColor="#1A0A0A"
+        label="PROJETS"
+        value={loading ? '…' : `${data?.activeProjects.length ?? 0} actif${(data?.activeProjects.length ?? 0) !== 1 ? 's' : ''}`}
+        sub="en cours"
+        textColor="#1A0A0A"
+      />
+
+      {/* To Do List — orange */}
+      <NavCard
+        href="/todo"
+        bg="#F2542D"
+        logoColor="#1A0A0A"
+        label="TO DO LIST"
+        value={loading ? '…' : `${totalTasks} tâche${totalTasks !== 1 ? 's' : ''}`}
+        sub={`${doneTasks} terminée${doneTasks !== 1 ? 's' : ''}`}
+        textColor="#1A0A0A"
+      />
+
+      {/* ═══════════════════════════════════════════════════════════ ROW 3 — 2 big cards */}
+
+      {/* Aujourd'hui — dark */}
+      <div
+        className="col-span-2 flex flex-col"
+        style={card('var(--bg-card)', { border: '1px solid var(--border)', minHeight: 460 })}
+      >
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+          <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: 'var(--accent)', textTransform: 'uppercase' }}>
+            Aujourd'hui
+          </p>
+          <Link href="/todo" style={{ fontSize: 10, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            Voir tout <ArrowRight size={10} />
+          </Link>
         </div>
 
-        {/* Alert card — tâches urgentes / en retard */}
-        {!loading && hasAlert ? (
-          <Card className="max-w-[240px] text-xs" style={{ background: 'rgba(242,84,45,0.08)', borderColor: 'rgba(242,84,45,0.25)' }}>
-            <div className="flex items-center gap-1.5 mb-2">
-              <AlertTriangle size={12} style={{ color: '#F2542D' }} />
-              <p className="font-semibold" style={{ color: '#F2542D' }}>Attention requise</p>
-            </div>
-            {data!.lateTasks > 0 && (
-              <p style={{ color: 'var(--text-muted)' }}>{data!.lateTasks} tâche{data!.lateTasks > 1 ? 's' : ''} en retard aujourd'hui.</p>
-            )}
-            {data!.urgentTasks > 0 && (
-              <p className="mt-0.5" style={{ color: 'var(--text-muted)' }}>{data!.urgentTasks} tâche{data!.urgentTasks > 1 ? 's urgentes' : ' urgente'}.</p>
-            )}
-            <Link href="/todo" className="mt-2 flex items-center gap-1 text-[10px] font-semibold" style={{ color: '#F2542D' }}>
-              Voir les tâches <ArrowRight size={10} />
-            </Link>
-          </Card>
-        ) : !loading && data?.todayTasks.length === 0 ? (
-          <Card className="max-w-[240px] text-xs" style={{ background: 'rgba(14,149,148,0.06)', borderColor: 'rgba(14,149,148,0.2)' }}>
-            <div className="flex items-center gap-1.5 mb-1">
-              <Check size={12} style={{ color: '#0E9594' }} />
-              <p className="font-semibold" style={{ color: '#0E9594' }}>Agenda libre</p>
-            </div>
-            <p style={{ color: 'var(--text-muted)' }}>Aucune tâche prévue aujourd'hui.</p>
-          </Card>
-        ) : null}
-      </div>
-
-      {/* ── STAT CARDS ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard
-          label="Calendrier"
-          value={loading ? '…' : String(data?.todayEvents.length ?? 0)}
-          unit={data?.todayEvents.length === 1 ? 'évt' : 'évts'}
-          sub="Aujourd'hui"
-          icon={<Calendar size={16} />}
-          accent="cyan"
-        />
-        <StatCard
-          label="Time Tracker"
-          value={loading ? '…' : (data?.todaySeconds ? fmtSeconds(data.todaySeconds) : '0min')}
-          sub={loading ? '' : `${fmtSeconds(data?.weekSeconds ?? 0)} cette semaine`}
-          icon={<Timer size={16} />}
-          accent="fiery"
-        />
-        <StatCard
-          label="Projets"
-          value={loading ? '…' : String(data?.activeProjects.length ?? 0)}
-          unit="actifs"
-          sub={
-            !loading && data?.activeProjects.some(p => p.deadline)
-              ? `Deadline : ${new Date(data!.activeProjects.find(p => p.deadline)!.deadline! + 'T12:00:00').toLocaleDateString('fr-BE', { day: '2-digit', month: 'short' })}`
-              : 'En cours'
-          }
-          icon={<FolderKanban size={16} />}
-          accent="teal"
-        />
-        <StatCard
-          label="To-Do"
-          value={loading ? '…' : String(data?.todayTasks.length ?? 0)}
-          unit="tâches"
-          sub={
-            !loading
-              ? `${data?.todayTasks.filter(t => t.status === 'done').length ?? 0} terminée${(data?.todayTasks.filter(t => t.status === 'done').length ?? 0) > 1 ? 's' : ''}`
-              : ''
-          }
-          icon={<CheckSquare size={16} />}
-          accent="wheat"
-        />
-      </div>
-
-      {/* ── ROW 2 : TÂCHES DU JOUR + TIME ENTRIES ───────────────────── */}
-      <div className="grid grid-cols-[1fr_1.4fr] gap-4">
-
-        {/* Tâches du jour */}
-        <Card padding="none">
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-            <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>Aujourd'hui</p>
-            <Link href="/todo" className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Voir tout →</Link>
-          </div>
-
+        <div className="flex-1 flex flex-col">
           {loading ? (
-            <p className="text-xs p-4" style={{ color: 'var(--text-muted)' }}>Chargement…</p>
+            <p className="text-xs p-5" style={{ color: 'var(--text-muted)' }}>Chargement…</p>
           ) : data?.todayTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <CheckSquare size={24} style={{ color: 'var(--text-muted)' }} />
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Aucune tâche prévue aujourd'hui</p>
-              <Link href="/todo" className="text-[10px] mt-1" style={{ color: '#F2542D' }}>+ Ajouter une tâche</Link>
+            <div className="flex flex-col items-center justify-center flex-1 gap-3 p-8">
+              <NysaLogo size={40} color="var(--border)" />
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>Aucune tâche prévue aujourd'hui</p>
+              <Link href="/todo" style={{ fontSize: 11, color: 'var(--accent)', ...FONT_DISPLAY, fontWeight: 600 }}>+ Ajouter une tâche</Link>
             </div>
           ) : (
-            <ul className="flex flex-col divide-y" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
-              {data!.todayTasks.slice(0, 6).map(t => {
+            <ul>
+              {data!.todayTasks.slice(0, 7).map(t => {
                 const done  = t.status === 'done'
-                const color = t.project_color ?? PRIORITY_COLOR[t.priority] ?? '#888'
+                const color = t.project_color ?? '#0E9594'
                 return (
-                  <li key={t.id} className="flex items-start gap-3 px-4 py-2.5">
-                    <span className="text-[10px] w-10 shrink-0 pt-0.5" style={{ color: 'var(--text-muted)' }}>
-                      {t.due_time ? t.due_time.slice(0,5) : '—'}
-                    </span>
-                    <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: done ? '#0E9594' : color }} />
+                  <li
+                    key={t.id}
+                    className="flex items-center gap-3 px-5 py-3"
+                    style={{ borderBottom: '1px solid var(--border)' }}
+                  >
+                    {/* Color dot */}
+                    <span style={{ width: 8, height: 8, borderRadius: 2, flexShrink: 0, background: done ? 'var(--text-subtle)' : color }} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs leading-snug" style={{ color: done ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: done ? 'line-through' : 'none' }}>
+                      <p style={{ fontSize: 12, color: done ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: done ? 'line-through' : 'none' }}>
                         {t.title}
                       </p>
-                      <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>
                         {t.project_name ?? 'Sans projet'}
-                        {t.estimated_minutes ? ` · ${t.estimated_minutes}min` : ''}
                       </p>
                     </div>
-                    {t.priority === 'urgent' && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(242,84,45,0.15)', color: '#F2542D' }}>urgent</span>
+                    {t.due_time && (
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
+                        {t.due_time.slice(0, 5)}
+                      </span>
                     )}
                   </li>
                 )
               })}
             </ul>
           )}
-        </Card>
+        </div>
 
-        {/* Time Tracker du jour */}
-        <Card padding="none">
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-            <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
-              Time Tracker — Aujourd'hui
+        <div className="px-5 py-3" style={{ borderTop: '1px solid var(--border)' }}>
+          <Link
+            href="/todo"
+            className="flex items-center gap-1"
+            style={{ ...FONT_DISPLAY, fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}
+          >
+            Voir toutes les tâches <ArrowRight size={10} />
+          </Link>
+        </div>
+      </div>
+
+      {/* Time Tracker — stormy teal */}
+      <div
+        className="col-span-2 flex flex-col"
+        style={card('#11686A', { minHeight: 460 })}
+      >
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(240,228,204,0.15)' }}>
+          <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: '#F0E4CC', textTransform: 'uppercase' }}>
+            Time Trackers — Aujourd'hui
+          </p>
+          <Link href="/time-tracker" style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Clock size={10} /> Ouvrir
+          </Link>
+        </div>
+
+        {/* Big time display */}
+        <div className="px-5 py-5" style={{ borderBottom: '1px solid rgba(240,228,204,0.15)' }}>
+          <p style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(240,228,204,0.6)', textTransform: 'uppercase', marginBottom: 4 }}>Aujourd'hui</p>
+          <p style={{ ...FONT_DISPLAY, fontWeight: 900, fontSize: 'clamp(32px, 4vw, 52px)', color: '#F0E4CC', lineHeight: 1 }}>
+            {loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)}
+          </p>
+          <p style={{ fontSize: 11, color: 'rgba(240,228,204,0.6)', marginTop: 6 }}>
+            {loading ? '' : `${fmtSeconds(data?.weekSeconds ?? 0)} cette semaine`}
+          </p>
+        </div>
+
+        {/* Entries */}
+        <div className="flex-1 flex flex-col px-5 py-3 gap-2 overflow-hidden">
+          {loading ? (
+            <p style={{ fontSize: 12, color: 'rgba(240,228,204,0.5)' }}>Chargement…</p>
+          ) : (data?.todayEntries.length ?? 0) === 0 ? (
+            <div className="flex flex-col items-center justify-center flex-1 gap-2">
+              <p style={{ fontSize: 12, color: 'rgba(240,228,204,0.5)', textAlign: 'center' }}>Aucune entrée aujourd'hui</p>
+              <Link href="/time-tracker" style={{ fontSize: 11, color: '#F0E4CC', ...FONT_DISPLAY, fontWeight: 600 }}>Démarrer un timer →</Link>
+            </div>
+          ) : (
+            data!.todayEntries.slice(0, 5).map(e => (
+              <div key={e.id} className="flex items-center gap-3">
+                <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: e.project_color ?? '#F0E4CC' }} />
+                <p style={{ flex: 1, fontSize: 12, color: '#F0E4CC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {e.project_name ?? 'Sans projet'}
+                </p>
+                <p style={{ fontSize: 11, color: 'rgba(240,228,204,0.6)', flexShrink: 0 }}>
+                  {e.duration_seconds ? fmtSeconds(e.duration_seconds) : '—'}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════ ROW 4 — 4 cards */}
+
+      {/* Health — teal */}
+      <div className="flex flex-col p-5" style={card('#11686A', { minHeight: 360 })}>
+        <div className="flex items-center justify-between mb-4">
+          <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: '#F0E4CC', textTransform: 'uppercase' }}>Health</p>
+          <Link href="/health"><ArrowRight size={14} style={{ color: 'rgba(240,228,204,0.5)' }} /></Link>
+        </div>
+        {loading ? (
+          <p style={{ fontSize: 12, color: 'rgba(240,228,204,0.5)' }}>…</p>
+        ) : data?.latestWeight ? (
+          <>
+            <p style={{ fontSize: 9, letterSpacing: '0.15em', color: 'rgba(240,228,204,0.6)', textTransform: 'uppercase', marginBottom: 2 }}>Poids</p>
+            <p style={{ ...FONT_DISPLAY, fontWeight: 900, fontSize: 40, color: '#F0E4CC', lineHeight: 1 }}>
+              {data.latestWeight} <span style={{ fontSize: 16, fontWeight: 500 }}>kg</span>
             </p>
-            <Link href="/time-tracker" className="text-[10px] flex items-center gap-1" style={{ color: '#0E9594' }}>
-              <Clock size={10} /> Ouvrir
-            </Link>
-          </div>
-
-          {/* Totaux */}
-          <div className="flex items-end gap-6 px-4 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <div>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Aujourd'hui</p>
-              <p className="text-3xl font-black" style={{ color: 'var(--wheat)' }}>
-                {loading ? '…' : (data?.todaySeconds ? fmtSeconds(data.todaySeconds) : '0min')}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Cette semaine</p>
-              <p className="text-lg font-bold" style={{ color: 'var(--text-muted)' }}>
-                {loading ? '…' : fmtSeconds(data?.weekSeconds ?? 0)}
-              </p>
-            </div>
-          </div>
-
-          {/* Entrées */}
-          {loading ? (
-            <p className="text-xs p-4" style={{ color: 'var(--text-muted)' }}>Chargement…</p>
-          ) : data?.todayEntries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 gap-2">
-              <Timer size={22} style={{ color: 'var(--text-muted)' }} />
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Aucune entrée aujourd'hui</p>
-              <Link href="/time-tracker" className="text-[10px]" style={{ color: '#F2542D' }}>Démarrer un timer →</Link>
-            </div>
-          ) : (
-            <ul className="flex flex-col divide-y">
-              {data!.todayEntries.slice(0, 5).map(e => (
-                <li key={e.id} className="flex items-center gap-3 px-4 py-2.5">
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: e.project_color ?? '#F5DFBB' }} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs" style={{ color: 'var(--wheat)' }}>{e.description || 'Sans description'}</p>
-                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                      {e.project_name ?? 'Sans projet'} · {fmtTime(e.started_at)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {e.is_billable && <Badge variant="cyan" className="text-[9px]">Fact.</Badge>}
-                    <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-                      {e.duration_seconds ? fmtSeconds(e.duration_seconds) : '—'}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+            {data.lastRun && (
+              <div className="mt-auto pt-4" style={{ borderTop: '1px solid rgba(240,228,204,0.15)', marginTop: 'auto' }}>
+                <p style={{ fontSize: 9, letterSpacing: '0.15em', color: 'rgba(240,228,204,0.6)', textTransform: 'uppercase', marginBottom: 4 }}>Dernier run</p>
+                <p style={{ ...FONT_DISPLAY, fontWeight: 700, fontSize: 18, color: '#F0E4CC' }}>
+                  {data.lastRun.distance_km} km
+                </p>
+              </div>
+            )}
+          </>
+        ) : (
+          <p style={{ fontSize: 12, color: 'rgba(240,228,204,0.5)' }}>Aucune donnée</p>
+        )}
+        <Link href="/health" className="flex items-center gap-1 mt-4"
+          style={{ ...FONT_DISPLAY, fontSize: 10, fontWeight: 600, color: 'rgba(240,228,204,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          Voir plus <ArrowRight size={10} />
+        </Link>
       </div>
 
-      {/* ── ROW 3 : HEALTH + BUDGET + RÉSUMÉ ────────────────────────── */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* Recette du jour — orange */}
+      <div className="flex flex-col p-5" style={card('#F2542D', { minHeight: 360 })}>
+        <div className="flex items-center justify-between mb-4">
+          <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: '#1A0A0A', textTransform: 'uppercase' }}>Recette du jour</p>
+          <span style={{ fontSize: 16 }}>🍴</span>
+        </div>
+        <div className="flex-1 flex flex-col justify-center items-center gap-2">
+          <NysaLogo size={36} color="rgba(26,10,10,0.2)" />
+          <p style={{ fontSize: 12, color: 'rgba(26,10,10,0.7)', textAlign: 'center' }}>Bientôt disponible</p>
+        </div>
+        <Link href="/recettes" className="flex items-center gap-1 mt-4"
+          style={{ ...FONT_DISPLAY, fontSize: 10, fontWeight: 600, color: 'rgba(26,10,10,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          Voir les recettes <ArrowRight size={10} />
+        </Link>
+      </div>
 
-        {/* Health */}
-        <Card>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Heart size={14} style={{ color: '#F2542D' }} />
-              <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>Health</p>
-            </div>
-            <Link href="/health"><ArrowRight size={12} style={{ color: 'var(--text-muted)' }} /></Link>
-          </div>
-          {loading ? (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>…</p>
-          ) : data?.latestWeight ? (
-            <>
-              <p className="text-2xl font-bold" style={{ color: 'var(--wheat)' }}>
-                {data.latestWeight} <span className="text-sm font-normal">kg</span>
-              </p>
-              <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
-                {data.lastRun ? (
-                  <div className="flex items-center gap-1.5">
-                    <Activity size={10} style={{ color: '#0E9594' }} />
-                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                      {data.lastRun.distance_km} km
-                      {data.lastRun.duration_seconds ? ` · ${fmtSeconds(data.lastRun.duration_seconds)}` : ''}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Aucun run enregistré</p>
-                )}
+      {/* Liste de courses — cream */}
+      <div className="flex flex-col p-5" style={card('#F0E4CC', { minHeight: 360 })}>
+        <div className="flex items-center justify-between mb-4">
+          <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: '#1A0A0A', textTransform: 'uppercase' }}>Courses</p>
+          <span style={{ fontSize: 16 }}>🛒</span>
+        </div>
+        <div className="flex-1 flex flex-col justify-center items-center gap-2">
+          <NysaLogo size={36} color="rgba(26,10,10,0.15)" />
+          <p style={{ fontSize: 12, color: 'rgba(26,10,10,0.6)', textAlign: 'center' }}>Ouvre ta liste</p>
+        </div>
+        <Link href="/courses" className="flex items-center gap-1 mt-4"
+          style={{ ...FONT_DISPLAY, fontSize: 10, fontWeight: 600, color: 'rgba(26,10,10,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          Voir la liste <ArrowRight size={10} />
+        </Link>
+      </div>
+
+      {/* Budget — dark */}
+      <div className="flex flex-col p-5" style={card('var(--bg-card)', { border: '1px solid var(--border)', minHeight: 360 })}>
+        <div className="flex items-center justify-between mb-4">
+          <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Budget</p>
+          <Link href="/budget"><ArrowRight size={14} style={{ color: 'var(--text-muted)' }} /></Link>
+        </div>
+        {loading ? (
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>…</p>
+        ) : (
+          <>
+            <p style={{ fontSize: 9, letterSpacing: '0.15em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 2 }}>Solde du mois</p>
+            <p style={{ ...FONT_DISPLAY, fontWeight: 900, fontSize: 32, color: balance >= 0 ? '#0E9594' : '#F2542D', lineHeight: 1 }}>
+              {balance >= 0 ? '+' : ''}{fmtEur(balance)}
+            </p>
+            <div className="mt-4 flex flex-col gap-1.5" style={{ borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 12 }}>
+              <div className="flex justify-between">
+                <p style={{ fontSize: 10, color: '#0E9594' }}>Revenus</p>
+                <p style={{ fontSize: 10, color: '#0E9594', ...FONT_DISPLAY, fontWeight: 600 }}>{fmtEur(data?.monthIncome ?? 0)}</p>
               </div>
-            </>
-          ) : (
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
-          )}
-        </Card>
-
-        {/* Budget */}
-        <Card>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Wallet size={14} style={{ color: '#0E9594' }} />
-              <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>Budget</p>
-            </div>
-            <Link href="/budget"><ArrowRight size={12} style={{ color: 'var(--text-muted)' }} /></Link>
-          </div>
-          {loading ? (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>…</p>
-          ) : (
-            <>
-              <p className="text-2xl font-bold" style={{ color: balance >= 0 ? '#0E9594' : '#F2542D' }}>
-                {balance >= 0 ? '+' : ''}{fmtEur(balance)}
-              </p>
-              <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>Solde ce mois</p>
-              <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
-                <p className="text-[10px]" style={{ color: '#0E9594' }}>+{fmtEur(data!.monthIncome)} revenus</p>
-                <p className="text-[10px] mt-0.5" style={{ color: '#F2542D' }}>-{fmtEur(data!.monthExpense)} dépenses</p>
+              <div className="flex justify-between">
+                <p style={{ fontSize: 10, color: '#F2542D' }}>Dépenses</p>
+                <p style={{ fontSize: 10, color: '#F2542D', ...FONT_DISPLAY, fontWeight: 600 }}>{fmtEur(data?.monthExpense ?? 0)}</p>
               </div>
-            </>
-          )}
-        </Card>
-
-        {/* Résumé global */}
-        <Card className="col-span-2" style={{ background: 'rgba(14,149,148,0.06)', borderColor: 'rgba(14,149,148,0.2)' }}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp size={14} style={{ color: '#0E9594' }} />
-              <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#0E9594' }}>Cette semaine</p>
-            </div>
-            <Link href="/rapports" className="flex items-center gap-1 text-[10px] font-medium" style={{ color: '#0E9594' }}>
-              Rapport complet <ArrowRight size={10} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-4 gap-4 text-center">
-            <div>
-              <p className="text-xl font-black" style={{ color: 'var(--wheat)' }}>
-                {loading ? '…' : fmtSeconds(data?.weekSeconds ?? 0)}
-              </p>
-              <p className="text-[9px] mt-1 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Temps logué</p>
-            </div>
-            <div>
-              <p className="text-xl font-black" style={{ color: 'var(--wheat)' }}>
-                {loading ? '…' : String(data?.todayTasks.filter(t => t.status === 'done').length ?? 0)}
-              </p>
-              <p className="text-[9px] mt-1 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Tâches faites</p>
-            </div>
-            <div>
-              <p className="text-xl font-black" style={{ color: 'var(--wheat)' }}>
-                {loading ? '…' : String(data?.todayEvents.length ?? 0)}
-              </p>
-              <p className="text-[9px] mt-1 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Événements</p>
-            </div>
-            <div>
-              <p className="text-xl font-black" style={{ color: 'var(--wheat)' }}>
-                {loading ? '…' : fmtEur(data?.monthIncome ?? 0)}
-              </p>
-              <p className="text-[9px] mt-1 uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Revenus</p>
-            </div>
-          </div>
-
-          {/* Active projects quick view */}
-          {!loading && (data?.activeProjects.length ?? 0) > 0 && (
-            <div className="mt-4 pt-4 flex gap-3 flex-wrap" style={{ borderTop: '1px solid rgba(14,149,148,0.2)' }}>
-              {data!.activeProjects.slice(0, 4).map(p => (
-                <div key={p.id} className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: p.color }} />
-                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{p.name}</span>
-                  <span className="text-[10px] font-semibold" style={{ color: p.color }}>{p.progress}%</span>
+              {/* Progress bar */}
+              {(data?.monthIncome ?? 0) > 0 && (
+                <div style={{ marginTop: 8, height: 4, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    borderRadius: 99,
+                    background: '#F2542D',
+                    width: `${Math.min(100, ((data?.monthExpense ?? 0) / (data?.monthIncome ?? 1)) * 100)}%`,
+                  }} />
                 </div>
-              ))}
+              )}
             </div>
-          )}
-        </Card>
+          </>
+        )}
+        <Link href="/budget" className="flex items-center gap-1 mt-auto pt-4"
+          style={{ ...FONT_DISPLAY, fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          Voir le budget <ArrowRight size={10} />
+        </Link>
       </div>
 
+      {/* ═══════════════════════════════════════════════════════════ ROW 5 — Rapport Global */}
+
+      <div
+        className="col-span-2 md:col-span-4 flex flex-col p-6"
+        style={card('#0E9594', { minHeight: 220 })}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: '#1A0A0A', textTransform: 'uppercase' }}>
+              Rapport Global
+            </p>
+            <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.6)', marginTop: 2 }}>Vue d'ensemble de ta progression</p>
+          </div>
+          <Link href="/rapports" className="flex items-center gap-1"
+            style={{ ...FONT_DISPLAY, fontSize: 10, fontWeight: 700, color: '#1A0A0A', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Voir le rapport complet <ArrowRight size={10} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-4">
+          <Stat label="Projets actifs"   value={loading ? '…' : String(data?.activeProjects.length ?? 0)} textColor="#1A0A0A" />
+          <Stat label="Tâches complétées" value={loading ? '…' : String(doneTasks)}                        sub="aujourd'hui"     textColor="#1A0A0A" />
+          <Stat label="Temps moyen / jour" value={loading ? '…' : fmtSeconds(Math.round((data?.weekSeconds ?? 0) / 7))} textColor="#1A0A0A" />
+          <Stat label="Courses"           value="—"                                                          textColor="#1A0A0A" />
+          <Stat label="Solde du mois"     value={loading ? '…' : fmtEur(balance)}                           textColor="#1A0A0A" />
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function NavCard({
+  href, bg, logoColor, label, value, sub, textColor,
+}: {
+  href: string; bg: string; logoColor: string; label: string
+  value: string; sub: string; textColor: string
+}) {
+  const FONT_DISPLAY: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+  return (
+    <Link
+      href={href}
+      className="flex flex-col justify-between p-5 group transition-all"
+      style={{ background: bg, borderRadius: 12, minHeight: 260, overflow: 'hidden' }}
+    >
+      <div className="flex items-start justify-between">
+        <NysaLogo size={56} color={logoColor} />
+        <ArrowRight size={16} style={{ color: textColor, opacity: 0.5 }} />
+      </div>
+      <div>
+        <p style={{ ...FONT_DISPLAY, fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: textColor, textTransform: 'uppercase', marginBottom: 4 }}>
+          {label}
+        </p>
+        <p style={{ ...FONT_DISPLAY, fontWeight: 900, fontSize: 22, color: textColor, lineHeight: 1 }}>{value}</p>
+        <p style={{ fontSize: 10, color: textColor, opacity: 0.6, marginTop: 2 }}>{sub}</p>
+      </div>
+    </Link>
+  )
+}
+
+function Stat({ label, value, sub, textColor }: { label: string; value: string; sub?: string; textColor: string }) {
+  const FONT_DISPLAY: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+  return (
+    <div>
+      <p style={{ ...FONT_DISPLAY, fontWeight: 900, fontSize: 28, color: textColor, lineHeight: 1 }}>{value}</p>
+      {sub && <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.6)', marginTop: 1 }}>{sub}</p>}
+      <p style={{ fontSize: 9, letterSpacing: '0.1em', color: 'rgba(26,10,10,0.55)', textTransform: 'uppercase', marginTop: 4 }}>{label}</p>
     </div>
   )
 }
