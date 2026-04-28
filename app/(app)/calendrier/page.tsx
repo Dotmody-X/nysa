@@ -304,11 +304,22 @@ function CalendrierContent() {
   const [syncing, setSyncing]             = useState(false)
   const [lastSync, setLastSync]           = useState<Date | null>(null)
 
+  const gridScrollRef = useRef<HTMLDivElement | null>(null)
+
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const weekDays   = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const nowMins    = (new Date().getHours() - HOUR_START) * 60 + new Date().getMinutes()
   const nowPx      = Math.max(0, (nowMins / 60) * SLOT_PX)
   const todayInWeek = weekDays.some(d => d.getTime() === today.getTime())
+
+  // Auto-scroll to current hour on mount
+  useEffect(() => {
+    if (gridScrollRef.current) {
+      const scrollTo = Math.max(0, nowPx - 120)
+      gridScrollRef.current.scrollTop = scrollTo
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Notif query params
   useEffect(() => {
@@ -408,7 +419,7 @@ function CalendrierContent() {
 
   // ── Render
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, height: 'calc(100vh - 48px)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 10 }}>
 
       {/* Notification toast */}
       {notification && (
@@ -418,79 +429,84 @@ function CalendrierContent() {
         </div>
       )}
 
-      {/* ── ROW 1 : Header + À VENIR ──────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 10, flexShrink: 0 }}>
+      {/* ── ROW 1 : Hero header + À VENIR ──────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 10 }}>
 
-        {/* Header card — compact */}
-        <div style={{ ...card(), padding: '10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div>
-              <p style={{ fontSize: 9, ...labelStyle, marginBottom: 2 }}>Planning</p>
-              <h1 style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--wheat)', letterSpacing: '-0.01em', lineHeight: 1 }}>
-                CALENDRIER
-              </h1>
-            </div>
-            {/* View switcher */}
-            <div style={{ display: 'flex', background: 'var(--bg)', borderRadius: 7, padding: 2, border: '1px solid var(--border)' }}>
-              <button style={{ padding: '3px 10px', borderRadius: 5, fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer' }}>
-                SEMAINE
-              </button>
-            </div>
-          </div>
-
-          {/* Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button onClick={prevWeek} style={{ width: 26, height: 26, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
-              <ChevronLeft size={12} style={{ color: 'var(--text-muted)' }} />
-            </button>
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)', fontFamily: 'var(--font-display)', minWidth: 110, textAlign: 'center', textTransform: 'capitalize' }}>
-              {fmtMonthYear(weekStart)}
-            </span>
-            <button onClick={nextWeek} style={{ width: 26, height: 26, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
-              <ChevronRight size={12} style={{ color: 'var(--text-muted)' }} />
-            </button>
-            <button onClick={goToday} style={{ padding: '4px 12px', borderRadius: 7, fontSize: 10, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
-              Aujourd'hui
-            </button>
-            <button onClick={() => setModalDate(today.toISOString().slice(0, 10))}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 7, fontSize: 10, fontWeight: 600, background: '#F2542D', color: '#fff', cursor: 'pointer', border: 'none' }}>
-              <Plus size={11} /> ÉVÉNEMENT
-            </button>
-          </div>
+        {/* Hero title */}
+        <div style={{ ...card(), padding: '28px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 150 }}>
+          <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#F2542D', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Calendrier</p>
+          <h1 style={{ fontSize: 38, fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--wheat)', lineHeight: 1.0, letterSpacing: '-0.02em', textTransform: 'uppercase', marginTop: 8 }}>
+            Votre journée.<br />Votre plan.
+          </h1>
         </div>
 
         {/* À VENIR */}
-        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '12px 16px 10px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <p style={labelStyle}>À venir</p>
-            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{loading ? '…' : `${upcoming.length}`}</span>
+        <div style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{upcoming.length}</span>
           </div>
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {upcoming.length === 0 ? (
-              <p style={{ fontSize: 10, color: 'var(--text-muted)', padding: '12px 16px' }}>Aucun événement à venir.</p>
-            ) : upcoming.map(ev => {
-              const color = evColor(ev)
-              return (
-                <div key={ev.id} onClick={() => setSelected(ev)}
-                  style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'flex-start' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(245,223,187,0.03)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                  <div style={{ width: 3, height: '100%', minHeight: 32, borderRadius: 2, background: color, flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</p>
-                    <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
-                      {fmtShortDate(new Date(ev.start_at))} · {fmtTime(ev.start_at)}
-                    </p>
-                  </div>
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', padding: '12px 16px' }}>Aucun événement à venir.</p>
+            ) : upcoming.map(ev => (
+              <div key={ev.id} onClick={() => setSelected(ev)}
+                style={{ padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</p>
+                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
+                    {fmtShortDate(new Date(ev.start_at))} · {fmtTime(ev.start_at)}
+                  </p>
                 </div>
-              )
-            })}
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <ChevronRight size={13} color="#fff" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── ROW 2 : Calendar grid ──────────────────────────────────────────── */}
-      <div style={{ ...card(), flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 260 }}>
+      {/* ── ROW 2 : Nav bar ────────────────────────────────────────────────── */}
+      <div style={{ ...card(), padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* View tabs */}
+        <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', borderRadius: 8, padding: 3, border: '1px solid var(--border)' }}>
+          {[['JOUR', false], ['SEMAINE', true], ['MOIS', false]].map(([label, active]) => (
+            <button key={label as string} style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? '#fff' : 'transparent', color: active ? '#111' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Navigation */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={prevWeek} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+            <ChevronLeft size={13} style={{ color: 'var(--text-muted)' }} />
+          </button>
+          <button onClick={goToday} style={{ padding: '5px 16px', borderRadius: 8, fontSize: 11, fontWeight: 500, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--wheat)', cursor: 'pointer' }}>
+            Aujourd'hui
+          </button>
+          <button onClick={nextWeek} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+            <ChevronRight size={13} style={{ color: 'var(--text-muted)' }} />
+          </button>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--wheat)', fontFamily: 'var(--font-display)', minWidth: 120, textAlign: 'center', textTransform: 'capitalize', letterSpacing: '-0.01em' }}>
+            {fmtMonthYear(weekStart)}
+          </span>
+        </div>
+
+        {/* + Événement */}
+        <button onClick={() => setModalDate(today.toISOString().slice(0, 10))}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: '#F2542D', color: '#fff', cursor: 'pointer', border: 'none', letterSpacing: '0.04em' }}>
+          <Plus size={13} /> + ÉVÉNEMENT
+        </button>
+      </div>
+
+      {/* ── ROW 3 : Calendar grid ──────────────────────────────────────────── */}
+      <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 350 }}>
 
         {/* Day headers */}
         <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(7, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
@@ -515,7 +531,7 @@ function CalendrierContent() {
         </div>
 
         {/* Scrollable grid */}
-        <div style={{ overflowY: 'auto', flex: 1 }}>
+        <div ref={gridScrollRef} style={{ overflowY: 'auto', flex: 1 }}>
           <div style={{ position: 'relative', height: TOTAL_HOURS * SLOT_PX }}>
 
             {/* Hour lines */}
@@ -578,95 +594,78 @@ function CalendrierContent() {
         </div>
       </div>
 
-      {/* ── ROW 3 : Bottom panels ──────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, flexShrink: 0 }}>
+      {/* ── ROW 4 : Event detail | Tâches liées | Filtrer ─────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
 
-        {/* Event detail */}
-        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <p style={labelStyle}>{selected ? 'Événement sélectionné' : 'Détail'}</p>
-            {selected && (
-              <button onClick={() => setSelected(null)}>
-                <X size={10} style={{ color: 'var(--text-muted)' }} />
-              </button>
-            )}
+        {/* ÉVÉNEMENT SÉLECTIONNÉ */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <p style={labelStyle}>{selected ? 'Événement sélectionné' : 'Événement sélectionné'}</p>
+            {selected && <button onClick={() => setSelected(null)}><X size={10} style={{ color: 'var(--text-muted)' }} /></button>}
           </div>
           {selected ? (
-            <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: evColor(selected), flexShrink: 0, marginTop: 3 }} />
-                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)', lineHeight: 1.3 }}>{selected.title}</p>
+            <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: evColor(selected), flexShrink: 0, marginTop: 2 }} />
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--wheat)', lineHeight: 1.3, fontFamily: 'var(--font-display)' }}>{selected.title}</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Clock size={9} style={{ color: 'var(--text-muted)' }} />
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{fmtTime(selected.start_at)} → {fmtTime(selected.end_at)}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Clock size={10} style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtTime(selected.start_at)} → {fmtTime(selected.end_at)}</span>
               </div>
-              {selected.location && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <MapPin size={9} style={{ color: 'var(--text-muted)' }} />
-                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{selected.location}</span>
-                </div>
-              )}
-              {selected.category && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Tag size={9} style={{ color: 'var(--text-muted)' }} />
-                  <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 99, background: evColor(selected) + '22', color: evColor(selected) }}>{selected.category}</span>
-                </div>
-              )}
-              {selected.description && (
-                <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>{selected.description}</p>
-              )}
-              <button onClick={() => handleDelete(selected.id)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: '#F2542D', opacity: 0.7, marginTop: 2, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                <Trash2 size={10} /> Supprimer
+              {selected.location && <div style={{ display: 'flex', gap: 8 }}><MapPin size={10} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{selected.location}</span></div>}
+              {selected.category && <div style={{ display: 'flex', gap: 8 }}><Tag size={10} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 10, padding: '1px 8px', borderRadius: 99, background: evColor(selected) + '22', color: evColor(selected) }}>{selected.category}</span></div>}
+              {selected.description && <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>{selected.description}</p>}
+              <button onClick={() => handleDelete(selected.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4 }}>
+                <Trash2 size={11} /> Supprimer
               </button>
             </div>
           ) : (
-            <p style={{ fontSize: 10, color: 'var(--text-muted)', padding: '12px 14px' }}>Clique sur un événement pour voir ses détails.</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '14px 16px' }}>Clique sur un événement pour voir ses détails.</p>
           )}
         </div>
 
-        {/* Rappels / Today */}
-        <div style={{ ...card({ background: 'rgba(242,84,45,0.06)', borderColor: 'rgba(242,84,45,0.18)' }), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(242,84,45,0.15)', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Bell size={10} style={{ color: '#F2542D' }} />
-            <p style={{ ...labelStyle, color: '#F2542D' }}>Rappels — prochaines 24h</p>
+        {/* TÂCHES LIÉES */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
+            <p style={labelStyle}>Tâches cette semaine</p>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {reminders.length === 0 ? (
-              <p style={{ fontSize: 10, color: 'rgba(242,84,45,0.5)', padding: '12px 14px' }}>Rien dans les 24 prochaines heures.</p>
-            ) : reminders.map(ev => (
-              <div key={ev.id} style={{ padding: '8px 14px', borderBottom: '1px solid rgba(242,84,45,0.08)', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F2542D', flexShrink: 0, marginTop: 4 }} />
-                <div>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>{ev.title}</p>
-                  <p style={{ fontSize: 9, color: 'rgba(245,223,187,0.4)', marginTop: 1 }}>{fmtTime(ev.start_at)}</p>
+            {weekTasks.length === 0 ? (
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '14px 16px' }}>Aucune tâche cette semaine.</p>
+            ) : weekTasks.slice(0, 6).map(t => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderBottom: '1px solid var(--border)' }}>
+                {t.status === 'done'
+                  ? <CheckCircle2 size={12} style={{ color: '#0E9594', flexShrink: 0 }} />
+                  : <Circle size={12} style={{ color: t.priority === 'urgent' ? '#F2542D' : 'var(--text-muted)', flexShrink: 0 }} />}
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontSize: 11, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{t.title}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Vue d'ensemble */}
-        <div style={{ ...card({ background: 'rgba(14,149,148,0.06)', borderColor: 'rgba(14,149,148,0.18)' }), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(14,149,148,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <p style={{ ...labelStyle, color: '#0E9594' }}>Vue d'ensemble</p>
-            <span style={{ fontSize: 9, color: 'rgba(14,149,148,0.6)' }}>{events.length} événement{events.length !== 1 ? 's' : ''}</span>
+        {/* FILTRER */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <p style={labelStyle}>Filtrer</p>
+            {activeCategories.length > 0 && (
+              <button onClick={() => setActiveCategories([])} style={{ fontSize: 9, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer' }}>Réinitialiser</button>
+            )}
           </div>
-          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {Object.entries(categoryCount).length === 0 ? (
-              <p style={{ fontSize: 10, color: 'rgba(14,149,148,0.5)' }}>Aucun événement cette semaine.</p>
-            ) : Object.entries(categoryCount).map(([cat, count]) => {
-              const color = CATEGORIES[cat] ?? '#888'
-              const pct   = Math.round((count / events.length) * 100)
+          <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <p style={{ ...labelStyle, marginBottom: 2 }}>Catégories</p>
+            {Object.entries(CATEGORIES).map(([cat, color]) => {
+              const active = activeCategories.includes(cat)
               return (
-                <div key={cat}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ fontSize: 10, color: 'var(--wheat)' }}>{cat}</span>
-                    <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{count}</span>
+                <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => toggleCategory(cat)}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
+                    <span style={{ fontSize: 11, color: 'var(--wheat)' }}>{cat}</span>
                   </div>
-                  <div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)' }}>
-                    <div style={{ height: '100%', borderRadius: 2, width: `${pct}%`, background: color }} />
+                  <div style={{ width: 14, height: 14, borderRadius: 4, border: `1.5px solid ${active ? color : 'var(--border)'}`, background: active ? color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {active && <span style={{ color: '#fff', fontSize: 9, lineHeight: 1 }}>✓</span>}
                   </div>
                 </div>
               )
@@ -675,112 +674,103 @@ function CalendrierContent() {
         </div>
       </div>
 
-      {/* ── ROW 4 : Bottom panels 2 ────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, flexShrink: 0 }}>
+      {/* ── ROW 5 : Vue d'ensemble | Rappels | Sync ────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, paddingBottom: 10 }}>
 
-        {/* Tâches */}
-        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)' }}>
-            <p style={labelStyle}>Tâches cette semaine</p>
+        {/* VUE D'ENSEMBLE — teal */}
+        <div style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12 }}>
+          <div>
+            <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue d'ensemble</p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>{fmtShortDate(weekStart)} – {fmtShortDate(addDays(weekStart, 6))}</p>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}>
-            {weekTasks.length === 0 ? (
-              <p style={{ fontSize: 10, color: 'var(--text-muted)', padding: '10px 14px' }}>Aucune tâche cette semaine.</p>
-            ) : weekTasks.slice(0, 6).map(t => (
-              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderBottom: '1px solid var(--border)' }}>
-                {t.status === 'done'
-                  ? <CheckCircle2 size={11} style={{ color: '#0E9594', flexShrink: 0 }} />
-                  : <Circle size={11} style={{ color: t.priority === 'urgent' ? '#F2542D' : 'var(--text-muted)', flexShrink: 0 }} />
-                }
-                <span style={{ fontSize: 10, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                  {t.title}
-                </span>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div>
+              <p style={{ fontSize: 28, fontWeight: 900, fontFamily: 'var(--font-display)', color: '#fff', lineHeight: 1 }}>{events.length}</p>
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>Événements</p>
+            </div>
+            {Object.entries(categoryCount).slice(0, 2).map(([cat, count]) => (
+              <div key={cat}>
+                <p style={{ fontSize: 28, fontWeight: 900, fontFamily: 'var(--font-display)', color: '#fff', lineHeight: 1 }}>{count}</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>{cat}</p>
               </div>
             ))}
           </div>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: '#fff', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8, marginTop: 'auto' }}>
+            Voir la semaine <ChevronRight size={12} />
+          </button>
         </div>
 
-        {/* Filtres catégories — pills horizontaux compacts */}
-        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <p style={labelStyle}>Filtres</p>
-            {activeCategories.length > 0 && (
-              <button onClick={() => setActiveCategories([])} style={{ fontSize: 9, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer' }}>
-                Réinitialiser
-              </button>
-            )}
+        {/* RAPPELS — orange */}
+        <div style={{ ...card({ background: '#F2542D', border: '1px solid #F2542D' }), display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Bell size={11} color="rgba(255,255,255,0.9)" />
+            <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Rappels</p>
           </div>
-          <div style={{ padding: '10px 14px', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-            {Object.entries(CATEGORIES).map(([cat, color]) => {
-              const active = activeCategories.includes(cat)
-              return (
-                <button key={cat} onClick={() => toggleCategory(cat)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px',
-                    borderRadius: 99, fontSize: 10, cursor: 'pointer',
-                    background: active ? color + '22' : 'rgba(245,223,187,0.04)',
-                    border: `1px solid ${active ? color : 'var(--border)'}`,
-                    color: active ? color : 'var(--text-muted)',
-                  }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
-                  {cat}
-                </button>
-              )
-            })}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {reminders.length === 0 ? (
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', padding: '12px 16px' }}>Rien dans les 24 prochaines heures.</p>
+            ) : reminders.slice(0, 4).map(ev => (
+              <div key={ev.id} style={{ padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', gap: 10, alignItems: 'center' }}>
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>{ev.title}</p>
+                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 1 }}>{fmtTime(ev.start_at)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+            <button style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, display: 'flex', alignItems: 'center', gap: 6 }}>
+              Voir tous les rappels <ChevronRight size={12} />
+            </button>
           </div>
         </div>
 
-        {/* Sync & Intégrations */}
-        <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 6 }}>
+        {/* SYNC & INTÉGRATIONS */}
+        <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Link2 size={10} style={{ color: 'var(--text-muted)' }} />
             <p style={labelStyle}>Sync & Intégrations</p>
           </div>
-          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
             {/* Apple Calendar */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '8px 10px', borderRadius: 8,
-              background: appleConnected ? 'rgba(14,149,148,0.06)' : 'rgba(245,223,187,0.04)',
-              border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.2)' : 'var(--border)'}`,
-            }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: appleConnected ? 'rgba(14,149,148,0.08)' : 'rgba(245,223,187,0.04)', border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.25)' : 'var(--border)'}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: appleConnected ? 'rgba(14,149,148,0.15)' : 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Apple size={13} style={{ color: appleConnected ? '#0E9594' : 'var(--wheat)' }} />
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: appleConnected ? 'rgba(14,149,148,0.15)' : 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Apple size={14} style={{ color: appleConnected ? '#0E9594' : 'var(--wheat)' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>Apple Calendar</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)' }}>Apple Calendar</p>
                   <p style={{ fontSize: 9, color: appleConnected ? '#0E9594' : 'var(--text-muted)' }}>
-                    {appleConnected
-                      ? (syncing ? 'Sync en cours…' : lastSync ? `Sync ${lastSync.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}` : 'Connecté')
-                      : 'CalDAV'}
+                    {appleConnected ? (syncing ? 'Sync…' : lastSync ? `Sync ${lastSync.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}` : 'Connecté') : 'CalDAV'}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setAppleOpen(true)}
-                style={{
-                  padding: '4px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600, cursor: 'pointer',
-                  background: appleConnected ? 'rgba(14,149,148,0.12)' : 'var(--bg)',
-                  border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`,
-                  color: appleConnected ? '#0E9594' : 'var(--wheat)',
-                }}>
-                {appleConnected ? '⟳ Reconnecter' : 'Connecter'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {appleConnected && <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#0E9594' }} />}
+                <button onClick={() => setAppleOpen(true)} style={{ fontSize: 10, fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: appleConnected ? '#0E9594' : 'var(--text-muted)', padding: 0 }}>
+                  {appleConnected ? 'Reconnecter' : 'Connecter'}
+                </button>
+              </div>
             </div>
-
-            {/* Google Calendar (placeholder) */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'rgba(245,223,187,0.04)', border: '1px solid var(--border)', opacity: 0.5 }}>
+            {/* Google Calendar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'rgba(245,223,187,0.02)', border: '1px solid var(--border)', opacity: 0.5 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Calendar size={13} style={{ color: 'var(--wheat)' }} />
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(245,223,187,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Calendar size={14} style={{ color: 'var(--wheat)' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>Google Calendar</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)' }}>Google Calendar</p>
                   <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>Bientôt disponible</p>
                 </div>
               </div>
-              <span style={{ fontSize: 9, color: 'var(--text-muted)', padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)' }}>Soon</span>
+              <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', color: 'var(--text-muted)' }}>Soon</span>
             </div>
+          </div>
+          <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)' }}>
+            <button style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+              Gérer mes intégrations <ChevronRight size={12} />
+            </button>
           </div>
         </div>
       </div>
