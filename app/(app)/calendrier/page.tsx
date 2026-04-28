@@ -107,18 +107,18 @@ function AppleModal({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>Apple Calendar</p>
-              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Synchronisation CalDAV</p>
+              <p className="text-[10px]" style={{ color: 'rgba(245,223,187,0.45)' }}>Synchronisation CalDAV</p>
             </div>
           </div>
-          <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
+          <button onClick={onClose}><X size={14} style={{ color: 'rgba(245,223,187,0.4)' }} /></button>
         </div>
 
         {step === 1 ? (
           <>
-            <div className="rounded-[10px] p-4 flex flex-col gap-2" style={{ background: 'rgba(14,149,148,0.08)', border: '1px solid rgba(14,149,148,0.2)' }}>
+            <div className="rounded-[10px] p-4 flex flex-col gap-2" style={{ background: 'rgba(14,149,148,0.12)', border: '1px solid rgba(14,149,148,0.25)' }}>
               <p className="text-xs font-semibold" style={{ color: '#0E9594' }}>Avant de continuer</p>
-              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                Apple exige un <strong style={{ color: 'var(--wheat)' }}>mot de passe spécifique à l'app</strong> pour les accès tiers. Votre mot de passe Apple ID principal ne fonctionnera pas.
+              <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(245,223,187,0.65)' }}>
+                Apple exige un <strong style={{ color: '#F5DFBB' }}>mot de passe spécifique à l'app</strong> pour les accès tiers. Ton mot de passe Apple ID principal ne fonctionnera pas.
               </p>
             </div>
             <div className="flex flex-col gap-2">
@@ -129,8 +129,8 @@ function AppleModal({ onClose }: { onClose: () => void }) {
               ].map(s => (
                 <div key={s.n} className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold" style={{ background: '#F2542D', color: '#fff' }}>{s.n}</div>
-                  <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                    {s.t} <span style={{ color: 'var(--wheat)' }}>{s.link}</span> {s.desc}
+                  <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(245,223,187,0.65)' }}>
+                    {s.t} <span style={{ color: '#F5DFBB' }}>{s.link}</span> {s.desc}
                   </p>
                 </div>
               ))}
@@ -143,18 +143,18 @@ function AppleModal({ onClose }: { onClose: () => void }) {
           <>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Apple ID (email)</label>
+                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'rgba(245,223,187,0.5)', letterSpacing: '0.1em' }}>Apple ID (email)</label>
                 <input autoFocus type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="nom@icloud.com"
                   className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+                  style={{ background: '#1a1a1a', color: '#F5DFBB', border: '1px solid rgba(245,223,187,0.15)' }} />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Mot de passe spécifique</label>
+                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'rgba(245,223,187,0.5)', letterSpacing: '0.1em' }}>Mot de passe spécifique</label>
                 <input type="password" value={pass} onChange={e => setPass(e.target.value)}
                   placeholder="xxxx-xxxx-xxxx-xxxx"
                   className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+                  style={{ background: '#1a1a1a', color: '#F5DFBB', border: '1px solid rgba(245,223,187,0.15)' }} />
               </div>
             </div>
 
@@ -165,7 +165,7 @@ function AppleModal({ onClose }: { onClose: () => void }) {
             )}
 
             <div className="flex gap-2">
-              <button onClick={() => setStep(1)} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+              <button onClick={() => setStep(1)} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: '#1a1a1a', border: '1px solid rgba(245,223,187,0.15)', color: 'rgba(245,223,187,0.6)' }}>
                 ← Retour
               </button>
               <button onClick={handleSync} disabled={syncing || !email || !pass}
