@@ -67,17 +67,18 @@ export async function getCalendarHomeSet(principalUrl: string, auth: string): Pr
 }
 
 export async function findPrimaryCalendarUrl(homeSet: string, auth: string): Promise<string | null> {
-  const url  = toAbsolute(homeSet)
+  const absUrl = toAbsolute(homeSet)
+  const serverBase = absUrl.match(/^(https?:\/\/[^/]+)/)?.[1] ?? CALDAV_BASE
   const body = propfindBody('<D:resourcetype/><D:displayname/>', false, '1')
-  const { status, text } = await caldavRequest('PROPFIND', url, auth, body, { Depth: '1' })
+  const { status, text } = await caldavRequest('PROPFIND', absUrl, auth, body, { Depth: '1' })
   if (status !== 207) return null
 
-  const blocks = text.split(/<[^>]*:response[^>]*>/).slice(1)
+  const blocks = text.split(/<(?:[^>]*:)?response\b[^/][^>]*>/).slice(1)
   const candidates: string[] = []
 
   for (const block of blocks) {
-    const hasCalendar = /<[^>]*:calendar[^/][^>]*\/?>|<calendar\s*\/>/.test(block)
-    const href        = block.match(/<[^>]*:href[^>]*>([\s\S]*?)<\/[^>]*:href>/)
+    const hasCalendar = /<(?:[^>]*:)?calendar[\s/>]/.test(block)
+    const href        = block.match(/<(?:[^>]*:)?href[^>]*>([\s\S]*?)<\/(?:[^>]*:)?href>/)
     if (hasCalendar && href) {
       const h = href[1].trim()
       if (!h.includes('inbox') && !h.includes('outbox') && !h.includes('notification')) {
@@ -86,7 +87,8 @@ export async function findPrimaryCalendarUrl(homeSet: string, auth: string): Pro
     }
   }
   if (!candidates.length) return null
-  return toAbsolute(candidates[0])
+  const h = candidates[0]
+  return h.startsWith('http') ? h : `${serverBase}${h}`
 }
 
 // ── iCal parsing ──────────────────────────────────────────────────────────────
@@ -139,28 +141,32 @@ export function parseVCalendar(ics: string, etag?: string): CalDAVEvent[] {
 // ── Enumère tous les calendriers sous le homeSet ─────────────────────────────
 
 export async function listCalendarUrls(homeSetUrl: string, auth: string): Promise<string[]> {
-  const url  = toAbsolute(homeSetUrl)
+  const absUrl = toAbsolute(homeSetUrl)
+  // Extrait le serveur réel (ex: https://p137-caldav.icloud.com:443)
+  const serverBase = absUrl.match(/^(https?:\/\/[^/]+)/)?.[1] ?? CALDAV_BASE
+
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
   <D:prop><D:resourcetype/><D:displayname/></D:prop>
 </D:propfind>`
 
-  const { status, text } = await caldavRequest('PROPFIND', url, auth, body, { Depth: '1' })
+  const { status, text } = await caldavRequest('PROPFIND', absUrl, auth, body, { Depth: '1' })
   if (status !== 207) return []
 
   const urls: string[] = []
-  // Chaque <D:response> contient une ressource
-  const blocks = text.split(/<[^>]*:response[^/][^>]*>/).slice(1)
+  // iCloud retourne <response xmlns="DAV:"> sans préfixe — la regex doit gérer les deux cas
+  const blocks = text.split(/<(?:[^>]*:)?response\b[^/][^>]*>/).slice(1)
   for (const block of blocks) {
-    // Vérifie que c'est un calendrier (resourcetype contient calendar)
-    const isCalendar = /<[^>]*:calendar\s*\/>/.test(block) || /<calendar\s*\/>/.test(block)
+    // Détecte "calendar" dans resourcetype (avec ou sans préfixe, avec ou sans attributs)
+    const isCalendar = /<(?:[^>]*:)?calendar[\s/>]/.test(block)
     if (!isCalendar) continue
-    const hrefMatch = block.match(/<[^>]*:href[^>]*>([\s\S]*?)<\/[^>]*:href>/)
+    const hrefMatch = block.match(/<(?:[^>]*:)?href[^>]*>([\s\S]*?)<\/(?:[^>]*:)?href>/)
     if (!hrefMatch) continue
     const href = hrefMatch[1].trim()
     // Exclut les collections système
     if (/inbox|outbox|notification|dropbox|freebusy/i.test(href)) continue
-    urls.push(toAbsolute(href))
+    // Construit l'URL absolue sur le bon serveur (p137-caldav, etc. — pas CALDAV_BASE)
+    urls.push(href.startsWith('http') ? href : `${serverBase}${href}`)
   }
   return urls
 }
