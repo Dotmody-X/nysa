@@ -44,9 +44,26 @@ export async function POST(req: NextRequest) {
     appPassword = integ.access_token
   }
 
+  // Si l'utilisateur vient de fournir ses credentials (premier connect ou reconnect)
+  // → on les sauvegarde immédiatement AVANT de lancer le sync
+  if (body.email && body.appPassword) {
+    const { error: upsertErr } = await supabase.from('integrations').upsert({
+      user_id:      user.id,
+      provider:     'apple_calendar',
+      access_token: appPassword,
+      metadata:     { email },
+      expires_at:   new Date(Date.now() + 365 * 24 * 3600_000).toISOString(),
+    }, { onConflict: 'user_id,provider' })
+
+    if (upsertErr) {
+      console.error('[sync] Échec upsert integrations:', upsertErr)
+      return NextResponse.json({ error: `Impossible de sauvegarder les credentials: ${upsertErr.message}` }, { status: 500 })
+    }
+  }
+
   const result = await runAppleSync(user.id, email!, appPassword!, supabase)
 
-  if (result.error) return NextResponse.json({ error: result.error }, { status: 401 })
+  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 })
 
   return NextResponse.json({
     synced:  result.added,

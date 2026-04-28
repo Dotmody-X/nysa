@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS events (
   category     text,
   color        text,
   location     text,
-  source       text DEFAULT 'manual' CHECK (source IN ('manual','strava','garmin','google')),
+  source       text DEFAULT 'manual' CHECK (source IN ('manual','strava','garmin','google','apple','synced')),
   external_id  text,
   created_at   timestamptz DEFAULT now()
 );
@@ -354,7 +354,7 @@ CREATE INDEX IF NOT EXISTS idx_transactions_date    ON transactions(date);
 CREATE TABLE IF NOT EXISTS integrations (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id       uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  provider      text NOT NULL CHECK (provider IN ('strava','garmin','google_calendar')),
+  provider      text NOT NULL CHECK (provider IN ('strava','garmin','google_calendar','apple_calendar')),
   access_token  text,
   refresh_token text,
   expires_at    timestamptz,
