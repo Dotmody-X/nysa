@@ -40,6 +40,21 @@ export async function POST(req: NextRequest) {
 
   if (!homeSet) return NextResponse.json({ ...debug, error: 'homeSet introuvable' })
 
+  // 2.5. Raw PROPFIND Depth:1 on homeSet — inspecte le XML brut
+  const propfindBody = `<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:prop><D:resourcetype/><D:displayname/></D:prop>
+</D:propfind>`
+  const rawHS = await caldavRequest(
+    'PROPFIND',
+    homeSet.startsWith('http') ? homeSet : `${CALDAV_BASE}${homeSet}`,
+    auth,
+    propfindBody,
+    { Depth: '1' },
+  )
+  debug.homeSetPropfindStatus  = rawHS.status
+  debug.homeSetPropfindPreview = rawHS.text.slice(0, 2000)
+
   // 3. List calendars
   const calUrls = await listCalendarUrls(homeSet, auth)
   debug.calendarUrls = calUrls
