@@ -1,91 +1,106 @@
 // ============================================================
 // NYSA — Apple Calendar CalDAV Sync
 // POST /api/calendar/apple/sync
-// Importe les événements Apple Calendar via CalDAV (iCloud)
 // ============================================================
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient }        from '@supabase/ssr'
 import { cookies }                   from 'next/headers'
 
-// iCloud CalDAV server
 const CALDAV_BASE = 'https://caldav.icloud.com'
 
-// ── CalDAV helpers ────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function discoverPrincipal(email: string, password: string): Promise<string | null> {
-  const authHeader = 'Basic ' + Buffer.from(`${email}:${password}`).toString('base64')
+// PROPFIND suit les redirects manuellement (fetch ne le fait pas pour PROPFIND)
+async function caldavPropfind(url: string, authHeader: string, body: string, depth = '0'): Promise<string | null> {
+  const doRequest = async (target: string) =>
+    fetch(target, {
+      method: 'PROPFIND',
+      headers: {
+        Authorization:   authHeader,
+        Depth:           depth,
+        'Content-Type':  'application/xml; charset=utf-8',
+        'User-Agent':    'NYSA/1.0',
+      },
+      body,
+      redirect: 'manual', // on gère manuellement
+    })
 
-  // PROPFIND on well-known endpoint to discover user principal
-  const res = await fetch(`${CALDAV_BASE}/.well-known/caldav`, {
-    method: 'PROPFIND',
-    headers: {
-      Authorization: authHeader,
-      Depth: '0',
-      'Content-Type': 'application/xml',
-    },
-    body: `<?xml version="1.0" encoding="UTF-8"?>
-<D:propfind xmlns:D="DAV:">
-  <D:prop>
-    <D:current-user-principal/>
-  </D:prop>
-</D:propfind>`,
-  })
+  let res = await doRequest(url)
 
-  if (!res.ok) return null
-  const text = await res.text()
+  // Suit les redirects 301/302/307/308 (max 5 fois)
+  for (let i = 0; i < 5 && (res.status === 301 || res.status === 302 || res.status === 307 || res.status === 308); i++) {
+    const location = res.headers.get('location')
+    if (!location) break
+    const next = location.startsWith('http') ? location : `${CALDAV_BASE}${location}`
+    res = await doRequest(next)
+  }
 
-  // Extract href from <D:href> inside <D:current-user-principal>
-  const match = text.match(/<[^>]*:current-user-principal[^>]*>[\s\S]*?<[^>]*:href[^>]*>([\s\S]*?)<\/[^>]*:href>/)
-  return match ? match[1].trim() : null
+  if (res.status !== 207 && !res.ok) return null
+  return res.text()
 }
 
-async function getCalendarHomeSet(principalUrl: string, authHeader: string): Promise<string | null> {
-  const url = principalUrl.startsWith('http') ? principalUrl : `${CALDAV_BASE}${principalUrl}`
-  const res = await fetch(url, {
-    method: 'PROPFIND',
-    headers: {
-      Authorization: authHeader,
-      Depth: '0',
-      'Content-Type': 'application/xml',
-    },
-    body: `<?xml version="1.0" encoding="UTF-8"?>
-<D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
-  <D:prop>
-    <C:calendar-home-set/>
-  </D:prop>
-</D:propfind>`,
-  })
+// Extrait le contenu d'un tag DAV (supporte tous les préfixes namespace)
+function extractDavHref(xml: string, tagName: string): string | null {
+  // Cherche <xxx:tagName> ou <tagName> puis extrait le <xxx:href> ou <href> à l'intérieur
+  const openTag  = new RegExp(`<[^>]*:?${tagName}[^>]*>([\\s\\S]*?)<\\/[^>]*:?${tagName}>`)
+  const hrefTag  = /<[^>]*:?href[^>]*>([\s\S]*?)<\/[^>]*:?href>/
+  const outer = xml.match(openTag)
+  if (!outer) return null
+  const inner = outer[1].match(hrefTag)
+  return inner ? inner[1].trim() : null
+}
 
-  if (!res.ok) return null
-  const text = await res.text()
-  const match = text.match(/<[^>]*:calendar-home-set[^>]*>[\s\S]*?<[^>]*:href[^>]*>([\s\S]*?)<\/[^>]*:href>/)
-  return match ? match[1].trim() : null
+async function discoverPrincipal(email: string, password: string): Promise<string | null> {
+  const auth = 'Basic ' + Buffer.from(`${email}:${password}`).toString('base64')
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:">
+  <D:prop><D:current-user-principal/></D:prop>
+</D:propfind>`
+
+  // Essaie plusieurs points d'entrée iCloud
+  const endpoints = [
+    `${CALDAV_BASE}/`,
+    `${CALDAV_BASE}/.well-known/caldav`,
+  ]
+
+  for (const url of endpoints) {
+    const xml = await caldavPropfind(url, auth, body)
+    if (!xml) continue
+    const href = extractDavHref(xml, 'current-user-principal')
+    if (href) return href
+  }
+  return null
+}
+
+async function getCalendarHomeSet(principalUrl: string, auth: string): Promise<string | null> {
+  const url  = principalUrl.startsWith('http') ? principalUrl : `${CALDAV_BASE}${principalUrl}`
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:prop><C:calendar-home-set/></D:prop>
+</D:propfind>`
+
+  const xml = await caldavPropfind(url, auth, body)
+  if (!xml) return null
+  return extractDavHref(xml, 'calendar-home-set')
 }
 
 interface CalDAVEvent {
-  uid:      string
-  summary:  string
-  dtstart:  string
-  dtend:    string
-  location?: string
-  description?: string
+  uid: string; summary: string; dtstart: string; dtend: string
+  location?: string; description?: string
 }
 
 function parseICalDate(val: string): string {
-  // TZID=Europe/Paris:20240601T100000 or 20240601T100000Z or 20240601
   const raw = val.includes(':') ? val.split(':').pop()! : val
   if (raw.length === 8) {
-    // all-day: YYYYMMDD
     return new Date(
       parseInt(raw.slice(0, 4)),
       parseInt(raw.slice(4, 6)) - 1,
       parseInt(raw.slice(6, 8)),
     ).toISOString()
   }
-  // YYYYMMDDTHHMMSS(Z)
   const y = raw.slice(0, 4), mo = raw.slice(4, 6), d = raw.slice(6, 8)
-  const h = raw.slice(9, 11), mi = raw.slice(11, 13), s = raw.slice(13, 15)
+  const h = raw.slice(9, 11), mi = raw.slice(11, 13), s = raw.slice(13, 15) || '00'
   return new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}${raw.endsWith('Z') ? 'Z' : ''}`).toISOString()
 }
 
@@ -93,18 +108,14 @@ function parseVCalendar(ics: string): CalDAVEvent[] {
   const events: CalDAVEvent[] = []
   const vevents = ics.split('BEGIN:VEVENT')
   for (let i = 1; i < vevents.length; i++) {
-    const block = vevents[i].split('END:VEVENT')[0]
-    const lines: Record<string, string> = {}
-    // Unfold multi-line values
+    const block    = vevents[i].split('END:VEVENT')[0]
     const unfolded = block.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '')
+    const lines: Record<string, string> = {}
     for (const line of unfolded.split(/\r?\n/)) {
       const sep = line.indexOf(':')
       if (sep < 0) continue
-      const key = line.slice(0, sep).trim()
-      const val = line.slice(sep + 1).trim()
-      lines[key.split(';')[0].toUpperCase()] = val
-      // Also store with TZID variants
-      if (key.includes(';')) lines[key.split(';')[0].toUpperCase() + '_FULL'] = val
+      const key = line.slice(0, sep).split(';')[0].trim().toUpperCase()
+      lines[key] = line.slice(sep + 1).trim()
     }
     if (!lines.UID || !lines.SUMMARY || !lines.DTSTART) continue
     events.push({
@@ -112,29 +123,20 @@ function parseVCalendar(ics: string): CalDAVEvent[] {
       summary:     lines.SUMMARY,
       dtstart:     parseICalDate(lines.DTSTART),
       dtend:       lines.DTEND ? parseICalDate(lines.DTEND) : parseICalDate(lines.DTSTART),
-      location:    lines.LOCATION || undefined,
+      location:    lines.LOCATION  || undefined,
       description: lines.DESCRIPTION || undefined,
     })
   }
   return events
 }
 
-async function fetchCalendarEvents(homeSetUrl: string, authHeader: string): Promise<CalDAVEvent[]> {
-  const url = homeSetUrl.startsWith('http') ? homeSetUrl : `${CALDAV_BASE}${homeSetUrl}`
-
-  // REPORT to get events in next 90 days
+async function fetchCalendarEvents(homeSetUrl: string, auth: string): Promise<CalDAVEvent[]> {
+  const url  = homeSetUrl.startsWith('http') ? homeSetUrl : `${CALDAV_BASE}${homeSetUrl}`
   const now    = new Date()
   const future = new Date(now.getTime() + 90 * 24 * 3600_000)
-  const fmt    = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+  const fmt    = (d: Date) => d.toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z'
 
-  const res = await fetch(url, {
-    method: 'REPORT',
-    headers: {
-      Authorization: authHeader,
-      Depth: '1',
-      'Content-Type': 'application/xml',
-    },
-    body: `<?xml version="1.0" encoding="UTF-8"?>
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
 <C:calendar-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
   <D:prop>
     <D:getetag/>
@@ -147,21 +149,17 @@ async function fetchCalendarEvents(homeSetUrl: string, authHeader: string): Prom
       </C:comp-filter>
     </C:comp-filter>
   </C:filter>
-</C:calendar-query>`,
-  })
+</C:calendar-query>`
 
-  if (!res.ok) return []
-  const text  = await res.text()
+  const xml = await caldavPropfind(url, auth, body, '1')
+  if (!xml) return []
+
   const allEvents: CalDAVEvent[] = []
-
-  // Extract calendar-data blocks from the multi-status response
-  const calDataRx = /<[^>]*:calendar-data[^>]*>([\s\S]*?)<\/[^>]*:calendar-data>/g
+  const rx = /<[^>]*:?calendar-data[^>]*>([\s\S]*?)<\/[^>]*:?calendar-data>/g
   let m: RegExpExecArray | null
-  while ((m = calDataRx.exec(text)) !== null) {
-    const decoded = m[1]
-      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
-    const parsed  = parseVCalendar(decoded)
-    allEvents.push(...parsed)
+  while ((m = rx.exec(xml)) !== null) {
+    const ics = m[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&#xD;/g, '')
+    allEvents.push(...parseVCalendar(ics))
   }
   return allEvents
 }
@@ -183,38 +181,37 @@ export async function POST(req: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-  }
+  if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
   const body = await req.json().catch(() => ({}))
   const { email, appPassword } = body as { email?: string; appPassword?: string }
-
   if (!email || !appPassword) {
     return NextResponse.json({ error: 'Email et mot de passe requis' }, { status: 400 })
   }
 
-  const authHeader = 'Basic ' + Buffer.from(`${email}:${appPassword}`).toString('base64')
+  const auth = 'Basic ' + Buffer.from(`${email}:${appPassword}`).toString('base64')
 
   // 1. Discover principal
   const principal = await discoverPrincipal(email, appPassword)
   if (!principal) {
-    return NextResponse.json({ error: 'Connexion iCloud échouée — vérifie tes identifiants' }, { status: 401 })
+    return NextResponse.json({
+      error: 'Connexion iCloud échouée. Vérifie que tu utilises bien un mot de passe spécifique à l\'app (pas ton mot de passe Apple ID)',
+    }, { status: 401 })
   }
 
-  // 2. Get calendar home set
-  const homeSet = await getCalendarHomeSet(principal, authHeader)
+  // 2. Calendar home set
+  const homeSet = await getCalendarHomeSet(principal, auth)
   if (!homeSet) {
     return NextResponse.json({ error: 'Impossible de trouver les calendriers iCloud' }, { status: 500 })
   }
 
   // 3. Fetch events
-  const calEvents = await fetchCalendarEvents(homeSet, authHeader)
+  const calEvents = await fetchCalendarEvents(homeSet, auth)
   if (calEvents.length === 0) {
-    return NextResponse.json({ synced: 0, message: 'Aucun événement trouvé' })
+    return NextResponse.json({ synced: 0, message: 'Aucun événement trouvé dans les 90 prochains jours' })
   }
 
-  // 4. Deduplicate by external_id (uid)
+  // 4. Deduplicate
   const uids = calEvents.map(e => e.uid)
   const { data: existing } = await supabase
     .from('events')
@@ -247,11 +244,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: insertError.message }, { status: 500 })
   }
 
-  // 5. Store credentials encrypted in integrations (for future auto-refresh)
+  // 5. Save integration
   await supabase.from('integrations').upsert({
     user_id:      user.id,
     provider:     'apple_calendar',
-    access_token: appPassword, // stored as-is; consider encrypting at rest
+    access_token: appPassword,
     metadata:     { email, principal, homeSet },
     expires_at:   new Date(Date.now() + 365 * 24 * 3600_000).toISOString(),
   }, { onConflict: 'user_id,provider' })
