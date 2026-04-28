@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Component, ReactNode } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { ArrowLeft, MapPin, Clock, Zap, TrendingUp, Flame, Wind } from 'lucide-react'
@@ -12,6 +12,23 @@ const ActivityMap = dynamic(
   () => import('@/components/sport/ActivityMap').then(m => m.ActivityMap),
   { ssr: false, loading: () => <div style={{ height: 360, background: '#0C0C0C', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'rgba(245,223,187,0.3)', fontSize: 12 }}>Chargement de la carte…</span></div> }
 )
+
+// Error boundary léger pour éviter le crash total de la page
+class SafeMap extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ height: 360, background: '#161616', borderRadius: 12, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8 }}>
+          <span style={{ fontSize: 28 }}>🗺️</span>
+          <p style={{ fontSize: 12, color: 'rgba(245,223,187,0.4)', fontFamily: 'var(--font-display)' }}>Carte non disponible</p>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
@@ -256,7 +273,9 @@ export default function ActivityDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
           {/* Carte grande */}
           <div className="md:col-span-2">
-            <ActivityMap points={mapPoints} height={360} />
+            <SafeMap>
+              <ActivityMap points={mapPoints} height={360} />
+            </SafeMap>
           </div>
 
           {/* Colonne droite — profil élévation + allure */}
