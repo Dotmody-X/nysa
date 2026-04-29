@@ -149,6 +149,10 @@ function SportPageInner() {
     date: new Date().toISOString().slice(0, 10),
     distance: '', duration: '', notes: '',
   })
+  const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10) })()
+  const [showPlanForm, setShowPlanForm] = useState(false)
+  const [planForm, setPlanForm] = useState({ date: tomorrow, distance: '', title: '', notes: '' })
+  const [planSaving, setPlanSaving] = useState(false)
 
   useEffect(() => {
     const strava = searchParams.get('strava')
@@ -196,6 +200,20 @@ function SportPageInner() {
       setImporting(false)
       if (fileRef.current) fileRef.current.value = ''
     }
+  }
+
+  async function handlePlan(e: React.FormEvent) {
+    e.preventDefault(); if (!planForm.distance) return
+    setPlanSaving(true)
+    await addRun({
+      title:       planForm.title || undefined,
+      date:        planForm.date,
+      distance_km: parseFloat(planForm.distance),
+      notes:       planForm.notes || undefined,
+    })
+    setPlanSaving(false)
+    setShowPlanForm(false)
+    setPlanForm({ date: tomorrow, distance: '', title: '', notes: '' })
   }
 
   async function handleManual(e: React.FormEvent) {
@@ -516,31 +534,94 @@ function SportPageInner() {
         <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {/* Prochaine course */}
           <div style={{ ...card(), padding: 22, flex: 1 }}>
-            <p style={{ ...label(), marginBottom: 14 }}>Prochaine course planifiée</p>
-            {nextRun ? (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <p style={{ ...label() }}>Prochaine course planifiée</p>
+              {!showPlanForm && (
+                <button onClick={() => setShowPlanForm(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8,
+                    background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 10,
+                    border: 'none', cursor: 'pointer' }}>
+                  <Plus size={10} /> Planifier
+                </button>
+              )}
+            </div>
+
+            {showPlanForm ? (
+              <form onSubmit={handlePlan} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div>
+                    <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Date</p>
+                    <input type="date" value={planForm.date}
+                      onChange={e => setPlanForm(f => ({ ...f, date: e.target.value }))}
+                      min={tomorrow}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-active)',
+                        borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Distance (km)</p>
+                    <input type="number" step="0.1" value={planForm.distance} placeholder="10.0" autoFocus
+                      onChange={e => setPlanForm(f => ({ ...f, distance: e.target.value }))}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)',
+                        borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
+                  </div>
+                </div>
+                <div>
+                  <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Titre (optionnel)</p>
+                  <input type="text" value={planForm.title} placeholder="ex : Sortie longue du dimanche"
+                    onChange={e => setPlanForm(f => ({ ...f, title: e.target.value }))}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)',
+                      borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  <button type="submit" disabled={planSaving || !planForm.distance}
+                    style={{ flex: 1, background: planForm.distance ? ORANGE : 'var(--border)', color: '#fff',
+                      borderRadius: 8, padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12,
+                      border: 'none', cursor: planForm.distance ? 'pointer' : 'default', transition: 'background .2s' }}>
+                    {planSaving ? 'Enregistrement…' : 'Planifier cette sortie'}
+                  </button>
+                  <button type="button" onClick={() => setShowPlanForm(false)}
+                    style={{ padding: '9px 14px', borderRadius: 8, background: 'var(--bg-input)',
+                      border: '1px solid var(--border)', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                    Annuler
+                  </button>
+                </div>
+              </form>
+            ) : nextRun ? (
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 10, background: '#11686A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Activity size={22} style={{ color: WHEAT }} />
                 </div>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--wheat)' }}>
                     {(nextRun as any).title ?? `Course — ${fmtDate(nextRun.date)}`}
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{fmtDateLong(nextRun.date)}</p>
                   <div style={{ display: 'flex', gap: 12, marginTop: 6 }}>
-                    {nextRun.distance_km && <span style={{ ...DF, fontSize: 13, fontWeight: 800, color: ORANGE }}>{nextRun.distance_km.toFixed(1)} km</span>}
-                    {nextRun.pace_sec_per_km && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtPace(nextRun.pace_sec_per_km)}</span>}
+                    {nextRun.distance_km != null && (
+                      <span style={{ ...DF, fontSize: 13, fontWeight: 800, color: ORANGE }}>{nextRun.distance_km.toFixed(1)} km</span>
+                    )}
+                    {nextRun.pace_sec_per_km != null && (
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtPace(nextRun.pace_sec_per_km)}</span>
+                    )}
                   </div>
                 </div>
+                {/* Countdown */}
+                {(() => {
+                  const diff = Math.ceil((new Date(nextRun.date + 'T12:00:00').getTime() - new Date().getTime()) / 86400000)
+                  return (
+                    <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                      <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: ORANGE, lineHeight: 1 }}>J-{diff}</p>
+                      <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2 }}>
+                        {diff <= 1 ? 'Demain !' : `${diff} jours`}
+                      </p>
+                    </div>
+                  )
+                })()}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 80, gap: 8 }}>
                 <Target size={22} style={{ color: 'var(--text-muted)' }} />
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>Aucune sortie planifiée</p>
-                <button onClick={() => setShowManual(true)}
-                  style={{ ...DF, fontSize: 11, fontWeight: 700, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                  + Ajouter une sortie
-                </button>
               </div>
             )}
           </div>
