@@ -627,8 +627,9 @@ export default function CoursesPage() {
                 </div>
               </div>
             ))}
-            <button className="crs-btn" style={{ width: '100%', padding: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'var(--text-muted)', ...DF, fontWeight: 700 }}>
-              Voir tout l'inventaire
+            <button className="crs-btn" onClick={() => router.push('/courses/inventaire')}
+              style={{ width: '100%', padding: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: TEAL, ...DF, fontWeight: 700 }}>
+              Voir tout l'inventaire →
             </button>
           </div>
 
