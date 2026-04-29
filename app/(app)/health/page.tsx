@@ -720,18 +720,26 @@ export default function HealthPage() {
         <div style={{ ...tealCard(), gridColumn: 'span 2', padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Défis &amp; Objectifs</p>
 
-          {/* Objectif principal */}
-          <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(240,228,204,0.08)', border: '1px solid rgba(240,228,204,0.12)' }}>
-            <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Objectif actuel</p>
-            <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT, marginBottom: 8, lineHeight: 1.1 }}>Courir 100 km / mois</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-              <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: ORANGE }}>{Math.round((monthKm / 100) * 100)}%</span>
-              <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)' }}>{monthKm.toFixed(1)} / 100 km</span>
-            </div>
-            <div style={{ height: 5, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(100, (monthKm / 100) * 100)}%`, borderRadius: 99, background: ORANGE, transition: 'width .5s ease' }} />
-            </div>
-          </div>
+          {/* Objectif principal — dynamique depuis localStorage */}
+          {(() => {
+            const mainObj = lsObjectifs[0] ?? { id: '4', label: 'Courir 100 km / mois', target: 100, unit: 'km', color: ORANGE }
+            const autoVal = mainObj.id === '1' ? kmWeek : mainObj.id === '2' ? thisWeek.length : mainObj.id === '3' ? allKm : mainObj.id === '4' ? monthKm : 0
+            const current = (mainObj as any).currentOverride != null ? (mainObj as any).currentOverride : autoVal
+            const pct = Math.min(100, (current / mainObj.target) * 100)
+            return (
+              <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(240,228,204,0.08)', border: '1px solid rgba(240,228,204,0.12)' }}>
+                <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Objectif actuel</p>
+                <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT, marginBottom: 8, lineHeight: 1.1 }}>{mainObj.label}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                  <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: mainObj.color }}>{Math.round(pct)}%</span>
+                  <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)' }}>{Number.isInteger(current) ? current : current.toFixed(1)} / {mainObj.target} {mainObj.unit}</span>
+                </div>
+                <div style={{ height: 5, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: mainObj.color, transition: 'width .5s ease' }} />
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Défis actifs */}
           <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Défis actifs</p>
