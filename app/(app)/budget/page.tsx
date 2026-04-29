@@ -91,7 +91,7 @@ function FluxChart({ months }: { months: { label:string; income:number; expense:
 function FooterLink({ label, onClick }: { label:string; onClick?: () => void }) {
   return (
     <button onClick={onClick}
-      style={{ padding:'12px 20px', borderTop:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, marginTop:'auto', width:'100%', background:'transparent', border:'none', borderTop:'1px solid var(--border)', cursor: onClick ? 'pointer' : 'default' }}
+      style={{ padding:'12px 20px', borderLeft:0, borderRight:0, borderBottom:0, borderTop:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, marginTop:'auto', width:'100%', background:'transparent', cursor: onClick ? 'pointer' : 'default' }}
       onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(240,228,204,0.04)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
     >
