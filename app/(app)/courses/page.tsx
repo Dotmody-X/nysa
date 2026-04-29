@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation'
 import {
   Plus, X, Trash2, Search, ShoppingCart, Check, Loader2, Barcode,
   ChevronRight, Zap, Tag, Bell, Truck, Users, Star, TrendingDown,
-  Package, AlertTriangle, MapPin, Calendar,
+  Package, AlertTriangle, MapPin, Calendar, Store, Navigation,
 } from 'lucide-react'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { searchProducts, getProductByBarcode, guessCategory, OFFProduct } from '@/lib/openFoodFacts'
+import { getRecentDiscountedPrices, discountPct, type OpenPrice } from '@/lib/openPrices'
+import { STORE_CHAINS, getChainById, mapCategoryToDepartment, type StoreChain, type SavedStore } from '@/lib/storeData'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -87,20 +89,11 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   buy: { label: 'À racheter',      color: '#EF4444' },
 }
 
-/* ─── Data: Promotions ───────────────────────────────────────── */
-const PROMOS = [
-  { name: 'Tomates cerises', qty: '500 g', old: 2.39, price: 1.69, discount: -29, emoji: '🍅' },
-  { name: 'Saumon frais',    qty: '200 g', old: 4.99, price: 3.49, discount: -30, emoji: '🐟' },
-  { name: 'Café moulu',      qty: '250 g', old: 3.29, price: 2.59, discount: -21, emoji: '☕' },
-]
-
-/* ─── Data: Parcours magasin ─────────────────────────────────── */
-const PARCOURS = [
-  { num: 1, rayon: 'Fruits & Légumes', count: 8, color: '#5B9F3A' },
-  { num: 2, rayon: 'Produits frais',   count: 5, color: ORANGE    },
-  { num: 3, rayon: 'Épicerie salée',   count: 6, color: WHEAT     },
-  { num: 4, rayon: 'Épicerie sucrée',  count: 2, color: '#F59E0B' },
-  { num: 5, rayon: 'Boissons',         count: 2, color: '#3B82F6' },
+/* ─── Fallback static promos (shown while loading or on error) ── */
+const FALLBACK_PROMOS = [
+  { product_name: 'Tomates cerises', price: 1.69, price_without_discount: 2.39, pct: -29, emoji: '🍅', currency: 'EUR' },
+  { product_name: 'Saumon frais',    price: 3.49, price_without_discount: 4.99, pct: -30, emoji: '🐟', currency: 'EUR' },
+  { product_name: 'Café moulu',      price: 2.59, price_without_discount: 3.29, pct: -21, emoji: '☕', currency: 'EUR' },
 ]
 
 /* ─── Data: Dépenses semaine ─────────────────────────────────── */
@@ -125,6 +118,149 @@ function WeekBars({ data }: { data: typeof WEEK_SPEND }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+/* ─── Store Selector Modal ───────────────────────────────────── */
+interface OSMStore { id: number; lat: number; lon: number; name: string; brand: string; address: string; city: string }
+
+function StoreSelectorModal({
+  current, onSelect, onClose,
+}: {
+  current: SavedStore | null
+  onSelect: (s: SavedStore) => void
+  onClose: () => void
+}) {
+  const DF2: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+  const [step, setStep]         = useState<'chain' | 'location'>('chain')
+  const [selectedChain, setSelectedChain] = useState<StoreChain | null>(null)
+  const [city, setCity]         = useState('')
+  const [searching, setSearching] = useState(false)
+  const [nearbyStores, setNearbyStores] = useState<OSMStore[]>([])
+  const [error, setError]       = useState('')
+
+  async function handleSearch() {
+    if (!city.trim() || !selectedChain) return
+    setSearching(true); setError(''); setNearbyStores([])
+    try {
+      // 1. Geocode the city
+      const geoRes = await fetch(`/api/geocode?q=${encodeURIComponent(city)}`)
+      const geoData = await geoRes.json()
+      if (!geoData?.[0]) { setError('Ville introuvable'); setSearching(false); return }
+      const { lat, lon } = { lat: parseFloat(geoData[0].lat), lon: parseFloat(geoData[0].lon) }
+
+      // 2. Find nearby stores
+      const storeRes = await fetch(`/api/stores?lat=${lat}&lon=${lon}&radius=8000&brand=${encodeURIComponent(selectedChain.osmBrand)}`)
+      const storeData: OSMStore[] = await storeRes.json()
+      setNearbyStores(storeData.slice(0, 10))
+      if (storeData.length === 0) setError(`Aucun ${selectedChain.name} trouvé dans un rayon de 8 km`)
+    } catch { setError('Erreur de recherche, réessaie.') }
+    setSearching(false)
+  }
+
+  function selectStore(store: OSMStore) {
+    if (!selectedChain) return
+    onSelect({ chainId: selectedChain.id, osmId: store.id, name: store.name || selectedChain.name, city: store.city || city, address: store.address, lat: store.lat, lon: store.lon })
+  }
+
+  function selectChainOnly() {
+    if (!selectedChain) return
+    onSelect({ chainId: selectedChain.id, name: selectedChain.name, city })
+  }
+
+  const inp: React.CSSProperties = {
+    background: 'var(--bg-input)', border: '1px solid var(--border)',
+    borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12, outline: 'none',
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', width: 560, maxWidth: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 22px', borderBottom: '1px solid var(--border)' }}>
+          <div>
+            <p style={{ ...DF2, fontSize: 15, fontWeight: 900, color: WHEAT }}>Mon magasin préféré</p>
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Le parcours s'adapte automatiquement à votre enseigne</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+            <X size={16} style={{ color: 'var(--text-muted)' }} />
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Step 1: Chain picker */}
+          <div>
+            <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+              1 · Choisissez votre enseigne
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {STORE_CHAINS.map(chain => (
+                <button key={chain.id} onClick={() => setSelectedChain(chain)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10,
+                    border: `2px solid ${selectedChain?.id === chain.id ? chain.color : 'var(--border)'}`,
+                    background: selectedChain?.id === chain.id ? `${chain.color}18` : 'var(--bg-input)',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all .12s' }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 2, background: chain.color, flexShrink: 0 }} />
+                  <span style={{ ...DF2, fontSize: 11, fontWeight: 700, color: WHEAT }}>{chain.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Step 2: City search */}
+          {selectedChain && (
+            <div>
+              <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+                2 · Trouvez votre magasin (optionnel)
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input value={city} onChange={e => setCity(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                  placeholder={`Ville ou commune (ex: Ixelles, Bruxelles…)`}
+                  style={{ ...inp, flex: 1 }} />
+                <button onClick={handleSearch} disabled={searching || !city.trim()}
+                  style={{ padding: '8px 14px', borderRadius: 8, background: TEAL_BG, color: WHEAT, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: !city.trim() ? 0.5 : 1 }}>
+                  {searching ? <Loader2 size={12} className="animate-spin" /> : <Navigation size={12} />}
+                  <span style={{ ...DF2, fontSize: 11, fontWeight: 700 }}>Chercher</span>
+                </button>
+              </div>
+              {error && <p style={{ fontSize: 10, color: ORANGE, marginTop: 6 }}>⚠ {error}</p>}
+
+              {/* Nearby stores results */}
+              {nearbyStores.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
+                  {nearbyStores.map(store => (
+                    <button key={store.id} onClick={() => selectStore(store)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10,
+                        background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', textAlign: 'left' }}>
+                      <MapPin size={14} style={{ color: selectedChain.color, flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <p style={{ ...DF2, fontSize: 12, fontWeight: 700, color: WHEAT }}>{store.name || selectedChain.name}</p>
+                        {store.address && <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 1 }}>{store.address}</p>}
+                      </div>
+                      <ChevronRight size={12} style={{ color: 'var(--text-muted)' }} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        {selectedChain && (
+          <div style={{ padding: '14px 22px', borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF2, fontWeight: 700, fontSize: 12 }}>
+              Annuler
+            </button>
+            <button onClick={selectChainOnly}
+              style={{ flex: 2, padding: '10px', borderRadius: 9, background: selectedChain.color, border: 'none', color: '#fff', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
+              Utiliser {selectedChain.name} {city ? `— ${city}` : '(sans localisation)'}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -165,8 +301,74 @@ export default function CoursesPage() {
   /* ── Budget ──────────────────────────────────── */
   const BUDGET_TARGET = 100
   const budgetPct = Math.min(100, (totalEstimated / BUDGET_TARGET) * 100)
-  const savings = 18.30
-  const lastWeekSpend = 98.85
+
+  /* ── Preferred store ─────────────────────────── */
+  const [preferredStore, setPreferredStore] = useState<SavedStore | null>(null)
+  const [showStoreSelector, setShowStoreSelector] = useState(false)
+
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem('nysa_preferred_store')
+      if (s) setPreferredStore(JSON.parse(s))
+    } catch {}
+  }, [])
+
+  function saveStore(store: SavedStore) {
+    setPreferredStore(store)
+    localStorage.setItem('nysa_preferred_store', JSON.stringify(store))
+    setShowStoreSelector(false)
+  }
+
+  /* ── Live promotions (Open Prices API) ───────── */
+  const [livePromos, setLivePromos]       = useState<OpenPrice[]>([])
+  const [loadingPromos, setLoadingPromos] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    async function fetchPromos() {
+      setLoadingPromos(true)
+      const data = await getRecentDiscountedPrices(6)
+      if (!cancelled) {
+        setLivePromos(data.filter(p => p.price_without_discount != null && p.price_without_discount > 0))
+        setLoadingPromos(false)
+      }
+    }
+    fetchPromos()
+    return () => { cancelled = true }
+  }, [])
+
+  /* ── Parcours based on selected store chain ──── */
+  const activeChain = preferredStore ? getChainById(preferredStore.chainId) : null
+
+  function buildParcours() {
+    const cats = Object.keys(byCategory)
+    if (cats.length === 0) return null   // will use default static list
+
+    if (activeChain) {
+      // Map each category to chain department + sort by chain dept order
+      const mapped = cats.map(cat => {
+        const { dept, order } = mapCategoryToDepartment(cat, activeChain)
+        return { rayon: dept, origCat: cat, count: byCategory[cat].length, order, color: catColor(cat) }
+      })
+      // Merge categories that map to same department
+      const merged = mapped.reduce((acc, m) => {
+        const ex = acc.find(a => a.rayon === m.rayon)
+        if (ex) { ex.count += m.count } else acc.push({ ...m })
+        return acc
+      }, [] as typeof mapped)
+      return merged.sort((a, b) => a.order - b.order).map((r, i) => ({ ...r, num: i + 1 }))
+    }
+
+    // No chain selected: use raw categories from list
+    return cats.map((cat, i) => ({
+      num: i + 1, rayon: cat, count: byCategory[cat].length, order: i, color: catColor(cat), origCat: cat,
+    }))
+  }
+
+  const parcours = buildParcours()
+  const savings = livePromos.length > 0
+    ? livePromos.reduce((s, p) => s + (p.price_without_discount ? p.price_without_discount - p.price : 0), 0)
+    : 18.30
 
   /* ── Auto-select first list ──────────────────── */
   useEffect(() => {
@@ -245,6 +447,15 @@ export default function CoursesPage() {
 
   return (
     <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
+      {/* ── Store Selector Modal ─────────────────── */}
+      {showStoreSelector && (
+        <StoreSelectorModal
+          current={preferredStore}
+          onSelect={saveStore}
+          onClose={() => setShowStoreSelector(false)}
+        />
+      )}
+
       <style>{`
         .crs-btn:hover   { opacity: .85; }
         .crs-row:hover   { background: rgba(255,255,255,0.04) !important; }
@@ -633,27 +844,52 @@ export default function CoursesPage() {
             </button>
           </div>
 
-          {/* Promotions */}
+          {/* Promotions — Open Prices live data */}
           <div style={{ ...card() }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-              <p style={{ ...lbl(ORANGE) }}>Promotions pour vous</p>
-              <button style={{ fontSize: 9, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Voir tout</button>
-            </div>
-            {PROMOS.map(p => (
-              <div key={p.name} className="crs-promo"
-                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
-                <span style={{ fontSize: 20, flexShrink: 0 }}>{p.emoji}</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: WHEAT }}>{p.name}</p>
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>{p.qty}</p>
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)', textDecoration: 'line-through' }}>{p.old.toFixed(2)} €</p>
-                </div>
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <p style={{ ...DF, fontSize: 14, fontWeight: 900, color: WHEAT }}>{p.price.toFixed(2)} €</p>
-                  <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: ORANGE, color: '#fff' }}>{p.discount}%</span>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <p style={{ ...lbl(ORANGE) }}>Promotions pour vous</p>
+                {!loadingPromos && livePromos.length > 0 && (
+                  <span style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4, background: 'rgba(91,159,58,0.15)', color: '#5B9F3A', ...DF, fontWeight: 700 }}>
+                    LIVE
+                  </span>
+                )}
+                {loadingPromos && <Loader2 size={10} className="animate-spin" style={{ color: 'var(--text-muted)' }} />}
               </div>
-            ))}
+              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>via Open Prices</span>
+            </div>
+            {(livePromos.length > 0 ? livePromos.slice(0, 4) : FALLBACK_PROMOS).map((p, i) => {
+              const pct = livePromos.length > 0
+                ? discountPct(p as OpenPrice)
+                : (p as typeof FALLBACK_PROMOS[0]).pct
+              const oldPrice = livePromos.length > 0
+                ? (p as OpenPrice).price_without_discount
+                : (p as typeof FALLBACK_PROMOS[0]).price_without_discount
+              const name = (p as OpenPrice).product_name ?? (p as typeof FALLBACK_PROMOS[0]).product_name ?? '—'
+              return (
+                <div key={i} className="crs-promo"
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
+                  <span style={{ fontSize: 20, flexShrink: 0 }}>🏷️</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: WHEAT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</p>
+                    {oldPrice && <p style={{ fontSize: 9, color: 'var(--text-muted)', textDecoration: 'line-through' }}>{oldPrice.toFixed(2)} €</p>}
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ ...DF, fontSize: 14, fontWeight: 900, color: WHEAT }}>{p.price.toFixed(2)} €</p>
+                    {pct != null && (
+                      <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: ORANGE, color: '#fff' }}>
+                        {pct > 0 ? '+' : ''}{pct}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            {livePromos.length === 0 && !loadingPromos && (
+              <p style={{ fontSize: 9, color: 'var(--text-muted)', padding: '8px 14px', textAlign: 'center' }}>
+                Données en cours de chargement depuis Open Prices…
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -665,34 +901,51 @@ export default function CoursesPage() {
 
         {/* Parcours magasin */}
         <div style={{ ...card(), padding: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          {/* Store badge */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <p style={{ ...lbl('var(--text-muted)') }}>Parcours magasin recommandé</p>
             <MapPin size={14} style={{ color: 'var(--text-muted)' }} />
           </div>
-          <p style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 12 }}>Optimisé pour gagner du temps</p>
+          {/* Selected store chip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+            {activeChain ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: activeChain.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: WHEAT }}>{preferredStore?.name ?? activeChain.name}</span>
+                {preferredStore?.city && <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>· {preferredStore.city}</span>}
+              </div>
+            ) : (
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', flex: 1 }}>Optimisé pour gagner du temps</span>
+            )}
+            <button onClick={() => setShowStoreSelector(true)} className="crs-btn"
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', cursor: 'pointer', fontSize: 9, color: 'var(--text-muted)' }}>
+              <Store size={9} /> {activeChain ? 'Changer' : 'Choisir mon magasin'}
+            </button>
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {(Object.keys(byCategory).length > 0
-              ? Object.entries(byCategory).map(([cat, catItems], i) => ({ num: i + 1, rayon: cat, count: catItems.length, color: catColor(cat) }))
-              : PARCOURS
-            ).map(r => (
+            {(parcours ?? [
+              { num: 1, rayon: 'Fruits & Légumes', count: 8, color: '#5B9F3A' },
+              { num: 2, rayon: 'Produits frais',   count: 5, color: ORANGE    },
+              { num: 3, rayon: 'Épicerie salée',   count: 6, color: WHEAT     },
+              { num: 4, rayon: 'Épicerie sucrée',  count: 2, color: '#F59E0B' },
+              { num: 5, rayon: 'Boissons',         count: 2, color: '#3B82F6' },
+            ]).map((r, _, arr) => (
               <div key={r.num} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: r.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: r.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <span style={{ ...DF, fontSize: 9, fontWeight: 900, color: '#fff' }}>{r.num}</span>
                 </div>
-                {r.num < (Object.keys(byCategory).length > 0 ? Object.keys(byCategory).length : PARCOURS.length) && (
-                  <div style={{ position: 'absolute', marginLeft: 10, marginTop: 22, width: 2, height: 8, background: 'var(--border)' }} />
-                )}
                 <span style={{ flex: 1, fontSize: 12, color: WHEAT }}>{r.rayon}</span>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{r.count} articles</span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{r.count} article{r.count > 1 ? 's' : ''}</span>
               </div>
             ))}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <Calendar size={11} style={{ color: 'var(--text-muted)' }} />
-              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Estimation : ~28 min</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Estimation : ~{((parcours?.reduce((s, r) => s + r.count, 0) ?? 23) * 1.2).toFixed(0)} min</span>
             </div>
-            <button style={{ fontSize: 10, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Voir le plan</button>
+            <button onClick={() => setShowStoreSelector(true)} style={{ fontSize: 10, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Voir le plan</button>
           </div>
         </div>
 
