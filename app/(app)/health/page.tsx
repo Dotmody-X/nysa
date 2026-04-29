@@ -128,6 +128,11 @@ export default function HealthPage() {
   const [glasses, setGlasses]     = useState(0)
   const GLASS_TARGET = 8
 
+  /* ── Résumé du jour — éditable + persisté localStorage ── */
+  const [resume, setResume] = useState({ pas: 0, pasTarget: 10000, cal: 1842, calTarget: 2200 })
+  const [editResume, setEditResume] = useState(false)
+  const [resumeForm, setResumeForm] = useState({ pas: '', cal: '', pasTarget: '', calTarget: '' })
+
   /* ── Nutrition local state ───────── */
   const [nutrition] = useState({ cal: 1842, calTarget: 2200, prot: 120, protTarget: 150, gluc: 180, glucTarget: 250, lip: 65, lipTarget: 80 })
 
@@ -151,6 +156,11 @@ export default function HealthPage() {
     try {
       const savedO = localStorage.getItem('nysa_objectifs')
       if (savedO) setLsObjectifs(JSON.parse(savedO))
+    } catch {}
+
+    try {
+      const savedR = localStorage.getItem('nysa_resume_jour')
+      if (savedR) setResume(JSON.parse(savedR))
     } catch {}
   }, [])
 
@@ -302,13 +312,52 @@ export default function HealthPage() {
         <div style={{ ...orangeCard(), gridColumn: 'span 2', padding: 28 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
             <p style={{ ...lbl('#1A0A0A') }}>Résumé du jour</p>
-            <span style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>{today.toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' })}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>{today.toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' })}</span>
+              <button onClick={() => { setEditResume(v => !v); setResumeForm({ pas: String(resume.pas), cal: String(resume.cal), pasTarget: String(resume.pasTarget), calTarget: String(resume.calTarget) }) }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 6, background: 'rgba(26,10,10,0.15)', border: 'none', cursor: 'pointer' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+            </div>
           </div>
+
+          {/* Edit form */}
+          {editResume && (
+            <div style={{ marginBottom: 16, padding: 14, borderRadius: 10, background: 'rgba(26,10,10,0.15)', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {[
+                { k: 'pas',       lbl: 'Pas aujourd\'hui', ph: '8000' },
+                { k: 'pasTarget', lbl: 'Objectif pas',     ph: '10000' },
+                { k: 'cal',       lbl: 'Calories',         ph: '1842' },
+                { k: 'calTarget', lbl: 'Objectif kcal',    ph: '2200' },
+              ].map(f => (
+                <div key={f.k}>
+                  <p style={{ fontSize: 8, color: 'rgba(26,10,10,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{f.lbl}</p>
+                  <input type="number" placeholder={f.ph} value={(resumeForm as any)[f.k]}
+                    onChange={e => setResumeForm(v => ({ ...v, [f.k]: e.target.value }))}
+                    style={{ width: '100%', background: 'rgba(26,10,10,0.15)', border: '1px solid rgba(26,10,10,0.25)', borderRadius: 6, padding: '6px 8px', color: '#1A0A0A', fontSize: 12 }} />
+                </div>
+              ))}
+              <div style={{ gridColumn: 'span 4', display: 'flex', gap: 6, marginTop: 2 }}>
+                <button onClick={() => {
+                  const updated = { pas: parseInt(resumeForm.pas) || 0, pasTarget: parseInt(resumeForm.pasTarget) || 10000, cal: parseInt(resumeForm.cal) || 0, calTarget: parseInt(resumeForm.calTarget) || 2200 }
+                  setResume(updated)
+                  localStorage.setItem('nysa_resume_jour', JSON.stringify(updated))
+                  setEditResume(false)
+                }} style={{ padding: '6px 14px', borderRadius: 6, background: 'rgba(26,10,10,0.3)', color: '#1A0A0A', border: 'none', fontSize: 11, ...DF, fontWeight: 700, cursor: 'pointer' }}>
+                  Enregistrer
+                </button>
+                <button onClick={() => setEditResume(false)} style={{ padding: '6px 10px', borderRadius: 6, background: 'rgba(26,10,10,0.1)', color: '#1A0A0A', border: 'none', fontSize: 11, cursor: 'pointer' }}>
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
             {[
-              { icon: <Flame size={16} />, l: 'Pas', v: '—', obj: '10 000', unit: '' },
-              { icon: <Activity size={16} />, l: 'Activité', v: fmtDur(secWeek), obj: '60 min', unit: '' },
-              { icon: <Zap size={16} />, l: 'Calories', v: `${nutrition.cal.toLocaleString()}`, obj: nutrition.calTarget.toLocaleString(), unit: 'kcal' },
+              { icon: <Flame size={16} />,    l: 'Pas',      v: resume.pas > 0 ? resume.pas.toLocaleString() : '—',  obj: resume.pasTarget.toLocaleString(), unit: '' },
+              { icon: <Activity size={16} />, l: 'Activité', v: fmtDur(secWeek),                                      obj: '60 min',                          unit: '' },
+              { icon: <Zap size={16} />,      l: 'Calories', v: resume.cal > 0 ? resume.cal.toLocaleString() : '—',  obj: resume.calTarget.toLocaleString(), unit: 'kcal' },
             ].map(s => (
               <div key={s.l} style={{ background: 'rgba(26,10,10,0.12)', borderRadius: 10, padding: '14px 12px' }}>
                 <div style={{ color: '#1A0A0A', marginBottom: 6 }}>{s.icon}</div>
