@@ -237,41 +237,42 @@ export default function HealthPage() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: '300px 300px 500px 400px 260px',
+        gridTemplateRows: '300px 300px 500px 400px 380px',
         gap: 10,
       }}>
 
         {/* ── R1 C1-2 : HERO ──────────────────────────────── */}
-        <div style={{ gridColumn: 'span 2', padding: '32px 32px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ gridColumn: 'span 2', padding: '24px 28px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden' }}>
           <div>
-            <p style={{ ...DF, fontSize: 52, fontWeight: 900, color: ORANGE, lineHeight: 0.95, marginBottom: 8 }}>HEALTH.</p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 24 }}>
+            <p style={{ ...DF, fontSize: 42, fontWeight: 900, color: ORANGE, lineHeight: 0.95, marginBottom: 6 }}>HEALTH.</p>
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>
               Suivez. Progressez. Prenez soin de vous.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="health-btn" onClick={() => setShowWForm(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9,
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
                   background: TEAL_BG, color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
-                <Scale size={12} /> + Poids
+                <Scale size={11} /> + Poids
               </button>
               <button className="health-btn" onClick={() => setShowRForm(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9,
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
                   background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
-                <Activity size={12} /> + Run
+                <Activity size={11} /> + Run
               </button>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {/* 4 KPIs en ligne unique */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
             {[
-              { l: 'Distance semaine', v: `${kmWeek.toFixed(1)} km`, sub: `${thisWeek.length} sortie${thisWeek.length !== 1 ? 's' : ''}`, color: ORANGE },
-              { l: 'Temps actif',      v: fmtDur(secWeek),            sub: 'cette semaine',                                                  color: TEAL },
-              { l: 'Allure moy.',      v: avgPace > 0 ? fmtPace(avgPace) : '—', sub: 'cette semaine',                                        color: WHEAT },
-              { l: 'Poids actuel',     v: latestWeight ? `${latestWeight} kg` : '—', sub: weightTrend != null ? `${weightTrend > 0 ? '+' : ''}${weightTrend?.toFixed(1)} kg` : 'Aucune donnée', color: TEAL },
+              { l: 'Distance',  v: `${kmWeek.toFixed(1)} km`, sub: `${thisWeek.length} sortie${thisWeek.length !== 1 ? 's' : ''}`, color: ORANGE },
+              { l: 'Temps',     v: fmtDur(secWeek),            sub: 'cette semaine', color: TEAL },
+              { l: 'Allure',    v: avgPace > 0 ? fmtPace(avgPace) : '—', sub: 'moy. semaine', color: WHEAT },
+              { l: 'Poids',     v: latestWeight ? `${latestWeight}kg` : '—', sub: weightTrend != null ? `${weightTrend > 0 ? '+' : ''}${weightTrend?.toFixed(1)} kg` : 'Aucune donnée', color: TEAL },
             ].map(s => (
-              <div key={s.l} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.l}</p>
-                <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.v}</p>
-                <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 3 }}>{s.sub}</p>
+              <div key={s.l} style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.l}</p>
+                <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.v}</p>
+                <p style={{ fontSize: 8, color: 'var(--text-muted)', marginTop: 3 }}>{s.sub}</p>
               </div>
             ))}
           </div>
@@ -688,27 +689,30 @@ export default function HealthPage() {
         </div>
 
         {/* ── R5 C3-4 : DÉFIS & OBJECTIFS ─────────────────── */}
-        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
-          <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 18 }}>Défis &amp; Objectifs</p>
+        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Défis &amp; Objectifs</p>
+
           {/* Objectif principal */}
-          <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(240,228,204,0.08)', border: '1px solid rgba(240,228,204,0.12)', marginBottom: 14 }}>
-            <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Objectif actuel</p>
-            <p style={{ ...DF, fontSize: 22, fontWeight: 900, color: WHEAT, marginBottom: 8 }}>Courir 100 km / mois</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ ...DF, fontSize: 13, fontWeight: 800, color: ORANGE }}>{Math.round((monthKm / 100) * 100)}%</span>
+          <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(240,228,204,0.08)', border: '1px solid rgba(240,228,204,0.12)' }}>
+            <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Objectif actuel</p>
+            <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT, marginBottom: 8, lineHeight: 1.1 }}>Courir 100 km / mois</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+              <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: ORANGE }}>{Math.round((monthKm / 100) * 100)}%</span>
               <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)' }}>{monthKm.toFixed(1)} / 100 km</span>
             </div>
-            <div style={{ height: 6, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
+            <div style={{ height: 5, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${Math.min(100, (monthKm / 100) * 100)}%`, borderRadius: 99, background: ORANGE, transition: 'width .5s ease' }} />
             </div>
           </div>
+
           {/* Défis actifs */}
-          <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Défis actifs</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+          <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Défis actifs</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { l: '30 km / semaine',   v: kmWeek.toFixed(1),           t: 30,  unit: 'km',     color: ORANGE },
+              { l: '30 km / semaine',   v: kmWeek.toFixed(1),           t: 30,  unit: 'km',      color: ORANGE },
               { l: '4 sorties / sem.',  v: String(thisWeek.length),      t: 4,   unit: 'sorties', color: WHEAT },
-              { l: 'Total 500 km',      v: allKm.toFixed(0),             t: 500, unit: 'km',     color: TEAL },
+              { l: 'Total 500 km',      v: allKm.toFixed(0),             t: 500, unit: 'km',      color: TEAL },
+              { l: 'Boire 2,5 L / jour', v: (glasses * 0.25).toFixed(1), t: 2.5, unit: 'L',       color: '#3B82F6' },
             ].map(d => {
               const pct = Math.min(100, (parseFloat(d.v) / d.t) * 100)
               return (
@@ -722,12 +726,13 @@ export default function HealthPage() {
                       <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: d.color, transition: 'width .5s ease' }} />
                     </div>
                   </div>
-                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: d.color, minWidth: 36, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
+                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: d.color, minWidth: 34, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
                 </div>
               )
             })}
           </div>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(240,228,204,0.1)' }}>
+
+          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(240,228,204,0.1)' }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.35)' }}>VOIR TOUS LES OBJECTIFS</span>
             <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.35)' }} />
           </button>
