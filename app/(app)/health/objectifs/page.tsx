@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, Target, Award, Droplets, Activity, Trash2, Check, Pencil, X } from 'lucide-react'
+import { ArrowLeft, Plus, Target, Award, Droplets, Activity, Trash2, Check, Pencil, X, AlertTriangle } from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -21,6 +21,41 @@ type Objectif = {
 type FormState = { label: string; target: string; unit: string; color: string; period: string; category: string; icon: string; currentOverride: string }
 
 const EMPTY_FORM: FormState = { label: '', target: '', unit: 'km', color: ORANGE, period: 'semaine', category: 'course', icon: 'activity', currentOverride: '' }
+
+function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div onClick={onCancel} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
+      <div style={{ position: 'relative', width: 360, borderRadius: 16, background: 'var(--bg-card)',
+        border: '1px solid var(--border)', padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 20,
+        boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: `${ORANGE}18`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <AlertTriangle size={18} style={{ color: ORANGE }} />
+          </div>
+          <div>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, color: 'var(--wheat)', lineHeight: 1.2 }}>Confirmer la suppression</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{message}</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={onCancel}
+            style={{ padding: '9px 18px', borderRadius: 9, background: 'var(--bg-input)', color: 'var(--text-muted)',
+              border: '1px solid var(--border)', fontSize: 12, fontFamily: 'var(--font-display)', fontWeight: 700, cursor: 'pointer' }}>
+            Annuler
+          </button>
+          <button onClick={onConfirm}
+            style={{ padding: '9px 18px', borderRadius: 9, background: ORANGE, color: '#fff', border: 'none',
+              fontSize: 12, fontFamily: 'var(--font-display)', fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Trash2 size={12} /> Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const COLORS = [ORANGE, TEAL, WHEAT, '#3B82F6', '#7C3AED', '#10B981']
 const PERIOD_LABELS: Record<string, string> = { jour: '/ jour', semaine: '/ semaine', mois: '/ mois', total: 'total' }
@@ -136,9 +171,10 @@ export default function ObjectifsPage() {
     { id: '5', label: 'Hydratation journalière', target: 2.5, unit: 'L',       color: '#3B82F6', category: 'hydratation', period: 'jour',    icon: 'drops' },
   ])
 
-  const [showForm, setShowForm] = useState(false)
-  const [editId,   setEditId]   = useState<string | null>(null)
-  const [form,     setForm]     = useState<FormState>(EMPTY_FORM)
+  const [showForm,   setShowForm]   = useState(false)
+  const [editId,     setEditId]     = useState<string | null>(null)
+  const [form,       setForm]       = useState<FormState>(EMPTY_FORM)
+  const [confirmId,  setConfirmId]  = useState<string | null>(null)
 
   // Running data
   const today     = new Date()
@@ -222,9 +258,10 @@ export default function ObjectifsPage() {
   function cancelForm() { setShowForm(false); setEditId(null); setForm(EMPTY_FORM) }
 
   // ── DELETE ──
-  function removeObjectif(id: string) {
-    if (!confirm('Supprimer cet objectif ?')) return
-    setObjectifs(o => o.filter(x => x.id !== id))
+  function removeObjectif(id: string) { setConfirmId(id) }
+  function confirmDelete() {
+    if (confirmId) setObjectifs(o => o.filter(x => x.id !== confirmId))
+    setConfirmId(null)
   }
 
   return (
@@ -330,6 +367,15 @@ export default function ObjectifsPage() {
             + Créer un objectif
           </button>
         </div>
+      )}
+
+      {/* Confirm delete modal */}
+      {confirmId && (
+        <ConfirmModal
+          message="Cet objectif sera définitivement supprimé."
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmId(null)}
+        />
       )}
     </div>
   )

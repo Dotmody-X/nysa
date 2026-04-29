@@ -1,12 +1,51 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, TrendingDown, TrendingUp, Pencil, Trash2, Check, X } from 'lucide-react'
+import { ArrowLeft, Plus, TrendingDown, TrendingUp, Pencil, Trash2, Check, X, AlertTriangle } from 'lucide-react'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL   = '#0E9594'
 const ORANGE = '#F2542D'
 const WHEAT  = '#F0E4CC'
+
+function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Backdrop */}
+      <div onClick={onCancel} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
+      {/* Modal */}
+      <div style={{ position: 'relative', width: 360, borderRadius: 16, background: 'var(--bg-card)',
+        border: '1px solid var(--border)', padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 20,
+        boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }}>
+        {/* Icon */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: `${ORANGE}18`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <AlertTriangle size={18} style={{ color: ORANGE }} />
+          </div>
+          <div>
+            <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--wheat)', lineHeight: 1.2 }}>Confirmer la suppression</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{message}</p>
+          </div>
+        </div>
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={onCancel}
+            style={{ padding: '9px 18px', borderRadius: 9, background: 'var(--bg-input)', color: 'var(--text-muted)',
+              border: '1px solid var(--border)', fontSize: 12, ...DF, fontWeight: 700, cursor: 'pointer' }}>
+            Annuler
+          </button>
+          <button onClick={onConfirm}
+            style={{ padding: '9px 18px', borderRadius: 9, background: ORANGE, color: '#fff',
+              border: 'none', fontSize: 12, ...DF, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Trash2 size={12} /> Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 type Mesure = {
   id: string; date: string
@@ -83,6 +122,7 @@ export default function MesuresPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [editId, setEditId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
   const [mesures, setMesures] = useState<Mesure[]>([
     { id: '1', date: '2026-04-29', taille: 81,   massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 },
@@ -127,9 +167,10 @@ export default function MesuresPage() {
   function cancelEdit() { setEditId(null) }
 
   // ── DELETE ──
-  function deleteMesure(id: string) {
-    if (!confirm('Supprimer cette mesure ?')) return
-    setMesures(ms => ms.filter(m => m.id !== id))
+  function deleteMesure(id: string) { setConfirmId(id) }
+  function confirmDelete() {
+    if (confirmId) setMesures(ms => ms.filter(m => m.id !== confirmId))
+    setConfirmId(null)
   }
 
   const tailleVals = mesures.slice().reverse().map(m => m.taille ?? 0).filter(v => v > 0)
@@ -334,6 +375,15 @@ export default function MesuresPage() {
           </div>
         )}
       </div>
+
+      {/* Confirm delete modal */}
+      {confirmId && (
+        <ConfirmModal
+          message="Cette mesure sera définitivement supprimée."
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
     </div>
   )
 }
