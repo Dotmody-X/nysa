@@ -41,6 +41,7 @@ export interface Project {
   budget?: number
   deadline?: string
   progress: number
+  groupe?: string   // Grande catégorie / marque : Le Mixologue | E-Smoker | Aeterna | Interne | Autre
   created_at: string
   updated_at: string
 }

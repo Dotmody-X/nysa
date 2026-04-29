@@ -10,6 +10,17 @@ import { useTimeEntries } from '@/hooks/useTimeEntries'
 import type { Project }   from '@/types'
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Constantes marques
+// ─────────────────────────────────────────────────────────────────────────────
+export const GROUPES = [
+  { value: 'Le Mixologue', color: '#F2542D' },
+  { value: 'E-Smoker',     color: '#0E9594' },
+  { value: 'Aeterna',      color: '#9333EA' },
+  { value: 'Interne',      color: '#D97706' },
+  { value: 'Autre',        color: '#6B7280' },
+] as const
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -18,6 +29,10 @@ function fmtHours(s: number): string {
   const h = Math.floor(s / 3600)
   const m = Math.floor((s % 3600) / 60)
   return h > 0 ? `${h}h${m > 0 ? String(m).padStart(2, '0') : ''}` : `${m}min`
+}
+
+function groupeColor(g: string | undefined): string {
+  return GROUPES.find(x => x.value === g)?.color ?? '#6B7280'
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -92,7 +107,7 @@ function Dropdown<T extends string>({
         <span style={{ color: 'var(--text-muted)', fontSize: 9, marginLeft: 2 }}>▼</span>
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 0', minWidth: 140, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
           {options.map(o => (
             <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }}
               style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 11, color: o.value === value ? '#F2542D' : 'var(--wheat)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: o.value === value ? 700 : 400 }}
@@ -128,6 +143,7 @@ function ProjectModal({
     priority:    (project?.priority   ?? 'medium')  as Project['priority'],
     deadline:    project?.deadline    ?? '',
     budget:      project?.budget ? String(project.budget) : '',
+    groupe:      project?.groupe      ?? '',
   })
   const [saving,  setSaving]  = useState(false)
   const [confirm, setConfirm] = useState(false)
@@ -139,26 +155,24 @@ function ProjectModal({
 
   async function submit() {
     setSaving(true)
+    const payload = {
+      name: form.name.trim(), color: form.color,
+      description: form.description || undefined,
+      status: form.status, priority: form.priority,
+      deadline: form.deadline || undefined,
+      budget: form.budget ? Number(form.budget) : undefined,
+      groupe: form.groupe || undefined,
+    }
     if (isEdit && onSave && project) {
-      await onSave(project.id, {
-        name: form.name.trim(), color: form.color,
-        description: form.description || undefined,
-        status: form.status, priority: form.priority,
-        deadline: form.deadline || undefined,
-        budget: form.budget ? Number(form.budget) : undefined,
-      })
+      await onSave(project.id, payload)
     } else if (onCreate) {
-      await onCreate({
-        name: form.name.trim(), color: form.color,
-        description: form.description || undefined,
-        status: form.status, priority: form.priority, progress: 0,
-        deadline: form.deadline || undefined,
-        budget: form.budget ? Number(form.budget) : undefined,
-      })
+      await onCreate({ ...payload, progress: 0 })
     }
     setSaving(false)
     onClose()
   }
+
+  const gc = groupeColor(form.groupe)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -174,11 +188,37 @@ function ProjectModal({
           <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
 
+        {/* Nom + couleur */}
         <div className="flex gap-2 items-center">
           <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
             placeholder="Nom du projet" style={{ ...inp, flex: 1 }} autoFocus />
           <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
             style={{ width: 40, height: 36, borderRadius: 8, border: '1px solid var(--border)', padding: 3, cursor: 'pointer', background: 'var(--bg)', flexShrink: 0 }} />
+        </div>
+
+        {/* Groupe / Marque */}
+        <div>
+          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>
+            Marque / Catégorie
+          </label>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['', ...GROUPES.map(g => g.value)].map(g => {
+              const active = form.groupe === g
+              const gColor = groupeColor(g)
+              return (
+                <button key={g || 'none'} onClick={() => setForm(f => ({ ...f, groupe: g }))}
+                  style={{
+                    padding: '4px 12px', borderRadius: 20, fontSize: 10, cursor: 'pointer',
+                    background: active ? `${gColor}22` : 'var(--bg)',
+                    color: active ? gColor : 'var(--text-muted)',
+                    border: `1px solid ${active ? gColor + '66' : 'var(--border)'}`,
+                    ...DF, fontWeight: active ? 700 : 500, transition: 'all 0.12s',
+                  } as React.CSSProperties}>
+                  {g || 'Non classé'}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -216,9 +256,15 @@ function ProjectModal({
           </div>
         </div>
 
+        {/* Aperçu */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: form.color + '15', border: `1px solid ${form.color}44` }}>
           <div style={{ width: 10, height: 10, borderRadius: 3, background: form.color }} />
           <span style={{ fontSize: 12, fontWeight: 600, color: form.color }}>{form.name || 'Aperçu'}</span>
+          {form.groupe && (
+            <span style={{ marginLeft: 'auto', fontSize: 9, padding: '2px 8px', borderRadius: 20, background: gc + '22', color: gc, ...DF, fontWeight: 700, textTransform: 'uppercase' }}>
+              {form.groupe}
+            </span>
+          )}
         </div>
 
         <div className="flex gap-2 justify-between items-center">
@@ -295,10 +341,33 @@ export default function ProjetsPage() {
 
   const activeProjects = projects.filter(p => p.status === 'active')
   const activeTasks    = tasks.filter(t => t.status !== 'done' && t.status !== 'cancelled')
-  const avgProgress    = projects.length
-    ? Math.round(projects.reduce((acc, p) => acc + (p.progress ?? 0), 0) / projects.length)
-    : 0
-  const totalSec = entries.reduce((acc, e) => acc + (e.duration_seconds ?? 0), 0)
+  const totalSec       = entries.reduce((acc, e) => acc + (e.duration_seconds ?? 0), 0)
+
+  // Temps par groupe (marque) — toutes les entries de la semaine
+  const timeByGroupe: Record<string, { sec: number; color: string }> = {}
+  GROUPES.forEach(g => { timeByGroupe[g.value] = { sec: 0, color: g.color } })
+  timeByGroupe['Non classé'] = { sec: 0, color: '#6B7280' }
+  entries.forEach(e => {
+    if (!e.duration_seconds) return
+    const proj  = projects.find(p => p.id === e.project_id)
+    const key   = proj?.groupe ?? 'Non classé'
+    if (!timeByGroupe[key]) timeByGroupe[key] = { sec: 0, color: groupeColor(key) }
+    timeByGroupe[key].sec += e.duration_seconds
+  })
+  const groupeRows = Object.entries(timeByGroupe)
+    .filter(([, v]) => v.sec > 0)
+    .sort(([, a], [, b]) => b.sec - a.sec)
+  const maxGroupeSec = groupeRows[0]?.[1]?.sec ?? 1
+
+  // Projets groupés par marque pour l'affichage
+  const groupedProjects: Record<string, Project[]> = {}
+  const GROUPE_ORDER = [...GROUPES.map(g => g.value), 'Non classé']
+  filtered.forEach(p => {
+    const key = p.groupe ?? 'Non classé'
+    if (!groupedProjects[key]) groupedProjects[key] = []
+    groupedProjects[key].push(p)
+  })
+  const orderedGroupes = GROUPE_ORDER.filter(g => groupedProjects[g]?.length > 0)
 
   // Projet sélectionné
   const selectedProject = projects.find(p => p.id === selected) ?? filtered[0] ?? null
@@ -311,30 +380,12 @@ export default function ProjetsPage() {
     .filter(e => e.project_id === selectedProject?.id)
     .reduce((acc, e) => acc + (e.duration_seconds ?? 0), 0)
 
-  // Répartition du temps par projet (semaine courante)
-  const timeByProject: Record<string, { name: string; color: string; sec: number }> = {}
-  entries.forEach(e => {
-    if (!e.duration_seconds) return
-    const key  = e.project_id ?? '__none__'
-    const proj = projects.find(p => p.id === e.project_id)
-    if (!timeByProject[key]) {
-      timeByProject[key] = {
-        name:  proj?.name ?? 'Sans projet',
-        color: proj?.color ?? '#555',
-        sec:   0,
-      }
-    }
-    timeByProject[key].sec += e.duration_seconds
-  })
-  const timeRows = Object.values(timeByProject).sort((a, b) => b.sec - a.sec)
-  const maxSec   = timeRows[0]?.sec ?? 1
-
   function handleSelectProject(id: string) {
     setSelected(id)
     setTab('apercu')
   }
 
-  // ── Styles helpers ─────────────────────────────────────────────────────────
+  // ── Styles ─────────────────────────────────────────────────────────────────
   const card: React.CSSProperties = {
     background: 'var(--bg-card)',
     border: '1px solid var(--border)',
@@ -343,7 +394,6 @@ export default function ProjetsPage() {
   const sectionLabel: React.CSSProperties = {
     fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase',
     color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontWeight: 700,
-    marginBottom: 0,
   }
 
   const TABS: { id: TabType; label: string }[] = [
@@ -359,7 +409,7 @@ export default function ProjetsPage() {
   return (
     <div style={{ padding: 30, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, alignContent: 'start' }}>
 
-      {/* ── ROW 1 : Hero (2 cols) + VUE GLOBALE (2 cols) — 300px ─────────── */}
+      {/* ── ROW 1 : Hero (2 cols) + VUE GLOBALE marques (2 cols) — 300px ──── */}
 
       {/* Hero */}
       <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 300, padding: '10px 0 20px 0' }}>
@@ -374,41 +424,50 @@ export default function ProjetsPage() {
         </p>
       </div>
 
-      {/* VUE GLOBALE */}
+      {/* VUE GLOBALE — 4 marques avec temps semaine */}
       <div className="col-span-2" style={{ ...card, background: '#F2542D', border: '1px solid #F2542D', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.2)', flexShrink: 0 }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue globale</p>
+        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{totalSec > 0 ? fmtHours(totalSec) : '—'} cette semaine</span>
         </div>
+        {/* 4 cellules : Mixologue / E-Smoker / Aeterna / Interne */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', flex: 1 }}>
-          {[
-            { label: 'Projets actifs',   value: String(activeProjects.length)              },
-            { label: 'Tâches en cours',  value: String(activeTasks.length)                 },
-            { label: 'Avancement moyen', value: `${avgProgress}%`                          },
-            { label: 'Temps (semaine)',  value: totalSec > 0 ? fmtHours(totalSec) : '—'    },
-          ].map((kpi, i) => (
-            <div key={i} style={{
-              padding: '18px 20px',
-              borderRight:  i % 2 === 0 ? '1px solid rgba(255,255,255,0.2)' : 'none',
-              borderBottom: i < 2       ? '1px solid rgba(255,255,255,0.2)' : 'none',
-              display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-            }}>
-              <p style={{ ...DF, fontWeight: 900, fontSize: 32, color: '#fff', lineHeight: 1 }}>{kpi.value}</p>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 4, ...DF, fontWeight: 600, letterSpacing: '0.05em' }}>{kpi.label}</p>
-            </div>
-          ))}
+          {GROUPES.filter(g => g.value !== 'Autre').map((g, i) => {
+            const sec      = timeByGroupe[g.value]?.sec ?? 0
+            const projCount = projects.filter(p => p.groupe === g.value && p.status === 'active').length
+            return (
+              <div key={g.value} style={{
+                padding: '16px 20px',
+                borderRight:  i % 2 === 0 ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                borderBottom: i < 2       ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.8)', flexShrink: 0 }} />
+                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{g.value}</span>
+                </div>
+                <div>
+                  <p style={{ ...DF, fontWeight: 900, fontSize: 24, color: '#fff', lineHeight: 1 }}>
+                    {sec > 0 ? fmtHours(sec) : '—'}
+                  </p>
+                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 3 }}>
+                    {projCount} projet{projCount !== 1 ? 's' : ''} actif{projCount !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
       {/* ── ROW 2 : Barre de filtres ────────────────────────────────────────── */}
       <div className="col-span-4" style={{ ...card, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        {/* Recherche */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', flex: 1, minWidth: 160 }}>
           <Search size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Chercher un projet…"
             style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)', width: '100%' }} />
         </div>
 
-        {/* Statut */}
         <Dropdown<StatusFilter>
           value={statusFilter}
           label="Statut"
@@ -421,17 +480,14 @@ export default function ProjetsPage() {
           ]}
           onChange={setStatusFilter}
         />
-
         <div style={{ flex: 1 }} />
-
-        {/* + NOUVEAU PROJET */}
         <button onClick={() => setCreateModal(true)}
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           <Plus size={13} /> NOUVEAU PROJET
         </button>
       </div>
 
-      {/* ── ROW 3 : PROJETS RÉCENTS — scroll horizontal ─────────────────────── */}
+      {/* ── ROW 3 : PROJETS PAR MARQUE ───────────────────────────────────────── */}
       <div className="col-span-4" style={{ ...card, overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={sectionLabel}>Projets récents</p>
@@ -446,67 +502,79 @@ export default function ProjetsPage() {
             <button onClick={() => setCreateModal(true)} style={{ color: '#F2542D', fontSize: 12, ...DF, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>+ Créer un projet</button>
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: 10, padding: '14px 20px', overflowX: 'auto', scrollbarWidth: 'thin' }}>
-            {filtered.map(p => {
-              const pTasks   = tasks.filter(t => t.project_id === p.id)
-              const pDone    = pTasks.filter(t => t.status === 'done').length
-              const ppct     = pTasks.length ? Math.round(pDone / pTasks.length * 100) : p.progress ?? 0
-              const sm       = STATUS_META[p.status] ?? STATUS_META.active
-              const isActive = selectedProject?.id === p.id
-
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {orderedGroupes.map((groupeName, gi) => {
+              const gColor   = groupeColor(groupeName)
+              const gProjs   = groupedProjects[groupeName] ?? []
+              const gSec     = timeByGroupe[groupeName]?.sec ?? 0
               return (
-                <div key={p.id} onClick={() => handleSelectProject(p.id)}
-                  style={{
-                    flexShrink: 0, width: 220, padding: 16, borderRadius: 10, cursor: 'pointer',
-                    background: isActive ? `${p.color}15` : 'var(--bg)',
-                    border: `1px solid ${isActive ? p.color : 'var(--border)'}`,
-                    display: 'flex', flexDirection: 'column', gap: 10, transition: 'all 0.15s',
-                    position: 'relative',
-                  }}>
-                  {/* Badge + ⋮ */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: sm.bg, color: sm.color, ...DF, fontWeight: 700, textTransform: 'uppercase' }}>
-                      {sm.label}
-                    </span>
-                    <button
-                      onClick={e => { e.stopPropagation(); setContextMenu({ projectId: p.id, x: e.clientX, y: e.clientY }) }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, borderRadius: 4, display: 'flex', alignItems: 'center' }}
-                      onMouseEnter={ev => (ev.currentTarget.style.color = 'var(--wheat)')}
-                      onMouseLeave={ev => (ev.currentTarget.style.color = 'var(--text-muted)')}>
-                      <MoreVertical size={13} />
-                    </button>
-                  </div>
-
-                  {/* Nom */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: 3, background: p.color, flexShrink: 0 }} />
-                    <span style={{ ...DF, fontWeight: 800, fontSize: 13, color: 'var(--wheat)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {p.name}
-                    </span>
-                  </div>
-
-                  {/* Avancement */}
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{pDone}/{pTasks.length} tâches</span>
-                      <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: p.color }}>{ppct}%</span>
-                    </div>
-                    <div style={{ height: 4, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: 99, background: p.color, width: `${ppct}%`, transition: 'width 0.4s' }} />
-                    </div>
-                  </div>
-
-                  {/* Footer */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {p.deadline ? (
-                      <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Calendar size={9} />
-                        {new Date(p.deadline + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                <div key={groupeName} style={{ borderBottom: gi < orderedGroupes.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  {/* Header groupe */}
+                  <div style={{ padding: '10px 20px 6px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: gColor, flexShrink: 0 }} />
+                    <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: gColor, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{groupeName}</span>
+                    <span style={{ fontSize: 9, color: 'var(--text-muted)', marginLeft: 4 }}>{gProjs.length} projet{gProjs.length !== 1 ? 's' : ''}</span>
+                    {gSec > 0 && (
+                      <span style={{ marginLeft: 'auto', fontSize: 9, color: gColor, ...DF, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: gColor + '15', border: `1px solid ${gColor}33` }}>
+                        {fmtHours(gSec)} cette semaine
                       </span>
-                    ) : <span />}
-                    {p.budget && (
-                      <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{p.budget.toLocaleString('fr-FR')}€</span>
                     )}
+                  </div>
+                  {/* Cards horizontales */}
+                  <div style={{ display: 'flex', gap: 10, padding: '6px 20px 14px', overflowX: 'auto', scrollbarWidth: 'thin' }}>
+                    {gProjs.map(p => {
+                      const pTasks   = tasks.filter(t => t.project_id === p.id)
+                      const pDone    = pTasks.filter(t => t.status === 'done').length
+                      const ppct     = pTasks.length ? Math.round(pDone / pTasks.length * 100) : p.progress ?? 0
+                      const sm       = STATUS_META[p.status] ?? STATUS_META.active
+                      const isActive = selectedProject?.id === p.id
+
+                      return (
+                        <div key={p.id} onClick={() => handleSelectProject(p.id)}
+                          style={{
+                            flexShrink: 0, width: 210, padding: 14, borderRadius: 10, cursor: 'pointer',
+                            background: isActive ? `${p.color}15` : 'var(--bg)',
+                            border: `1px solid ${isActive ? p.color : 'var(--border)'}`,
+                            display: 'flex', flexDirection: 'column', gap: 8, transition: 'all 0.15s',
+                          }}>
+                          {/* Badge + ⋮ */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: sm.bg, color: sm.color, ...DF, fontWeight: 700, textTransform: 'uppercase' }}>
+                              {sm.label}
+                            </span>
+                            <button
+                              onClick={e => { e.stopPropagation(); setContextMenu({ projectId: p.id, x: e.clientX, y: e.clientY }) }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, borderRadius: 4, display: 'flex', alignItems: 'center' }}
+                              onMouseEnter={ev => (ev.currentTarget.style.color = 'var(--wheat)')}
+                              onMouseLeave={ev => (ev.currentTarget.style.color = 'var(--text-muted)')}>
+                              <MoreVertical size={13} />
+                            </button>
+                          </div>
+                          {/* Dot + nom */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                            <div style={{ width: 8, height: 8, borderRadius: 3, background: p.color, flexShrink: 0 }} />
+                            <span style={{ ...DF, fontWeight: 800, fontSize: 13, color: 'var(--wheat)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                          </div>
+                          {/* Barre avancement */}
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{pDone}/{pTasks.length} tâches</span>
+                              <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: p.color }}>{ppct}%</span>
+                            </div>
+                            <div style={{ height: 4, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', borderRadius: 99, background: p.color, width: `${ppct}%`, transition: 'width 0.4s' }} />
+                            </div>
+                          </div>
+                          {/* Footer deadline */}
+                          {p.deadline && (
+                            <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                              <Calendar size={9} />
+                              {new Date(p.deadline + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )
@@ -518,7 +586,7 @@ export default function ProjetsPage() {
       {/* ── ROW 4 : PROJET SÉLECTIONNÉ ───────────────────────────────────────── */}
       {selectedProject && (
         <div className="col-span-4" style={{ ...card, overflow: 'hidden' }}>
-          {/* Header coloré */}
+          {/* Header coloré avec badge marque */}
           <div style={{ background: selectedProject.color, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <p style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
@@ -526,6 +594,11 @@ export default function ProjetsPage() {
               </p>
               <ChevronRight size={10} style={{ color: 'rgba(255,255,255,0.5)' }} />
               <p style={{ ...DF, fontWeight: 800, fontSize: 14, color: '#fff' }}>{selectedProject.name}</p>
+              {selectedProject.groupe && (
+                <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(255,255,255,0.25)', color: '#fff', ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  {selectedProject.groupe}
+                </span>
+              )}
             </div>
             <button onClick={() => setEditModal(selectedProject)}
               style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 700, ...DF }}>
@@ -549,10 +622,10 @@ export default function ProjetsPage() {
             ))}
           </div>
 
-          {/* Contenu onglet APERÇU */}
+          {/* APERÇU */}
           {tab === 'apercu' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
-              {/* INFORMATIONS */}
+              {/* Informations */}
               <div style={{ padding: 20, borderRight: '1px solid var(--border)' }}>
                 <p style={{ ...sectionLabel, marginBottom: 14 }}>Informations</p>
                 {selectedProject.description && (
@@ -560,6 +633,7 @@ export default function ProjetsPage() {
                 )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                   {[
+                    { label: 'Marque',   value: selectedProject.groupe ?? '—' },
                     { label: 'Statut',   value: STATUS_META[selectedProject.status]?.label    ?? selectedProject.status   },
                     { label: 'Priorité', value: PRIORITY_META[selectedProject.priority]?.label ?? selectedProject.priority },
                     { label: 'Deadline', value: selectedProject.deadline
@@ -568,17 +642,17 @@ export default function ProjetsPage() {
                     { label: 'Budget',   value: selectedProject.budget ? `${selectedProject.budget.toLocaleString('fr-FR')} €` : '—' },
                     { label: 'Tâches',   value: `${projTasks.length} total · ${doneTasks.length} terminée${doneTasks.length > 1 ? 's' : ''}` },
                   ].map(row => (
-                    <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                    <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
                       <span style={{ fontSize: 9, color: 'var(--text-muted)', ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{row.label}</span>
-                      <span style={{ fontSize: 12, color: 'var(--wheat)', fontWeight: 500 }}>{row.value}</span>
+                      <span style={{ fontSize: 12, color: row.label === 'Marque' ? groupeColor(selectedProject.groupe) : 'var(--wheat)', fontWeight: row.label === 'Marque' ? 700 : 500 }}>{row.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* AVANCEMENT */}
+              {/* Avancement */}
               <div style={{ padding: 20, borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                <p style={{ ...sectionLabel, marginBottom: 0, alignSelf: 'flex-start' }}>Avancement</p>
+                <p style={{ ...sectionLabel, alignSelf: 'flex-start' }}>Avancement</p>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Donut pct={pct} color={selectedProject.color} size={120} stroke={12} />
                   <div style={{ position: 'absolute', textAlign: 'center' }}>
@@ -586,19 +660,12 @@ export default function ProjetsPage() {
                     <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>terminé</p>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                    {doneTasks.length} / {projTasks.length} tâche{projTasks.length !== 1 ? 's' : ''}
-                  </p>
-                  {projTasks.length > doneTasks.length && (
-                    <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-                      {projTasks.length - doneTasks.length} restante{projTasks.length - doneTasks.length > 1 ? 's' : ''}
-                    </p>
-                  )}
-                </div>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
+                  {doneTasks.length} / {projTasks.length} tâche{projTasks.length !== 1 ? 's' : ''}
+                </p>
               </div>
 
-              {/* TEMPS & BUDGET */}
+              {/* Temps & budget */}
               <div style={{ padding: 20 }}>
                 <p style={{ ...sectionLabel, marginBottom: 14 }}>Temps & budget</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -623,7 +690,7 @@ export default function ProjetsPage() {
             </div>
           )}
 
-          {/* Contenu onglet TÂCHES */}
+          {/* TÂCHES */}
           {tab === 'taches' && (
             <div style={{ padding: 20 }}>
               {projTasks.length === 0 ? (
@@ -639,7 +706,6 @@ export default function ProjetsPage() {
                         <span style={{ flex: 1, fontSize: 12, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>{t.title}</span>
                         <span style={{ fontSize: 10, color: sm2.color, fontWeight: 600 }}>{sm2.label}</span>
                         <span style={{ fontSize: 10, color: pm2.color, fontWeight: 600 }}>{pm2.label}</span>
-                        {t.due_date && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{new Date(t.due_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>}
                       </div>
                     )
                   })}
@@ -656,10 +722,9 @@ export default function ProjetsPage() {
         </div>
       )}
 
-      {/* ── ROW 5 : TÂCHES RÉCENTES (col-span-3) + ÉQUIPE (col-span-1) — 500px */}
+      {/* ── ROW 5 : TÂCHES (col-span-3) + ÉQUIPE (col-span-1) — 500px ──────── */}
       {selectedProject && (
         <>
-          {/* TÂCHES RÉCENTES */}
           <div className="col-span-3" style={{ ...card, minHeight: 500, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <p style={sectionLabel}>Tâches récentes</p>
@@ -671,8 +736,7 @@ export default function ProjetsPage() {
               </div>
             ) : (
               <div style={{ overflowY: 'auto', flex: 1 }}>
-                {/* Header tableau */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 90px 80px', padding: '8px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg)', flexShrink: 0 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 90px 80px', padding: '8px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
                   {['TÂCHE', 'STATUT', 'PRIORITÉ', 'ÉCHÉANCE'].map(h => (
                     <span key={h} style={{ fontSize: 9, color: 'var(--text-muted)', ...DF, fontWeight: 700, letterSpacing: '0.1em' }}>{h}</span>
                   ))}
@@ -687,9 +751,7 @@ export default function ProjetsPage() {
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                         <CheckSquare size={12} style={{ color: t.status === 'done' ? '#0E9594' : 'var(--text-muted)', flexShrink: 0 }} />
-                        <span style={{ fontSize: 12, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {t.title}
-                        </span>
+                        <span style={{ fontSize: 12, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
                       </div>
                       <span style={{ fontSize: 10, color: sm2.color, fontWeight: 600 }}>{sm2.label}</span>
                       <span style={{ fontSize: 10, color: pm2.color, fontWeight: 600 }}>{pm2.label}</span>
@@ -703,7 +765,6 @@ export default function ProjetsPage() {
             )}
           </div>
 
-          {/* ÉQUIPE */}
           <div style={{ ...card, minHeight: 500, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
               <p style={sectionLabel}>Équipe</p>
@@ -718,33 +779,48 @@ export default function ProjetsPage() {
         </>
       )}
 
-      {/* ── ROW 6 : RÉPARTITION (col-span-2, teal) + ACTIVITÉ (1) + LIENS (1) — 400px */}
+      {/* ── ROW 6 : RÉPARTITION PAR MARQUE (teal, col-span-2) + ACTIVITÉ + LIENS */}
 
-      {/* RÉPARTITION DU TEMPS */}
+      {/* RÉPARTITION PAR MARQUE */}
       <div className="col-span-2" style={{ ...card, background: '#0E9594', border: '1px solid #0E9594', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(255,255,255,0.2)', flexShrink: 0 }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition du temps</p>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition par marque</p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>
         </div>
-        <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {timeRows.length === 0 ? (
+        <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {groupeRows.length === 0 ? (
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', paddingTop: 20, textAlign: 'center' }}>
               Aucun temps enregistré cette semaine.
             </p>
-          ) : timeRows.map((row, i) => (
-            <div key={i}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 3, background: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: '#fff', fontWeight: 500 }}>{row.name}</span>
+          ) : groupeRows.map(([name, { sec }]) => {
+            const pct2 = Math.round(sec / maxGroupeSec * 100)
+            return (
+              <div key={name}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.85)', flexShrink: 0 }} />
+                    <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{name}</span>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: 12, color: '#fff', fontWeight: 700 }}>{fmtHours(sec)}</span>
+                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', marginLeft: 6 }}>{totalSec > 0 ? Math.round(sec / totalSec * 100) : 0}%</span>
+                  </div>
                 </div>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>{fmtHours(row.sec)}</span>
+                <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 99, background: '#fff', width: `${pct2}%`, opacity: 0.85, transition: 'width 0.5s' }} />
+                </div>
               </div>
-              <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', borderRadius: 99, background: '#fff', width: `${Math.round(row.sec / maxSec * 100)}%`, opacity: 0.85, transition: 'width 0.4s' }} />
+            )
+          })}
+          {/* Total */}
+          {groupeRows.length > 0 && (
+            <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', ...DF, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total semaine</span>
+                <span style={{ ...DF, fontWeight: 900, fontSize: 18, color: '#fff' }}>{fmtHours(totalSec)}</span>
               </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -760,15 +836,17 @@ export default function ProjetsPage() {
             </div>
           ) : entries.slice(0, 8).map((e, i) => {
             const proj = projects.find(p => p.id === e.project_id)
+            const gc2  = groupeColor(proj?.groupe)
             return (
               <div key={e.id} style={{ padding: '10px 16px', borderBottom: i < Math.min(entries.length, 8) - 1 ? '1px solid var(--border)' : 'none', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: proj?.color ?? '#555', flexShrink: 0, marginTop: 4 }} />
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: gc2, flexShrink: 0, marginTop: 4 }} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <p style={{ fontSize: 11, color: 'var(--wheat)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {e.description || 'Session de travail'}
                   </p>
                   <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
-                    {proj?.name ?? '—'} · {e.duration_seconds ? fmtHours(e.duration_seconds) : 'en cours'}
+                    <span style={{ color: gc2, fontWeight: 600 }}>{proj?.groupe ?? proj?.name ?? '—'}</span>
+                    {' · '}{e.duration_seconds ? fmtHours(e.duration_seconds) : 'en cours'}
                   </p>
                 </div>
               </div>
@@ -789,13 +867,10 @@ export default function ProjetsPage() {
           <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.6 }}>
             Fichiers & liens<br />à venir
           </p>
-          <button style={{ fontSize: 10, color: '#0E9594', background: 'none', border: '1px solid rgba(14,149,148,0.3)', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', ...DF, fontWeight: 700 }}>
-            + Ajouter un lien
-          </button>
         </div>
       </div>
 
-      {/* ── Context menu ─────────────────────────────────────────────────────── */}
+      {/* ── Context menu ────────────────────────────────────────────────────── */}
       {contextMenu && (() => {
         const proj = projects.find(p => p.id === contextMenu.projectId)
         if (!proj) return null
@@ -818,20 +893,12 @@ export default function ProjetsPage() {
         )
       })()}
 
-      {/* ── Modals ───────────────────────────────────────────────────────────── */}
+      {/* ── Modals ──────────────────────────────────────────────────────────── */}
       {editModal && (
-        <ProjectModal
-          project={editModal}
-          onSave={update}
-          onDelete={remove}
-          onClose={() => setEditModal(null)}
-        />
+        <ProjectModal project={editModal} onSave={update} onDelete={remove} onClose={() => setEditModal(null)} />
       )}
       {createModal && (
-        <ProjectModal
-          onCreate={create}
-          onClose={() => setCreateModal(false)}
-        />
+        <ProjectModal onCreate={create} onClose={() => setCreateModal(false)} />
       )}
     </div>
   )
