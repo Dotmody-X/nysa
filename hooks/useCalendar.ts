@@ -83,6 +83,18 @@ export function useCalendar(weekStart: Date) {
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
 
+  // Realtime : refetch quand un event est inséré/mis à jour (ex: depuis time tracker)
+  useEffect(() => {
+    const supabase = getSupabase()
+    const channel = supabase
+      .channel('events_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
+        fetchEvents()
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [fetchEvents])
+
   async function addEvent(ev: NewEvent): Promise<CalendarEvent | null> {
     const supabase = getSupabase()
     const { data: { user } } = await supabase.auth.getUser()

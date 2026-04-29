@@ -219,9 +219,14 @@ export default function TimeTrackerPage() {
                 <span style={{ ...DF, fontWeight:900, fontSize:20, color:'#F2542D', letterSpacing:'0.05em' }}>{fmtSec(elapsed)}</span>
                 <span style={{ fontSize:11, color:'var(--text-muted)' }}>{running.description}</span>
               </div>
+              <button onClick={()=>setAddToCalendar(v=>!v)}
+                title={addToCalendar ? "Ne pas ajouter au calendrier" : "Ajouter au calendrier à l'arrêt"}
+                style={{ padding:'6px 10px', borderRadius:8, border:`1px solid ${addToCalendar ? 'rgba(242,84,45,0.35)' : 'var(--border)'}`, background: addToCalendar ? 'rgba(242,84,45,0.1)' : 'transparent', cursor:'pointer', display:'flex', alignItems:'center' }}>
+                <CalendarPlus size={13} style={{ color: addToCalendar ? '#F2542D' : 'var(--text-muted)' }} />
+              </button>
               <button onClick={handleStop} className="flex items-center gap-2 px-4 py-2 rounded-xl"
                 style={{ background:'#F2542D', color:'#fff', ...DF, fontWeight:700, fontSize:12 }}>
-                <Square size={12} fill="#fff" /> Arrêter {addToCalendar && <CalendarPlus size={11} style={{ opacity: 0.8 }} />}
+                <Square size={12} fill="#fff" /> Arrêter
               </button>
             </div>
           ) : null

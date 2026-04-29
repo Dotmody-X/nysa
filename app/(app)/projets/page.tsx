@@ -1,18 +1,141 @@
 'use client'
 import { useState } from 'react'
-import { Plus, Search, ArrowRight, Clock, CheckSquare, TrendingUp } from 'lucide-react'
+import { Plus, Search, Clock, CheckSquare, TrendingUp, Pencil, Trash2, X } from 'lucide-react'
 import { useProjects } from '@/hooks/useProjects'
 import { useTasks }    from '@/hooks/useTasks'
 import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
+import type { Project } from '@/types'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
+// ── Edit Project Modal ────────────────────────────────────────────────────────
+function EditProjectModal({
+  project, onSave, onDelete, onClose,
+}: {
+  project: Project
+  onSave:   (id: string, patch: Partial<Project>) => Promise<unknown>
+  onDelete: (id: string) => Promise<unknown>
+  onClose:  () => void
+}) {
+  const [form, setForm] = useState({
+    name:        project.name,
+    color:       project.color,
+    description: project.description ?? '',
+    status:      project.status,
+    priority:    project.priority,
+    deadline:    project.deadline ?? '',
+    budget:      project.budget ? String(project.budget) : '',
+  })
+  const [saving, setSaving]   = useState(false)
+  const [confirm, setConfirm] = useState(false)
+
+  const inp: React.CSSProperties = {
+    background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)',
+    borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%',
+  }
+
+  async function submit() {
+    setSaving(true)
+    await onSave(project.id, {
+      name:        form.name.trim(),
+      color:       form.color,
+      description: form.description || undefined,
+      status:      form.status,
+      priority:    form.priority,
+      deadline:    form.deadline || undefined,
+      budget:      form.budget ? Number(form.budget) : undefined,
+    })
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
+      <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: '#111', border: '1px solid rgba(245,223,187,0.12)' }} onClick={e => e.stopPropagation()}>
+
+        <div className="flex items-center justify-between">
+          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Modifier le projet</p>
+          <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
+        </div>
+
+        <div className="flex gap-2 items-center">
+          <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            placeholder="Nom du projet" style={{ ...inp, flex: 1 }} autoFocus />
+          <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+            style={{ width: 40, height: 36, borderRadius: 8, border: '1px solid var(--border)', padding: 3, cursor: 'pointer', background: 'var(--bg)', flexShrink: 0 }} />
+        </div>
+
+        <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+          placeholder="Description…" rows={2} style={{ ...inp, resize: 'none' }} />
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Statut</label>
+            <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Project['status'] }))} style={inp}>
+              <option value="active">Actif</option>
+              <option value="paused">En pause</option>
+              <option value="completed">Terminé</option>
+              <option value="archived">Archivé</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Priorité</label>
+            <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value as Project['priority'] }))} style={inp}>
+              <option value="low">Basse</option>
+              <option value="medium">Moyenne</option>
+              <option value="high">Haute</option>
+              <option value="urgent">Urgente</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Deadline</label>
+            <input type="date" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} style={inp} />
+          </div>
+          <div>
+            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Budget (€)</label>
+            <input type="number" value={form.budget} onChange={e => setForm(f => ({ ...f, budget: e.target.value }))} placeholder="0" style={inp} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: form.color + '15', border: `1px solid ${form.color}44` }}>
+          <div style={{ width: 10, height: 10, borderRadius: 3, background: form.color }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: form.color }}>{form.name || 'Aperçu'}</span>
+        </div>
+
+        <div className="flex gap-2 justify-between items-center">
+          {!confirm ? (
+            <button onClick={() => setConfirm(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <Trash2 size={11} /> Supprimer
+            </button>
+          ) : (
+            <div className="flex gap-2 items-center">
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Confirmer ?</span>
+              <button onClick={() => setConfirm(false)} style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Non</button>
+              <button onClick={async () => { await onDelete(project.id); onClose() }} style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#F2542D', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Oui</button>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button onClick={onClose} style={{ padding: '8px 14px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>Annuler</button>
+            <button onClick={submit} disabled={saving || !form.name.trim()} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+              {saving ? '…' : 'Sauvegarder'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProjetsPage() {
-  const { projects, loading, create } = useProjects()
+  const { projects, loading, create, update, remove } = useProjects()
   const { tasks } = useTasks()
   const [filter, setFilter] = useState<'tous'|'actifs'|'termines'|'archives'>('actifs')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ name: '', color: '#0E9594', description: '' })
 
@@ -111,9 +234,18 @@ export default function ProjetsPage() {
                         <span style={{ width: 10, height: 10, borderRadius: 3, background: p.color, flexShrink: 0 }} />
                         <span style={{ ...DF, fontWeight: 800, fontSize: 14, color: 'var(--wheat)' }}>{p.name}</span>
                       </div>
-                      <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: p.status === 'active' ? 'rgba(14,149,148,0.15)' : 'rgba(80,80,80,0.15)', color: p.status === 'active' ? '#0E9594' : 'var(--text-muted)', ...DF, fontWeight: 700, textTransform: 'uppercase' }}>
-                        {p.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: p.status === 'active' ? 'rgba(14,149,148,0.15)' : 'rgba(80,80,80,0.15)', color: p.status === 'active' ? '#0E9594' : 'var(--text-muted)', ...DF, fontWeight: 700, textTransform: 'uppercase' }}>
+                          {p.status}
+                        </span>
+                        <button
+                          onClick={e => { e.stopPropagation(); setEditingProject(p) }}
+                          style={{ padding: '3px 5px', borderRadius: 5, background: 'transparent', border: '1px solid var(--border)', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                          onMouseEnter={ev => (ev.currentTarget.style.color = '#F2542D')}
+                          onMouseLeave={ev => (ev.currentTarget.style.color = 'var(--text-muted)')}>
+                          <Pencil size={10} />
+                        </button>
+                      </div>
                     </div>
                     {p.description && <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>{p.description}</p>}
                     <div>
@@ -142,9 +274,17 @@ export default function ProjetsPage() {
         {selectedProject && (
           <div className="flex flex-col gap-[10px]">
             <div style={{ background: selectedProject.color, borderRadius: 12, padding: 20 }}>
-              <p style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.6)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 4 }}>Projet sélectionné</p>
-              <p style={{ ...DF, fontWeight: 900, fontSize: 20, color: '#fff', marginBottom: 8 }}>{selectedProject.name}</p>
-              {selectedProject.description && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>{selectedProject.description}</p>}
+              <div className="flex items-start justify-between">
+                <div>
+                  <p style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.6)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 4 }}>Projet sélectionné</p>
+                  <p style={{ ...DF, fontWeight: 900, fontSize: 20, color: '#fff', marginBottom: 8 }}>{selectedProject.name}</p>
+                  {selectedProject.description && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>{selectedProject.description}</p>}
+                </div>
+                <button onClick={() => setEditingProject(selectedProject)}
+                  style={{ padding: '5px 8px', borderRadius: 7, background: 'rgba(0,0,0,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: '#fff', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                  <Pencil size={11} /> Modifier
+                </button>
+              </div>
             </div>
 
             <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
@@ -176,6 +316,15 @@ export default function ProjetsPage() {
           </div>
         )}
       </div>
+
+      {editingProject && (
+        <EditProjectModal
+          project={editingProject}
+          onSave={update}
+          onDelete={remove}
+          onClose={() => setEditingProject(null)}
+        />
+      )}
     </div>
   )
 }
