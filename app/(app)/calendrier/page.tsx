@@ -593,7 +593,7 @@ function CalendrierContent() {
 
   // ── Render
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 10 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, padding: 30, alignContent: 'start' }}>
 
       {/* Notification toast */}
       {notification && (
@@ -603,44 +603,53 @@ function CalendrierContent() {
         </div>
       )}
 
-      {/* ── ROW 1 : Hero header + À VENIR ──────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 10, maxHeight: 100 }}>
+      {/* ── ROW 1 : Hero (2 cols) + À VENIR (2 cols) — 300px ───────────────── */}
 
-        {/* Hero title — compact */}
-        <div style={{ ...card(), padding: '14px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <p style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#F2542D', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Calendrier</p>
-          <h1 style={{ fontSize: 22, fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--wheat)', lineHeight: 1.1, letterSpacing: '-0.02em', textTransform: 'uppercase', marginTop: 6 }}>
-            Votre journée.<br />Votre plan.
-          </h1>
+      {/* Hero title — col-span-2, 300px */}
+      <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '10px 0 20px 0', height: 300 }}>
+        <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#F2542D', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
+          Calendrier
+        </p>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 1, color: 'var(--wheat)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
+          Votre journée.<br />Votre plan.
+        </h1>
+        <p style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 500, color: '#0E9594', marginTop: 12, textTransform: 'capitalize' }}>
+          {fmtShortDate(today)}
+        </p>
+      </div>
+
+      {/* À VENIR — col-span-2, teal, 300px, liste verticale */}
+      <div className="col-span-2" style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden' }}>
+        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{upcoming.length}</span>
         </div>
-
-        {/* À VENIR — plus large, moins haut */}
-        <div style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: 100 }}>
-          <div style={{ padding: '8px 14px', borderBottom: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <p style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
-            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{upcoming.length}</span>
-          </div>
-          {/* Liste horizontale compacte */}
-          <div style={{ display: 'flex', overflowX: 'auto', flex: 1, alignItems: 'center', gap: 6, padding: '6px 14px' }}>
-            {upcoming.length === 0 ? (
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>Aucun événement à venir.</p>
-            ) : upcoming.map(ev => (
-              <div key={ev.id} onClick={() => setSelected(ev)}
-                style={{ flexShrink: 0, padding: '5px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 120, maxWidth: 180 }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.22)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</p>
-                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)' }}>
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {upcoming.length === 0 ? (
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', padding: '14px 20px' }}>Aucun événement à venir.</p>
+          ) : upcoming.map(ev => (
+            <div key={ev.id} onClick={() => setSelected(ev)}
+              style={{ padding: '10px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              {/* Dot couleur catégorie */}
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.6)', flexShrink: 0 }} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
                   {fmtShortDate(new Date(ev.start_at))} · {fmtTime(ev.start_at)}
                 </p>
               </div>
-            ))}
-          </div>
+              {ev.category && (
+                <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 6, background: 'rgba(255,255,255,0.2)', color: '#fff', flexShrink: 0 }}>{ev.category}</span>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
       {/* ── ROW 2 : Nav bar ────────────────────────────────────────────────── */}
-      <div style={{ ...card(), padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="col-span-4" style={{ ...card(), padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* View tabs */}
         <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', borderRadius: 8, padding: 3, border: '1px solid var(--border)' }}>
           {[['JOUR', false], ['SEMAINE', true], ['MOIS', false]].map(([label, active]) => (
@@ -675,7 +684,7 @@ function CalendrierContent() {
 
       {/* ── ROW 3 : Calendar grid ──────────────────────────────────────────── */}
       {/* Hauteur fixe ≈ 8h visible, scroll pour voir plus haut/bas */}
-      <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden', height: SLOT_PX * 8 + 40 }}>
+      <div className="col-span-4" style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden', height: SLOT_PX * 8 + 40 }}>
 
         {/* Day headers */}
         <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(7, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
@@ -764,7 +773,7 @@ function CalendrierContent() {
       </div>
 
       {/* ── ROW 4 : Event detail | Tâches liées | Filtrer ─────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+      <div className="col-span-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
 
         {/* ÉVÉNEMENT SÉLECTIONNÉ */}
         <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
@@ -849,7 +858,7 @@ function CalendrierContent() {
       </div>
 
       {/* ── ROW 5 : Vue d'ensemble | Rappels | Sync ────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, paddingBottom: 10 }}>
+      <div className="col-span-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, paddingBottom: 10 }}>
 
         {/* VUE D'ENSEMBLE — teal */}
         <div style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12 }}>

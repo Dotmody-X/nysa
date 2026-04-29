@@ -333,14 +333,14 @@ export async function runAppleSync(
   // Récupère tous les événements Apple déjà en base
   const { data: existing } = await supabase
     .from('events')
-    .select('id, external_id, title, start_at, end_at')
+    .select('id, external_id, title, start_at, end_at, category')
     .eq('user_id', userId)
     .eq('source', 'apple')
 
   const existingMap = new Map((existing ?? []).map((e: any) => [e.external_id, e]))
   const existingUids = new Set(existingMap.keys())
 
-  // ── Ajouts & mises à jour ────────────────────────────────────────────────
+  // ── Ajouts ──────────────────────────────────────────────────────────────
   const toInsert = icloudEvents
     .filter(e => !existingUids.has(e.uid))
     .map(e => ({
@@ -349,7 +349,6 @@ export async function runAppleSync(
       start_at: e.dtstart, end_at: e.dtend,
       location: e.location ?? null,
       all_day: false, source: 'apple', external_id: e.uid,
-      // Le nom du calendrier Apple devient la catégorie dans NYSA
       category: e.calendarName ?? null,
     }))
 
@@ -357,6 +356,18 @@ export async function runAppleSync(
   if (toInsert.length > 0) {
     const { error } = await supabase.from('events').insert(toInsert)
     if (!error) added = toInsert.length
+  }
+
+  // ── Mise à jour des catégories manquantes sur les événements existants ───
+  // (événements synchés avant l'ajout du calendarName)
+  for (const e of icloudEvents) {
+    if (!e.calendarName) continue
+    const existing = existingMap.get(e.uid)
+    if (existing && !existing.category) {
+      await supabase.from('events')
+        .update({ category: e.calendarName })
+        .eq('id', existing.id)
+    }
   }
 
   // ── Suppressions (dans Apple mais plus dans iCloud) ──────────────────────
