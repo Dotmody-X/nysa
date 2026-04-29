@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { Play, Square, Plus, Clock } from 'lucide-react'
+import { Play, Square, Plus, Clock, CalendarPlus } from 'lucide-react'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjects }    from '@/hooks/useProjects'
 import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
@@ -23,6 +23,7 @@ export default function TimeTrackerPage() {
   const [desc, setDesc] = useState('')
   const [projId, setProjId] = useState('')
   const [billable, setBillable] = useState(true)
+  const [addToCalendar, setAddToCalendar] = useState(true)
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval>|null>(null)
 
@@ -58,7 +59,7 @@ export default function TimeTrackerPage() {
   }
   async function handleStop() {
     if (!running) return
-    await stop(running.id, running.started_at)
+    await stop(running.id, running.started_at, { addToCalendar })
   }
 
   return (
@@ -76,7 +77,7 @@ export default function TimeTrackerPage() {
               </div>
               <button onClick={handleStop} className="flex items-center gap-2 px-4 py-2 rounded-xl"
                 style={{ background:'#F2542D', color:'#fff', ...DF, fontWeight:700, fontSize:12 }}>
-                <Square size={12} fill="#fff" /> Arrêter
+                <Square size={12} fill="#fff" /> Arrêter {addToCalendar && <CalendarPlus size={11} style={{ opacity: 0.8 }} />}
               </button>
             </div>
           ) : null
@@ -105,6 +106,11 @@ export default function TimeTrackerPage() {
             className="px-3 rounded-lg"
             style={{ background: billable ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', color: billable ? '#0E9594' : 'var(--text-muted)', border:'1px solid var(--border)', ...DF, fontSize:10, fontWeight:700 }}>
             {billable ? '€ Fact.' : 'Non fact.'}
+          </button>
+          <button onClick={()=>setAddToCalendar(v=>!v)} title="Ajouter au calendrier à l'arrêt"
+            className="px-3 rounded-lg flex items-center gap-1.5"
+            style={{ background: addToCalendar ? 'rgba(242,84,45,0.12)' : 'var(--bg-input)', color: addToCalendar ? '#F2542D' : 'var(--text-muted)', border:`1px solid ${addToCalendar ? 'rgba(242,84,45,0.3)' : 'var(--border)'}`, ...DF, fontSize:10, fontWeight:700 }}>
+            <CalendarPlus size={11} /> {addToCalendar ? 'Agenda' : 'No agenda'}
           </button>
           <button onClick={handleStart} disabled={!desc.trim()}
             className="flex items-center gap-2 px-5 py-2 rounded-xl"

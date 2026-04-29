@@ -46,7 +46,7 @@ export function useTimeEntries() {
     return { data, error }
   }
 
-  async function stop(id: string, startedAt: string) {
+  async function stop(id: string, startedAt: string, options?: { addToCalendar?: boolean }) {
     const endedAt  = new Date()
     const duration = Math.floor((endedAt.getTime() - new Date(startedAt).getTime()) / 1000)
     const { data, error } = await supabase
@@ -56,7 +56,35 @@ export function useTimeEntries() {
       .select('*, projects(name, color)')
       .single()
     if (!error && data) setEntries(e => e.map(x => x.id === id ? data as TimeEntry : x))
-    return { data, error }
+
+    // Création automatique d'un événement calendrier si demandé
+    let calendarEvent = null
+    if (!error && data && options?.addToCalendar) {
+      const entry = data as TimeEntry & { projects?: { name: string; color: string } }
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: ev } = await supabase.from('events').insert({
+        user_id:    user!.id,
+        title:      entry.description || 'Session de travail',
+        start_at:   entry.started_at,
+        end_at:     endedAt.toISOString(),
+        all_day:    false,
+        source:     'manual',
+        project_id: entry.project_id ?? null,
+        // Catégorie = nom du projet (pour correspondre au calendrier Apple)
+        category:   entry.category ?? entry.projects?.name ?? null,
+      }).select().single()
+      calendarEvent = ev
+      // Push vers Apple Calendar
+      if (ev) {
+        window.fetch('/api/calendar/apple/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: ev }),
+        }).catch(() => {})
+      }
+    }
+
+    return { data, error, calendarEvent }
   }
 
   async function remove(id: string) {

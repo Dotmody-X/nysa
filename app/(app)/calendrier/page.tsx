@@ -5,10 +5,11 @@ import { useSearchParams } from 'next/navigation'
 import {
   ChevronLeft, ChevronRight, Plus, X, MapPin, Tag, Clock,
   Trash2, Calendar, Bell, RefreshCw, Link2, CheckCircle2, Circle,
-  Apple,
+  Apple, Pencil,
 } from 'lucide-react'
 import { useCalendar, CalendarEvent, NewEvent } from '@/hooks/useCalendar'
 import { useTasks } from '@/hooks/useTasks'
+import { useProjects } from '@/hooks/useProjects'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -327,23 +328,56 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Event Modal (create)
+// Event Modal (create + edit)
 // ─────────────────────────────────────────────────────────────────────────────
 function EventModal({
-  date, hour, onSave, onClose, extraCategories = [],
+  date, hour, onSave, onClose, extraCategories = [], initialValues, onUpdate,
 }: {
   date: string
   hour: number
   onSave: (ev: NewEvent) => Promise<unknown>
   onClose: () => void
   extraCategories?: string[]
+  initialValues?: CalendarEvent | null
+  onUpdate?: (id: string, patch: Partial<NewEvent>) => Promise<unknown>
 }) {
-  const [form, setForm]     = useState({
-    title: '', description: '', category: 'Travail', location: '',
-    startTime: `${String(hour).padStart(2, '0')}:00`,
-    endTime:   `${String(Math.min(hour + 1, 22)).padStart(2, '0')}:00`,
+  const { projects, create: createProject } = useProjects()
+  const isEdit    = !!initialValues
+  const initStart = initialValues ? new Date(initialValues.start_at) : null
+  const initEnd   = initialValues ? new Date(initialValues.end_at)   : null
+
+  const [form, setForm] = useState({
+    title:       initialValues?.title       ?? '',
+    description: initialValues?.description ?? '',
+    category:    initialValues?.category    ?? (extraCategories[0] || 'Travail'),
+    location:    initialValues?.location    ?? '',
+    projectId:   initialValues?.project_id  ?? '',
+    startTime:   initStart
+      ? `${String(initStart.getHours()).padStart(2,'0')}:${String(initStart.getMinutes()).padStart(2,'0')}`
+      : `${String(hour).padStart(2, '0')}:00`,
+    endTime: initEnd
+      ? `${String(initEnd.getHours()).padStart(2,'0')}:${String(initEnd.getMinutes()).padStart(2,'0')}`
+      : `${String(Math.min(hour + 1, 23)).padStart(2, '0')}:00`,
   })
-  const [saving, setSaving] = useState(false)
+  const [saving, setSaving]           = useState(false)
+  const [newProjName, setNewProjName] = useState('')
+  const [showNewProj, setShowNewProj] = useState(false)
+  const [creatingProj, setCreatingProj] = useState(false)
+
+  async function handleCreateProject() {
+    if (!newProjName.trim()) return
+    setCreatingProj(true)
+    const color = NYSA_PALETTE[Math.abs(newProjName.split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) & 0xffffffff, 0)) % NYSA_PALETTE.length]
+    const { data } = await createProject({
+      name: newProjName.trim(), color, status: 'active', priority: 'medium', progress: 0,
+    } as never)
+    if (data) {
+      setForm(f => ({ ...f, projectId: (data as { id: string }).id }))
+      setShowNewProj(false)
+      setNewProjName('')
+    }
+    setCreatingProj(false)
+  }
 
   async function submit() {
     if (!form.title.trim()) return
@@ -351,39 +385,52 @@ function EventModal({
     const [sh, sm] = form.startTime.split(':').map(Number)
     const [eh, em] = form.endTime.split(':').map(Number)
     const base = new Date(date + 'T00:00:00')
-    await onSave({
+    const patch: Partial<NewEvent> = {
       title:       form.title,
       description: form.description || undefined,
-      category:    form.category || undefined,
-      location:    form.location || undefined,
+      category:    form.category    || undefined,
+      location:    form.location    || undefined,
       start_at:    isoLocal(base, sh, sm),
       end_at:      isoLocal(base, eh, em),
       all_day:     false,
-    })
+      project_id:  form.projectId   || undefined,
+    }
+    if (isEdit && initialValues && onUpdate) {
+      await onUpdate(initialValues.id, patch)
+    } else {
+      await onSave(patch as NewEvent)
+    }
     setSaving(false)
     onClose()
   }
 
   const displayDate = new Date(date + 'T12:00:00').toLocaleDateString('fr-BE', { weekday: 'long', day: 'numeric', month: 'long' })
+  const selectedProj = projects.find(p => p.id === form.projectId)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.65)' }} onClick={onClose}>
       <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: '#111', border: '1px solid rgba(245,223,187,0.12)' }} onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>Nouvel événement</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>
+              {isEdit ? "Modifier l'événement" : 'Nouvel événement'}
+            </p>
             <p className="text-[10px] capitalize mt-0.5" style={{ color: 'var(--text-muted)' }}>{displayDate}</p>
           </div>
           <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
 
         <div className="flex flex-col gap-3">
+          {/* Titre */}
           <input autoFocus type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             onKeyDown={e => e.key === 'Enter' && submit()}
             placeholder="Titre de l'événement…"
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
             style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
 
+          {/* Heures */}
           <div className="flex gap-2">
             <div className="flex-1">
               <label className="text-[9px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Début</label>
@@ -399,29 +446,71 @@ function EventModal({
             </div>
           </div>
 
+          {/* Catégorie + couleur */}
           <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
             style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
-            <optgroup label="NYSA">
-              {Object.keys(CATEGORIES).map(c => <option key={c} value={c}>{c}</option>)}
-            </optgroup>
             {extraCategories.length > 0 && (
               <optgroup label="Apple Calendar">
                 {extraCategories.map(c => <option key={c} value={c}>{c}</option>)}
               </optgroup>
             )}
+            <optgroup label="NYSA">
+              {Object.keys(CATEGORIES).map(c => <option key={c} value={c}>{c}</option>)}
+            </optgroup>
           </select>
-          {/* Dot de couleur pour la catégorie sélectionnée */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: -8 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColor(form.category), transition: 'background 0.15s' }} />
-            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Couleur NYSA</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{form.category || 'Catégorie'}</span>
           </div>
 
+          {/* Projet */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label className="text-[9px] uppercase tracking-widest block" style={{ color: 'var(--text-muted)' }}>Projet</label>
+              <button type="button" onClick={() => setShowNewProj(v => !v)}
+                style={{ fontSize: 9, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Plus size={9} /> Nouveau
+              </button>
+            </div>
+
+            {/* Inline new project form */}
+            {showNewProj && (
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                <input autoFocus value={newProjName} onChange={e => setNewProjName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleCreateProject()}
+                  placeholder="Nom du projet…"
+                  style={{ flex: 1, background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid rgba(242,84,45,0.4)', borderRadius: 7, padding: '6px 10px', fontSize: 12, outline: 'none' }} />
+                <button onClick={handleCreateProject} disabled={creatingProj || !newProjName.trim()}
+                  style={{ padding: '6px 12px', borderRadius: 7, background: '#F2542D', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', opacity: creatingProj ? 0.5 : 1 }}>
+                  {creatingProj ? '…' : 'OK'}
+                </button>
+              </div>
+            )}
+
+            <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))}
+              className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
+              style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
+              <option value="">Sans projet</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+
+            {/* Dot projet sélectionné */}
+            {selectedProj && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 5 }}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: selectedProj.color }} />
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{selectedProj.name}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Lieu */}
           <input type="text" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
             placeholder="Lieu (optionnel)…"
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
             style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
 
+          {/* Notes */}
           <textarea rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
             placeholder="Notes…"
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none resize-none"
@@ -435,7 +524,7 @@ function EventModal({
           <button onClick={submit} disabled={saving || !form.title.trim()}
             className="px-4 py-2 rounded-[8px] text-xs font-semibold disabled:opacity-40"
             style={{ background: '#F2542D', color: '#fff' }}>
-            {saving ? '…' : 'Créer'}
+            {saving ? '…' : isEdit ? 'Modifier' : 'Créer'}
           </button>
         </div>
       </div>
@@ -449,10 +538,11 @@ function EventModal({
 function CalendrierContent() {
   const params = useSearchParams()
   const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()))
-  const { events, loading, addEvent, removeEvent, refetch } = useCalendar(weekStart)
+  const { events, loading, addEvent, updateEvent, removeEvent, refetch } = useCalendar(weekStart)
   const { tasks } = useTasks()
 
   const [selected, setSelected]           = useState<CalendarEvent | null>(null)
+  const [editingEvent, setEditingEvent]   = useState<CalendarEvent | null>(null)
   const [modalDate, setModalDate]         = useState<string | null>(null)
   const [modalHour, setModalHour]         = useState(9)
   const [appleOpen, setAppleOpen]         = useState(false)
@@ -696,7 +786,7 @@ function CalendrierContent() {
         {/* + Événement */}
         <button onClick={() => setModalDate(today.toISOString().slice(0, 10))}
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: '#F2542D', color: '#fff', cursor: 'pointer', border: 'none', letterSpacing: '0.04em' }}>
-          <Plus size={13} /> + ÉVÉNEMENT
+          <Plus size={13} /> ÉVÉNEMENT
         </button>
       </div>
 
@@ -841,9 +931,16 @@ function CalendrierContent() {
               {selected.location && <div style={{ display: 'flex', gap: 8 }}><MapPin size={10} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{selected.location}</span></div>}
               {selected.category && <div style={{ display: 'flex', gap: 8 }}><Tag size={10} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 10, padding: '1px 8px', borderRadius: 99, background: evColor(selected) + '22', color: evColor(selected) }}>{selected.category}</span></div>}
               {selected.description && <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>{selected.description}</p>}
-              <button onClick={() => handleDelete(selected.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 4 }}>
-                <Trash2 size={11} /> Supprimer
-              </button>
+              <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+                <button onClick={() => setEditingEvent(selected)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#0E9594', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <Pencil size={11} /> Modifier
+                </button>
+                <button onClick={() => handleDelete(selected.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <Trash2 size={11} /> Supprimer
+                </button>
+              </div>
             </div>
           ) : (
             <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '14px 16px' }}>Clique sur un événement pour voir ses détails.</p>
@@ -881,11 +978,10 @@ function CalendrierContent() {
           </div>
           <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', maxHeight: 200 }}>
             <p style={{ ...labelStyle, marginBottom: 2 }}>Catégories</p>
-            {/* Toutes les catégories présentes dans les événements de la semaine + CATEGORIES fixes */}
-            {Array.from(new Set([
-              ...Object.keys(CATEGORIES),
-              ...events.map(e => e.category).filter(Boolean) as string[],
-            ])).map(cat => {
+            {/* Uniquement les catégories présentes dans les événements réels */}
+            {Array.from(new Set(
+              events.map(e => e.category).filter(Boolean) as string[]
+            )).map(cat => {
               const color  = categoryColor(cat)
               const active = activeCategories.includes(cat)
               return (
@@ -1006,13 +1102,15 @@ function CalendrierContent() {
       </div>
 
       {/* Modals */}
-      {modalDate && (
+      {(modalDate || editingEvent) && (
         <EventModal
-          date={modalDate}
-          hour={modalHour}
+          date={editingEvent ? editingEvent.start_at.slice(0, 10) : modalDate!}
+          hour={editingEvent ? new Date(editingEvent.start_at).getHours() : modalHour}
           onSave={addEvent}
-          onClose={() => setModalDate(null)}
+          onUpdate={updateEvent}
+          onClose={() => { setModalDate(null); setEditingEvent(null) }}
           extraCategories={appleCalendars}
+          initialValues={editingEvent}
         />
       )}
       {appleOpen && <AppleModal onClose={() => setAppleOpen(false)} onSynced={() => { refetch(); setAppleConnected(true); setLastSync(new Date()) }} />}
