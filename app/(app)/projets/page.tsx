@@ -13,9 +13,9 @@ import type { Project }   from '@/types'
 // Constantes marques
 // ─────────────────────────────────────────────────────────────────────────────
 export const GROUPES = [
-  { value: 'Le Mixologue', color: '#F2542D' },
-  { value: 'E-Smoker',     color: '#0E9594' },
-  { value: 'Aeterna',      color: '#9333EA' },
+  { value: 'Le Mixologue', color: '#111111' },
+  { value: 'Aeterna',      color: '#737a4e' },
+  { value: 'E-Smoker',     color: '#9B59B6' },
   { value: 'Interne',      color: '#D97706' },
   { value: 'Autre',        color: '#6B7280' },
 ] as const
