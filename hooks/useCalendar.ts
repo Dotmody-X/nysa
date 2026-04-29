@@ -60,12 +60,9 @@ function deleteFromApple(externalId: string | null | undefined) {
   }).catch(() => {})
 }
 
-export function useCalendar(weekStart: Date) {
+export function useCalendar(fromDate: Date, toDate: Date) {
   const [events, setEvents]   = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
-
-  const weekEnd = new Date(weekStart)
-  weekEnd.setDate(weekEnd.getDate() + 7)
 
   const fetchEvents = useCallback(async () => {
     setLoading(true)
@@ -73,13 +70,13 @@ export function useCalendar(weekStart: Date) {
     const { data } = await supabase
       .from('events')
       .select('*')
-      .gte('start_at', weekStart.toISOString())
-      .lt('start_at', weekEnd.toISOString())
+      .gte('start_at', fromDate.toISOString())
+      .lt('start_at', toDate.toISOString())
       .order('start_at', { ascending: true })
     setEvents(data ?? [])
     setLoading(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weekStart.toISOString()])
+  }, [fromDate.toISOString(), toDate.toISOString()])
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
 

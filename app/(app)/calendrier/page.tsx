@@ -538,10 +538,29 @@ function EventModal({
 // ─────────────────────────────────────────────────────────────────────────────
 // Main calendar content
 // ─────────────────────────────────────────────────────────────────────────────
+type CalView = 'day' | 'week' | 'month'
+
+function getMonthGridStart(ms: Date): Date {
+  const dw = ms.getDay()
+  return addDays(ms, dw === 0 ? -6 : 1 - dw)
+}
+
 function CalendrierContent() {
   const params = useSearchParams()
-  const [weekStart, setWeekStart] = useState<Date>(() => getMonday(new Date()))
-  const { events, loading, addEvent, updateEvent, removeEvent, refetch } = useCalendar(weekStart)
+  const [calView,    setCalView]    = useState<CalView>('week')
+  const [weekStart,  setWeekStart]  = useState<Date>(() => getMonday(new Date()))
+  const [dayStart,   setDayStart]   = useState<Date>(() => { const d = new Date(); d.setHours(0,0,0,0); return d })
+  const [monthStart, setMonthStart] = useState<Date>(() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1) })
+
+  // Compute fetch range based on view
+  const rangeFrom = calView === 'day'   ? dayStart
+                  : calView === 'month' ? getMonthGridStart(monthStart)
+                  : weekStart
+  const rangeTo   = calView === 'day'   ? addDays(dayStart, 1)
+                  : calView === 'month' ? addDays(getMonthGridStart(monthStart), 42)
+                  : addDays(weekStart, 7)
+
+  const { events, loading, addEvent, updateEvent, removeEvent, refetch } = useCalendar(rangeFrom, rangeTo)
   const { tasks } = useTasks()
 
   const [selected, setSelected]           = useState<CalendarEvent | null>(null)
@@ -554,10 +573,12 @@ function CalendrierContent() {
   const [appleConnected, setAppleConnected] = useState(false)
   const [syncing, setSyncing]             = useState(false)
   const [lastSync, setLastSync]           = useState<Date | null>(null)
-  const [appleCalendars, setAppleCalendars] = useState<string[]>([])
+  const [appleCalendars, setAppleCalendars]       = useState<string[]>([])
+  const [showAllReminders, setShowAllReminders]   = useState(false)
 
   const gridScrollRef = useRef<HTMLDivElement | null>(null)
   const colsRef       = useRef<HTMLDivElement | null>(null)
+  const calGridRef    = useRef<HTMLDivElement | null>(null)
 
   // Drag-to-move state
   const [dragging, setDragging] = useState<{
@@ -579,7 +600,12 @@ function CalendrierContent() {
   function snapPx(px: number) { return Math.round(px / (SLOT_PX / 4)) * (SLOT_PX / 4) }
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
-  const weekDays   = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+  const weekDays   = calView === 'day'
+    ? [dayStart]
+    : Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+  const monthGrid  = calView === 'month'
+    ? Array.from({ length: 42 }, (_, i) => addDays(getMonthGridStart(monthStart), i))
+    : []
   const nowMins    = (new Date().getHours() - HOUR_START) * 60 + new Date().getMinutes()
   const nowPx      = Math.max(0, (nowMins / 60) * SLOT_PX)
   const todayInWeek = weekDays.some(d => d.getTime() === today.getTime())
@@ -637,9 +663,28 @@ function CalendrierContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function prevWeek() { setWeekStart(d => addDays(d, -7)); setSelected(null) }
-  function nextWeek() { setWeekStart(d => addDays(d, 7));  setSelected(null) }
-  function goToday()  { setWeekStart(getMonday(new Date())); setSelected(null) }
+  function prevPeriod() {
+    if (calView === 'day')   setDayStart(d => addDays(d, -1))
+    else if (calView === 'week') { setWeekStart(d => addDays(d, -7)); setSelected(null) }
+    else setMonthStart(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
+  }
+  function nextPeriod() {
+    if (calView === 'day')   setDayStart(d => addDays(d, 1))
+    else if (calView === 'week') { setWeekStart(d => addDays(d, 7));  setSelected(null) }
+    else setMonthStart(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))
+  }
+  function goToday()  {
+    const t = new Date(); t.setHours(0,0,0,0)
+    if (calView === 'day')   setDayStart(t)
+    else if (calView === 'week') { setWeekStart(getMonday(new Date())); setSelected(null) }
+    else setMonthStart(new Date(t.getFullYear(), t.getMonth(), 1))
+  }
+
+  const periodTitle = calView === 'day'
+    ? dayStart.toLocaleDateString('fr-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : calView === 'month'
+    ? monthStart.toLocaleDateString('fr-BE', { month: 'long', year: 'numeric' })
+    : fmtMonthYear(weekStart)
 
   function localDateStr(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -832,42 +877,103 @@ function CalendrierContent() {
       <div className="col-span-4" style={{ ...card(), padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* View tabs */}
         <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', borderRadius: 8, padding: 3, border: '1px solid var(--border)' }}>
-          {[['JOUR', false], ['SEMAINE', true], ['MOIS', false]].map(([label, active]) => (
-            <button key={label as string} style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? '#fff' : 'transparent', color: active ? '#111' : 'var(--text-muted)', transition: 'all 0.15s' }}>
-              {label}
-            </button>
-          ))}
+          {(['day','week','month'] as CalView[]).map(v => {
+            const label = v === 'day' ? 'JOUR' : v === 'week' ? 'SEMAINE' : 'MOIS'
+            const active = calView === v
+            return (
+              <button key={v} onClick={() => setCalView(v)}
+                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? 'var(--wheat)' : 'transparent', color: active ? '#111' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+                {label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Navigation */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button onClick={prevWeek} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+          <button onClick={prevPeriod} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
             <ChevronLeft size={13} style={{ color: 'var(--text-muted)' }} />
           </button>
           <button onClick={goToday} style={{ padding: '5px 16px', borderRadius: 8, fontSize: 11, fontWeight: 500, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--wheat)', cursor: 'pointer' }}>
             Aujourd'hui
           </button>
-          <button onClick={nextWeek} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+          <button onClick={nextPeriod} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
             <ChevronRight size={13} style={{ color: 'var(--text-muted)' }} />
           </button>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--wheat)', fontFamily: 'var(--font-display)', minWidth: 120, textAlign: 'center', textTransform: 'capitalize', letterSpacing: '-0.01em' }}>
-            {fmtMonthYear(weekStart)}
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--wheat)', fontFamily: 'var(--font-display)', minWidth: 150, textAlign: 'center', textTransform: 'capitalize', letterSpacing: '-0.01em' }}>
+            {periodTitle}
           </span>
         </div>
 
         {/* + Événement */}
-        <button onClick={() => setModalDate(today.toISOString().slice(0, 10))}
+        <button onClick={() => setModalDate((calView === 'day' ? dayStart : today).toISOString().slice(0, 10))}
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: '#F2542D', color: '#fff', cursor: 'pointer', border: 'none', letterSpacing: '0.04em' }}>
           <Plus size={13} /> ÉVÉNEMENT
         </button>
       </div>
 
       {/* ── ROW 3 : Calendar grid ──────────────────────────────────────────── */}
-      {/* Hauteur fixe ≈ 8h visible, scroll pour voir plus haut/bas */}
-      <div className="col-span-4" style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden', height: SLOT_PX * 8 + 40 }}>
+      {/* Vue mois */}
+      {calView === 'month' && (
+        <div ref={calGridRef} className="col-span-4" style={{ ...card(), overflow: 'hidden' }}>
+          {/* Entêtes jours */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border)' }}>
+            {DAY_LABELS.map(l => (
+              <div key={l} style={{ padding: '9px 0', textAlign: 'center', fontSize: 8, letterSpacing: '0.12em', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontWeight: 700 }}>{l}</div>
+            ))}
+          </div>
+          {/* Grille */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+            {monthGrid.map((day, i) => {
+              const isCurrentMonth = day.getMonth() === monthStart.getMonth()
+              const isToday = day.getTime() === today.getTime()
+              const dayEvs     = eventsForDay(day)
+              const allDayEvs  = allDayEventsForDay(day)
+              const allEvs     = [...allDayEvs, ...dayEvs]
+              const filtered   = activeCategories.length > 0
+                ? allEvs.filter(ev => !ev.category || activeCategories.includes(ev.category))
+                : allEvs
+              return (
+                <div key={i}
+                  onClick={() => { setDayStart(day); setCalView('day') }}
+                  style={{
+                    borderRight: i % 7 < 6 ? '1px solid var(--border)' : 'none',
+                    borderBottom: i < 35 ? '1px solid var(--border)' : 'none',
+                    padding: '6px 8px', minHeight: 90, cursor: 'pointer',
+                    background: isToday ? 'rgba(242,84,45,0.04)' : 'transparent',
+                    opacity: isCurrentMonth ? 1 : 0.35,
+                  }}
+                  onMouseEnter={e => { if (!isToday) (e.currentTarget as HTMLElement).style.background = 'var(--bg-card-hover)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isToday ? 'rgba(242,84,45,0.04)' : 'transparent' }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isToday ? '#F2542D' : 'transparent', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', color: isToday ? '#fff' : 'var(--wheat)', marginBottom: 3 }}>
+                    {day.getDate()}
+                  </div>
+                  {filtered.slice(0, 2).map(ev => {
+                    const color = evColor(ev)
+                    return (
+                      <div key={ev.id}
+                        onClick={e => { e.stopPropagation(); setSelected(ev) }}
+                        style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, marginBottom: 2, background: color + '22', color, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', border: `1px solid ${color}33` }}>
+                        {ev.title}
+                      </div>
+                    )
+                  })}
+                  {filtered.length > 2 && (
+                    <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 1 }}>+{filtered.length - 2}</p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Vue jour + semaine (time grid) */}
+      {calView !== 'month' && (
+      <div ref={calGridRef} className="col-span-4" style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden', height: SLOT_PX * 8 + 40 }}>
 
         {/* Day headers */}
-        <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(7, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(${weekDays.length}, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           <div style={{ borderRight: '1px solid var(--border)' }} />
           {weekDays.map((day, i) => {
             const isToday = day.getTime() === today.getTime()
@@ -890,7 +996,7 @@ function CalendrierContent() {
 
         {/* Bandeau all-day (masqué si aucun événement) */}
         {hasAnyAllDay && (
-          <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(7, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0, background: 'var(--bg)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(${weekDays.length}, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0, background: 'var(--bg)' }}>
             <div style={{ borderRight: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8 }}>
               <span style={{ fontSize: 8, color: 'var(--text-muted)', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>JOUR</span>
             </div>
@@ -940,7 +1046,7 @@ function CalendrierContent() {
             )}
 
             {/* Day columns */}
-            <div ref={colsRef} style={{ position: 'absolute', inset: 0, left: TIME_COL, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+            <div ref={colsRef} style={{ position: 'absolute', inset: 0, left: TIME_COL, display: 'grid', gridTemplateColumns: `repeat(${weekDays.length}, 1fr)` }}>
               {weekDays.map((day, di) => {
                 const dayEvs = eventsForDay(day)
                 // Ghost drop indicator for this column
@@ -1056,6 +1162,7 @@ function CalendrierContent() {
           </div>
         </div>
       </div>
+      )} {/* end calView !== 'month' */}
 
       {/* ── ROW 4 : Event detail | Tâches liées | Filtrer ─────────────────── */}
       <div className="col-span-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
@@ -1169,7 +1276,9 @@ function CalendrierContent() {
               </div>
             ))}
           </div>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: '#fff', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8, marginTop: 'auto' }}>
+          <button
+            onClick={() => { setCalView('week'); calGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: '#fff', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.8, marginTop: 'auto' }}>
             Voir la semaine <ChevronRight size={12} />
           </button>
         </div>
@@ -1183,7 +1292,7 @@ function CalendrierContent() {
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {reminders.length === 0 ? (
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', padding: '12px 16px' }}>Rien dans les 24 prochaines heures.</p>
-            ) : reminders.slice(0, 4).map(ev => (
+            ) : (showAllReminders ? reminders : reminders.slice(0, 4)).map(ev => (
               <div key={ev.id} style={{ padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', gap: 10, alignItems: 'center' }}>
                 <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
                 <div>
@@ -1194,8 +1303,9 @@ function CalendrierContent() {
             ))}
           </div>
           <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
-            <button style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, display: 'flex', alignItems: 'center', gap: 6 }}>
-              Voir tous les rappels <ChevronRight size={12} />
+            <button onClick={() => setShowAllReminders(v => !v)}
+              style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, display: 'flex', alignItems: 'center', gap: 6 }}>
+              {showAllReminders ? 'Réduire' : `Voir tous les rappels (${reminders.length})`} <ChevronRight size={12} style={{ transform: showAllReminders ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
             </button>
           </div>
         </div>
@@ -1242,7 +1352,8 @@ function CalendrierContent() {
             </div>
           </div>
           <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)' }}>
-            <button style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={() => setAppleOpen(true)}
+              style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
               Gérer mes intégrations <ChevronRight size={12} />
             </button>
           </div>
