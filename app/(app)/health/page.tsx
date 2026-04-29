@@ -793,7 +793,7 @@ export default function HealthPage() {
           {/* Défis actifs */}
           <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Défis actifs</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {(lsObjectifs.length > 0 ? lsObjectifs.slice(0, 4) : [
+            {(lsObjectifs.length > 0 ? lsObjectifs.slice(1, 5) : [
               { id: '1', label: '30 km / semaine',    target: 30,  unit: 'km',      color: ORANGE,    currentOverride: undefined },
               { id: '2', label: '4 sorties / sem.',   target: 4,   unit: 'sorties', color: WHEAT,     currentOverride: undefined },
               { id: '3', label: 'Total 500 km',       target: 500, unit: 'km',      color: TEAL,      currentOverride: undefined },
