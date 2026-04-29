@@ -97,20 +97,26 @@ export interface CalDAVEvent {
   uid: string; summary: string; dtstart: string; dtend: string
   location?: string; description?: string; etag?: string
   calendarName?: string   // nom du calendrier Apple source
+  allDay?: boolean        // true si DTSTART est une date-only (YYYYMMDD)
+}
+
+function isDateOnly(val: string): boolean {
+  // Format date-only : "20260501" ou "VALUE=DATE:20260501"
+  const raw = val.includes(':') ? val.split(':').pop()! : val
+  return raw.trim().length === 8
 }
 
 function parseICalDate(val: string): string {
   const raw = val.includes(':') ? val.split(':').pop()! : val
-  if (raw.length === 8) {
-    return new Date(
-      parseInt(raw.slice(0, 4)),
-      parseInt(raw.slice(4, 6)) - 1,
-      parseInt(raw.slice(6, 8)),
-    ).toISOString()
+  if (raw.trim().length === 8) {
+    // Date-only → stocke comme ISO date à minuit UTC (pas de décalage timezone)
+    const r = raw.trim()
+    return `${r.slice(0, 4)}-${r.slice(4, 6)}-${r.slice(6, 8)}T00:00:00.000Z`
   }
-  const y  = raw.slice(0, 4), mo = raw.slice(4, 6), d  = raw.slice(6, 8)
-  const h  = raw.slice(9, 11), mi = raw.slice(11, 13), s = raw.slice(13, 15) || '00'
-  return new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}${raw.endsWith('Z') ? 'Z' : ''}`).toISOString()
+  const r  = raw.trim()
+  const y  = r.slice(0, 4), mo = r.slice(4, 6), d  = r.slice(6, 8)
+  const h  = r.slice(9, 11), mi = r.slice(11, 13), s = r.slice(13, 15) || '00'
+  return new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}${r.endsWith('Z') ? 'Z' : ''}`).toISOString()
 }
 
 export function parseVCalendar(ics: string, etag?: string): CalDAVEvent[] {
@@ -119,13 +125,18 @@ export function parseVCalendar(ics: string, etag?: string): CalDAVEvent[] {
   for (let i = 1; i < vevents.length; i++) {
     const block    = vevents[i].split('END:VEVENT')[0]
     const unfolded = block.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '')
+    // Stocke à la fois la clé (DTSTART) et la ligne brute pour détecter VALUE=DATE
     const lines: Record<string, string> = {}
+    const rawLines: Record<string, string> = {}
     for (const line of unfolded.split(/\r?\n/)) {
       const sep = line.indexOf(':')
       if (sep < 0) continue
-      lines[line.slice(0, sep).split(';')[0].trim().toUpperCase()] = line.slice(sep + 1).trim()
+      const key = line.slice(0, sep).split(';')[0].trim().toUpperCase()
+      lines[key]    = line.slice(sep + 1).trim()
+      rawLines[key] = line.slice(0, sep)  // garde les paramètres (;VALUE=DATE etc.)
     }
     if (!lines.UID || !lines.SUMMARY || !lines.DTSTART) continue
+    const allDay = isDateOnly(lines.DTSTART) || rawLines.DTSTART?.includes('VALUE=DATE')
     events.push({
       uid:         lines.UID,
       summary:     lines.SUMMARY,
@@ -134,6 +145,7 @@ export function parseVCalendar(ics: string, etag?: string): CalDAVEvent[] {
       location:    lines.LOCATION    || undefined,
       description: lines.DESCRIPTION || undefined,
       etag,
+      allDay,
     })
   }
   return events
@@ -333,11 +345,11 @@ export async function runAppleSync(
   // Récupère tous les événements Apple déjà en base
   const { data: existing } = await supabase
     .from('events')
-    .select('id, external_id, title, start_at, end_at, category')
+    .select('id, external_id, title, start_at, end_at, category, all_day')
     .eq('user_id', userId)
     .eq('source', 'apple')
 
-  const existingMap = new Map<string, { id: string; external_id: string; category: string | null }>(
+  const existingMap = new Map<string, { id: string; external_id: string; category: string | null; all_day: boolean }>(
     (existing ?? []).map((e: any) => [e.external_id, e])
   )
   const existingUids = new Set(existingMap.keys())
@@ -350,7 +362,7 @@ export async function runAppleSync(
       description: e.description ?? null,
       start_at: e.dtstart, end_at: e.dtend,
       location: e.location ?? null,
-      all_day: false, source: 'apple', external_id: e.uid,
+      all_day: e.allDay ?? false, source: 'apple', external_id: e.uid,
       category: e.calendarName ?? null,
     }))
 
@@ -360,15 +372,16 @@ export async function runAppleSync(
     if (!error) added = toInsert.length
   }
 
-  // ── Mise à jour des catégories manquantes sur les événements existants ───
-  // (événements synchés avant l'ajout du calendarName)
+  // ── Mise à jour des métadonnées manquantes sur les événements existants ─
+  // (category, all_day pour les événements synchés avant ces ajouts)
   for (const e of icloudEvents) {
-    if (!e.calendarName) continue
     const existing = existingMap.get(e.uid)
-    if (existing && !existing.category) {
-      await supabase.from('events')
-        .update({ category: e.calendarName })
-        .eq('id', existing.id)
+    if (!existing) continue
+    const needsUpdate: Record<string, unknown> = {}
+    if (e.calendarName && !existing.category) needsUpdate.category = e.calendarName
+    if ((e.allDay ?? false) !== existing.all_day)   needsUpdate.all_day  = e.allDay ?? false
+    if (Object.keys(needsUpdate).length > 0) {
+      await supabase.from('events').update(needsUpdate).eq('id', existing.id)
     }
   }
 

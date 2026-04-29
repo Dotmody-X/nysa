@@ -532,15 +532,33 @@ function CalendrierContent() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   }
 
+  // Événements avec heure pour le time grid (hors all_day)
   function eventsForDay(day: Date): CalendarEvent[] {
     const dayStr = localDateStr(day)
     return events.filter(ev => {
-      // Comparer en heure locale pour éviter le décalage UTC
+      if (ev.all_day) return false
       if (localDateStr(new Date(ev.start_at)) !== dayStr) return false
       if (activeCategories.length > 0 && ev.category && !activeCategories.includes(ev.category)) return false
       return true
     })
   }
+
+  // Événements toute la journée pour le bandeau chips
+  function allDayEventsForDay(day: Date): CalendarEvent[] {
+    const dayStr = localDateStr(day)
+    return events.filter(ev => {
+      if (!ev.all_day) return false
+      // Pour les all_day, comparer la date UTC (stockée comme YYYY-MM-DDT00:00:00Z)
+      const evDate = ev.start_at.slice(0, 10)
+      const d = day
+      const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+      if (evDate !== dStr) return false
+      if (activeCategories.length > 0 && ev.category && !activeCategories.includes(ev.category)) return false
+      return true
+    })
+  }
+
+  const hasAnyAllDay = weekDays.some(d => allDayEventsForDay(d).length > 0)
 
   function toggleCategory(cat: string) {
     setActiveCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
@@ -707,6 +725,35 @@ function CalendrierContent() {
             )
           })}
         </div>
+
+        {/* Bandeau all-day (masqué si aucun événement) */}
+        {hasAnyAllDay && (
+          <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(7, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0, background: 'var(--bg)' }}>
+            <div style={{ borderRight: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8 }}>
+              <span style={{ fontSize: 8, color: 'var(--text-muted)', fontFamily: 'var(--font-display)', letterSpacing: '0.08em' }}>JOUR</span>
+            </div>
+            {weekDays.map((day, i) => {
+              const chips = allDayEventsForDay(day)
+              return (
+                <div key={i} style={{ padding: '4px 4px', borderRight: i < 6 ? '1px solid var(--border)' : 'none', display: 'flex', flexWrap: 'wrap', gap: 2, minHeight: 28 }}>
+                  {chips.map(ev => {
+                    const color = evColor(ev)
+                    return (
+                      <div key={ev.id}
+                        onClick={() => setSelected(ev)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4, background: color + '22', border: `1px solid ${color}44`, cursor: 'pointer', maxWidth: '100%', overflow: 'hidden' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = color + '44')}
+                        onMouseLeave={e => (e.currentTarget.style.background = color + '22')}>
+                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                        <span style={{ fontSize: 9, fontWeight: 600, color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Scrollable grid */}
         <div ref={gridScrollRef} style={{ overflowY: 'auto', flex: 1 }}>
