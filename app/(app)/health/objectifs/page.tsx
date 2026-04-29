@@ -171,16 +171,21 @@ export default function ObjectifsPage() {
     { id: '5', label: 'Hydratation journalière', target: 2.5, unit: 'L',       color: '#3B82F6', category: 'hydratation', period: 'jour',    icon: 'drops' },
   ]
 
-  const [objectifs, setObjectifs] = useState<Objectif[]>(() => {
-    try {
-      const saved = localStorage.getItem('nysa_objectifs')
-      return saved ? JSON.parse(saved) : SEED_OBJECTIFS
-    } catch { return SEED_OBJECTIFS }
-  })
+  const [objectifs, setObjectifs] = useState<Objectif[]>(SEED_OBJECTIFS)
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem('nysa_objectifs')
+      if (saved) setObjectifs(JSON.parse(saved))
+    } catch {}
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
     localStorage.setItem('nysa_objectifs', JSON.stringify(objectifs))
-  }, [objectifs])
+  }, [objectifs, hydrated])
 
   const [showForm,   setShowForm]   = useState(false)
   const [editId,     setEditId]     = useState<string | null>(null)

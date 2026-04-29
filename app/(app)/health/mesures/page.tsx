@@ -131,16 +131,21 @@ export default function MesuresPage() {
     { id: '4', date: '2026-01-10', taille: 82.5, massGrasse: 16.4, massMuscul: 55.1, imc: 22.4 },
   ]
 
-  const [mesures, setMesures] = useState<Mesure[]>(() => {
-    try {
-      const saved = localStorage.getItem('nysa_mesures')
-      return saved ? JSON.parse(saved) : SEED
-    } catch { return SEED }
-  })
+  const [mesures, setMesures] = useState<Mesure[]>(SEED)
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem('nysa_mesures')
+      if (saved) setMesures(JSON.parse(saved))
+    } catch {}
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
     localStorage.setItem('nysa_mesures', JSON.stringify(mesures))
-  }, [mesures])
+  }, [mesures, hydrated])
 
   const latest = mesures[0]
   const prev   = mesures[1]

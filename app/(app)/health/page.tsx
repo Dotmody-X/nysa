@@ -131,25 +131,28 @@ export default function HealthPage() {
   /* ── Nutrition local state ───────── */
   const [nutrition] = useState({ cal: 1842, calTarget: 2200, prot: 120, protTarget: 150, gluc: 180, glucTarget: 250, lip: 65, lipTarget: 80 })
 
-  /* ── Mesures corporelles — lues depuis localStorage (sync avec /health/mesures) ── */
-  const [mesures] = useState<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number; prev?: { taille?: number; massGrasse?: number; massMuscul?: number } }>(() => {
-    try {
-      const saved = localStorage.getItem('nysa_mesures')
-      if (!saved) return { taille: 81, massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 }
-      const arr = JSON.parse(saved) as Array<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number }>
-      const latest = arr[0] ?? {}
-      const prev   = arr[1] ?? {}
-      return { ...latest, prev }
-    } catch { return { taille: 81, massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 } }
-  })
+  /* ── Mesures corporelles — sync localStorage (useEffect pour éviter SSR) ── */
+  const [mesures, setMesures] = useState<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number; prev?: { taille?: number; massGrasse?: number; massMuscul?: number } }>({ taille: 81, massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 })
 
-  /* ── Objectifs — lus depuis localStorage (sync avec /health/objectifs) ── */
-  const [lsObjectifs] = useState<Array<{ id: string; label: string; target: number; unit: string; color: string; period: string; category: string; currentOverride?: number }>>(() => {
+  /* ── Objectifs — sync localStorage ── */
+  const [lsObjectifs, setLsObjectifs] = useState<Array<{ id: string; label: string; target: number; unit: string; color: string; period: string; category: string; currentOverride?: number }>>([])
+
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem('nysa_objectifs')
-      return saved ? JSON.parse(saved) : []
-    } catch { return [] }
-  })
+      const savedM = localStorage.getItem('nysa_mesures')
+      if (savedM) {
+        const arr = JSON.parse(savedM) as Array<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number }>
+        const latest = arr[0] ?? {}
+        const prev   = arr[1] ?? {}
+        setMesures({ ...latest, prev })
+      }
+    } catch {}
+
+    try {
+      const savedO = localStorage.getItem('nysa_objectifs')
+      if (savedO) setLsObjectifs(JSON.parse(savedO))
+    } catch {}
+  }, [])
 
   /* ── Stats derivation ────────────── */
   const today     = new Date()
