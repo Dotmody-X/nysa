@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Play, Square, Plus, CalendarPlus, Pencil, Trash2, X, PenLine,
   Download, MoreVertical, ChevronDown, BarChart2, LayoutGrid, List, ArrowRight,
@@ -9,6 +9,42 @@ import { useProjects }    from '@/hooks/useProjects'
 import type { TimeEntry } from '@/types'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+
+/* ── Period types ─────────────────────────────────────────────────────────── */
+type Period  = 'this_week' | 'last_7' | 'this_month' | 'last_month'
+type GroupBy = 'project' | 'category' | 'day'
+type View    = 'list' | 'chart'
+
+const PERIOD_LABELS: Record<Period, string> = {
+  this_week:  'Cette semaine',
+  last_7:     '7 derniers jours',
+  this_month: 'Ce mois',
+  last_month: 'Mois dernier',
+}
+const GROUPBY_LABELS: Record<GroupBy, string> = {
+  project:  'Projet',
+  category: 'Catégorie',
+  day:      'Jour',
+}
+
+function getPeriodDates(period: Period): { from: string; to?: string } {
+  const now = new Date()
+  if (period === 'this_week') {
+    const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1); d.setHours(0,0,0,0)
+    return { from: d.toISOString() }
+  }
+  if (period === 'last_7') {
+    const d = new Date(); d.setDate(d.getDate() - 6); d.setHours(0,0,0,0)
+    return { from: d.toISOString() }
+  }
+  if (period === 'this_month') {
+    return { from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString() }
+  }
+  // last_month
+  const from = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const to   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+  return { from: from.toISOString(), to: to.toISOString() }
+}
 
 /* ── Category colours ─────────────────────────────────────────────────────── */
 const CAT_COLORS: Record<string, string> = {
@@ -41,6 +77,25 @@ function toLocalDate(iso: string) {
 function toLocalTimeStr(iso: string) {
   const d = new Date(iso)
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+}
+
+function exportCSV(entries: TimeEntry[], projects: Array<{ id: string; name: string }>) {
+  const rows = [
+    ['Description','Projet','Catégorie','Facturable','Début','Fin','Durée (s)'],
+    ...entries.filter(e => e.duration_seconds).map(e => {
+      const proj = projects.find(p => p.id === e.project_id)
+      return [
+        e.description ?? '', proj?.name ?? '', e.category ?? '',
+        e.is_billable ? 'Oui' : 'Non',
+        e.started_at, e.ended_at ?? '', String(e.duration_seconds ?? 0),
+      ]
+    }),
+  ]
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a'); a.href = url; a.download = 'time-entries.csv'; a.click()
+  URL.revokeObjectURL(url)
 }
 
 /* ── Mini sparkline bar chart ─────────────────────────────────────────────── */
@@ -114,6 +169,80 @@ function StackedBar({ days }: {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+/* ── Dropdown générique ───────────────────────────────────────────────────── */
+function Dropdown<T extends string>({
+  value, options, labels, onChange, dark,
+}: {
+  value: T
+  options: T[]
+  labels: Record<T, string>
+  onChange: (v: T) => void
+  dark?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const bg     = dark ? 'rgba(255,255,255,0.1)'  : 'var(--bg-input)'
+  const border = dark ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--border)'
+  const txtC   = dark ? '#F0E4CC' : 'var(--wheat)'
+  const muted  = dark ? 'rgba(240,228,204,0.55)' : 'var(--text-muted)'
+  const menuBg = dark ? '#0d4a4b' : 'var(--bg-card)'
+  const menuBorder = dark ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--border)'
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <div onClick={() => setOpen(o => !o)}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, background: bg, border, borderRadius: 8, padding: '4px 10px', cursor: 'pointer', userSelect: 'none' }}>
+        <span style={{ fontSize: 10, color: txtC }}>{labels[value]}</span>
+        <ChevronDown size={10} style={{ color: muted, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+      </div>
+      {open && (
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100, background: menuBg, border: menuBorder, borderRadius: 8, minWidth: '100%', padding: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
+          {options.map(opt => (
+            <div key={opt} onClick={() => { onChange(opt); setOpen(false) }}
+              style={{ padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: opt === value ? '#F2542D' : txtC, fontWeight: opt === value ? 700 : 400, background: opt === value ? 'rgba(242,84,45,0.08)' : 'transparent' }}
+              onMouseEnter={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = dark ? 'rgba(255,255,255,0.07)' : 'var(--bg-card-hover)' }}
+              onMouseLeave={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+              {labels[opt]}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Context menu (⋮) ─────────────────────────────────────────────────────── */
+function ContextMenu({ items, onClose }: {
+  items: { label: string; icon?: React.ReactNode; danger?: boolean; onClick: () => void }[]
+  onClose: () => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+  return (
+    <div ref={ref} style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', zIndex: 100, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, minWidth: 160, padding: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
+      {items.map((item, i) => (
+        <button key={i} onClick={() => { item.onClick(); onClose() }}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: item.danger ? '#F2542D' : 'var(--wheat)', fontWeight: item.danger ? 600 : 400, textAlign: 'left' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+          {item.icon}<span>{item.label}</span>
+        </button>
+      ))}
     </div>
   )
 }
@@ -265,8 +394,12 @@ function ManualEntryModal({
 
 /* ══ Main page ════════════════════════════════════════════════════════════════ */
 export default function TimeTrackerPage() {
-  const { entries, loading, start, stop, update, remove, createManual } = useTimeEntries()
-  const { projects } = useProjects()
+  /* ── UI state ──────────────────────────────────────────────────────────── */
+  const [period,       setPeriod]       = useState<Period>('this_week')
+  const [groupBy,      setGroupBy]      = useState<GroupBy>('project')
+  const [view,         setView]         = useState<View>('list')
+  const [showAllRecent, setShowAllRecent] = useState(false)
+  const [openMenu,     setOpenMenu]     = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null)
   const [manualOpen,   setManualOpen]   = useState(false)
   const [desc,    setDesc]    = useState('')
@@ -275,6 +408,11 @@ export default function TimeTrackerPage() {
   const [addToCalendar, setAddToCalendar] = useState(true)
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  /* ── Fetch data based on period ─────────────────────────────────────────── */
+  const { from, to } = getPeriodDates(period)
+  const { entries, loading, start, stop, update, remove, createManual } = useTimeEntries(from, to)
+  const { projects } = useProjects()
 
   const running = entries.find(e => !e.ended_at)
 
@@ -291,58 +429,89 @@ export default function TimeTrackerPage() {
 
   /* ── Data transforms ─────────────────────────────────────────────────────── */
   const today = new Date().toISOString().slice(0, 10)
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1 + i)
-    return d.toISOString().slice(0, 10)
-  })
-  const DAY_LABELS = ['L','M','M','J','V','S','D']
 
-  const secPerDay  = weekDays.map(day =>
+  // 7 jours à afficher dans les graphiques (selon période)
+  const chartDays = (() => {
+    if (period === 'this_week') {
+      return Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1 + i)
+        return d.toISOString().slice(0, 10)
+      })
+    }
+    // last_7 ou autres : 7 derniers jours
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(); d.setDate(d.getDate() - 6 + i)
+      return d.toISOString().slice(0, 10)
+    })
+  })()
+  const DAY_LABELS = period === 'this_week' ? ['L','M','M','J','V','S','D'] : chartDays.map(d => new Date(d + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'narrow' }))
+
+  const secPerDay  = chartDays.map(day =>
     entries.filter(e => e.started_at.slice(0, 10) === day && e.duration_seconds)
       .reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
   )
-  const weekSec    = secPerDay.reduce((a, b) => a + b, 0)
+  const totalSec   = entries.filter(e => e.duration_seconds).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
   const todaySec   = entries.filter(e => e.started_at.slice(0, 10) === today && e.duration_seconds)
     .reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
-  const workingDays = weekDays.slice(0, 5).filter((_, i) => secPerDay[i] > 0).length
-  const avgSec     = workingDays > 0 ? weekSec / workingDays : 0
+  const workingDays = chartDays.slice(0, 5).filter((_, i) => secPerDay[i] > 0).length
+  const avgSec     = workingDays > 0 ? totalSec / workingDays : 0
   const activeProjs = new Set(entries.filter(e => e.project_id).map(e => e.project_id)).size
   const billableSec = entries.filter(e => e.is_billable && e.duration_seconds).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
-  const prodPct    = weekSec > 0 ? Math.round(billableSec / weekSec * 100) : 0
+  const prodPct    = totalSec > 0 ? Math.round(billableSec / totalSec * 100) : 0
 
-  /* Grouped by project */
-  type ProjRow = { id: string | null; name: string; color: string; seconds: number; desc: string; category: string | null }
-  const projRows: ProjRow[] = []
-  projects.forEach(p => {
-    const pe = entries.filter(e => e.project_id === p.id && e.duration_seconds)
-    if (!pe.length) return
-    projRows.push({
-      id: p.id, name: p.name, color: p.color ?? '#F2542D',
-      seconds: pe.reduce((s, e) => s + (e.duration_seconds ?? 0), 0),
-      desc: pe[0]?.description ?? '',
-      category: pe.find(e => e.category)?.category ?? null,
+  /* ── Grouped rows (selon groupBy) ─────────────────────────────────────── */
+  type Row = { id: string; name: string; color: string; seconds: number; desc: string; category: string | null }
+  const groupedRows: Row[] = (() => {
+    if (groupBy === 'project') {
+      const rows: Row[] = []
+      projects.forEach(p => {
+        const pe = entries.filter(e => e.project_id === p.id && e.duration_seconds)
+        if (!pe.length) return
+        rows.push({ id: p.id, name: p.name, color: p.color ?? '#F2542D',
+          seconds: pe.reduce((s, e) => s + (e.duration_seconds ?? 0), 0),
+          desc: pe[0]?.description ?? '', category: pe.find(e => e.category)?.category ?? null })
+      })
+      const noProjSec = entries.filter(e => !e.project_id && e.duration_seconds).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+      if (noProjSec > 0) rows.push({ id: 'none', name: 'Sans projet', color: '#888', seconds: noProjSec, desc: '', category: null })
+      return rows.sort((a, b) => b.seconds - a.seconds)
+    }
+    if (groupBy === 'category') {
+      const catMap: Record<string, number> = {}
+      entries.filter(e => e.duration_seconds).forEach(e => {
+        const c = e.category ?? 'Sans catégorie'
+        catMap[c] = (catMap[c] ?? 0) + (e.duration_seconds ?? 0)
+      })
+      return Object.entries(catMap).sort((a, b) => b[1] - a[1])
+        .map(([cat, sec]) => ({ id: cat, name: cat, color: catColor(cat), seconds: sec, desc: '', category: cat }))
+    }
+    // day
+    const dayMap: Record<string, number> = {}
+    entries.filter(e => e.duration_seconds).forEach(e => {
+      const d = e.started_at.slice(0, 10); dayMap[d] = (dayMap[d] ?? 0) + (e.duration_seconds ?? 0)
     })
-  })
-  const noProjSec = entries.filter(e => !e.project_id && e.duration_seconds).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
-  if (noProjSec > 0) projRows.push({ id: null, name: 'Sans projet', color: '#888', seconds: noProjSec, desc: '', category: null })
-  projRows.sort((a, b) => b.seconds - a.seconds)
+    return Object.entries(dayMap).sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([day, sec]) => ({
+        id: day,
+        name: new Date(day + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' }),
+        color: '#F2542D', seconds: sec, desc: '', category: null,
+      }))
+  })()
 
-  /* Category distribution */
+  /* Category distribution (donut) */
   const catMap: Record<string, number> = {}
   entries.filter(e => e.duration_seconds).forEach(e => {
     const c = e.category ?? 'Autre'
     catMap[c] = (catMap[c] ?? 0) + (e.duration_seconds ?? 0)
   })
-  const catList = Object.entries(catMap).sort((a, b) => b[1] - a[1])
-  const donutSegs = catList.map(([cat, sec]) => ({ color: catColor(cat), pct: weekSec > 0 ? sec / weekSec * 100 : 0, label: cat, sec }))
+  const catList    = Object.entries(catMap).sort((a, b) => b[1] - a[1])
+  const donutSegs  = catList.map(([cat, sec]) => ({ color: catColor(cat), pct: totalSec > 0 ? sec / totalSec * 100 : 0, label: cat, sec }))
 
   /* Stacked bar days */
-  const allCats = catList.map(([c]) => c)
-  const stackedDays = weekDays.map((day, i) => {
+  const allCats    = catList.map(([c]) => c)
+  const stackedDays = chartDays.map((day, i) => {
     const de = entries.filter(e => e.started_at.slice(0, 10) === day && e.duration_seconds)
     return {
-      label: DAY_LABELS[i],
-      total: secPerDay[i],
+      label: DAY_LABELS[i], total: secPerDay[i],
       segments: allCats
         .map(cat => ({ color: catColor(cat), value: de.filter(e => (e.category ?? 'Autre') === cat).reduce((s, e) => s + (e.duration_seconds ?? 0), 0) }))
         .filter(s => s.value > 0),
@@ -361,6 +530,13 @@ export default function TimeTrackerPage() {
     await stop(running.id, running.started_at, { addToCalendar })
   }
 
+  async function handleStartForProject(row: Row) {
+    // Démarre une session pour ce projet/catégorie
+    const projectId = row.id !== 'none' && groupBy === 'project' ? row.id : null
+    const description = row.desc || row.name
+    await start(projectId, description, true)
+  }
+
   /* ── Shared styles ───────────────────────────────────────────────────────── */
   const card = (extra?: React.CSSProperties): React.CSSProperties => ({
     background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, ...extra,
@@ -368,6 +544,9 @@ export default function TimeTrackerPage() {
   const tableLabelStyle: React.CSSProperties = {
     fontSize: 8, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', ...DF, fontWeight: 700,
   }
+
+  const filteredEntries = entries.filter(e => e.duration_seconds)
+  const visibleEntries  = showAllRecent ? filteredEntries : filteredEntries.slice(0, 6)
 
   /* ── Render ──────────────────────────────────────────────────────────────── */
   return (
@@ -398,11 +577,8 @@ export default function TimeTrackerPage() {
       }}>
         {running ? (
           <>
-            {/* Decorative circles */}
             <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', bottom: -70, right: 60, width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-
-            {/* Top bar */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fff', animation: 'pulse 1.2s infinite' }} />
@@ -412,8 +588,6 @@ export default function TimeTrackerPage() {
                 <MoreVertical size={14} />
               </button>
             </div>
-
-            {/* Timer row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
               <button onClick={handleStop} style={{ width: 60, height: 60, borderRadius: '50%', background: '#0E9594', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
                 <Square size={20} fill="#fff" color="#fff" />
@@ -434,8 +608,6 @@ export default function TimeTrackerPage() {
                 <p style={{ ...DF, fontWeight: 900, fontSize: 26, color: '#fff', lineHeight: 1 }}>{fmtDur(todaySec + elapsed)}</p>
               </div>
             </div>
-
-            {/* Bottom controls */}
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
               <button onClick={() => setAddToCalendar(v => !v)}
                 style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: addToCalendar ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
@@ -448,7 +620,6 @@ export default function TimeTrackerPage() {
             </div>
           </>
         ) : (
-          /* No session */
           <>
             <p style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 14 }}>Démarrer une session</p>
             <input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Sur quoi travailles-tu ?"
@@ -477,23 +648,28 @@ export default function TimeTrackerPage() {
       {/* ─── ROW 2 : Filter bar ───────────────────────────────────────────── */}
       <div className="col-span-4" style={{ ...card(), padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
         {/* Période */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span style={tableLabelStyle}>Période</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer' }}>
-            <span style={{ fontSize: 11, color: 'var(--wheat)' }}>Cette semaine</span>
-            <ChevronDown size={10} style={{ color: 'var(--text-muted)' }} />
-          </div>
+          <Dropdown<Period>
+            value={period}
+            options={['this_week','last_7','this_month','last_month']}
+            labels={PERIOD_LABELS}
+            onChange={setPeriod}
+          />
         </div>
         {/* Groupe par */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span style={tableLabelStyle}>Groupe par</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer' }}>
-            <span style={{ fontSize: 11, color: 'var(--wheat)' }}>Projet</span>
-            <ChevronDown size={10} style={{ color: 'var(--text-muted)' }} />
-          </div>
+          <Dropdown<GroupBy>
+            value={groupBy}
+            options={['project','category','day']}
+            labels={GROUPBY_LABELS}
+            onChange={setGroupBy}
+          />
         </div>
         <div style={{ flex: 1 }} />
-        <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 600 }}>
+        <button onClick={() => exportCSV(filteredEntries, projects)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 600 }}>
           <Download size={11} /> Exporter
         </button>
         <button onClick={() => setManualOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
@@ -503,11 +679,11 @@ export default function TimeTrackerPage() {
 
       {/* ─── ROW 3 : KPI cards ────────────────────────────────────────────── */}
 
-      {/* KPI 1 — Temps total (dark) */}
+      {/* KPI 1 — Temps total */}
       <div style={{ ...card(), padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
         <span style={{ ...tableLabelStyle, marginBottom: 6 }}>Temps total</span>
-        <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: 'var(--wheat)', lineHeight: 1, marginBottom: 6 }}>{fmtDur(weekSec)}</p>
-        <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>vs semaine dernière <span style={{ color: '#0E9594', fontWeight: 700 }}>+12% ↗</span></p>
+        <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: 'var(--wheat)', lineHeight: 1, marginBottom: 6 }}>{fmtDur(totalSec)}</p>
+        <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{PERIOD_LABELS[period]}</p>
         <MiniBarChart values={secPerDay} color="var(--accent)" />
       </div>
 
@@ -515,7 +691,7 @@ export default function TimeTrackerPage() {
       <div style={{ background: '#F5DFBB', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(26,10,10,0.55)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Moyenne / jour</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: '#1A0A0A', lineHeight: 1, marginBottom: 6 }}>{fmtDur(avgSec)}</p>
-        <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>vs semaine dernière <span style={{ color: '#0E9594', fontWeight: 700 }}>+0h 28m ↗</span></p>
+        <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>{workingDays} jour{workingDays > 1 ? 's' : ''} travaillé{workingDays > 1 ? 's' : ''}</p>
         <MiniBarChart values={secPerDay} color="rgba(26,10,10,0.5)" />
       </div>
 
@@ -524,15 +700,15 @@ export default function TimeTrackerPage() {
         <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Projets actifs</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{activeProjs}</p>
-        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)' }}>vs semaine dernière <span style={{ color: '#fff', fontWeight: 700 }}>+1 ↗</span></p>
+        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)' }}>{PERIOD_LABELS[period]}</p>
         <MiniBarChart values={secPerDay} color="rgba(255,255,255,0.65)" />
       </div>
 
       {/* KPI 4 — Productivité (teal) */}
       <div style={{ background: '#0E9594', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Taux de productivité</span>
+        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Taux facturable</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{prodPct}%</p>
-        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginBottom: 'auto' }}>vs semaine dernière <span style={{ color: '#fff', fontWeight: 700 }}>+7% ↗</span></p>
+        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginBottom: 'auto' }}>{fmtDur(billableSec)} facturables</p>
         <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 99, background: '#fff', width: `${prodPct}%`, transition: 'width 0.5s ease' }} />
         </div>
@@ -542,81 +718,141 @@ export default function TimeTrackerPage() {
       <div className="col-span-4" style={{ ...card(), overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--wheat)', textTransform: 'uppercase' }}>Temps enregistrés</p>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--wheat)', textTransform: 'uppercase' }}>
+            Temps enregistrés — {GROUPBY_LABELS[groupBy]}
+          </p>
           <div style={{ display: 'flex', gap: 4 }}>
-            {([List, LayoutGrid, BarChart2] as const).map((Icon, i) => (
-              <button key={i} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${i === 0 ? 'var(--accent)' : 'var(--border)'}`, background: i === 0 ? 'rgba(242,84,45,0.1)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: i === 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
+            {([
+              { icon: List,      v: 'list'  as View },
+              { icon: BarChart2, v: 'chart' as View },
+            ] as const).map(({ icon: Icon, v }) => (
+              <button key={v} onClick={() => setView(v)}
+                style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${view === v ? 'var(--accent)' : 'var(--border)'}`, background: view === v ? 'rgba(242,84,45,0.1)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: view === v ? 'var(--accent)' : 'var(--text-muted)' }}>
                 <Icon size={11} />
               </button>
             ))}
           </div>
         </div>
 
-        {/* Table columns */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '8px 20px', borderBottom: '1px solid var(--border)', gap: 12 }}>
-          {['Projet / Tâche','Catégorie','Temps','%','','Durée',''].map((h, i) => (
-            <span key={i} style={tableLabelStyle}>{h}</span>
-          ))}
-        </div>
-
-        {loading ? <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
-        : projRows.length === 0 ? <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Aucune entrée cette semaine.</p>
-        : projRows.slice(0, 6).map(row => {
-          const pct = weekSec > 0 ? Math.round(row.seconds / weekSec * 100) : 0
-          return (
-            <div key={row.id ?? 'none'}
-              style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '12px 20px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-
-              {/* Projet / Tâche */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                <div style={{ width: 11, height: 11, borderRadius: 3, background: row.color, flexShrink: 0 }} />
-                <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</p>
-                  {row.desc && <p style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.desc}</p>}
-                </div>
-              </div>
-
-              {/* Catégorie */}
-              {row.category
-                ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(row.category) + '20', color: catColor(row.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(row.category)}40`, display: 'inline-block' }}>{row.category}</span>
-                : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
-
-              {/* Temps */}
-              <span style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDur(row.seconds)}</span>
-
-              {/* % */}
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{pct}%</span>
-
-              {/* Bar */}
-              <div style={{ height: 4, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', borderRadius: 99, background: row.color, width: `${pct}%` }} />
-              </div>
-
-              {/* Durée */}
-              <span style={{ ...DF, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{fmtDur(row.seconds)}</span>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: 5 }}>
-                <button style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                  <Play size={9} fill="var(--text-muted)" />
-                </button>
-                <button style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                  <MoreVertical size={9} />
-                </button>
-              </div>
+        {view === 'chart' ? (
+          /* ── Vue graphique ── */
+          <div style={{ padding: 20 }}>
+            {groupedRows.length === 0
+              ? <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune entrée sur cette période.</p>
+              : groupedRows.map(row => {
+                  const pct = totalSec > 0 ? (row.seconds / totalSec * 100) : 0
+                  return (
+                    <div key={row.id} style={{ marginBottom: 14 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ width: 9, height: 9, borderRadius: 2, background: row.color, flexShrink: 0 }} />
+                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>{row.name}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{Math.round(pct)}%</span>
+                          <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDur(row.seconds)}</span>
+                        </div>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', borderRadius: 99, background: row.color, width: `${pct}%`, transition: 'width 0.4s ease' }} />
+                      </div>
+                    </div>
+                  )
+                })
+            }
+          </div>
+        ) : (
+          /* ── Vue liste ── */
+          <>
+            {/* Table columns */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '8px 20px', borderBottom: '1px solid var(--border)', gap: 12 }}>
+              {[GROUPBY_LABELS[groupBy] + ' / Tâche','Catégorie','Temps','%','','Durée',''].map((h, i) => (
+                <span key={i} style={tableLabelStyle}>{h}</span>
+              ))}
             </div>
-          )
-        })}
+
+            {loading ? <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
+            : groupedRows.length === 0 ? <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Aucune entrée sur cette période.</p>
+            : groupedRows.map(row => {
+                const pct = totalSec > 0 ? Math.round(row.seconds / totalSec * 100) : 0
+                return (
+                  <div key={row.id}
+                    style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '12px 20px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+
+                    {/* Projet / Tâche */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                      <div style={{ width: 11, height: 11, borderRadius: 3, background: row.color, flexShrink: 0 }} />
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</p>
+                        {row.desc && <p style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.desc}</p>}
+                      </div>
+                    </div>
+
+                    {/* Catégorie */}
+                    {row.category
+                      ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(row.category) + '20', color: catColor(row.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(row.category)}40`, display: 'inline-block' }}>{row.category}</span>
+                      : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
+
+                    {/* Temps */}
+                    <span style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDur(row.seconds)}</span>
+
+                    {/* % */}
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{pct}%</span>
+
+                    {/* Bar */}
+                    <div style={{ height: 4, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', borderRadius: 99, background: row.color, width: `${pct}%` }} />
+                    </div>
+
+                    {/* Durée */}
+                    <span style={{ ...DF, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{fmtDur(row.seconds)}</span>
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: 5 }}>
+                      <button
+                        onClick={() => handleStartForProject(row)}
+                        title="Démarrer une session"
+                        style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#F2542D'; (e.currentTarget as HTMLElement).style.color = '#F2542D' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
+                        <Play size={9} fill="currentColor" />
+                      </button>
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          onClick={() => setOpenMenu(openMenu === `proj-${row.id}` ? null : `proj-${row.id}`)}
+                          style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                          <MoreVertical size={9} />
+                        </button>
+                        {openMenu === `proj-${row.id}` && (
+                          <ContextMenu
+                            onClose={() => setOpenMenu(null)}
+                            items={[
+                              { label: 'Démarrer une session', icon: <Play size={10} />, onClick: () => handleStartForProject(row) },
+                              { label: 'Entrée manuelle', icon: <PenLine size={10} />, onClick: () => setManualOpen(true) },
+                            ]}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            }
+          </>
+        )}
 
         {/* Footer */}
-        <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voir toutes les entrées</span>
-          <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />
-        </div>
+        {groupedRows.length > 0 && (
+          <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', ...DF, fontWeight: 600 }}>{groupedRows.length} groupe{groupedRows.length > 1 ? 's' : ''} · {fmtDur(totalSec)} total</span>
+            <button onClick={() => exportCSV(filteredEntries, projects)}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+              Exporter <Download size={10} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ─── ROW 5 : Charts ───────────────────────────────────────────────── */}
@@ -625,14 +861,16 @@ export default function TimeTrackerPage() {
       <div className="col-span-2" style={{ ...card(), padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--wheat)', textTransform: 'uppercase' }}>Répartition du temps</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}>
-            <span style={{ fontSize: 10, color: 'var(--wheat)' }}>Cette semaine</span>
-            <ChevronDown size={10} style={{ color: 'var(--text-muted)' }} />
-          </div>
+          <Dropdown<Period>
+            value={period}
+            options={['this_week','last_7','this_month','last_month']}
+            labels={PERIOD_LABELS}
+            onChange={setPeriod}
+          />
         </div>
 
         <div style={{ display: 'flex', gap: 16, flex: 1, alignItems: 'center' }}>
-          <DonutChart segments={donutSegs} label={fmtDur(weekSec)} />
+          <DonutChart segments={donutSegs} label={fmtDur(totalSec)} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
             {donutSegs.length === 0
               ? <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucune donnée.</p>
@@ -658,15 +896,17 @@ export default function TimeTrackerPage() {
       <div className="col-span-2" style={{ background: '#11686A', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F0E4CC', textTransform: 'uppercase' }}>Évolution du temps</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}>
-            <span style={{ fontSize: 10, color: '#F0E4CC' }}>7 derniers jours</span>
-            <ChevronDown size={10} style={{ color: 'rgba(240,228,204,0.55)' }} />
-          </div>
+          <Dropdown<Period>
+            value={period}
+            options={['this_week','last_7','this_month','last_month']}
+            labels={PERIOD_LABELS}
+            onChange={setPeriod}
+            dark
+          />
         </div>
 
         <StackedBar days={stackedDays} />
 
-        {/* Legend */}
         {donutSegs.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px 14px', marginTop: 10 }}>
             {donutSegs.slice(0, 6).map((s, i) => (
@@ -688,9 +928,13 @@ export default function TimeTrackerPage() {
       <div className="col-span-4" style={{ ...card(), overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--wheat)', textTransform: 'uppercase' }}>Entrées récentes</p>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
-            Voir toutes <ArrowRight size={10} />
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--wheat)', textTransform: 'uppercase' }}>
+            Entrées récentes
+            {filteredEntries.length > 0 && <span style={{ fontSize: 9, color: 'var(--text-muted)', marginLeft: 8, fontWeight: 400 }}>({filteredEntries.length})</span>}
+          </p>
+          <button onClick={() => setShowAllRecent(v => !v)}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+            {showAllRecent ? 'Voir moins' : 'Voir toutes'} <ArrowRight size={10} style={{ transform: showAllRecent ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
         </div>
 
@@ -701,7 +945,9 @@ export default function TimeTrackerPage() {
           ))}
         </div>
 
-        {entries.filter(e => e.duration_seconds).slice(0, 6).map(e => {
+        {visibleEntries.length === 0 ? (
+          <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Aucune entrée sur cette période.</p>
+        ) : visibleEntries.map(e => {
           const proj = projects.find(p => p.id === e.project_id)
           return (
             <div key={e.id}
@@ -709,35 +955,62 @@ export default function TimeTrackerPage() {
               onMouseEnter={ev => (ev.currentTarget.style.background = 'var(--bg-card-hover)')}
               onMouseLeave={ev => (ev.currentTarget.style.background = 'transparent')}>
               <p style={{ fontSize: 12, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description || 'Sans description'}</p>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{proj?.name ?? '—'}</p>
+              {proj
+                ? <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                    <div style={{ width: 7, height: 7, borderRadius: 2, background: proj.color, flexShrink: 0 }} />
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{proj.name}</p>
+                  </div>
+                : <span style={{ fontSize: 11, color: 'var(--text-subtle)' }}>—</span>}
               {e.category
-                ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(e.category) + '20', color: catColor(e.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(e.category)}40`, display: 'inline-block' }}>{e.category}</span>
+                ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(e.category) + '20', color: catColor(e.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(e.category)}40`, display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{e.category}</span>
                 : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
               <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--wheat)' }}>{e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}</span>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtTime(e.started_at)}</span>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{e.ended_at ? fmtTime(e.ended_at) : '—'}</span>
               <div style={{ display: 'flex', gap: 5 }}>
-                <button onClick={() => setEditingEntry(e as TimeEntry)} style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                <button onClick={() => setEditingEntry(e as TimeEntry)}
+                  title="Modifier"
+                  style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
+                  onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = '#F2542D'; (ev.currentTarget as HTMLElement).style.color = '#F2542D' }}
+                  onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (ev.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
                   <Pencil size={9} />
                 </button>
-                <button style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                  <MoreVertical size={9} />
-                </button>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => setOpenMenu(openMenu === `entry-${e.id}` ? null : `entry-${e.id}`)}
+                    style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                    <MoreVertical size={9} />
+                  </button>
+                  {openMenu === `entry-${e.id}` && (
+                    <ContextMenu
+                      onClose={() => setOpenMenu(null)}
+                      items={[
+                        { label: 'Modifier', icon: <Pencil size={10} />, onClick: () => setEditingEntry(e as TimeEntry) },
+                        { label: 'Dupliquer', icon: <Plus size={10} />, onClick: () => {
+                            createManual({ description: e.description ?? undefined, project_id: e.project_id ?? undefined, category: e.category ?? undefined, is_billable: e.is_billable, started_at: new Date().toISOString() })
+                          }},
+                        { label: 'Supprimer', icon: <Trash2 size={10} />, danger: true, onClick: () => remove(e.id) },
+                      ]}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           )
         })}
 
-        {entries.filter(e => e.duration_seconds).length === 0 && (
-          <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Aucune entrée cette semaine.</p>
+        {/* Footer avec compteur */}
+        {filteredEntries.length > 6 && (
+          <div onClick={() => setShowAllRecent(v => !v)}
+            style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              {showAllRecent ? 'Voir moins' : `Voir ${filteredEntries.length - 6} entrée${filteredEntries.length - 6 > 1 ? 's' : ''} de plus`}
+            </span>
+            <ArrowRight size={12} style={{ color: 'var(--text-muted)', transform: showAllRecent ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+          </div>
         )}
-
-        <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voir plus d'entrées</span>
-          <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />
-        </div>
       </div>
 
     </div>

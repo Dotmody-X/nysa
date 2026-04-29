@@ -3,29 +3,33 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { TimeEntry } from '@/types'
 
-export function useTimeEntries() {
+export function useTimeEntries(fromDate?: string, toDate?: string) {
   const [entries,  setEntries]  = useState<TimeEntry[]>([])
   const [loading,  setLoading]  = useState(true)
   const supabase = createClient()
 
-  // Fenêtre : cette semaine
-  const weekStart = (() => {
+  // Fenêtre par défaut : lundi de la semaine courante
+  const defaultFrom = (() => {
     const d = new Date()
     d.setDate(d.getDate() - d.getDay() + 1)
     d.setHours(0, 0, 0, 0)
     return d.toISOString()
   })()
 
+  const effectiveFrom = fromDate ?? defaultFrom
+
   const fetch = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase
+    let query = supabase
       .from('time_entries')
       .select('*, projects(name, color)')
-      .gte('started_at', weekStart)
+      .gte('started_at', effectiveFrom)
       .order('started_at', { ascending: false })
+    if (toDate) query = query.lte('started_at', toDate)
+    const { data } = await query
     setEntries(data ?? [])
     setLoading(false)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [effectiveFrom, toDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch() }, [fetch])
 
