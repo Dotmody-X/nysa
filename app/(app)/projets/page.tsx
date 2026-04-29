@@ -51,7 +51,7 @@ function EditProjectModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
-      <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: '#111', border: '1px solid rgba(245,223,187,0.12)' }} onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
 
         <div className="flex items-center justify-between">
           <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Modifier le projet</p>

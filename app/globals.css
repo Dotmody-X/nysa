@@ -190,11 +190,11 @@ h1, h2, h3, h4, h5, h6 {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(245, 223, 187, 0.15);
+  background: var(--border);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 223, 187, 0.3);
+  background: var(--text-muted);
 }
 
 /* ============================================================

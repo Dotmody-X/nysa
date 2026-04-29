@@ -18,7 +18,7 @@ export function applyTheme(mode: ThemeMode, accent = DEFAULT_ACCENT, accent2 = D
 
 export function loadTheme() {
   if (typeof window === 'undefined') return
-  const mode   = (localStorage.getItem(THEME_KEY)   as ThemeMode) ?? 'dark'
+  const mode   = (localStorage.getItem(THEME_KEY)   as ThemeMode) ?? 'system'
   const accent  = localStorage.getItem(ACCENT_KEY)  ?? DEFAULT_ACCENT
   const accent2 = localStorage.getItem(ACCENT2_KEY) ?? DEFAULT_ACCENT2
   applyTheme(mode, accent, accent2)

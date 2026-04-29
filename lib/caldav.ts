@@ -169,7 +169,8 @@ function parseCalendarBlocks(text: string, serverBase: string): CalendarInfo[] {
     const href = hrefMatch[1].trim()
     if (/inbox|outbox|notification|dropbox|freebusy/i.test(href)) continue
     const nameMatch = block.match(/<(?:[^>]*:)?displayname[^>]*>([\s\S]*?)<\/(?:[^>]*:)?displayname>/)
-    const name = nameMatch ? nameMatch[1].trim() : href.split('/').filter(Boolean).pop() ?? 'Calendrier'
+    const rawName = nameMatch ? nameMatch[1].trim() : href.split('/').filter(Boolean).pop() ?? 'Calendrier'
+    const name = rawName.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
     const url  = href.startsWith('http') ? href : `${serverBase}${href}`
     results.push({ url, name })
   }

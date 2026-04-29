@@ -2,8 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Settings, Moon, User } from 'lucide-react'
+import { Settings, Sun, Moon, Monitor, User } from 'lucide-react'
 import { NysaLogo } from '@/components/ui/NysaLogo'
+import { useState, useEffect, useRef } from 'react'
+import { saveTheme, THEME_KEY } from '@/lib/theme'
+import type { ThemeMode } from '@/lib/theme'
 
 type NavItem = { href: string; label: string; color?: string }
 
@@ -21,13 +24,48 @@ const navItems: NavItem[] = [
   { href: '/rapports',     label: 'Rapports',      color: 'var(--dark-cyan)' },
 ]
 
+const themeOptions: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
+  { mode: 'light',  label: 'Clair',   Icon: Sun     },
+  { mode: 'dark',   label: 'Foncé',   Icon: Moon    },
+  { mode: 'system', label: 'Système', Icon: Monitor },
+]
+
 export function Sidebar() {
   const pathname = usePathname()
+  const [themeOpen, setThemeOpen] = useState(false)
+  const [currentTheme, setCurrentTheme] = useState<ThemeMode>('system')
+  const popoverRef = useRef<HTMLDivElement>(null)
+
+  // Read stored theme on mount
+  useEffect(() => {
+    const stored = (localStorage.getItem(THEME_KEY) as ThemeMode) ?? 'system'
+    setCurrentTheme(stored)
+  }, [])
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!themeOpen) return
+    function handleClick(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setThemeOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [themeOpen])
+
+  function selectTheme(mode: ThemeMode) {
+    saveTheme(mode)
+    setCurrentTheme(mode)
+    setThemeOpen(false)
+  }
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
   }
+
+  const ActiveThemeIcon = themeOptions.find(t => t.mode === currentTheme)?.Icon ?? Monitor
 
   return (
     <aside
@@ -127,12 +165,70 @@ export function Sidebar() {
           >
             <Settings size={13} />
           </Link>
-          <button
-            className="flex-1 flex items-center justify-center py-2 rounded-[6px] transition-all"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            <Moon size={13} />
-          </button>
+
+          {/* Theme picker */}
+          <div className="flex-1 relative" ref={popoverRef}>
+            <button
+              onClick={() => setThemeOpen(o => !o)}
+              className="w-full flex items-center justify-center py-2 rounded-[6px] transition-all"
+              style={{
+                color: themeOpen ? 'var(--accent)' : 'var(--text-muted)',
+                background: themeOpen ? 'rgba(242,84,45,0.08)' : 'transparent',
+              }}
+            >
+              <ActiveThemeIcon size={13} />
+            </button>
+
+            {/* Popover */}
+            {themeOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 'calc(100% + 8px)',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 12,
+                  padding: '8px',
+                  display: 'flex',
+                  gap: 6,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  zIndex: 100,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {themeOptions.map(({ mode, label, Icon }) => {
+                  const active = currentTheme === mode
+                  return (
+                    <button
+                      key={mode}
+                      onClick={() => selectTheme(mode)}
+                      title={label}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '7px 8px',
+                        borderRadius: 8,
+                        border: active ? '1.5px solid var(--accent)' : '1.5px solid var(--border)',
+                        background: active ? 'rgba(242,84,45,0.1)' : 'transparent',
+                        cursor: 'pointer',
+                        transition: 'all 0.12s',
+                        minWidth: 42,
+                      }}
+                    >
+                      <Icon size={14} style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }} />
+                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--wheat)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+                        {label}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </aside>

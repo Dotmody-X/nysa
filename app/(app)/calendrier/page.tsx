@@ -185,20 +185,20 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
-      <div className="w-full max-w-md rounded-[16px] p-6 flex flex-col gap-5" style={{ background: '#111', border: '1px solid rgba(245,223,187,0.12)' }} onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-md rounded-[16px] p-6 flex flex-col gap-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-[8px] flex items-center justify-center" style={{ background: 'rgba(245,223,187,0.08)' }}>
+            <div className="w-8 h-8 rounded-[8px] flex items-center justify-center" style={{ background: 'var(--bg-input)' }}>
               {loadingCals ? <RefreshCw size={14} style={{ color: 'var(--wheat)', opacity: 0.5 }} /> : <Apple size={16} style={{ color: 'var(--wheat)' }} />}
             </div>
             <div>
               <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>Apple Calendar</p>
-              <p className="text-[10px]" style={{ color: 'rgba(245,223,187,0.45)' }}>{stepLabel}</p>
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{stepLabel}</p>
             </div>
           </div>
-          <button onClick={onClose}><X size={14} style={{ color: 'rgba(245,223,187,0.4)' }} /></button>
+          <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
 
         {/* Step 1 — Instructions */}
@@ -206,8 +206,8 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
           <>
             <div className="rounded-[10px] p-4 flex flex-col gap-2" style={{ background: 'rgba(14,149,148,0.12)', border: '1px solid rgba(14,149,148,0.25)' }}>
               <p className="text-xs font-semibold" style={{ color: '#0E9594' }}>Avant de continuer</p>
-              <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(245,223,187,0.65)' }}>
-                Apple exige un <strong style={{ color: '#F5DFBB' }}>mot de passe spécifique à l'app</strong> pour les accès tiers. Ton mot de passe Apple ID principal ne fonctionnera pas.
+              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--wheat)' }}>
+                Apple exige un <strong style={{ color: 'var(--wheat)' }}>mot de passe spécifique à l'app</strong> pour les accès tiers. Ton mot de passe Apple ID principal ne fonctionnera pas.
               </p>
             </div>
             <div className="flex flex-col gap-2">
@@ -218,8 +218,8 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
               ].map(s => (
                 <div key={s.n} className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold" style={{ background: '#F2542D', color: '#fff' }}>{s.n}</div>
-                  <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(245,223,187,0.65)' }}>
-                    {s.t} <span style={{ color: '#F5DFBB' }}>{s.link}</span> {s.desc}
+                  <p className="text-[11px] leading-relaxed" style={{ color: 'var(--wheat)' }}>
+                    {s.t} <span style={{ color: 'var(--wheat)' }}>{s.link}</span> {s.desc}
                   </p>
                 </div>
               ))}
@@ -235,18 +235,18 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
           <>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'rgba(245,223,187,0.5)', letterSpacing: '0.1em' }}>Apple ID (email)</label>
+                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>Apple ID (email)</label>
                 <input autoFocus type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="nom@icloud.com"
                   className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: '#1a1a1a', color: '#F5DFBB', border: '1px solid rgba(245,223,187,0.15)' }} />
+                  style={{ background: 'var(--bg-input)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'rgba(245,223,187,0.5)', letterSpacing: '0.1em' }}>Mot de passe spécifique</label>
+                <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>Mot de passe spécifique</label>
                 <input type="password" value={pass} onChange={e => setPass(e.target.value)}
                   placeholder="xxxx-xxxx-xxxx-xxxx"
                   className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: '#1a1a1a', color: '#F5DFBB', border: '1px solid rgba(245,223,187,0.15)' }} />
+                  style={{ background: 'var(--bg-input)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
               </div>
             </div>
             {result && (
@@ -255,7 +255,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
               </p>
             )}
             <div className="flex gap-2">
-              <button onClick={() => setStep(1)} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: '#1a1a1a', border: '1px solid rgba(245,223,187,0.15)', color: 'rgba(245,223,187,0.6)' }}>
+              <button onClick={() => setStep(1)} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                 ← Retour
               </button>
               <button onClick={handleConnect} disabled={syncing || !email || !pass}
@@ -270,9 +270,9 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
         {/* Step 3 — Sélection des calendriers */}
         {step === 3 && (
           <>
-            <div className="rounded-[10px] p-3" style={{ background: 'rgba(245,223,187,0.04)', border: '1px solid rgba(245,223,187,0.1)' }}>
-              <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(245,223,187,0.55)' }}>
-                Coche les calendriers à <strong style={{ color: '#F5DFBB' }}>inclure</strong> dans NYSA. Les autres seront ignorés.
+            <div className="rounded-[10px] p-3" style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }}>
+              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                Coche les calendriers à <strong style={{ color: 'var(--wheat)' }}>inclure</strong> dans NYSA. Les autres seront ignorés.
               </p>
             </div>
 
@@ -283,20 +283,20 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
                   <div key={cal.url}
                     onClick={() => toggleExclude(cal.name)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-[8px] cursor-pointer"
-                    style={{ background: isIncluded ? 'rgba(14,149,148,0.08)' : 'transparent', border: `1px solid ${isIncluded ? 'rgba(14,149,148,0.25)' : 'rgba(245,223,187,0.08)'}`, transition: 'all 0.12s' }}
-                    onMouseEnter={e => { if (!isIncluded) (e.currentTarget as HTMLElement).style.background = 'rgba(245,223,187,0.04)' }}
+                    style={{ background: isIncluded ? 'rgba(14,149,148,0.08)' : 'transparent', border: `1px solid ${isIncluded ? 'rgba(14,149,148,0.25)' : 'var(--border)'}`, transition: 'all 0.12s' }}
+                    onMouseEnter={e => { if (!isIncluded) (e.currentTarget as HTMLElement).style.background = 'var(--bg-card-hover)' }}
                     onMouseLeave={e => { if (!isIncluded) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
                     {/* Checkbox */}
                     <div style={{
                       width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                      border: `1.5px solid ${isIncluded ? '#0E9594' : 'rgba(245,223,187,0.2)'}`,
+                      border: `1.5px solid ${isIncluded ? '#0E9594' : 'var(--border-active)'}`,
                       background: isIncluded ? '#0E9594' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.12s',
                     }}>
                       {isIncluded && <span style={{ color: '#fff', fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</span>}
                     </div>
-                    <span style={{ fontSize: 12, color: isIncluded ? 'var(--wheat)' : 'rgba(245,223,187,0.4)', fontWeight: isIncluded ? 500 : 400 }}>
+                    <span style={{ fontSize: 12, color: isIncluded ? 'var(--wheat)' : 'var(--text-subtle)', fontWeight: isIncluded ? 500 : 400 }}>
                       {cal.name}
                     </span>
                   </div>
@@ -311,7 +311,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
             )}
 
             <div className="flex gap-2">
-              <button onClick={onClose} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: '#1a1a1a', border: '1px solid rgba(245,223,187,0.15)', color: 'rgba(245,223,187,0.6)' }}>
+              <button onClick={onClose} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                 Annuler
               </button>
               <button onClick={handleApplyFilter} disabled={syncing}
@@ -410,7 +410,7 @@ function EventModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.65)' }} onClick={onClose}>
-      <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: '#111', border: '1px solid rgba(245,223,187,0.12)' }} onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -771,7 +771,7 @@ function CalendrierContent() {
       {/* Notification toast */}
       {notification && (
         <div className="fixed top-4 right-4 z-50 px-4 py-2.5 rounded-[10px] text-sm font-semibold"
-          style={{ background: '#111', border: '1px solid rgba(245,223,187,0.15)', color: 'var(--wheat)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--wheat)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
           {notification}
         </div>
       )}
@@ -1184,9 +1184,9 @@ function CalendrierContent() {
           </div>
           <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
             {/* Apple Calendar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: appleConnected ? 'rgba(14,149,148,0.08)' : 'rgba(245,223,187,0.04)', border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.25)' : 'var(--border)'}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: appleConnected ? 'rgba(14,149,148,0.08)' : 'var(--bg-card-hover)', border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.25)' : 'var(--border)'}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 7, background: appleConnected ? 'rgba(14,149,148,0.15)' : 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: appleConnected ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Apple size={14} style={{ color: appleConnected ? '#0E9594' : 'var(--wheat)' }} />
                 </div>
                 <div>
@@ -1204,9 +1204,9 @@ function CalendrierContent() {
               </div>
             </div>
             {/* Google Calendar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'rgba(245,223,187,0.02)', border: '1px solid var(--border)', opacity: 0.5 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border)', opacity: 0.5 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(245,223,187,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Calendar size={14} style={{ color: 'var(--wheat)' }} />
                 </div>
                 <div>

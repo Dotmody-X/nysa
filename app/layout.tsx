@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" data-theme="dark" className={`${saira.variable} ${sora.variable} h-full`}>
+    <html lang="fr" data-theme="system" className={`${saira.variable} ${sora.variable} h-full`}>
       <body className="h-full antialiased" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
