@@ -87,6 +87,25 @@ export function useTimeEntries() {
     return { data, error, calendarEvent }
   }
 
+  async function update(id: string, patch: Partial<Pick<TimeEntry, 'description' | 'project_id' | 'category' | 'started_at' | 'ended_at' | 'is_billable'>>) {
+    // Recalculate duration if times changed
+    const payload: Record<string, unknown> = { ...patch }
+    const entry = entries.find(e => e.id === id)
+    if (entry && (patch.started_at || patch.ended_at)) {
+      const s = patch.started_at ?? entry.started_at
+      const e = patch.ended_at   ?? entry.ended_at
+      if (s && e) payload.duration_seconds = Math.floor((new Date(e).getTime() - new Date(s).getTime()) / 1000)
+    }
+    const { data, error } = await supabase
+      .from('time_entries')
+      .update(payload)
+      .eq('id', id)
+      .select('*, projects(name, color)')
+      .single()
+    if (!error && data) setEntries(prev => prev.map(x => x.id === id ? data as TimeEntry : x))
+    return { data, error }
+  }
+
   async function remove(id: string) {
     await supabase.from('time_entries').delete().eq('id', id)
     setEntries(e => e.filter(x => x.id !== id))
@@ -103,7 +122,7 @@ export function useTimeEntries() {
 
   return {
     entries, loading, refetch: fetch,
-    start, stop, remove,
+    start, stop, update, remove,
     totalSecondsToday, totalSecondsWeek,
   }
 }

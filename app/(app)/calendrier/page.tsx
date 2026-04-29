@@ -352,6 +352,7 @@ function EventModal({
     category:    initialValues?.category    ?? (extraCategories[0] || 'Travail'),
     location:    initialValues?.location    ?? '',
     projectId:   initialValues?.project_id  ?? '',
+    date:        date,
     startTime:   initStart
       ? `${String(initStart.getHours()).padStart(2,'0')}:${String(initStart.getMinutes()).padStart(2,'0')}`
       : `${String(hour).padStart(2, '0')}:00`,
@@ -384,7 +385,7 @@ function EventModal({
     setSaving(true)
     const [sh, sm] = form.startTime.split(':').map(Number)
     const [eh, em] = form.endTime.split(':').map(Number)
-    const base = new Date(date + 'T00:00:00')
+    const base = new Date(form.date + 'T00:00:00')
     const patch: Partial<NewEvent> = {
       title:       form.title,
       description: form.description || undefined,
@@ -417,7 +418,9 @@ function EventModal({
             <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>
               {isEdit ? "Modifier l'événement" : 'Nouvel événement'}
             </p>
-            <p className="text-[10px] capitalize mt-0.5" style={{ color: 'var(--text-muted)' }}>{displayDate}</p>
+            <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+            className="text-[10px] mt-0.5 outline-none bg-transparent"
+            style={{ color: 'var(--text-muted)', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }} />
           </div>
           <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
@@ -554,6 +557,20 @@ function CalendrierContent() {
   const [appleCalendars, setAppleCalendars] = useState<string[]>([])
 
   const gridScrollRef = useRef<HTMLDivElement | null>(null)
+  const colsRef       = useRef<HTMLDivElement | null>(null)
+
+  // Drag-to-move state
+  const [dragging, setDragging] = useState<{
+    ev: CalendarEvent; offsetPx: number; ghostDay: number; ghostTopPx: number
+  } | null>(null)
+
+  // Resize state
+  const [resizing, setResizing] = useState<{
+    ev: CalendarEvent; ghostEndPx: number
+  } | null>(null)
+
+  // Snap to 15-min grid
+  function snapPx(px: number) { return Math.round(px / (SLOT_PX / 4)) * (SLOT_PX / 4) }
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const weekDays   = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
@@ -657,6 +674,54 @@ function CalendrierContent() {
   async function handleDelete(id: string) {
     await removeEvent(id)
     setSelected(null)
+  }
+
+  // ── Overlay handlers (drag + resize) ────────────────────────────────────────
+  function handleOverlayMove(e: React.PointerEvent) {
+    const gridEl = gridScrollRef.current
+    const colsEl = colsRef.current
+    if (!gridEl || !colsEl) return
+    const colsRect = colsEl.getBoundingClientRect()
+    const relY     = e.clientY - colsRect.top + gridEl.scrollTop
+
+    if (dragging) {
+      const rawTop   = relY - dragging.offsetPx
+      const snapped  = snapPx(Math.max(0, Math.min(rawTop, (TOTAL_HOURS - 0.25) * SLOT_PX)))
+      const dayWidth = colsRect.width / 7
+      const relX     = e.clientX - colsRect.left
+      const dayIdx   = Math.max(0, Math.min(6, Math.floor(relX / dayWidth)))
+      setDragging(d => d ? { ...d, ghostDay: dayIdx, ghostTopPx: snapped } : null)
+    }
+
+    if (resizing) {
+      const minEnd  = eventTop(resizing.ev.start_at) + SLOT_PX / 4
+      const snapped = snapPx(Math.max(minEnd, Math.min(relY, TOTAL_HOURS * SLOT_PX)))
+      setResizing(r => r ? { ...r, ghostEndPx: snapped } : null)
+    }
+  }
+
+  async function handleOverlayUp() {
+    if (dragging) {
+      const { ev, ghostDay, ghostTopPx } = dragging
+      const mins    = Math.round((ghostTopPx / SLOT_PX) * 60)
+      const h       = HOUR_START + Math.floor(mins / 60)
+      const m       = mins % 60
+      const day     = weekDays[ghostDay]
+      const dur     = new Date(ev.end_at).getTime() - new Date(ev.start_at).getTime()
+      const newStart = new Date(day); newStart.setHours(h, m, 0, 0)
+      const newEnd   = new Date(newStart.getTime() + dur)
+      await updateEvent(ev.id, { start_at: newStart.toISOString(), end_at: newEnd.toISOString() })
+      setDragging(null)
+    }
+    if (resizing) {
+      const { ev, ghostEndPx } = resizing
+      const totalMins = Math.round((ghostEndPx / SLOT_PX) * 60) + HOUR_START * 60
+      const h = Math.floor(totalMins / 60)
+      const m = totalMins % 60
+      const newEnd = new Date(ev.start_at); newEnd.setHours(h, m, 0, 0)
+      await updateEvent(ev.id, { end_at: newEnd.toISOString() })
+      setResizing(null)
+    }
   }
 
   // Upcoming events (next 5 from now)
@@ -868,9 +933,15 @@ function CalendrierContent() {
             )}
 
             {/* Day columns */}
-            <div style={{ position: 'absolute', inset: 0, left: TIME_COL, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+            <div ref={colsRef} style={{ position: 'absolute', inset: 0, left: TIME_COL, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
               {weekDays.map((day, di) => {
                 const dayEvs = eventsForDay(day)
+                // Ghost drop indicator for this column
+                const showGhost = dragging && dragging.ghostDay === di
+                const ghostEv   = dragging?.ev
+                const ghostH    = ghostEv ? eventHeight(ghostEv.start_at, ghostEv.end_at) : 0
+                const ghostColor = ghostEv ? evColor(ghostEv) : '#555'
+
                 return (
                   <div key={di} style={{ position: 'relative', borderRight: di < 6 ? '1px solid var(--border)' : 'none' }}>
                     {/* Click zones */}
@@ -878,26 +949,67 @@ function CalendrierContent() {
                       <div key={h} style={{ position: 'absolute', top: h * SLOT_PX, height: SLOT_PX, left: 0, right: 0, cursor: 'pointer', zIndex: 1 }}
                         onClick={() => { setModalDate(day.toISOString().slice(0, 10)); setModalHour(HOUR_START + h) }} />
                     ))}
+
+                    {/* Ghost drop preview */}
+                    {showGhost && ghostEv && (
+                      <div style={{
+                        position: 'absolute', top: dragging!.ghostTopPx, height: ghostH,
+                        left: 2, right: 2, borderRadius: 6,
+                        background: ghostColor + '33',
+                        border: `1.5px dashed ${ghostColor}`,
+                        zIndex: 30, pointerEvents: 'none',
+                      }} />
+                    )}
+
                     {/* Events */}
                     {dayEvs.map(ev => {
                       const top    = eventTop(ev.start_at)
-                      const height = eventHeight(ev.start_at, ev.end_at)
+                      const isDraggingThis = dragging?.ev.id === ev.id
+                      const isResizingThis = resizing?.ev.id === ev.id
+                      const height = isResizingThis
+                        ? Math.max(20, resizing!.ghostEndPx - top)
+                        : eventHeight(ev.start_at, ev.end_at)
                       const color  = evColor(ev)
                       const isSel  = selected?.id === ev.id
                       return (
                         <div key={ev.id}
-                          onClick={e => { e.stopPropagation(); setSelected(ev) }}
+                          onClick={e => { if (!isDraggingThis) { e.stopPropagation(); setSelected(ev) } }}
+                          onPointerDown={e => {
+                            // Only on left button, not on resize handle
+                            if (e.button !== 0) return
+                            if ((e.target as HTMLElement).dataset.resize) return
+                            e.preventDefault(); e.stopPropagation()
+                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                            setDragging({ ev, offsetPx: e.clientY - rect.top, ghostDay: di, ghostTopPx: top })
+                          }}
                           style={{
                             position: 'absolute', top, height, left: 2, right: 2,
                             borderRadius: 6, padding: '3px 6px',
-                            background: color + '1A',
+                            background: color + (isDraggingThis ? '0A' : '1A'),
                             borderLeft: `3px solid ${color}`,
-                            zIndex: 10, cursor: 'pointer',
+                            zIndex: 10,
+                            cursor: isDraggingThis ? 'grabbing' : 'grab',
                             outline: isSel ? `1.5px solid ${color}` : 'none',
                             outlineOffset: 1, overflow: 'hidden',
+                            opacity: isDraggingThis ? 0.4 : 1,
+                            transition: isDraggingThis ? 'none' : 'opacity 0.1s',
                           }}>
-                          <p style={{ fontSize: 10, fontWeight: 600, color, lineHeight: 1.2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{ev.title}</p>
-                          {height > 28 && <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{fmtTime(ev.start_at)}</p>}
+                          <p style={{ fontSize: 10, fontWeight: 600, color, lineHeight: 1.2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', pointerEvents: 'none' }}>{ev.title}</p>
+                          {height > 28 && <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, pointerEvents: 'none' }}>{fmtTime(ev.start_at)}</p>}
+                          {/* Resize handle */}
+                          <div
+                            data-resize="1"
+                            onPointerDown={e => {
+                              e.preventDefault(); e.stopPropagation()
+                              setResizing({ ev, ghostEndPx: top + height })
+                            }}
+                            style={{
+                              position: 'absolute', bottom: 0, left: 0, right: 0, height: 6,
+                              cursor: 's-resize', zIndex: 20,
+                              background: `linear-gradient(to bottom, transparent, ${color}44)`,
+                              borderRadius: '0 0 6px 6px',
+                            }}
+                          />
                         </div>
                       )
                     })}
@@ -905,6 +1017,18 @@ function CalendrierContent() {
                 )
               })}
             </div>
+
+            {/* Full-screen overlay during drag/resize */}
+            {(dragging || resizing) && (
+              <div
+                onPointerMove={handleOverlayMove}
+                onPointerUp={handleOverlayUp}
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 50,
+                  cursor: dragging ? 'grabbing' : 's-resize',
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
