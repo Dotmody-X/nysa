@@ -801,9 +801,6 @@ export default function BudgetPage() {
   }
 
   // ════════ RENDU ════════════════════════════════════════════════════════════
-  const CARD: React.CSSProperties = { background:'var(--bg-card)', borderRadius:16, border:'1px solid var(--border)', overflow:'hidden', display:'flex', flexDirection:'column' }
-  const LBLs: React.CSSProperties = { ...DF, fontSize:10, fontWeight:800, letterSpacing:'0.13em', textTransform:'uppercase' }
-  const HDR: React.CSSProperties  = { padding:'16px 20px 12px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }
 
   return (
     <div style={{ padding:'20px 26px', display:'flex', flexDirection:'column', gap:14, minHeight:'100%' }}>
@@ -820,7 +817,7 @@ export default function BudgetPage() {
         <div style={{ background:ORANGE, borderRadius:16, padding:'14px 20px', display:'flex', gap:0, flexShrink:0, minWidth:500 }}>
           <div style={{ flex:1, paddingRight:20 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-              <span style={{ ...LBLs, fontSize:9, color:'rgba(255,255,255,0.8)' }}>RÉSUMÉ DU MOIS</span>
+              <span style={{ ...LBL, fontSize:9, color:'rgba(255,255,255,0.8)' }}>RÉSUMÉ DU MOIS</span>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                 <span style={{ fontSize:10, color:'rgba(255,255,255,0.7)', textTransform:'capitalize' }}>{monthName}</span>
                 <MoreVertical size={13} style={{ color:'rgba(255,255,255,0.6)' }}/>
@@ -879,7 +876,7 @@ export default function BudgetPage() {
         {/* B1 Aperçu dépenses */}
         <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'none' }}>
           <div style={{ ...HDR, borderBottom:'1px solid rgba(240,228,204,0.1)' }}>
-            <span style={{ ...LBLs, color:WHEAT }}>Aperçu des dépenses</span>
+            <span style={{ ...LBL, color:WHEAT }}>Aperçu des dépenses</span>
             <span style={{ fontSize:10, color:'rgba(240,228,204,0.45)' }}>{cur.byCategory.length} catégories</span>
           </div>
           <div style={{ flex:1, padding:'14px 20px', display:'flex', gap:16, alignItems:'center', overflow:'hidden' }}>
@@ -913,7 +910,7 @@ export default function BudgetPage() {
         {/* B2 Répartition vs Budget */}
         <div style={{ ...CARD, gridColumn:'3/5', gridRow:'1/2' }}>
           <div style={HDR}>
-            <span style={{ ...LBLs, color:ORANGE }}>Répartition vs Budget</span>
+            <span style={{ ...LBL, color:ORANGE }}>Répartition vs Budget</span>
             <span style={{ fontSize:9, color:'var(--text-muted)' }}>
               {cur.totalExpense>0 && cur.totalBillsBudget>0 ? `${Math.round((cur.totalExpense/cur.totalBillsBudget)*100)}% utilisé` : ''}
             </span>
@@ -955,7 +952,7 @@ export default function BudgetPage() {
         {/* B3 Comptes */}
         <div style={{ ...CARD, gridColumn:'1/2', gridRow:'2/3' }}>
           <div style={HDR}>
-            <span style={{ ...LBLs, color:TEAL }}>Comptes</span>
+            <span style={{ ...LBL, color:TEAL }}>Comptes</span>
             <span style={{ fontSize:9, color:'var(--text-muted)', ...DF, fontWeight:700 }}>Solde</span>
           </div>
           <div style={{ flex:1, padding:'8px 16px', overflow:'auto' }}>
@@ -981,7 +978,7 @@ export default function BudgetPage() {
         {/* B4 Flux de trésorerie */}
         <div style={{ ...CARD, gridColumn:'2/5', gridRow:'2/3' }}>
           <div style={HDR}>
-            <span style={{ ...LBLs }}>Flux de trésorerie</span>
+            <span style={{ ...LBL }}>Flux de trésorerie</span>
             <div style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:6, background:'var(--bg-input)', border:'1px solid var(--border)' }}>
               <span style={{ fontSize:10, color:'var(--text-muted)' }}>6 derniers mois</span>
               <ChevronRight size={11} style={{ color:'var(--text-muted)' }}/>
@@ -1025,7 +1022,7 @@ export default function BudgetPage() {
         {/* B5 Dernières transactions */}
         <div style={{ ...CARD, gridColumn:'1/4', gridRow:'3/4' }}>
           <div style={HDR}>
-            <span style={{ ...LBLs }}>Dernières transactions</span>
+            <span style={{ ...LBL }}>Dernières transactions</span>
             <span style={{ fontSize:10, color:'var(--text-muted)' }}>{filteredTx.length} ce mois</span>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 120px 100px 110px', padding:'7px 20px', background:'var(--bg-input)', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
@@ -1068,7 +1065,7 @@ export default function BudgetPage() {
         {/* B6 Paiements à venir */}
         <div style={{ ...CARD, gridColumn:'4/5', gridRow:'3/4' }}>
           <div style={HDR}>
-            <span style={{ ...LBLs }}>Paiements à venir</span>
+            <span style={{ ...LBL }}>Paiements à venir</span>
             <Calendar size={13} style={{ color:'var(--text-muted)' }}/>
           </div>
           <div style={{ flex:1, padding:'10px 16px', overflow:'auto', display:'flex', flexDirection:'column', gap:6 }}>
@@ -1100,7 +1097,7 @@ export default function BudgetPage() {
         {/* B7 Planification budgétaire */}
         <div style={{ ...CARD, gridColumn:'1/3', gridRow:'4/5' }}>
           <div style={HDR}>
-            <span style={{ ...LBLs }}>Planification budgétaire</span>
+            <span style={{ ...LBL }}>Planification budgétaire</span>
             <div style={{ display:'flex', alignItems:'center', gap:6, padding:'3px 10px', borderRadius:6, background:'var(--bg-input)', border:'1px solid var(--border)' }}>
               <span style={{ fontSize:10, color:'var(--text-muted)', textTransform:'capitalize' }}>{monthName}</span>
               <ChevronRight size={11} style={{ color:'var(--text-muted)' }}/>
@@ -1145,7 +1142,7 @@ export default function BudgetPage() {
         {/* B8 Objectifs financiers */}
         <div style={{ ...CARD, gridColumn:'3/5', gridRow:'4/5' }}>
           <div style={HDR}>
-            <span style={{ ...LBLs }}>Objectifs financiers</span>
+            <span style={{ ...LBL }}>Objectifs financiers</span>
             <button onClick={()=>panel('objectifs')} style={{ width:24, height:24, borderRadius:6, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
               <Plus size={12}/>
             </button>
@@ -1182,7 +1179,7 @@ export default function BudgetPage() {
             <Zap size={22} style={{ color:WHEAT }}/>
           </div>
           <div style={{ flex:1 }}>
-            <p style={{ ...LBLs, color:WHEAT, opacity:0.7, marginBottom:6 }}>Insight de l'Agent IA</p>
+            <p style={{ ...LBL, color:WHEAT, opacity:0.7, marginBottom:6 }}>Insight de l'Agent IA</p>
             <p style={{ fontSize:14, color:'rgba(240,228,204,0.93)', lineHeight:1.6 }}>
               {cur.loading ? 'Analyse en cours…'
                : cur.balance<0
