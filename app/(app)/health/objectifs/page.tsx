@@ -179,10 +179,10 @@ export default function ObjectifsPage() {
           const pct     = Math.min(100, (current / obj.target) * 100)
           const done    = pct >= 100
           return (
-            <div key={obj.id} style={{ padding: '20px 22px', borderRadius: 12, background: 'var(--bg-card)',
+            <div key={obj.id} style={{ padding: '20px 22px', borderRadius: 12,
+              background: done ? `${obj.color}0A` : 'var(--bg-card)',
               border: `1px solid ${done ? obj.color + '44' : 'var(--border)'}`,
-              display: 'flex', gap: 16, alignItems: 'center',
-              background: done ? `${obj.color}0A` : 'var(--bg-card)' as any }}>
+              display: 'flex', gap: 16, alignItems: 'center' }}>
               {/* Donut */}
               <DonutProgress pct={pct} color={obj.color} size={64} />
 
