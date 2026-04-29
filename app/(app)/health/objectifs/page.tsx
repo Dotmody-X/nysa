@@ -1,28 +1,30 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, Target, Award, Droplets, Activity, Trash2, Check } from 'lucide-react'
+import { ArrowLeft, Plus, Target, Award, Droplets, Activity, Trash2, Check, Pencil, X } from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL   = '#0E9594'
+const TEAL    = '#0E9594'
 const TEAL_BG = '#11686A'
-const ORANGE = '#F2542D'
-const WHEAT  = '#F0E4CC'
+const ORANGE  = '#F2542D'
+const WHEAT   = '#F0E4CC'
 
 type Objectif = {
   id: string; label: string; target: number; unit: string; color: string
   category: 'course' | 'poids' | 'nutrition' | 'hydratation' | 'autre'
   period: 'jour' | 'semaine' | 'mois' | 'total'
   icon: string
+  currentOverride?: number   // valeur manuelle pour objectifs non-running
 }
 
-const ICONS: Record<string, React.ReactNode> = {
-  activity: <Activity size={16} />,
-  target:   <Target size={16} />,
-  award:    <Award size={16} />,
-  drops:    <Droplets size={16} />,
-}
+type FormState = { label: string; target: string; unit: string; color: string; period: string; category: string; icon: string; currentOverride: string }
+
+const EMPTY_FORM: FormState = { label: '', target: '', unit: 'km', color: ORANGE, period: 'semaine', category: 'course', icon: 'activity', currentOverride: '' }
+
+const COLORS = [ORANGE, TEAL, WHEAT, '#3B82F6', '#7C3AED', '#10B981']
+const PERIOD_LABELS: Record<string, string> = { jour: '/ jour', semaine: '/ semaine', mois: '/ mois', total: 'total' }
+const CATEGORY_COLORS: Record<string, string> = { course: TEAL_BG, poids: '#5B6F3A', nutrition: '#7C3AED', hydratation: '#1D4ED8', autre: '#374151' }
 
 function DonutProgress({ pct, color, size = 64 }: { pct: number; color: string; size?: number }) {
   const r = (size - 8) / 2; const cx = size / 2; const cy = size / 2
@@ -42,22 +44,104 @@ function DonutProgress({ pct, color, size = 64 }: { pct: number; color: string; 
   )
 }
 
+function FormPanel({
+  title, form, setForm, onSubmit, onCancel, isEdit
+}: {
+  title: string
+  form: FormState
+  setForm: (f: (prev: FormState) => FormState) => void
+  onSubmit: (e: React.FormEvent) => void
+  onCancel: () => void
+  isEdit: boolean
+}) {
+  const inputStyle = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }
+  return (
+    <form onSubmit={onSubmit} style={{ marginBottom: 16, padding: 20, borderRadius: 12, background: 'var(--bg-card)', border: `1px solid ${isEdit ? TEAL + '44' : 'var(--border-active)'}` }}>
+      <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: isEdit ? TEAL : ORANGE, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>{title}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 80px 1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
+        <div>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Intitulé</p>
+          <input type="text" value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
+            placeholder="ex: Courir 5 km / semaine" autoFocus style={inputStyle} />
+        </div>
+        <div>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Cible</p>
+          <input type="number" step="0.1" value={form.target} onChange={e => setForm(f => ({ ...f, target: e.target.value }))}
+            placeholder="ex: 30" style={inputStyle} />
+        </div>
+        <div>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Unité</p>
+          <input type="text" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}
+            placeholder="km" style={inputStyle} />
+        </div>
+        <div>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Période</p>
+          <select value={form.period} onChange={e => setForm(f => ({ ...f, period: e.target.value }))}
+            style={inputStyle}>
+            <option value="jour">Par jour</option>
+            <option value="semaine">Par semaine</option>
+            <option value="mois">Par mois</option>
+            <option value="total">Total</option>
+          </select>
+        </div>
+        <div>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Catégorie</p>
+          <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+            style={inputStyle}>
+            <option value="course">Course</option>
+            <option value="poids">Poids</option>
+            <option value="nutrition">Nutrition</option>
+            <option value="hydratation">Hydratation</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Valeur actuelle</p>
+          <input type="number" step="0.1" value={form.currentOverride} onChange={e => setForm(f => ({ ...f, currentOverride: e.target.value }))}
+            placeholder="optionnel" style={inputStyle} />
+        </div>
+      </div>
+      <div style={{ marginBottom: 14 }}>
+        <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Couleur</p>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {COLORS.map(c => (
+            <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))}
+              style={{ width: 26, height: 26, borderRadius: '50%', background: c, border: `3px solid ${form.color === c ? '#fff' : 'transparent'}`, cursor: 'pointer', transition: 'border-color .15s' }} />
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="submit"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: isEdit ? TEAL : ORANGE, color: '#fff', borderRadius: 8, padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+          {isEdit ? <><Check size={12} /> Enregistrer</> : <><Plus size={12} /> Créer l&apos;objectif</>}
+        </button>
+        <button type="button" onClick={onCancel}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '9px 14px', fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+          <X size={12} /> Annuler
+        </button>
+      </div>
+    </form>
+  )
+}
+
 export default function ObjectifsPage() {
   const router = useRouter()
-  const { activities, metrics } = useHealth()
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ label: '', target: '', unit: 'km', color: ORANGE, period: 'semaine' as const, category: 'course' as const, icon: 'activity' })
+  const { activities } = useHealth()
 
   const [objectifs, setObjectifs] = useState<Objectif[]>([
-    { id: '1', label: 'Distance / semaine',     target: 30,  unit: 'km',      color: ORANGE,   category: 'course',      period: 'semaine', icon: 'activity' },
-    { id: '2', label: 'Sorties / semaine',       target: 4,   unit: 'sorties', color: WHEAT,    category: 'course',      period: 'semaine', icon: 'activity' },
-    { id: '3', label: 'Distance totale',         target: 500, unit: 'km',      color: TEAL,     category: 'course',      period: 'total',   icon: 'award' },
-    { id: '4', label: 'Courir 100 km / mois',    target: 100, unit: 'km',      color: ORANGE,   category: 'course',      period: 'mois',    icon: 'target' },
-    { id: '5', label: 'Hydratation journalière', target: 2.5, unit: 'L',       color: '#3B82F6', category: 'hydratation', period: 'jour',   icon: 'drops' },
+    { id: '1', label: 'Distance / semaine',     target: 30,  unit: 'km',      color: ORANGE,    category: 'course',      period: 'semaine', icon: 'activity' },
+    { id: '2', label: 'Sorties / semaine',       target: 4,   unit: 'sorties', color: WHEAT,     category: 'course',      period: 'semaine', icon: 'activity' },
+    { id: '3', label: 'Distance totale',         target: 500, unit: 'km',      color: TEAL,      category: 'course',      period: 'total',   icon: 'award' },
+    { id: '4', label: 'Courir 100 km / mois',    target: 100, unit: 'km',      color: ORANGE,    category: 'course',      period: 'mois',    icon: 'target' },
+    { id: '5', label: 'Hydratation journalière', target: 2.5, unit: 'L',       color: '#3B82F6', category: 'hydratation', period: 'jour',    icon: 'drops' },
   ])
 
-  // Calculer la valeur actuelle pour chaque objectif
-  const today = new Date()
+  const [showForm, setShowForm] = useState(false)
+  const [editId,   setEditId]   = useState<string | null>(null)
+  const [form,     setForm]     = useState<FormState>(EMPTY_FORM)
+
+  // Running data
+  const today     = new Date()
   const weekStart = new Date(today)
   weekStart.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1))
   weekStart.setHours(0, 0, 0, 0)
@@ -69,7 +153,7 @@ export default function ObjectifsPage() {
     .filter(a => { const d = new Date(a.date + 'T12:00:00'); return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear() })
     .reduce((s, a) => s + (a.distance_km ?? 0), 0)
 
-  function getCurrentValue(obj: Objectif): number {
+  function getAutoValue(obj: Objectif): number {
     if (obj.id === '1') return kmWeek
     if (obj.id === '2') return thisWeek.length
     if (obj.id === '3') return allKm
@@ -77,27 +161,75 @@ export default function ObjectifsPage() {
     return 0
   }
 
-  function addObjectif(e: React.FormEvent) {
-    e.preventDefault(); if (!form.label || !form.target) return
-    setObjectifs(o => [...o, {
-      id: Date.now().toString(), label: form.label,
-      target: parseFloat(form.target), unit: form.unit,
-      color: form.color, category: form.category,
-      period: form.period, icon: form.icon,
-    }])
-    setShowForm(false)
-    setForm({ label: '', target: '', unit: 'km', color: ORANGE, period: 'semaine', category: 'course', icon: 'activity' })
+  function getCurrentValue(obj: Objectif): number {
+    if (obj.currentOverride != null) return obj.currentOverride
+    return getAutoValue(obj)
   }
 
+  // ── ADD ──
+  function handleAdd(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.label || !form.target) return
+    setObjectifs(o => [...o, {
+      id: Date.now().toString(),
+      label:           form.label,
+      target:          parseFloat(form.target),
+      unit:            form.unit,
+      color:           form.color,
+      category:        form.category as Objectif['category'],
+      period:          form.period as Objectif['period'],
+      icon:            form.icon,
+      currentOverride: form.currentOverride ? parseFloat(form.currentOverride) : undefined,
+    }])
+    setShowForm(false)
+    setForm(EMPTY_FORM)
+  }
+
+  // ── EDIT ──
+  function startEdit(obj: Objectif) {
+    setEditId(obj.id)
+    setShowForm(false)
+    setForm({
+      label:           obj.label,
+      target:          String(obj.target),
+      unit:            obj.unit,
+      color:           obj.color,
+      period:          obj.period,
+      category:        obj.category,
+      icon:            obj.icon,
+      currentOverride: obj.currentOverride != null ? String(obj.currentOverride) : '',
+    })
+  }
+
+  function handleEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editId) return
+    setObjectifs(o => o.map(obj => obj.id !== editId ? obj : {
+      ...obj,
+      label:           form.label,
+      target:          parseFloat(form.target),
+      unit:            form.unit,
+      color:           form.color,
+      category:        form.category as Objectif['category'],
+      period:          form.period as Objectif['period'],
+      icon:            form.icon,
+      currentOverride: form.currentOverride ? parseFloat(form.currentOverride) : undefined,
+    }))
+    setEditId(null)
+    setForm(EMPTY_FORM)
+  }
+
+  function cancelForm() { setShowForm(false); setEditId(null); setForm(EMPTY_FORM) }
+
+  // ── DELETE ──
   function removeObjectif(id: string) {
+    if (!confirm('Supprimer cet objectif ?')) return
     setObjectifs(o => o.filter(x => x.id !== id))
   }
 
-  const PERIOD_LABELS: Record<string, string> = { jour: '/ jour', semaine: '/ semaine', mois: '/ mois', total: 'total' }
-  const CATEGORY_COLORS: Record<string, string> = { course: TEAL_BG, poids: '#5B6F3A', nutrition: '#7C3AED', hydratation: '#1D4ED8', autre: '#374151' }
-
   return (
     <div style={{ padding: 30, minHeight: '100%', maxWidth: 1100, margin: '0 auto' }}>
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
         <button onClick={() => router.back()}
@@ -109,84 +241,38 @@ export default function ObjectifsPage() {
           <p style={{ ...DF, fontSize: 24, fontWeight: 900, color: ORANGE, lineHeight: 1 }}>Défis &amp; Objectifs</p>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{objectifs.length} objectifs actifs</p>
         </div>
-        <button onClick={() => setShowForm(v => !v)}
+        <button onClick={() => { setShowForm(v => !v); setEditId(null); setForm(EMPTY_FORM) }}
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
             borderRadius: 10, background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
           <Plus size={12} /> Ajouter un objectif
         </button>
       </div>
 
-      {/* Form */}
-      {showForm && (
-        <form onSubmit={addObjectif} style={{ marginBottom: 16, padding: 20, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border-active)' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: ORANGE, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>Nouvel objectif</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 80px 1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <div>
-              <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Intitulé</p>
-              <input type="text" value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
-                placeholder="ex: Courir 5 km / semaine" autoFocus
-                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
-            </div>
-            <div>
-              <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Cible</p>
-              <input type="number" step="0.1" value={form.target} onChange={e => setForm(f => ({ ...f, target: e.target.value }))}
-                placeholder="ex: 30"
-                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
-            </div>
-            <div>
-              <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Unité</p>
-              <input type="text" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}
-                placeholder="km"
-                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
-            </div>
-            <div>
-              <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Période</p>
-              <select value={form.period} onChange={e => setForm(f => ({ ...f, period: e.target.value as any }))}
-                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }}>
-                <option value="jour">Par jour</option>
-                <option value="semaine">Par semaine</option>
-                <option value="mois">Par mois</option>
-                <option value="total">Total</option>
-              </select>
-            </div>
-            <div>
-              <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Couleur</p>
-              <div style={{ display: 'flex', gap: 6, paddingTop: 4 }}>
-                {[ORANGE, TEAL, WHEAT, '#3B82F6', '#7C3AED', '#10B981'].map(c => (
-                  <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))}
-                    style={{ width: 22, height: 22, borderRadius: '50%', background: c, border: `2px solid ${form.color === c ? '#fff' : 'transparent'}`, cursor: 'pointer' }} />
-                ))}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="submit"
-              style={{ background: ORANGE, color: '#fff', borderRadius: 8, padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
-              Créer l&apos;objectif
-            </button>
-            <button type="button" onClick={() => setShowForm(false)}
-              style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '9px 14px', fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
-              Annuler
-            </button>
-          </div>
-        </form>
+      {/* Add / Edit form */}
+      {(showForm || editId) && (
+        <FormPanel
+          title={editId ? 'Modifier l\'objectif' : 'Nouvel objectif'}
+          form={form}
+          setForm={setForm}
+          onSubmit={editId ? handleEdit : handleAdd}
+          onCancel={cancelForm}
+          isEdit={!!editId}
+        />
       )}
 
-      {/* Objectifs grid */}
+      {/* Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
         {objectifs.map(obj => {
           const current = getCurrentValue(obj)
           const pct     = Math.min(100, (current / obj.target) * 100)
           const done    = pct >= 100
+          const isEditing = editId === obj.id
           return (
             <div key={obj.id} style={{ padding: '20px 22px', borderRadius: 12,
-              background: done ? `${obj.color}0A` : 'var(--bg-card)',
-              border: `1px solid ${done ? obj.color + '44' : 'var(--border)'}`,
+              background: isEditing ? `${TEAL}08` : done ? `${obj.color}0A` : 'var(--bg-card)',
+              border: `1px solid ${isEditing ? TEAL + '44' : done ? obj.color + '44' : 'var(--border)'}`,
               display: 'flex', gap: 16, alignItems: 'center' }}>
-              {/* Donut */}
-              <DonutProgress pct={pct} color={obj.color} size={64} />
-
-              {/* Content */}
+              <DonutProgress pct={pct} color={isEditing ? TEAL : obj.color} size={64} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                   <div>
@@ -206,9 +292,15 @@ export default function ObjectifsPage() {
                         <Check size={12} style={{ color: '#fff' }} />
                       </div>
                     )}
+                    <button onClick={() => startEdit(obj)}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26,
+                        borderRadius: 7, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+                      <Pencil size={11} style={{ color: TEAL }} />
+                    </button>
                     <button onClick={() => removeObjectif(obj.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}>
-                      <Trash2 size={13} />
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26,
+                        borderRadius: 7, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+                      <Trash2 size={11} style={{ color: ORANGE }} />
                     </button>
                   </div>
                 </div>
@@ -217,7 +309,7 @@ export default function ObjectifsPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: obj.color }}>
-                    {typeof current === 'number' ? (Number.isInteger(current) ? current : current.toFixed(1)) : current} {obj.unit}
+                    {Number.isInteger(current) ? current : current.toFixed(1)} {obj.unit}
                   </span>
                   <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>/ {obj.target} {obj.unit}</span>
                 </div>
