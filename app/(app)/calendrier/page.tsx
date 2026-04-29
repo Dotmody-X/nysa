@@ -20,13 +20,38 @@ const TOTAL_HOURS  = HOUR_END - HOUR_START
 const SLOT_PX      = 52
 const TIME_COL     = 44
 
+// Catégories fixes avec couleurs NYSA
 const CATEGORIES: Record<string, string> = {
   Travail:  '#F2542D',
   Perso:    '#0E9594',
-  Santé:    '#562C2C',
+  Santé:    '#B45309',
   Running:  '#11686A',
-  Réunion:  '#F5DFBB',
+  Réunion:  '#9333EA',
   Autre:    '#555',
+}
+
+// Palette NYSA pour les catégories dynamiques (noms de calendriers Apple)
+const NYSA_PALETTE = [
+  '#F2542D', // orange fiery
+  '#0E9594', // teal
+  '#9333EA', // violet
+  '#2563EB', // bleu
+  '#16A34A', // vert
+  '#DB2777', // rose
+  '#D97706', // ambre
+  '#0891B2', // cyan
+  '#7C3AED', // indigo
+  '#DC2626', // rouge
+]
+
+// Couleur stable pour n'importe quel nom de catégorie (y compris noms Apple)
+function categoryColor(name: string): string {
+  if (!name) return '#555'
+  if (CATEGORIES[name]) return CATEGORIES[name]
+  // Hash simple → index dans la palette
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff
+  return NYSA_PALETTE[Math.abs(h) % NYSA_PALETTE.length]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,8 +90,8 @@ function eventHeight(start: string, end: string): number {
 }
 function evColor(ev: CalendarEvent): string {
   if (ev.color) return ev.color
-  if (ev.category && CATEGORIES[ev.category]) return CATEGORIES[ev.category]
-  return '#F2542D'
+  if (ev.category) return categoryColor(ev.category)
+  return '#555'
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -305,12 +330,13 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
 // Event Modal (create)
 // ─────────────────────────────────────────────────────────────────────────────
 function EventModal({
-  date, hour, onSave, onClose,
+  date, hour, onSave, onClose, extraCategories = [],
 }: {
   date: string
   hour: number
   onSave: (ev: NewEvent) => Promise<unknown>
   onClose: () => void
+  extraCategories?: string[]
 }) {
   const [form, setForm]     = useState({
     title: '', description: '', category: 'Travail', location: '',
@@ -376,8 +402,20 @@ function EventModal({
           <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
             style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
-            {Object.keys(CATEGORIES).map(c => <option key={c} value={c}>{c}</option>)}
+            <optgroup label="NYSA">
+              {Object.keys(CATEGORIES).map(c => <option key={c} value={c}>{c}</option>)}
+            </optgroup>
+            {extraCategories.length > 0 && (
+              <optgroup label="Apple Calendar">
+                {extraCategories.map(c => <option key={c} value={c}>{c}</option>)}
+              </optgroup>
+            )}
           </select>
+          {/* Dot de couleur pour la catégorie sélectionnée */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: -8 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColor(form.category), transition: 'background 0.15s' }} />
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Couleur NYSA</span>
+          </div>
 
           <input type="text" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
             placeholder="Lieu (optionnel)…"
@@ -423,6 +461,7 @@ function CalendrierContent() {
   const [appleConnected, setAppleConnected] = useState(false)
   const [syncing, setSyncing]             = useState(false)
   const [lastSync, setLastSync]           = useState<Date | null>(null)
+  const [appleCalendars, setAppleCalendars] = useState<string[]>([])
 
   const gridScrollRef = useRef<HTMLDivElement | null>(null)
 
@@ -432,11 +471,11 @@ function CalendrierContent() {
   const nowPx      = Math.max(0, (nowMins / 60) * SLOT_PX)
   const todayInWeek = weekDays.some(d => d.getTime() === today.getTime())
 
-  // Auto-scroll to current hour on mount
+  // Auto-scroll : positionne l'heure actuelle en haut de la fenêtre (avec 30min de marge)
   useEffect(() => {
     if (gridScrollRef.current) {
-      const scrollTo = Math.max(0, nowPx - 120)
-      gridScrollRef.current.scrollTop = scrollTo
+      const margin = SLOT_PX * 0.5  // 30min avant l'heure actuelle
+      gridScrollRef.current.scrollTop = Math.max(0, nowPx - margin)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -464,7 +503,22 @@ function CalendrierContent() {
       } catch {}
       if (showSpinner) setSyncing(false)
     }
+    // Charge aussi les noms des calendriers Apple pour enrichir le dropdown
+    async function loadAppleCals() {
+      try {
+        const res  = await fetch('/api/calendar/apple/calendars')
+        const json = await res.json()
+        if (res.ok && json.calendars) {
+          // Noms non exclus, non déjà dans CATEGORIES
+          const names = (json.calendars as { name: string }[])
+            .map(c => c.name)
+            .filter(n => !Object.keys(CATEGORIES).includes(n) && !(json.excluded ?? []).includes(n))
+          setAppleCalendars(names)
+        }
+      } catch {}
+    }
     bgSync(true)
+    loadAppleCals()
     const interval = setInterval(() => bgSync(false), 5 * 60 * 1000)
     return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -550,43 +604,37 @@ function CalendrierContent() {
       )}
 
       {/* ── ROW 1 : Hero header + À VENIR ──────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 10, maxHeight: 100 }}>
 
-        {/* Hero title */}
-        <div style={{ ...card(), padding: '28px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 150 }}>
-          <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#F2542D', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Calendrier</p>
-          <h1 style={{ fontSize: 38, fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--wheat)', lineHeight: 1.0, letterSpacing: '-0.02em', textTransform: 'uppercase', marginTop: 8 }}>
+        {/* Hero title — compact */}
+        <div style={{ ...card(), padding: '14px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <p style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#F2542D', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Calendrier</p>
+          <h1 style={{ fontSize: 22, fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--wheat)', lineHeight: 1.1, letterSpacing: '-0.02em', textTransform: 'uppercase', marginTop: 6 }}>
             Votre journée.<br />Votre plan.
           </h1>
         </div>
 
-        {/* À VENIR */}
-        <div style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{upcoming.length}</span>
+        {/* À VENIR — plus large, moins haut */}
+        <div style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: 100 }}>
+          <div style={{ padding: '8px 14px', borderBottom: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <p style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
+            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{upcoming.length}</span>
           </div>
-          <div style={{ overflowY: 'auto', flex: 1 }}>
+          {/* Liste horizontale compacte */}
+          <div style={{ display: 'flex', overflowX: 'auto', flex: 1, alignItems: 'center', gap: 6, padding: '6px 14px' }}>
             {upcoming.length === 0 ? (
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', padding: '12px 16px' }}>Aucun événement à venir.</p>
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>Aucun événement à venir.</p>
             ) : upcoming.map(ev => (
               <div key={ev.id} onClick={() => setSelected(ev)}
-                style={{ padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</p>
-                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
-                    {fmtShortDate(new Date(ev.start_at))} · {fmtTime(ev.start_at)}
-                  </p>
-                </div>
+                style={{ flexShrink: 0, padding: '5px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 120, maxWidth: 180 }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.22)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</p>
+                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)' }}>
+                  {fmtShortDate(new Date(ev.start_at))} · {fmtTime(ev.start_at)}
+                </p>
               </div>
             ))}
-          </div>
-          <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'flex-end' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <ChevronRight size={13} color="#fff" />
-            </div>
           </div>
         </div>
       </div>
@@ -626,7 +674,8 @@ function CalendrierContent() {
       </div>
 
       {/* ── ROW 3 : Calendar grid ──────────────────────────────────────────── */}
-      <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 350 }}>
+      {/* Hauteur fixe ≈ 8h visible, scroll pour voir plus haut/bas */}
+      <div style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden', height: SLOT_PX * 8 + 40 }}>
 
         {/* Day headers */}
         <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(7, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
@@ -774,9 +823,14 @@ function CalendrierContent() {
               <button onClick={() => setActiveCategories([])} style={{ fontSize: 9, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer' }}>Réinitialiser</button>
             )}
           </div>
-          <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', maxHeight: 200 }}>
             <p style={{ ...labelStyle, marginBottom: 2 }}>Catégories</p>
-            {Object.entries(CATEGORIES).map(([cat, color]) => {
+            {/* Toutes les catégories présentes dans les événements de la semaine + CATEGORIES fixes */}
+            {Array.from(new Set([
+              ...Object.keys(CATEGORIES),
+              ...events.map(e => e.category).filter(Boolean) as string[],
+            ])).map(cat => {
+              const color  = categoryColor(cat)
               const active = activeCategories.includes(cat)
               return (
                 <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => toggleCategory(cat)}>
@@ -902,6 +956,7 @@ function CalendrierContent() {
           hour={modalHour}
           onSave={addEvent}
           onClose={() => setModalDate(null)}
+          extraCategories={appleCalendars}
         />
       )}
       {appleOpen && <AppleModal onClose={() => setAppleOpen(false)} onSynced={() => { refetch(); setAppleConnected(true); setLastSync(new Date()) }} />}

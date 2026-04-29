@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse }                   from 'next/server'
 import { createServerClient }                          from '@supabase/ssr'
 import { cookies }                                     from 'next/headers'
-import { buildICS, caldavRequest, findPrimaryCalendarUrl, makeAuth, CALDAV_BASE } from '@/lib/caldav'
+import { buildICS, caldavRequest, findPrimaryCalendarUrl, findCalendarUrlByName, makeAuth, CALDAV_BASE } from '@/lib/caldav'
 
 async function getCtx() {
   const cookieStore = await cookies()
@@ -56,14 +56,28 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
   const body  = await req.json().catch(() => ({}))
-  const event = body.event as { id: string; title: string; start_at: string; end_at: string; description?: string | null; location?: string | null; external_id?: string | null } | undefined
+  const event = body.event as {
+    id: string; title: string; start_at: string; end_at: string
+    description?: string | null; location?: string | null
+    external_id?: string | null; category?: string | null
+  } | undefined
   if (!event) return NextResponse.json({ error: 'Événement manquant' }, { status: 400 })
 
   const integ = await getIntegration(supabase, user.id)
   if (!integ)  return NextResponse.json({ skipped: true, reason: 'Apple Calendar non connecté' })
 
-  const auth   = makeAuth(integ.metadata.email, integ.access_token)
-  const calUrl = await resolveCalendarUrl(integ, supabase, user.id, auth)
+  const auth     = makeAuth(integ.metadata.email, integ.access_token)
+  const homeSet  = integ.metadata?.homeSet as string | undefined
+
+  // Résolution de l'URL : on cherche d'abord un calendrier portant le nom de la catégorie,
+  // sinon on tombe back sur le calendrier principal
+  let calUrl: string | null = null
+  if (event.category && homeSet) {
+    calUrl = await findCalendarUrlByName(homeSet, event.category, auth)
+  }
+  if (!calUrl) {
+    calUrl = await resolveCalendarUrl(integ, supabase, user.id, auth)
+  }
   if (!calUrl) return NextResponse.json({ error: 'Calendrier iCloud introuvable' }, { status: 500 })
 
   const uid      = event.external_id ?? `nysa-${event.id}@nysa.be`

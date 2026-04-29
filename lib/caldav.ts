@@ -96,6 +96,7 @@ export async function findPrimaryCalendarUrl(homeSet: string, auth: string): Pro
 export interface CalDAVEvent {
   uid: string; summary: string; dtstart: string; dtend: string
   location?: string; description?: string; etag?: string
+  calendarName?: string   // nom du calendrier Apple source
 }
 
 function parseICalDate(val: string): string {
@@ -239,16 +240,30 @@ export async function fetchAllEvents(
     return queryCalendarEvents(toAbsolute(homeSetUrl), auth, start, end)
   }
 
-  // 2. Requête chaque calendrier retenu et combine
+  // 2. Requête chaque calendrier retenu et combine (en taguant calendarName)
   const all: CalDAVEvent[] = []
   for (const cal of filtered) {
     const events = await queryCalendarEvents(cal.url, auth, start, end)
-    all.push(...events)
+    all.push(...events.map(e => ({ ...e, calendarName: cal.name })))
   }
 
   // Déduplique par UID
   const seen = new Set<string>()
   return all.filter(e => { if (seen.has(e.uid)) return false; seen.add(e.uid); return true })
+}
+
+// ── Trouve l'URL d'un calendrier par son nom ──────────────────────────────────
+
+export async function findCalendarUrlByName(
+  homeSetUrl: string,
+  calendarName: string,
+  auth: string,
+): Promise<string | null> {
+  const calendars = await listCalendarsWithNames(homeSetUrl, auth)
+  const match = calendars.find(
+    c => c.name.toLowerCase() === calendarName.toLowerCase()
+  )
+  return match?.url ?? null
 }
 
 // ── iCal builder ─────────────────────────────────────────────────────────────
@@ -334,6 +349,8 @@ export async function runAppleSync(
       start_at: e.dtstart, end_at: e.dtend,
       location: e.location ?? null,
       all_day: false, source: 'apple', external_id: e.uid,
+      // Le nom du calendrier Apple devient la catégorie dans NYSA
+      category: e.calendarName ?? null,
     }))
 
   let added = 0
