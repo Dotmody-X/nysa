@@ -1,190 +1,619 @@
 'use client'
-import { useState } from 'react'
-import { Search, Plus, Flame, Zap, Droplets, Circle } from 'lucide-react'
-import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star } from 'lucide-react'
 
+/* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+const TEAL    = '#0E9594'
+const ORANGE  = '#F2542D'
+const WHEAT   = '#F0E4CC'
+const TEAL_BG = '#11686A'
+
+/* ─── Card helpers ───────────────────────────────────────────── */
+const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
+  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
+})
+const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
+  background: TEAL_BG, borderRadius: 12, overflow: 'hidden', ...extra,
+})
+const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
+  background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
+})
+const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
+  background: '#16162A', borderRadius: 12, overflow: 'hidden', ...extra,
+})
+const lbl = (color = ORANGE): React.CSSProperties => ({
+  ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
+})
+
+/* ─── Data ───────────────────────────────────────────────────── */
+const DAYS  = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+const MEALS = ['Petit-déj', 'Déjeuner', 'Dîner', 'Snack']
+
+const ALL_FILTERS = ['Toutes', 'Protéiné', 'Healthy', 'Rapide', 'Petit-déj', 'Végétarien']
 
 const SAMPLE_RECIPES = [
-  { id:'1', name:'Saumon rôti, quinoa & légumes', calories:520, proteins:42, carbs:38, fats:16, time:30, tags:['Protéiné','Équilibré'], emoji:'🐟' },
-  { id:'2', name:'Buddha bowl poulet & avocat',    calories:480, proteins:38, carbs:44, fats:18, time:20, tags:['Healthy','Rapide'],    emoji:'🥗' },
-  { id:'3', name:'Overnight oats aux fruits rouges',calories:320, proteins:14, carbs:52, fats:8,  time:5,  tags:['Petit-déj','Sucré'],  emoji:'🫙' },
-  { id:'4', name:'Poulet teriyaki & riz jasmin',   calories:560, proteins:44, carbs:60, fats:12, time:25, tags:['Asiatique'],           emoji:'🍱' },
+  { id: '1', name: 'Saumon rôti, quinoa & légumes',    cal: 520, prot: 42, carbs: 38, fat: 16, time: 30, tags: ['Protéiné', 'Équilibré'], emoji: '🐟', fav: true  },
+  { id: '2', name: 'Buddha bowl poulet & avocat',       cal: 480, prot: 38, carbs: 44, fat: 18, time: 20, tags: ['Healthy', 'Rapide'],    emoji: '🥗', fav: false },
+  { id: '3', name: 'Overnight oats aux fruits rouges',  cal: 320, prot: 14, carbs: 52, fat: 8,  time: 5,  tags: ['Petit-déj', 'Sucré'],   emoji: '🫙', fav: true  },
+  { id: '4', name: 'Poulet teriyaki & riz jasmin',      cal: 560, prot: 44, carbs: 60, fat: 12, time: 25, tags: ['Asiatique'],            emoji: '🍱', fav: false },
 ]
 
-const DAYS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
-const MEALS = ['Petit-déj','Déjeuner','Dîner']
+const CATEGORIES = [
+  { name: 'Protéiné',      count: 8,  color: ORANGE },
+  { name: 'Végétarien',    count: 6,  color: TEAL   },
+  { name: 'Rapide',        count: 5,  color: WHEAT  },
+  { name: 'Petit-déjeuner',count: 4,  color: '#A78BFA' },
+  { name: 'Asiatique',     count: 3,  color: '#F59E0B' },
+  { name: 'Dessert',       count: 2,  color: '#EC4899' },
+]
 
-export default function RecettesPage() {
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState('Toutes')
+const INGREDIENTS = [
+  { name: 'Saumon', qty: '200g',  color: ORANGE },
+  { name: 'Quinoa', qty: '150g',  color: TEAL   },
+  { name: 'Épinards', qty: '100g',color: '#5B6F3A' },
+  { name: 'Avocat', qty: '1 pc',  color: '#5B6F3A' },
+  { name: 'Yaourt grec', qty: '200g', color: WHEAT },
+  { name: 'Riz jasmin', qty: '180g', color: WHEAT },
+]
 
-  const filtered = SAMPLE_RECIPES.filter(r =>
-    !search || r.name.toLowerCase().includes(search.toLowerCase())
+const SEED_COURSES: Array<{ id: string; item: string; qty: string; done: boolean }> = [
+  { id: '1', item: 'Saumon frais',     qty: '400g',  done: false },
+  { id: '2', item: 'Quinoa',           qty: '500g',  done: true  },
+  { id: '3', item: 'Avocat',           qty: '3 pcs', done: false },
+  { id: '4', item: 'Yaourt grec',      qty: '500g',  done: false },
+  { id: '5', item: 'Riz jasmin',       qty: '1 kg',  done: true  },
+  { id: '6', item: 'Poulet (blanc)',   qty: '600g',  done: false },
+  { id: '7', item: 'Fruits rouges',    qty: '250g',  done: false },
+]
+
+const MEAL_PLAN: Record<string, string> = {
+  'Lun-Petit-déj': '🫙 Overnight oats',
+  'Lun-Déjeuner':  '🐟 Saumon quinoa',
+  'Lun-Dîner':     '🍱 Teriyaki',
+  'Mar-Petit-déj': '🫙 Overnight oats',
+  'Mar-Déjeuner':  '🥗 Buddha bowl',
+  'Mer-Déjeuner':  '🐟 Saumon quinoa',
+  'Mer-Dîner':     '🥗 Buddha bowl',
+  'Jeu-Petit-déj': '🫙 Overnight oats',
+  'Jeu-Déjeuner':  '🍱 Teriyaki',
+  'Ven-Déjeuner':  '🥗 Buddha bowl',
+  'Ven-Dîner':     '🐟 Saumon quinoa',
+  'Sam-Déjeuner':  '🍱 Teriyaki',
+  'Dim-Dîner':     '🐟 Saumon quinoa',
+}
+
+/* ─── Donut SVG ──────────────────────────────────────────────── */
+function DonutChart({ slices, size = 110 }: { slices: { pct: number; color: string }[]; size?: number }) {
+  const r = 40; const cx = size / 2; const cy = size / 2
+  const circumference = 2 * Math.PI * r
+  let offset = 0
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(240,228,204,0.06)" strokeWidth={14} />
+      {slices.map((s, i) => {
+        const dash = (s.pct / 100) * circumference
+        const gap  = circumference - dash
+        const rot  = -90 + (offset / 100) * 360
+        offset += s.pct
+        return (
+          <circle key={i} cx={cx} cy={cy} r={r}
+            fill="none" stroke={s.color} strokeWidth={14}
+            strokeDasharray={`${dash} ${gap}`}
+            strokeDashoffset={0}
+            style={{ transform: `rotate(${rot}deg)`, transformOrigin: `${cx}px ${cy}px` }} />
+        )
+      })}
+    </svg>
   )
+}
 
-  const totalCals = 1842
-  const targetCals = 2200
+/* ═══════════════════════════════════════════════════════════════
+   MAIN PAGE
+═══════════════════════════════════════════════════════════════ */
+export default function RecettesPage() {
+  const router   = useRouter()
+  const [filter, setFilter]     = useState('Toutes')
+  const [search, setSearch]     = useState('')
+  const [courses, setCourses]   = useState(SEED_COURSES)
+  const [hydrated, setHydrated] = useState(false)
+  const [newItem, setNewItem]   = useState('')
+  const [showAddItem, setShowAddItem] = useState(false)
+
+  /* ── localStorage persistence for shopping list ── */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('nysa_courses')
+      if (saved) setCourses(JSON.parse(saved))
+    } catch {}
+    setHydrated(true)
+  }, [])
+  useEffect(() => {
+    if (!hydrated) return
+    localStorage.setItem('nysa_courses', JSON.stringify(courses))
+  }, [courses, hydrated])
+
+  const toggleCourse = (id: string) => {
+    setCourses(prev => prev.map(c => c.id === id ? { ...c, done: !c.done } : c))
+  }
+
+  const addCourse = () => {
+    if (!newItem.trim()) return
+    const item = { id: Date.now().toString(), item: newItem.trim(), qty: '', done: false }
+    setCourses(prev => [...prev, item])
+    setNewItem('')
+    setShowAddItem(false)
+  }
+
+  const removeCourse = (id: string) => setCourses(prev => prev.filter(c => c.id !== id))
+
+  const filtered = SAMPLE_RECIPES.filter(r => {
+    const matchSearch = !search || r.name.toLowerCase().includes(search.toLowerCase())
+    const matchFilter = filter === 'Toutes' || r.tags.some(t => t.toLowerCase().includes(filter.toLowerCase()))
+    return matchSearch && matchFilter
+  })
+
+  /* Nutrition data */
+  const nutrition = { cal: 1842, calTarget: 2200, prot: 138, protTarget: 160, carbs: 196, carbsTarget: 220, fat: 52, fatTarget: 70 }
+  const totalMacrosG = nutrition.prot + nutrition.carbs + nutrition.fat
+  const donutSlices = [
+    { pct: Math.round((nutrition.prot  / totalMacrosG) * 100), color: TEAL   },
+    { pct: Math.round((nutrition.carbs / totalMacrosG) * 100), color: ORANGE },
+    { pct: Math.round((nutrition.fat   / totalMacrosG) * 100), color: WHEAT  },
+  ]
 
   return (
-    <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
-      <PageTitle
-        title="Recettes"
-        sub="Suivi · Planification · Mes recettes · Découverte"
-        right={
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl"
-            style={{ background:'#F2542D', color:'#fff', ...DF, fontWeight:700, fontSize:12 }}>
-            <Plus size={14} /> Nouvelle recette
-          </button>
-        }
-      />
+    <div style={{ padding: 30, minHeight: '100%' }}>
+      <style>{`
+        .rec-card:hover  { opacity: .92; transform: translateY(-1px); transition: .15s; }
+        .rec-filter:hover{ opacity: .8; }
+        .rec-row:hover   { background: rgba(240,228,204,0.06) !important; }
+        .rec-btn:hover   { opacity: .85; }
+      `}</style>
 
-      <KpiGrid>
-        <KpiCard label="Calories aujourd'hui" value={String(totalCals)} sub={`/ ${targetCals} kcal`} color="#F2542D" />
-        <KpiCard label="Protéines"    value="138 g"  sub="/ 160 g objectif"  color="#0E9594" />
-        <KpiCard label="Glucides"     value="196 g"  sub="/ 220 g objectif"  color="#F5DFBB" />
-        <KpiCard label="Lipides"      value="52 g"   sub="/ 70 g objectif"               />
-      </KpiGrid>
+      {/* ══════════════════════════════════════════
+          GRID — 4 cols × 5 rows
+      ══════════════════════════════════════════ */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateRows: '300px 300px 500px 400px 260px',
+        gap: 10,
+      }}>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
-        {/* Main — recipes + meal planner */}
-        <div className="md:col-span-2 flex flex-col gap-[10px]">
-          {/* Search + filter */}
-          <div className="flex gap-2">
-            <div className="flex items-center gap-2 flex-1 px-3 rounded-lg" style={{ background:'var(--bg-card)', border:'1px solid var(--border)', height:40 }}>
-              <Search size={12} style={{ color:'var(--text-muted)' }} />
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Chercher une recette…"
-                style={{ flex:1, background:'transparent', border:'none', outline:'none', fontSize:12, color:'var(--text)' }} />
+        {/* ── R1 C1-2 : HERO ────────────────────────────── */}
+        <div style={{ gridColumn: 'span 2', padding: '26px 28px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden' }}>
+          {/* Title */}
+          <div>
+            <p style={{ ...DF, fontSize: 46, fontWeight: 900, color: ORANGE, lineHeight: 0.92, marginBottom: 6 }}>RECETTES.</p>
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 18 }}>
+              Suivi · Planification · Mes recettes · Découverte
+            </p>
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+              <button className="rec-btn"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
+                  background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+                <Plus size={11} /> Nouvelle recette
+              </button>
+              <button className="rec-btn"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
+                  background: TEAL_BG, color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+                <Zap size={11} /> Générer un repas
+              </button>
             </div>
-            {['Toutes','Protéiné','Healthy','Rapide','Petit-déj'].map(f => (
-              <button key={f} onClick={()=>setFilter(f)}
-                className="px-3 py-2 rounded-lg whitespace-nowrap"
-                style={{ background: filter===f ? '#F2542D' : 'var(--bg-card)', color: filter===f ? '#fff' : 'var(--text-muted)', border:'1px solid var(--border)', ...DF, fontSize:10, fontWeight:700 }}>
+            {/* Search */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 38,
+              borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', marginBottom: 12 }}>
+              <Search size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Chercher une recette…"
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)' }} />
+            </div>
+          </div>
+          {/* Filter tabs */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {ALL_FILTERS.map(f => (
+              <button key={f} className="rec-filter" onClick={() => setFilter(f)}
+                style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', ...DF, fontSize: 10, fontWeight: 700,
+                  background: filter === f ? ORANGE : 'var(--bg-card)',
+                  color:      filter === f ? '#fff'  : 'var(--text-muted)',
+                  outline:    filter === f ? 'none'  : '1px solid var(--border)',
+                }}>
                 {f}
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Recipe cards */}
-          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)' }}>
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
-              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F2542D', textTransform:'uppercase' }}>Recettes récentes</p>
+        {/* ── R1 C3-4 : APPORTS NUTRITIONNELS ─────────────── */}
+        <div style={{ ...orangeCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <p style={{ ...lbl('#1A0A0A') }}>Apports nutritionnels aujourd&apos;hui</p>
+
+          {/* Big calorie number */}
+          <div>
+            <p style={{ ...DF, fontSize: 52, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>{nutrition.cal}</p>
+            <p style={{ fontSize: 12, color: 'rgba(26,10,10,0.55)', marginBottom: 14 }}>/ {nutrition.calTarget} kcal objectif</p>
+            <div style={{ height: 6, borderRadius: 99, background: 'rgba(0,0,0,0.15)', overflow: 'hidden', marginBottom: 18 }}>
+              <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.55)', width: `${Math.min(100, nutrition.cal / nutrition.calTarget * 100)}%` }} />
             </div>
-            <div className="grid grid-cols-2 gap-[10px] p-4">
-              {filtered.map(r => (
-                <div key={r.id} className="flex flex-col gap-2 p-4 rounded-xl cursor-pointer"
-                  style={{ background:'var(--bg-input)', border:'1px solid var(--border)' }}>
-                  <div className="flex items-start justify-between">
-                    <span style={{ fontSize:28 }}>{r.emoji}</span>
-                    <span style={{ fontSize:9, padding:'2px 8px', borderRadius:20, background:'rgba(242,84,45,0.15)', color:'#F2542D', ...DF, fontWeight:700 }}>{r.time}min</span>
-                  </div>
-                  <p style={{ ...DF, fontWeight:700, fontSize:13, color:'var(--wheat)', lineHeight:1.3 }}>{r.name}</p>
-                  <div className="flex gap-1 flex-wrap">
-                    {r.tags.map(tag => (
-                      <span key={tag} style={{ fontSize:9, padding:'1px 6px', borderRadius:4, background:'rgba(14,149,148,0.12)', color:'#0E9594' }}>{tag}</span>
-                    ))}
-                  </div>
-                  <div className="flex gap-3 mt-1">
-                    <span style={{ fontSize:10, color:'#F2542D' }}><Flame size={9} style={{ display:'inline' }} /> {r.calories} kcal</span>
-                    <span style={{ fontSize:10, color:'#0E9594' }}>P {r.proteins}g</span>
-                    <span style={{ fontSize:10, color:'var(--text-muted)' }}>G {r.carbs}g</span>
-                  </div>
+          </div>
+
+          {/* 3 macros */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            {[
+              { l: 'Protéines', v: nutrition.prot,  t: nutrition.protTarget,  unit: 'g', color: 'rgba(26,10,10,0.75)' },
+              { l: 'Glucides',  v: nutrition.carbs,  t: nutrition.carbsTarget, unit: 'g', color: 'rgba(26,10,10,0.75)' },
+              { l: 'Lipides',   v: nutrition.fat,    t: nutrition.fatTarget,   unit: 'g', color: 'rgba(26,10,10,0.75)' },
+            ].map(m => (
+              <div key={m.l} style={{ background: 'rgba(26,10,10,0.12)', borderRadius: 10, padding: '12px 10px' }}>
+                <p style={{ fontSize: 8, color: 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{m.l}</p>
+                <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>{m.v}<span style={{ fontSize: 10 }}>{m.unit}</span></p>
+                <p style={{ fontSize: 9, color: 'rgba(26,10,10,0.45)', marginTop: 2 }}>/ {m.t}{m.unit}</p>
+                <div style={{ height: 3, borderRadius: 99, background: 'rgba(0,0,0,0.15)', overflow: 'hidden', marginTop: 6 }}>
+                  <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.45)', width: `${Math.min(100, m.v / m.t * 100)}%` }} />
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── R2 C1-4 : RECETTES RÉCENTES ──────────────────── */}
+        {filtered.slice(0, 4).map((r, i) => (
+          <div key={r.id} className="rec-card"
+            style={{ ...card(), cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 20, position: 'relative' }}>
+            {/* Fav */}
+            {r.fav && (
+              <div style={{ position: 'absolute', top: 12, right: 12 }}>
+                <Star size={12} fill={ORANGE} color={ORANGE} />
+              </div>
+            )}
+            {/* Emoji + time */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+              <span style={{ fontSize: 38 }}>{r.emoji}</span>
+              <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
+                background: 'rgba(242,84,45,0.12)', color: ORANGE }}>{r.time} min</span>
+            </div>
+            {/* Name */}
+            <p style={{ ...DF, fontWeight: 800, fontSize: 13, color: WHEAT, lineHeight: 1.3, marginBottom: 8, flex: 1 }}>{r.name}</p>
+            {/* Tags */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
+              {r.tags.map(tag => (
+                <span key={tag} style={{ fontSize: 8, padding: '2px 7px', borderRadius: 4,
+                  background: 'rgba(14,149,148,0.12)', color: TEAL, ...DF, fontWeight: 700 }}>{tag}</span>
+              ))}
+            </div>
+            {/* Macros */}
+            <div style={{ display: 'flex', gap: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+              <span style={{ fontSize: 10, color: ORANGE, ...DF, fontWeight: 700 }}>
+                <Flame size={9} style={{ display: 'inline', marginRight: 2 }} />{r.cal} kcal
+              </span>
+              <span style={{ fontSize: 10, color: TEAL, ...DF, fontWeight: 700 }}>P {r.prot}g</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>G {r.carbs}g</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>L {r.fat}g</span>
+            </div>
+          </div>
+        ))}
+
+        {/* ── R3 C1-2 : PLANIFICATION DES REPAS ───────────── */}
+        <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+            <p style={{ ...lbl('rgba(255,255,255,0.5)') }}>Planification des repas</p>
+            <span style={{ fontSize: 9, padding: '3px 10px', borderRadius: 6,
+              background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)', ...DF, fontWeight: 700 }}>
+              Semaine en cours
+            </span>
+          </div>
+
+          <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '6px 8px', fontSize: 8, color: 'rgba(255,255,255,0.25)', ...DF, fontWeight: 700, textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.06)', width: 70 }}>
+                    Repas
+                  </th>
+                  {DAYS.map(d => (
+                    <th key={d} style={{ padding: '6px 4px', fontSize: 8, color: 'rgba(255,255,255,0.3)', ...DF, fontWeight: 700, textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
+                      {d}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {MEALS.map(meal => (
+                  <tr key={meal}>
+                    <td style={{ padding: '8px 8px', fontSize: 9, color: 'rgba(255,255,255,0.35)', borderBottom: '1px solid rgba(255,255,255,0.04)', ...DF, fontWeight: 700 }}>
+                      {meal}
+                    </td>
+                    {DAYS.map(day => {
+                      const key = `${day}-${meal}`
+                      const entry = MEAL_PLAN[key]
+                      return (
+                        <td key={day} style={{ padding: '4px 3px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
+                          {entry ? (
+                            <div style={{ background: 'rgba(14,149,148,0.15)', borderRadius: 5,
+                              padding: '4px 3px', fontSize: 8, color: '#0E9594', ...DF, fontWeight: 700,
+                              lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {entry}
+                            </div>
+                          ) : (
+                            <button style={{ fontSize: 14, color: 'rgba(255,255,255,0.12)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>+</button>
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0 0', marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.25)' }}>GÉNÉRER UN PLAN AUTO</span>
+            <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.25)' }} />
+          </button>
+        </div>
+
+        {/* ── R3 C3-4 : CATÉGORIES + ACTIONS RAPIDES ──────── */}
+        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Catégories */}
+          <div>
+            <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 12 }}>Catégories</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {CATEGORIES.map(cat => (
+                <button key={cat.name} className="rec-row"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '9px 12px', borderRadius: 8, background: 'rgba(240,228,204,0.05)',
+                    border: 'none', cursor: 'pointer', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: cat.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 11, color: 'rgba(240,228,204,0.8)' }}>{cat.name}</span>
+                  </div>
+                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>{cat.count} recettes</span>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Meal planner */}
-          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)' }}>
-            <div className="px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
-              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase' }}>Planificateur repas</p>
+          {/* Actions rapides */}
+          <div style={{ marginTop: 'auto' }}>
+            <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 10 }}>Actions rapides</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {[
+                { l: '+ Recette', bg: ORANGE, color: '#fff' },
+                { l: 'Importer', bg: 'rgba(240,228,204,0.1)', color: WHEAT },
+                { l: 'Favoris', bg: 'rgba(240,228,204,0.1)', color: WHEAT },
+                { l: 'Exporter', bg: 'rgba(240,228,204,0.1)', color: WHEAT },
+              ].map(a => (
+                <button key={a.l} className="rec-btn"
+                  style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                    background: a.bg, color: a.color, ...DF, fontWeight: 800, fontSize: 11 }}>
+                  {a.l}
+                </button>
+              ))}
             </div>
-            <div style={{ overflowX:'auto' }}>
-              <table style={{ width:'100%', borderCollapse:'collapse' }}>
-                <thead>
-                  <tr>
-                    <th style={{ padding:'8px 12px', fontSize:9, color:'var(--text-muted)', ...DF, fontWeight:700, textTransform:'uppercase', textAlign:'left', borderBottom:'1px solid var(--border)' }}>Repas</th>
-                    {DAYS.map(d => (
-                      <th key={d} style={{ padding:'8px 12px', fontSize:9, color:'var(--text-muted)', ...DF, fontWeight:700, textTransform:'uppercase', borderBottom:'1px solid var(--border)', textAlign:'center', minWidth:90 }}>{d}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {MEALS.map((meal, mi) => (
-                    <tr key={meal}>
-                      <td style={{ padding:'10px 12px', fontSize:11, color:'var(--text-muted)', borderBottom:'1px solid var(--border)', ...DF, fontWeight:600 }}>{meal}</td>
-                      {DAYS.map((_, di) => {
-                        const r = SAMPLE_RECIPES[(mi + di) % SAMPLE_RECIPES.length]
-                        const show = (mi + di) % 3 !== 0
-                        return (
-                          <td key={di} style={{ padding:'6px 8px', borderBottom:'1px solid var(--border)', textAlign:'center' }}>
-                            {show ? (
-                              <div style={{ background:'rgba(14,149,148,0.1)', borderRadius:6, padding:'4px 6px', fontSize:9, color:'#0E9594', ...DF, fontWeight:600 }}>
-                                {r.emoji} {r.name.split(' ').slice(0,2).join(' ')}
-                              </div>
-                            ) : (
-                              <button style={{ fontSize:16, color:'var(--border)' }}>+</button>
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
+          </div>
+        </div>
+
+        {/* ── R4 C1 : INGRÉDIENTS À UTILISER ─────────────── */}
+        <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column' }}>
+          <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 14 }}>Ingrédients à utiliser</p>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
+            {INGREDIENTS.map(ing => (
+              <div key={ing.name} style={{ display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px', borderRadius: 10, background: 'rgba(240,228,204,0.06)' }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: ing.color, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 12, color: 'rgba(240,228,204,0.85)' }}>{ing.name}</span>
+                <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'rgba(240,228,204,0.5)' }}>{ing.qty}</span>
+              </div>
+            ))}
+          </div>
+          <button className="rec-btn" style={{ marginTop: 14, padding: '9px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            background: 'rgba(240,228,204,0.1)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 10 }}>
+            + Ajouter un ingrédient
+          </button>
+        </div>
+
+        {/* ── R4 C2 : LISTE DE COURSES ─────────────────────── */}
+        <div style={{ ...orangeCard(), padding: 22, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <p style={{ ...lbl('#1A0A0A') }}>Liste de courses</p>
+            <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 6,
+              background: 'rgba(26,10,10,0.15)', color: '#1A0A0A' }}>
+              {courses.filter(c => c.done).length}/{courses.length}
+            </span>
+          </div>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto' }}>
+            {courses.map(c => (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 10px', borderRadius: 8,
+                background: c.done ? 'rgba(26,10,10,0.08)' : 'rgba(26,10,10,0.12)' }}>
+                <button onClick={() => toggleCourse(c.id)}
+                  style={{ width: 18, height: 18, borderRadius: 4, border: 'none', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: c.done ? 'rgba(26,10,10,0.4)' : 'rgba(26,10,10,0.15)' }}>
+                  {c.done && <Check size={11} color="#1A0A0A" />}
+                </button>
+                <span style={{ flex: 1, fontSize: 11, color: c.done ? 'rgba(26,10,10,0.45)' : '#1A0A0A',
+                  textDecoration: c.done ? 'line-through' : 'none' }}>{c.item}</span>
+                {c.qty && <span style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(26,10,10,0.5)' }}>{c.qty}</span>}
+                <button onClick={() => removeCourse(c.id)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
+                  <X size={10} color="rgba(26,10,10,0.35)" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {showAddItem ? (
+            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+              <input value={newItem} onChange={e => setNewItem(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addCourse()}
+                placeholder="Nouvel article…" autoFocus
+                style={{ flex: 1, background: 'rgba(26,10,10,0.15)', border: '1px solid rgba(26,10,10,0.25)',
+                  borderRadius: 7, padding: '7px 10px', color: '#1A0A0A', fontSize: 11, outline: 'none' }} />
+              <button onClick={addCourse}
+                style={{ background: 'rgba(26,10,10,0.3)', border: 'none', borderRadius: 7, padding: '0 10px', cursor: 'pointer' }}>
+                <Check size={12} color="#1A0A0A" />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setShowAddItem(true)} className="rec-btn"
+              style={{ marginTop: 10, padding: '9px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                background: 'rgba(26,10,10,0.15)', color: '#1A0A0A', ...DF, fontWeight: 700, fontSize: 10 }}>
+              + Ajouter un article
+            </button>
+          )}
+        </div>
+
+        {/* ── R4 C3-4 : MES RECETTES ───────────────────────── */}
+        <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <p style={{ ...lbl('rgba(255,255,255,0.4)') }}>Mes recettes</p>
+            <button onClick={() => {}} style={{ ...DF, fontSize: 9, fontWeight: 800, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
+              VOIR TOUT
+            </button>
+          </div>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
+            {SAMPLE_RECIPES.map(r => (
+              <div key={r.id} className="rec-row"
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+                <span style={{ fontSize: 26, flexShrink: 0 }}>{r.emoji}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>{r.name}</p>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 3 }}>
+                    <span style={{ fontSize: 9, color: ORANGE }}>{r.cal} kcal</span>
+                    <span style={{ fontSize: 9, color: TEAL }}>P {r.prot}g</span>
+                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)' }}>{r.time}min</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                  {r.tags.slice(0, 1).map(tag => (
+                    <span key={tag} style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4,
+                      background: 'rgba(14,149,148,0.15)', color: TEAL, ...DF, fontWeight: 700 }}>{tag}</span>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Right column */}
-        <div className="flex flex-col gap-[10px]">
-          {/* Calories progress */}
-          <div style={{ background:'#F2542D', borderRadius:12, padding:20 }}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:12 }}>Apports du jour</p>
-            <p style={{ ...DF, fontWeight:900, fontSize:40, color:'#1A0A0A', lineHeight:1 }}>{totalCals}</p>
-            <p style={{ fontSize:11, color:'rgba(26,10,10,0.7)', marginBottom:12 }}>/ {targetCals} kcal</p>
-            <div style={{ height:6, borderRadius:99, background:'rgba(0,0,0,0.2)', overflow:'hidden', marginBottom:16 }}>
-              <div style={{ height:'100%', borderRadius:99, background:'#1A0A0A', width:`${Math.min(100,totalCals/targetCals*100)}%` }} />
-            </div>
-            {[
-              { label:'Protéines', value:'138g', target:'160g', pct:86 },
-              { label:'Glucides',  value:'196g', target:'220g', pct:89 },
-              { label:'Lipides',   value:'52g',  target:'70g',  pct:74 },
-            ].map(macro => (
-              <div key={macro.label} className="mb-2">
-                <div className="flex justify-between mb-0.5">
-                  <span style={{ fontSize:10, color:'rgba(26,10,10,0.7)' }}>{macro.label}</span>
-                  <span style={{ ...DF, fontSize:10, fontWeight:700, color:'#1A0A0A' }}>{macro.value} / {macro.target}</span>
-                </div>
-                <div style={{ height:3, borderRadius:99, background:'rgba(0,0,0,0.2)', overflow:'hidden' }}>
-                  <div style={{ height:'100%', borderRadius:99, background:'#1A0A0A', width:`${macro.pct}%` }} />
+                  {r.fav && <Star size={10} fill={ORANGE} color={ORANGE} />}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Catégories */}
-          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase', marginBottom:10 }}>Catégories</p>
-            {['Protéiné','Végétarien','Rapide','Petit-déjeuner','Asiatique','Dessert'].map((cat, i) => (
-              <div key={cat} className="flex items-center justify-between py-2" style={{ borderBottom:'1px solid var(--border)' }}>
-                <span style={{ fontSize:12, color:'var(--text-muted)' }}>{cat}</span>
-                <span style={{ ...DF, fontWeight:700, fontSize:12, color:'var(--wheat)' }}>{(i+1)*2}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Ingredients */}
-          <div style={{ background:'#11686A', borderRadius:12, padding:16 }}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F0E4CC', textTransform:'uppercase', marginBottom:10 }}>Ingrédients à utiliser</p>
-            {['Saumon · 200g','Quinoa · 150g','Épinards · 100g','Avocat · 1 pc','Yaourt grec · 200g'].map(ing => (
-              <div key={ing} className="flex items-center gap-2 py-1.5">
-                <span style={{ width:5, height:5, borderRadius:'50%', background:'#F0E4CC', opacity:0.6, flexShrink:0 }} />
-                <span style={{ fontSize:11, color:'rgba(240,228,204,0.85)' }}>{ing}</span>
-              </div>
-            ))}
+          {/* Résumé nutritionnel */}
+          <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: `rgba(14,149,148,0.1)`, border: `1px solid rgba(14,149,148,0.2)` }}>
+            <p style={{ fontSize: 9, color: TEAL, ...DF, fontWeight: 700, marginBottom: 5 }}>RÉSUMÉ SEMAINE</p>
+            <div style={{ display: 'flex', gap: 16 }}>
+              {[
+                { l: 'Moy. cal.', v: '1 842 kcal' },
+                { l: 'Recettes',  v: '4 utilisées' },
+                { l: 'Objectif',  v: '94% atteint' },
+              ].map(s => (
+                <div key={s.l}>
+                  <p style={{ fontSize: 8, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.l}</p>
+                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: '#fff' }}>{s.v}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* ── R5 FULL WIDTH : RÉPARTITION NUTRITIONNELLE ───── */}
+        <div style={{ ...tealCard(), gridColumn: 'span 4', padding: '24px 30px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+            <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Répartition nutritionnelle</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['Aujourd\'hui', 'Semaine', 'Mois'].map((p, i) => (
+                <button key={p} className="rec-filter"
+                  style={{ padding: '4px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 700,
+                    background: i === 0 ? 'rgba(240,228,204,0.2)' : 'rgba(240,228,204,0.06)',
+                    color: i === 0 ? WHEAT : 'rgba(240,228,204,0.4)' }}>
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 30, alignItems: 'center', flex: 1 }}>
+            {/* Donut */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <DonutChart slices={donutSlices} size={120} />
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center' }}>
+                <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{totalMacrosG}</p>
+                <p style={{ fontSize: 7, color: 'rgba(240,228,204,0.4)', letterSpacing: '0.1em' }}>GRAMMES</p>
+              </div>
+            </div>
+
+            {/* Macro bars */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {[
+                { l: 'Protéines', v: nutrition.prot,  t: nutrition.protTarget,  unit: 'g', color: TEAL,   pct: donutSlices[0].pct },
+                { l: 'Glucides',  v: nutrition.carbs,  t: nutrition.carbsTarget, unit: 'g', color: ORANGE, pct: donutSlices[1].pct },
+                { l: 'Lipides',   v: nutrition.fat,    t: nutrition.fatTarget,   unit: 'g', color: WHEAT,  pct: donutSlices[2].pct },
+              ].map(m => (
+                <div key={m.l}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 2, background: m.color }} />
+                      <span style={{ fontSize: 11, color: 'rgba(240,228,204,0.7)' }}>{m.l}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>{m.v}{m.unit}</span>
+                      <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.35)' }}>/ {m.t}{m.unit}</span>
+                      <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: m.color, minWidth: 32, textAlign: 'right' }}>{m.pct}%</span>
+                    </div>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 99, background: 'rgba(240,228,204,0.08)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${Math.min(100, m.v / m.t * 100)}%`, borderRadius: 99, background: m.color, transition: 'width .5s ease' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Weekly breakdown bars */}
+            <div style={{ flexShrink: 0, width: 280 }}>
+              <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Calories / jour (semaine)</p>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 80 }}>
+                {[
+                  { d: 'L', cal: 1920 }, { d: 'M', cal: 2100 }, { d: 'M', cal: 1750 },
+                  { d: 'J', cal: 2200 }, { d: 'V', cal: 1842 }, { d: 'S', cal: 0 }, { d: 'D', cal: 0 },
+                ].map((day, i) => {
+                  const maxCal = 2200
+                  const h = day.cal > 0 ? Math.max(6, (day.cal / maxCal) * 70) : 4
+                  const isToday = i === 4
+                  return (
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                      {day.cal > 0 && (
+                        <span style={{ fontSize: 7, color: isToday ? ORANGE : 'rgba(240,228,204,0.5)', ...DF, fontWeight: 700 }}>
+                          {Math.round(day.cal / 100) * 100}
+                        </span>
+                      )}
+                      <div style={{ width: '100%', height: h, borderRadius: '3px 3px 0 0',
+                        background: day.cal > 0 ? (isToday ? ORANGE : 'rgba(240,228,204,0.3)') : 'rgba(240,228,204,0.06)' }} />
+                      <span style={{ fontSize: 8, color: isToday ? ORANGE : 'rgba(240,228,204,0.4)', ...DF, fontWeight: isToday ? 800 : 600 }}>{day.d}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* KPIs rapides */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { l: 'Indice qualité',  v: '84/100', color: TEAL   },
+                { l: 'Balance',         v: '+150 kcal', color: ORANGE },
+                { l: 'Hydratation',     v: '1.75 L',  color: '#3B82F6' },
+              ].map(kpi => (
+                <div key={kpi.l} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(240,228,204,0.06)', minWidth: 110 }}>
+                  <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{kpi.l}</p>
+                  <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: kpi.color, lineHeight: 1 }}>{kpi.v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )
