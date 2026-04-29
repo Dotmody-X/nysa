@@ -140,9 +140,31 @@ export function parseVCalendar(ics: string, etag?: string): CalDAVEvent[] {
 
 // ── Enumère tous les calendriers sous le homeSet ─────────────────────────────
 
-export async function listCalendarUrls(homeSetUrl: string, auth: string): Promise<string[]> {
-  const absUrl = toAbsolute(homeSetUrl)
-  // Extrait le serveur réel (ex: https://p137-caldav.icloud.com:443)
+export interface CalendarInfo {
+  url:  string
+  name: string
+}
+
+function parseCalendarBlocks(text: string, serverBase: string): CalendarInfo[] {
+  const results: CalendarInfo[] = []
+  const blocks = text.split(/<(?:[^>]*:)?response\b[^/][^>]*>/).slice(1)
+  for (const block of blocks) {
+    const isCalendar = /<(?:[^>]*:)?calendar[\s/>]/.test(block)
+    if (!isCalendar) continue
+    const hrefMatch = block.match(/<(?:[^>]*:)?href[^>]*>([\s\S]*?)<\/(?:[^>]*:)?href>/)
+    if (!hrefMatch) continue
+    const href = hrefMatch[1].trim()
+    if (/inbox|outbox|notification|dropbox|freebusy/i.test(href)) continue
+    const nameMatch = block.match(/<(?:[^>]*:)?displayname[^>]*>([\s\S]*?)<\/(?:[^>]*:)?displayname>/)
+    const name = nameMatch ? nameMatch[1].trim() : href.split('/').filter(Boolean).pop() ?? 'Calendrier'
+    const url  = href.startsWith('http') ? href : `${serverBase}${href}`
+    results.push({ url, name })
+  }
+  return results
+}
+
+export async function listCalendarsWithNames(homeSetUrl: string, auth: string): Promise<CalendarInfo[]> {
+  const absUrl     = toAbsolute(homeSetUrl)
   const serverBase = absUrl.match(/^(https?:\/\/[^/]+)/)?.[1] ?? CALDAV_BASE
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
@@ -152,23 +174,12 @@ export async function listCalendarUrls(homeSetUrl: string, auth: string): Promis
 
   const { status, text } = await caldavRequest('PROPFIND', absUrl, auth, body, { Depth: '1' })
   if (status !== 207) return []
+  return parseCalendarBlocks(text, serverBase)
+}
 
-  const urls: string[] = []
-  // iCloud retourne <response xmlns="DAV:"> sans préfixe — la regex doit gérer les deux cas
-  const blocks = text.split(/<(?:[^>]*:)?response\b[^/][^>]*>/).slice(1)
-  for (const block of blocks) {
-    // Détecte "calendar" dans resourcetype (avec ou sans préfixe, avec ou sans attributs)
-    const isCalendar = /<(?:[^>]*:)?calendar[\s/>]/.test(block)
-    if (!isCalendar) continue
-    const hrefMatch = block.match(/<(?:[^>]*:)?href[^>]*>([\s\S]*?)<\/(?:[^>]*:)?href>/)
-    if (!hrefMatch) continue
-    const href = hrefMatch[1].trim()
-    // Exclut les collections système
-    if (/inbox|outbox|notification|dropbox|freebusy/i.test(href)) continue
-    // Construit l'URL absolue sur le bon serveur (p137-caldav, etc. — pas CALDAV_BASE)
-    urls.push(href.startsWith('http') ? href : `${serverBase}${href}`)
-  }
-  return urls
+export async function listCalendarUrls(homeSetUrl: string, auth: string): Promise<string[]> {
+  const calendars = await listCalendarsWithNames(homeSetUrl, auth)
+  return calendars.map(c => c.url)
 }
 
 // ── Requête REPORT sur un calendrier individuel ───────────────────────────────
@@ -208,22 +219,30 @@ async function queryCalendarEvents(calUrl: string, auth: string, start: string, 
 
 // ── Fetch all events (Jan 2026 → +2 ans, tous les calendriers) ───────────────
 
-export async function fetchAllEvents(homeSetUrl: string, auth: string): Promise<CalDAVEvent[]> {
+export async function fetchAllEvents(
+  homeSetUrl: string,
+  auth: string,
+  excludedCalendarNames: string[] = [],
+): Promise<CalDAVEvent[]> {
   const start = '20260101T000000Z'
   const end   = fmt(new Date(Date.now() + 730 * 24 * 3600_000))
 
-  // 1. Énumère tous les calendriers individuels
-  const calUrls = await listCalendarUrls(homeSetUrl, auth)
+  // 1. Énumère tous les calendriers individuels (avec noms)
+  const calendars = await listCalendarsWithNames(homeSetUrl, auth)
+
+  // Filtre les calendriers exclus (comparaison insensible à la casse)
+  const excluded = excludedCalendarNames.map(n => n.toLowerCase())
+  const filtered = calendars.filter(c => !excluded.includes(c.name.toLowerCase()))
 
   // Si on ne trouve aucun calendrier, essaie directement sur homeSet (fallback)
-  if (calUrls.length === 0) {
+  if (filtered.length === 0 && calendars.length === 0) {
     return queryCalendarEvents(toAbsolute(homeSetUrl), auth, start, end)
   }
 
-  // 2. Requête chaque calendrier et combine
+  // 2. Requête chaque calendrier retenu et combine
   const all: CalDAVEvent[] = []
-  for (const calUrl of calUrls) {
-    const events = await queryCalendarEvents(calUrl, auth, start, end)
+  for (const cal of filtered) {
+    const events = await queryCalendarEvents(cal.url, auth, start, end)
     all.push(...events)
   }
 
@@ -291,7 +310,9 @@ export async function runAppleSync(
   }
 
   // Fetch tous les événements iCloud (Jan 2026 → +2 ans)
-  const icloudEvents = await fetchAllEvents(homeSet, auth)
+  // Respecte la liste des calendriers exclus stockée dans metadata
+  const excludedCalendars: string[] = integration?.metadata?.excludedCalendars ?? []
+  const icloudEvents = await fetchAllEvents(homeSet, auth, excludedCalendars)
   const icloudUids   = new Set(icloudEvents.map(e => e.uid))
 
   // Récupère tous les événements Apple déjà en base

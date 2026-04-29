@@ -72,24 +72,60 @@ function evColor(ev: CalendarEvent): string {
 // ─────────────────────────────────────────────────────────────────────────────
 // Apple Modal
 // ─────────────────────────────────────────────────────────────────────────────
-function AppleModal({ onClose }: { onClose: () => void }) {
-  const [step, setStep]     = useState<1 | 2>(1)
-  const [email, setEmail]   = useState('')
-  const [pass, setPass]     = useState('')
-  const [syncing, setSyncing] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
+interface CalendarOption { name: string; url: string }
 
-  async function handleSync() {
+function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () => void }) {
+  const [step, setStep]         = useState<1 | 2 | 3>(1)
+  const [email, setEmail]       = useState('')
+  const [pass, setPass]         = useState('')
+  const [syncing, setSyncing]   = useState(false)
+  const [result, setResult]     = useState<string | null>(null)
+  // Step 3 — sélection des calendriers
+  const [calendars, setCalendars]     = useState<CalendarOption[]>([])
+  const [excluded, setExcluded]       = useState<string[]>([])
+  const [loadingCals, setLoadingCals] = useState(false)
+
+  // Cas : déjà connecté → aller directement au step 3
+  useEffect(() => {
+    async function checkConnected() {
+      setLoadingCals(true)
+      try {
+        const res  = await fetch('/api/calendar/apple/calendars')
+        const json = await res.json()
+        if (res.ok && json.calendars?.length > 0) {
+          setCalendars(json.calendars)
+          setExcluded(json.excluded ?? [])
+          setStep(3)
+        }
+      } catch {}
+      setLoadingCals(false)
+    }
+    checkConnected()
+  }, [])
+
+  async function handleConnect() {
     if (!email || !pass) return
     setSyncing(true)
     try {
+      // Connexion initiale — on lance le sync sans excludedCalendars (d'abord tout importer)
       const res = await fetch('/api/calendar/apple/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, appPassword: pass }),
       })
       const json = await res.json()
-      setResult(res.ok ? `✅ ${json.synced ?? 0} événement(s) importé(s)` : `❌ ${json.error ?? 'Erreur'}`)
+      if (!res.ok) { setResult(`❌ ${json.error ?? 'Erreur'}`); setSyncing(false); return }
+      // Charge la liste des calendriers pour step 3
+      const cRes  = await fetch('/api/calendar/apple/calendars')
+      const cJson = await cRes.json()
+      if (cRes.ok && cJson.calendars?.length > 0) {
+        setCalendars(cJson.calendars)
+        setExcluded(cJson.excluded ?? [])
+        setStep(3)
+      } else {
+        setResult(`✅ ${json.synced ?? 0} événement(s) importé(s)`)
+        onSynced?.()
+      }
     } catch {
       setResult('❌ Impossible de contacter le serveur')
     } finally {
@@ -97,23 +133,50 @@ function AppleModal({ onClose }: { onClose: () => void }) {
     }
   }
 
+  async function handleApplyFilter() {
+    setSyncing(true)
+    try {
+      const res  = await fetch('/api/calendar/apple/sync', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ excludedCalendars: excluded }),
+      })
+      const json = await res.json()
+      setResult(res.ok ? `✅ Sync terminé — ${json.synced ?? 0} ajouté(s), ${json.removed ?? 0} supprimé(s)` : `❌ ${json.error ?? 'Erreur'}`)
+      onSynced?.()
+    } catch {
+      setResult('❌ Impossible de contacter le serveur')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  function toggleExclude(name: string) {
+    setExcluded(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name])
+  }
+
+  const stepLabel = step === 1 ? 'Instructions' : step === 2 ? 'Connexion' : 'Mes calendriers'
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
       <div className="w-full max-w-md rounded-[16px] p-6 flex flex-col gap-5" style={{ background: '#111', border: '1px solid rgba(245,223,187,0.12)' }} onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-[8px] flex items-center justify-center" style={{ background: 'rgba(245,223,187,0.08)' }}>
-              <Apple size={16} style={{ color: 'var(--wheat)' }} />
+              {loadingCals ? <RefreshCw size={14} style={{ color: 'var(--wheat)', opacity: 0.5 }} /> : <Apple size={16} style={{ color: 'var(--wheat)' }} />}
             </div>
             <div>
               <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>Apple Calendar</p>
-              <p className="text-[10px]" style={{ color: 'rgba(245,223,187,0.45)' }}>Synchronisation CalDAV</p>
+              <p className="text-[10px]" style={{ color: 'rgba(245,223,187,0.45)' }}>{stepLabel}</p>
             </div>
           </div>
           <button onClick={onClose}><X size={14} style={{ color: 'rgba(245,223,187,0.4)' }} /></button>
         </div>
 
-        {step === 1 ? (
+        {/* Step 1 — Instructions */}
+        {step === 1 && (
           <>
             <div className="rounded-[10px] p-4 flex flex-col gap-2" style={{ background: 'rgba(14,149,148,0.12)', border: '1px solid rgba(14,149,148,0.25)' }}>
               <p className="text-xs font-semibold" style={{ color: '#0E9594' }}>Avant de continuer</p>
@@ -139,7 +202,10 @@ function AppleModal({ onClose }: { onClose: () => void }) {
               J'ai mon mot de passe →
             </button>
           </>
-        ) : (
+        )}
+
+        {/* Step 2 — Connexion */}
+        {step === 2 && (
           <>
             <div className="flex flex-col gap-3">
               <div>
@@ -157,6 +223,60 @@ function AppleModal({ onClose }: { onClose: () => void }) {
                   style={{ background: '#1a1a1a', color: '#F5DFBB', border: '1px solid rgba(245,223,187,0.15)' }} />
               </div>
             </div>
+            {result && (
+              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? '#0E9594' : '#F2542D' }}>
+                {result}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button onClick={() => setStep(1)} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: '#1a1a1a', border: '1px solid rgba(245,223,187,0.15)', color: 'rgba(245,223,187,0.6)' }}>
+                ← Retour
+              </button>
+              <button onClick={handleConnect} disabled={syncing || !email || !pass}
+                className="flex-1 py-2 rounded-[8px] text-sm font-semibold disabled:opacity-40"
+                style={{ background: '#F2542D', color: '#fff' }}>
+                {syncing ? 'Connexion…' : 'Connecter →'}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Step 3 — Sélection des calendriers */}
+        {step === 3 && (
+          <>
+            <div className="rounded-[10px] p-3" style={{ background: 'rgba(245,223,187,0.04)', border: '1px solid rgba(245,223,187,0.1)' }}>
+              <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(245,223,187,0.55)' }}>
+                Coche les calendriers à <strong style={{ color: '#F5DFBB' }}>inclure</strong> dans NYSA. Les autres seront ignorés.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-1" style={{ maxHeight: 260, overflowY: 'auto' }}>
+              {calendars.map(cal => {
+                const isIncluded = !excluded.includes(cal.name)
+                return (
+                  <div key={cal.url}
+                    onClick={() => toggleExclude(cal.name)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-[8px] cursor-pointer"
+                    style={{ background: isIncluded ? 'rgba(14,149,148,0.08)' : 'transparent', border: `1px solid ${isIncluded ? 'rgba(14,149,148,0.25)' : 'rgba(245,223,187,0.08)'}`, transition: 'all 0.12s' }}
+                    onMouseEnter={e => { if (!isIncluded) (e.currentTarget as HTMLElement).style.background = 'rgba(245,223,187,0.04)' }}
+                    onMouseLeave={e => { if (!isIncluded) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+                    {/* Checkbox */}
+                    <div style={{
+                      width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                      border: `1.5px solid ${isIncluded ? '#0E9594' : 'rgba(245,223,187,0.2)'}`,
+                      background: isIncluded ? '#0E9594' : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.12s',
+                    }}>
+                      {isIncluded && <span style={{ color: '#fff', fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</span>}
+                    </div>
+                    <span style={{ fontSize: 12, color: isIncluded ? 'var(--wheat)' : 'rgba(245,223,187,0.4)', fontWeight: isIncluded ? 500 : 400 }}>
+                      {cal.name}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
 
             {result && (
               <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? '#0E9594' : '#F2542D' }}>
@@ -165,13 +285,13 @@ function AppleModal({ onClose }: { onClose: () => void }) {
             )}
 
             <div className="flex gap-2">
-              <button onClick={() => setStep(1)} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: '#1a1a1a', border: '1px solid rgba(245,223,187,0.15)', color: 'rgba(245,223,187,0.6)' }}>
-                ← Retour
+              <button onClick={onClose} className="flex-1 py-2 rounded-[8px] text-sm" style={{ background: '#1a1a1a', border: '1px solid rgba(245,223,187,0.15)', color: 'rgba(245,223,187,0.6)' }}>
+                Annuler
               </button>
-              <button onClick={handleSync} disabled={syncing || !email || !pass}
-                className="flex-2 flex-1 py-2 rounded-[8px] text-sm font-semibold disabled:opacity-40"
+              <button onClick={handleApplyFilter} disabled={syncing}
+                className="flex-1 py-2.5 rounded-[8px] text-sm font-semibold disabled:opacity-40"
                 style={{ background: '#F2542D', color: '#fff' }}>
-                {syncing ? 'Sync…' : 'Synchroniser'}
+                {syncing ? 'Sync…' : `Appliquer (${calendars.length - excluded.length}/${calendars.length})`}
               </button>
             </div>
           </>
@@ -784,7 +904,7 @@ function CalendrierContent() {
           onClose={() => setModalDate(null)}
         />
       )}
-      {appleOpen && <AppleModal onClose={() => setAppleOpen(false)} />}
+      {appleOpen && <AppleModal onClose={() => setAppleOpen(false)} onSynced={() => { refetch(); setAppleConnected(true); setLastSync(new Date()) }} />}
     </div>
   )
 }
