@@ -356,7 +356,7 @@ export default function HealthPage() {
           <div style={{ marginBottom: 4 }}>
             <WeightSparkLine data={weightHistory} />
           </div>
-          <button onClick={() => setShowWForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => router.push('/health/poids')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.6)' }}>VOIR L&apos;ÉVOLUTION</span>
             <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.6)' }} />
           </button>
@@ -548,7 +548,7 @@ export default function HealthPage() {
               </div>
             ))}
           </div>
-          <button onClick={() => router.push('/sport')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
+          <button onClick={() => router.push('/health/frequence-cardiaque')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.2)' }}>VOIR PLUS</span>
             <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.2)' }} />
           </button>
