@@ -1,10 +1,11 @@
 'use client'
 import { Suspense } from 'react'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Upload, Plus, RefreshCw, CheckCircle2, AlertCircle, ChevronRight, Activity, Zap, TrendingUp, Target, Award } from 'lucide-react'
+import { Upload, Plus, RefreshCw, CheckCircle2, AlertCircle, ChevronRight, Activity, Zap, TrendingUp, Target, Award, Calendar } from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth'
 import { parseGpx } from '@/lib/parseGpx'
+import { createClient } from '@/lib/supabase/client'
 
 /* ─── Constants ──────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -151,8 +152,28 @@ function SportPageInner() {
   })
   const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10) })()
   const [showPlanForm, setShowPlanForm] = useState(false)
-  const [planForm, setPlanForm] = useState({ date: tomorrow, distance: '', title: '', notes: '' })
+  const [planForm, setPlanForm] = useState({ date: tomorrow, distance: '', title: '', time: '20:30', notes: '' })
   const [planSaving, setPlanSaving] = useState(false)
+
+  // ── Running events from Calendar ──────────────────────
+  type RunCalEvent = { id: string; title: string; start_at: string; end_at: string; category: string | null; color: string | null }
+  const [calRunEvents, setCalRunEvents] = useState<RunCalEvent[]>([])
+  const supabase = createClient()
+
+  const fetchCalRunEvents = useCallback(async () => {
+    const now = new Date().toISOString()
+    const { data } = await supabase
+      .from('events')
+      .select('id, title, start_at, end_at, category, color')
+      .eq('category', 'Running')
+      .gte('start_at', now)
+      .order('start_at', { ascending: true })
+      .limit(5)
+    setCalRunEvents(data ?? [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => { fetchCalRunEvents() }, [fetchCalRunEvents])
 
   useEffect(() => {
     const strava = searchParams.get('strava')
@@ -205,15 +226,55 @@ function SportPageInner() {
   async function handlePlan(e: React.FormEvent) {
     e.preventDefault(); if (!planForm.distance) return
     setPlanSaving(true)
+
+    const km     = parseFloat(planForm.distance)
+    const title  = planForm.title || `Course ${km.toFixed(1)} km`
+    const estSec = Math.round((km / 10) * 3600) // ~10 km/h
+
+    // 1. Save to running_activities
     await addRun({
-      title:       planForm.title || undefined,
+      title,
       date:        planForm.date,
-      distance_km: parseFloat(planForm.distance),
+      distance_km: km,
       notes:       planForm.notes || undefined,
     })
+
+    // 2. Create calendar event with category "Running"
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const [hh, mm] = planForm.time.split(':').map(Number)
+      const startAt  = new Date(`${planForm.date}T${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00`)
+      const endAt    = new Date(startAt.getTime() + estSec * 1000)
+      const { data: calEvent } = await supabase
+        .from('events')
+        .insert({
+          user_id:  user.id,
+          title,
+          start_at: startAt.toISOString(),
+          end_at:   endAt.toISOString(),
+          all_day:  false,
+          category: 'Running',
+          color:    '#0E9594',
+          source:   'manual',
+        })
+        .select()
+        .single()
+      // Push silencieux vers Apple Calendar
+      if (calEvent) {
+        fetch('/api/calendar/apple/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: calEvent }),
+        }).catch(() => {})
+      }
+    }
+
+    // 3. Refresh calendar running events
+    fetchCalRunEvents()
+
     setPlanSaving(false)
     setShowPlanForm(false)
-    setPlanForm({ date: tomorrow, distance: '', title: '', notes: '' })
+    setPlanForm({ date: tomorrow, distance: '', title: '', time: '20:30', notes: '' })
   }
 
   async function handleManual(e: React.FormEvent) {
@@ -298,7 +359,9 @@ function SportPageInner() {
   const pctSeances= Math.min(100, (seancesWeek / OBJ_SEANCES) * 100)
   const pctElev   = Math.min(100, (elevWeek / OBJ_ELEV) * 100)
 
-  const nextRun = activities.find(a => new Date(a.date + 'T12:00:00') > today) ?? null
+  // Prochaine course : priorité au calendrier (label Running), sinon activité future
+  const nextCalRun = calRunEvents[0] ?? null
+  const nextRun    = activities.find(a => new Date(a.date + 'T12:00:00') > today) ?? null
 
   /* ── Card style helpers ──────────────────────────────── */
   const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
@@ -548,7 +611,7 @@ function SportPageInner() {
 
             {showPlanForm ? (
               <form onSubmit={handlePlan} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px', gap: 8 }}>
                   <div>
                     <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Date</p>
                     <input type="date" value={planForm.date}
@@ -564,6 +627,13 @@ function SportPageInner() {
                       style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)',
                         borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
                   </div>
+                  <div>
+                    <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Heure</p>
+                    <input type="time" value={planForm.time}
+                      onChange={e => setPlanForm(f => ({ ...f, time: e.target.value }))}
+                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)',
+                        borderRadius: 8, padding: '8px 6px', color: 'var(--text)', fontSize: 12 }} />
+                  </div>
                 </div>
                 <div>
                   <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Titre (optionnel)</p>
@@ -571,6 +641,10 @@ function SportPageInner() {
                     onChange={e => setPlanForm(f => ({ ...f, title: e.target.value }))}
                     style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)',
                       borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 8, background: 'rgba(14,149,148,0.08)', border: '1px solid rgba(14,149,148,0.2)' }}>
+                  <Calendar size={11} style={{ color: TEAL, flexShrink: 0 }} />
+                  <span style={{ fontSize: 10, color: TEAL }}>Sera ajouté automatiquement dans le calendrier (label Running)</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                   <button type="submit" disabled={planSaving || !planForm.distance}
@@ -586,6 +660,36 @@ function SportPageInner() {
                   </button>
                 </div>
               </form>
+            ) : nextCalRun ? (
+              /* ── Affiché depuis le Calendrier (label Running) ── */
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                <div style={{ width: 52, height: 52, borderRadius: 10, background: TEAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Calendar size={22} style={{ color: WHEAT }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--wheat)' }}>
+                    {nextCalRun.title}
+                    <span style={{ fontSize: 9, marginLeft: 8, padding: '2px 6px', borderRadius: 4,
+                      background: 'rgba(14,149,148,0.15)', color: TEAL, ...DF, fontWeight: 700 }}>Calendrier</span>
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>
+                    {new Date(nextCalRun.start_at).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'long' })}
+                    {' · '}
+                    {new Date(nextCalRun.start_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                {(() => {
+                  const diff = Math.ceil((new Date(nextCalRun.start_at).getTime() - new Date().getTime()) / 86400000)
+                  return (
+                    <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                      <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: ORANGE, lineHeight: 1 }}>J-{diff}</p>
+                      <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2 }}>
+                        {diff <= 1 ? 'Demain !' : `${diff} jours`}
+                      </p>
+                    </div>
+                  )
+                })()}
+              </div>
             ) : nextRun ? (
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 10, background: '#11686A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
