@@ -682,7 +682,7 @@ export default function HealthPage() {
               </div>
             ))}
           </div>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 'auto', borderTop: '1px solid var(--border)' }}>
+          <button onClick={() => router.push('/health/mesures')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 'auto', borderTop: '1px solid var(--border)' }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>VOIR L&apos;HISTORIQUE</span>
             <ChevronRight size={11} style={{ color: 'var(--text-muted)' }} />
           </button>
@@ -732,7 +732,7 @@ export default function HealthPage() {
             })}
           </div>
 
-          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(240,228,204,0.1)' }}>
+          <button onClick={() => router.push('/health/objectifs')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(240,228,204,0.1)' }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.35)' }}>VOIR TOUS LES OBJECTIFS</span>
             <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.35)' }} />
           </button>
