@@ -1,239 +1,738 @@
 'use client'
-import { useState } from 'react'
-import { Plus, TrendingDown, TrendingUp, Flame, Moon, Activity } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+  Plus, TrendingDown, TrendingUp, Activity, Moon, Heart, Droplets,
+  ChevronRight, Check, Utensils, Apple as AppleIcon, Scale, Flame, Zap
+} from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth'
-import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
 
+/* ─── Constants ─────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+const TEAL   = '#0E9594'
+const ORANGE = '#F2542D'
+const WHEAT  = '#F0E4CC'
+const TEAL_BG = '#11686A'
+const DARK   = '#1A1A2E'
 
-function fmtDuration(sec: number) {
+/* ─── Helpers ───────────────────────────────────────────────── */
+function fmtPace(sec: number) {
+  if (!sec || sec <= 0) return '—'
+  return `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}/km`
+}
+function fmtDur(sec: number) {
+  if (!sec || sec <= 0) return '—'
   const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60)
-  return `${h}h ${String(m).padStart(2,'0')}m`
+  return h > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`
+}
+function fmtDate(d: string) {
+  return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
 }
 
-export default function HealthPage() {
-  const { metrics, activities, loading, addWeight, addRun, latestWeight, weightTrend } = useHealth()
-  const [tab, setTab] = useState<'course'|'poids'|'sommeil'>('course')
-  const [showWeightForm, setShowWeightForm] = useState(false)
-  const [showRunForm, setShowRunForm] = useState(false)
-  const [wForm, setWForm] = useState({ date: new Date().toISOString().slice(0,10), weight: '' })
-  const [rForm, setRForm] = useState({ date: new Date().toISOString().slice(0,10), distance: '', duration: '', notes: '' })
+/* ─── SVG Helpers ───────────────────────────────────────────── */
+function WeightSparkLine({ data }: { data: number[] }) {
+  if (data.length < 2) return null
+  const min = Math.min(...data); const max = Math.max(...data, min + 0.1)
+  const W = 220; const H = 50
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * W
+    const y = H - ((v - min) / (max - min)) * (H - 8)
+    return `${x},${y}`
+  }).join(' ')
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+      <polyline points={pts} fill="none" stroke={TEAL} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      {data.map((v, i) => (
+        <circle key={i}
+          cx={(i / (data.length - 1)) * W}
+          cy={H - ((v - min) / (max - min)) * (H - 8)}
+          r={i === data.length - 1 ? 4 : 2}
+          fill={i === data.length - 1 ? ORANGE : TEAL}
+          stroke={i === data.length - 1 ? '#fff' : 'none'}
+          strokeWidth={1.5}
+        />
+      ))}
+    </svg>
+  )
+}
 
-  const thisWeekRuns = activities.filter(a => {
-    const d = new Date(a.date); const now = new Date()
-    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)
-    return d >= weekAgo
+function HrSparkLine({ data }: { data: number[] }) {
+  if (data.filter(v => v > 0).length < 2) return null
+  const valid = data.filter(v => v > 0)
+  const min = Math.min(...valid) - 5; const max = Math.max(...valid) + 5
+  const W = 200; const H = 45
+  const pts = data.map((v, i) => {
+    if (!v) return null
+    const x = (i / (data.length - 1)) * W
+    const y = H - ((v - min) / (max - min)) * (H - 6)
+    return `${x},${y}`
+  }).filter(Boolean).join(' ')
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+      <polyline points={pts} fill="none" stroke={ORANGE} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function WeekBars({ data, labels, color = ORANGE, max: maxProp }:
+  { data: number[]; labels: string[]; color?: string; max?: number }) {
+  const max = maxProp ?? Math.max(...data, 1)
+  return (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 70 }}>
+      {data.map((v, i) => {
+        const h = v > 0 ? Math.max(6, (v / max) * 62) : 4
+        return (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            {v > 0 && <span style={{ fontSize: 8, color: 'rgba(240,228,204,0.6)', ...DF, fontWeight: 700 }}>{v.toFixed(1)}</span>}
+            <div style={{ width: '100%', height: h, borderRadius: '3px 3px 0 0',
+              background: v > 0 ? color : 'rgba(240,228,204,0.1)' }} />
+            <span style={{ fontSize: 8, color: 'rgba(240,228,204,0.5)', ...DF, fontWeight: 600 }}>{labels[i]}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ─── Card style shortcuts ──────────────────────────────────── */
+const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
+  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
+})
+const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
+  background: TEAL_BG, borderRadius: 12, overflow: 'hidden', ...extra,
+})
+const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
+  background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
+})
+const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
+  background: '#16162A', borderRadius: 12, overflow: 'hidden', ...extra,
+})
+const lbl = (color = ORANGE): React.CSSProperties => ({
+  ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
+})
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN PAGE
+═══════════════════════════════════════════════════════════ */
+export default function HealthPage() {
+  const router = useRouter()
+  const { metrics, activities, loading, addWeight, addRun, latestWeight, weightTrend } = useHealth()
+
+  /* ── Forms state ─────────────────── */
+  const [showWForm, setShowWForm] = useState(false)
+  const [showRForm, setShowRForm] = useState(false)
+  const [wForm, setWForm]         = useState({ date: new Date().toISOString().slice(0, 10), weight: '' })
+  const [rForm, setRForm]         = useState({ date: new Date().toISOString().slice(0, 10), distance: '', duration: '', notes: '' })
+
+  /* ── Hydration local state ───────── */
+  const [glasses, setGlasses]     = useState(0)
+  const GLASS_TARGET = 8
+
+  /* ── Nutrition local state ───────── */
+  const [nutrition] = useState({ cal: 1842, calTarget: 2200, prot: 120, protTarget: 150, gluc: 180, glucTarget: 250, lip: 65, lipTarget: 80 })
+
+  /* ── Mesures corporelles ─────────── */
+  const [mesures]   = useState({ taille: 81, massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 })
+
+  /* ── Stats derivation ────────────── */
+  const today     = new Date()
+  const weekStart = new Date(today)
+  weekStart.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1))
+  weekStart.setHours(0, 0, 0, 0)
+
+  const thisWeek  = activities.filter(a => new Date(a.date + 'T12:00:00') >= weekStart)
+  const kmWeek    = parseFloat(thisWeek.reduce((s, a) => s + (a.distance_km ?? 0), 0).toFixed(2))
+  const secWeek   = thisWeek.reduce((s, a) => s + (a.duration_seconds ?? 0), 0)
+  const elevWeek  = thisWeek.reduce((s, a) => s + (a.elevation_m ?? 0), 0)
+  const avgPace   = kmWeek > 0 && secWeek > 0 ? secWeek / kmWeek : 0
+
+  // Day-by-day bars
+  const dayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+  const dayKm     = new Array(7).fill(0)
+  thisWeek.forEach(a => {
+    const d = new Date(a.date + 'T12:00:00')
+    const idx = d.getDay() === 0 ? 6 : d.getDay() - 1
+    dayKm[idx] += a.distance_km ?? 0
   })
-  const totalKmWeek  = thisWeekRuns.reduce((s, a) => s + (a.distance_km ?? 0), 0)
-  const totalSecWeek = thisWeekRuns.reduce((s, a) => s + (a.duration_seconds ?? 0), 0)
-  const avgPace = totalKmWeek > 0 && totalSecWeek > 0
-    ? `${Math.floor(totalSecWeek/60/totalKmWeek)}:${String(Math.round(totalSecWeek/totalKmWeek % 60)).padStart(2,'0')}/km`
-    : '—'
+  const todayIdx = today.getDay() === 0 ? 6 : today.getDay() - 1
+
+  // Weight history for sparkline (last 14 points)
+  const weightHistory = metrics.slice(0, 14).reverse().map(m => m.weight_kg ?? 0).filter(v => v > 0)
+
+  // HR from activities
+  const hrData = activities.slice(0, 7).reverse().map(a => a.heart_rate_avg ?? 0)
+  const avgHr  = hrData.filter(v => v > 0).length > 0
+    ? Math.round(hrData.filter(v => v > 0).reduce((s, v) => s + v, 0) / hrData.filter(v => v > 0).length)
+    : null
+
+  // 6-month total for objectifs
+  const monthKm = activities
+    .filter(a => { const d = new Date(a.date + 'T12:00:00'); return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear() })
+    .reduce((s, a) => s + (a.distance_km ?? 0), 0)
+  const allKm   = activities.reduce((s, a) => s + (a.distance_km ?? 0), 0)
 
   async function handleWeight(e: React.FormEvent) {
-    e.preventDefault()
-    if (!wForm.weight) return
+    e.preventDefault(); if (!wForm.weight) return
     await addWeight(wForm.date, parseFloat(wForm.weight))
-    setShowWeightForm(false); setWForm({ date: new Date().toISOString().slice(0,10), weight: '' })
+    setShowWForm(false); setWForm({ date: new Date().toISOString().slice(0, 10), weight: '' })
+  }
+  async function handleRun(e: React.FormEvent) {
+    e.preventDefault(); if (!rForm.distance) return
+    const [h, m] = rForm.duration.split(':').map(Number)
+    const dur    = rForm.duration ? h * 3600 + (m || 0) * 60 : undefined
+    await addRun({ date: rForm.date, distance_km: parseFloat(rForm.distance), duration_seconds: dur, notes: rForm.notes || undefined })
+    setShowRForm(false); setRForm({ date: new Date().toISOString().slice(0, 10), distance: '', duration: '', notes: '' })
   }
 
-  async function handleRun(e: React.FormEvent) {
-    e.preventDefault()
-    if (!rForm.distance) return
-    const [h,m] = rForm.duration.split(':').map(Number)
-    const dur = rForm.duration ? (h*3600 + m*60) : undefined
-    await addRun({ date: rForm.date, distance_km: parseFloat(rForm.distance), duration_seconds: dur, notes: rForm.notes || undefined })
-    setShowRunForm(false); setRForm({ date: new Date().toISOString().slice(0,10), distance: '', duration: '', notes: '' })
+  const inputStyle: React.CSSProperties = {
+    background: 'var(--bg-input)', border: '1px solid var(--border)',
+    borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12,
   }
 
   return (
-    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
-      <PageTitle
-        title="Health"
-        sub="Course · Poids · Sommeil · Forme & Bien-être"
-        right={
-          <div className="flex gap-2">
-            <button onClick={() => setShowWeightForm(!showWeightForm)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl"
-              style={{ background: '#11686A', color: '#F0E4CC', ...DF, fontWeight: 700, fontSize: 11 }}>
-              <Plus size={12} /> Poids
-            </button>
-            <button onClick={() => setShowRunForm(!showRunForm)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl"
-              style={{ background: '#F2542D', color: '#fff', ...DF, fontWeight: 700, fontSize: 11 }}>
-              <Plus size={12} /> Run
-            </button>
-          </div>
-        }
-      />
+    <div style={{ padding: 30, minHeight: '100%' }}>
+      <style>{`
+        .health-btn:hover { opacity: 0.85; }
+        .health-row:hover { background: var(--bg-card-hover) !important; }
+        .glass-btn { cursor: pointer; transition: transform .1s; }
+        .glass-btn:hover { transform: scale(1.1); }
+      `}</style>
 
-      <KpiGrid>
-        <KpiCard label="Distance semaine" value={`${totalKmWeek.toFixed(1)} km`} sub={`${thisWeekRuns.length} sorties`} color="#F2542D" bg="#11686A" />
-        <KpiCard label="Poids actuel"     value={latestWeight ? `${latestWeight} kg` : '—'}
-          sub={weightTrend !== null ? `${weightTrend > 0 ? '+' : ''}${weightTrend?.toFixed(1)} kg vs hier` : undefined}
-          color="#F0E4CC" bg="#11686A" />
-        <KpiCard label="Temps de run"  value={totalSecWeek > 0 ? fmtDuration(totalSecWeek) : '—'}  sub="cette semaine" />
-        <KpiCard label="Allure moy."  value={avgPace} sub="cette semaine" color="#0E9594" />
-      </KpiGrid>
-
-      {/* Forms */}
-      {showWeightForm && (
-        <form onSubmit={handleWeight} className="flex gap-2 p-4 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-active)' }}>
-          <input type="date" value={wForm.date} onChange={e => setWForm(f => ({...f, date: e.target.value}))}
-            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }} />
-          <input type="number" step="0.1" value={wForm.weight} onChange={e => setWForm(f => ({...f, weight: e.target.value}))} placeholder="Poids (kg)" autoFocus
-            style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13 }} />
-          <button type="submit" style={{ background: '#11686A', color: '#F0E4CC', borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12 }}>Enregistrer</button>
+      {/* ── Inline forms ──────────────────────────────────── */}
+      {showWForm && (
+        <form onSubmit={handleWeight} style={{ display: 'flex', gap: 8, marginBottom: 10, padding: 14,
+          borderRadius: 10, ...card() }}>
+          <input type="date" value={wForm.date} onChange={e => setWForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
+          <input type="number" step="0.1" value={wForm.weight} onChange={e => setWForm(f => ({ ...f, weight: e.target.value }))}
+            placeholder="Poids (kg)" autoFocus style={{ ...inputStyle, flex: 1 }} />
+          <button type="submit" style={{ background: TEAL_BG, color: WHEAT, borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+            Enregistrer
+          </button>
+          <button type="button" onClick={() => setShowWForm(false)} style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+            ×
+          </button>
         </form>
       )}
-      {showRunForm && (
-        <form onSubmit={handleRun} className="flex gap-2 flex-wrap p-4 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-active)' }}>
-          <input type="date" value={rForm.date} onChange={e => setRForm(f=>({...f,date:e.target.value}))}
-            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }} />
-          <input type="number" step="0.01" value={rForm.distance} onChange={e => setRForm(f=>({...f,distance:e.target.value}))} placeholder="Distance (km)" autoFocus
-            style={{ flex: 1, minWidth: 120, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13 }} />
-          <input type="text" value={rForm.duration} onChange={e => setRForm(f=>({...f,duration:e.target.value}))} placeholder="Durée (h:mm)"
-            style={{ width: 120, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13 }} />
-          <input type="text" value={rForm.notes} onChange={e => setRForm(f=>({...f,notes:e.target.value}))} placeholder="Notes…"
-            style={{ flex: 2, minWidth: 160, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13 }} />
-          <button type="submit" style={{ background: '#F2542D', color: '#fff', borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12 }}>Ajouter</button>
+      {showRForm && (
+        <form onSubmit={handleRun} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10, padding: 14, borderRadius: 10, ...card() }}>
+          <input type="date" value={rForm.date} onChange={e => setRForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
+          <input type="number" step="0.01" value={rForm.distance} onChange={e => setRForm(f => ({ ...f, distance: e.target.value }))}
+            placeholder="Distance (km)" autoFocus style={{ ...inputStyle, flex: 1, minWidth: 110 }} />
+          <input type="text" value={rForm.duration} onChange={e => setRForm(f => ({ ...f, duration: e.target.value }))}
+            placeholder="Durée (h:mm)" style={{ ...inputStyle, width: 110 }} />
+          <input type="text" value={rForm.notes} onChange={e => setRForm(f => ({ ...f, notes: e.target.value }))}
+            placeholder="Notes…" style={{ ...inputStyle, flex: 2, minWidth: 140 }} />
+          <button type="submit" style={{ background: ORANGE, color: '#fff', borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+            Ajouter
+          </button>
+          <button type="button" onClick={() => setShowRForm(false)} style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+            ×
+          </button>
         </form>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
-        {/* Last runs — big teal card */}
-        <div className="md:col-span-2 flex flex-col gap-[10px]">
-          {/* Weekly activity chart (sparkline bars) */}
-          <div style={{ background: '#11686A', borderRadius: 12, padding: 20 }}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F0E4CC', textTransform: 'uppercase', marginBottom: 16 }}>Activité hebdomadaire</p>
-            <div className="flex items-end gap-2" style={{ height: 80 }}>
-              {['L','M','M','J','V','S','D'].map((day, i) => {
-                const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1 + i)
-                const iso = d.toISOString().slice(0,10)
-                const run = activities.find(a => a.date === iso)
-                const km  = run?.distance_km ?? 0
-                const maxKm = Math.max(...activities.map(a => a.distance_km ?? 0), 1)
-                const h = km > 0 ? Math.max(8, (km / maxKm) * 70) : 4
-                return (
-                  <div key={i} className="flex flex-col items-center gap-1" style={{ flex: 1 }}>
-                    <div style={{ width: '100%', height: h, borderRadius: 4, background: km > 0 ? '#F2542D' : 'rgba(240,228,204,0.15)' }} />
-                    <span style={{ fontSize: 9, color: 'rgba(240,228,204,0.6)', ...DF, fontWeight: 600 }}>{day}</span>
-                    {km > 0 && <span style={{ fontSize: 9, color: '#F0E4CC' }}>{km.toFixed(1)}</span>}
-                  </div>
-                )
-              })}
+      {/* ══════════════════════════════════════════════════
+          GRID — 4 cols × 5 rows
+      ══════════════════════════════════════════════════ */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateRows: '300px 300px 500px 400px 260px',
+        gap: 10,
+      }}>
+
+        {/* ── R1 C1-2 : HERO ──────────────────────────────── */}
+        <div style={{ gridColumn: 'span 2', padding: '32px 32px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <p style={{ ...DF, fontSize: 52, fontWeight: 900, color: ORANGE, lineHeight: 0.95, marginBottom: 8 }}>HEALTH.</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 24 }}>
+              Suivez. Progressez. Prenez soin de vous.
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="health-btn" onClick={() => setShowWForm(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9,
+                  background: TEAL_BG, color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+                <Scale size={12} /> + Poids
+              </button>
+              <button className="health-btn" onClick={() => setShowRForm(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9,
+                  background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+                <Activity size={12} /> + Run
+              </button>
             </div>
           </div>
-
-          {/* Runs list */}
-          <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)' }}>
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-              <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F2542D', textTransform: 'uppercase' }}>Dernières sorties</p>
-              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{activities.length} enregistrées</span>
-            </div>
-            {loading ? <p className="p-5 text-xs" style={{ color: 'var(--text-muted)' }}>Chargement…</p>
-            : activities.length === 0 ? (
-              <div className="flex flex-col items-center py-10 gap-2">
-                <Activity size={28} style={{ color: 'var(--text-muted)' }} />
-                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune sortie enregistrée</p>
-                <button onClick={() => setShowRunForm(true)} style={{ fontSize: 11, color: '#F2542D', ...DF, fontWeight: 700 }}>+ Ajouter un run</button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {[
+              { l: 'Distance semaine', v: `${kmWeek.toFixed(1)} km`, sub: `${thisWeek.length} sortie${thisWeek.length !== 1 ? 's' : ''}`, color: ORANGE },
+              { l: 'Temps actif',      v: fmtDur(secWeek),            sub: 'cette semaine',                                                  color: TEAL },
+              { l: 'Allure moy.',      v: avgPace > 0 ? fmtPace(avgPace) : '—', sub: 'cette semaine',                                        color: WHEAT },
+              { l: 'Poids actuel',     v: latestWeight ? `${latestWeight} kg` : '—', sub: weightTrend != null ? `${weightTrend > 0 ? '+' : ''}${weightTrend?.toFixed(1)} kg` : 'Aucune donnée', color: TEAL },
+            ].map(s => (
+              <div key={s.l} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.l}</p>
+                <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.v}</p>
+                <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 3 }}>{s.sub}</p>
               </div>
-            ) : activities.slice(0,8).map(a => {
-              const pace = a.duration_seconds && a.distance_km
-                ? `${Math.floor(a.duration_seconds/60/a.distance_km)}:${String(Math.round(a.duration_seconds/a.distance_km % 60)).padStart(2,'0')}/km`
-                : null
+            ))}
+          </div>
+        </div>
+
+        {/* ── R1 C3-4 : RÉSUMÉ DU JOUR ────────────────────── */}
+        <div style={{ ...orangeCard(), gridColumn: 'span 2', padding: 28 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+            <p style={{ ...lbl('#1A0A0A') }}>Résumé du jour</p>
+            <span style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>{today.toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' })}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+            {[
+              { icon: <Flame size={16} />, l: 'Pas', v: '—', obj: '10 000', unit: '' },
+              { icon: <Activity size={16} />, l: 'Activité', v: fmtDur(secWeek), obj: '60 min', unit: '' },
+              { icon: <Zap size={16} />, l: 'Calories', v: `${nutrition.cal.toLocaleString()}`, obj: nutrition.calTarget.toLocaleString(), unit: 'kcal' },
+            ].map(s => (
+              <div key={s.l} style={{ background: 'rgba(26,10,10,0.12)', borderRadius: 10, padding: '14px 12px' }}>
+                <div style={{ color: '#1A0A0A', marginBottom: 6 }}>{s.icon}</div>
+                <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>
+                  {s.v}{s.unit && <span style={{ fontSize: 11, marginLeft: 2 }}>{s.unit}</span>}
+                </p>
+                <p style={{ fontSize: 9, color: 'rgba(26,10,10,0.55)', marginTop: 3 }}>Objectif {s.obj}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(26,10,10,0.1)', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <AppleIcon size={16} style={{ color: '#1A0A0A', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: '#1A0A0A' }}>Apple Santé</p>
+              <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.6)' }}>Bientôt disponible — synchronisation pas, calories, sommeil</p>
+            </div>
+            <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, background: 'rgba(26,10,10,0.2)', color: '#1A0A0A', ...DF, fontWeight: 700 }}>Soon</span>
+          </div>
+        </div>
+
+        {/* ── R2 C1 : COURSE À PIED ───────────────────────── */}
+        <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 4 }}>Course à pied</p>
+              <p style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)' }}>Cette semaine</p>
+            </div>
+            <Activity size={18} style={{ color: 'rgba(240,228,204,0.35)' }} />
+          </div>
+          <div>
+            <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: WHEAT, lineHeight: 1, marginBottom: 3 }}>
+              {kmWeek.toFixed(1)} <span style={{ fontSize: 16, fontWeight: 500 }}>km</span>
+            </p>
+            <p style={{ fontSize: 10, color: 'rgba(240,228,204,0.5)' }}>{thisWeek.length} session{thisWeek.length !== 1 ? 's' : ''}</p>
+          </div>
+          <WeekBars data={dayKm} labels={dayLabels} color={ORANGE} />
+          <button onClick={() => router.push('/sport')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 6 }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.6)' }}>VOIR LE PROGRAMME</span>
+            <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.6)' }} />
+          </button>
+        </div>
+
+        {/* ── R2 C2 : POIDS ───────────────────────────────── */}
+        <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Poids</p>
+            <Scale size={18} style={{ color: 'rgba(240,228,204,0.35)' }} />
+          </div>
+          <div>
+            <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Aujourd&apos;hui</p>
+            <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: WHEAT, lineHeight: 1, marginBottom: 4 }}>
+              {latestWeight ? <>{latestWeight} <span style={{ fontSize: 14, fontWeight: 500 }}>kg</span></> : '—'}
+            </p>
+            {weightTrend !== null && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {weightTrend < 0
+                  ? <TrendingDown size={13} style={{ color: TEAL }} />
+                  : <TrendingUp size={13} style={{ color: ORANGE }} />}
+                <span style={{ fontSize: 11, color: weightTrend < 0 ? 'rgba(240,228,204,0.8)' : ORANGE }}>
+                  {weightTrend > 0 ? '+' : ''}{weightTrend.toFixed(1)} kg vs hier
+                </span>
+              </div>
+            )}
+          </div>
+          <div style={{ marginBottom: 4 }}>
+            <WeightSparkLine data={weightHistory} />
+          </div>
+          <button onClick={() => setShowWForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.6)' }}>VOIR L&apos;ÉVOLUTION</span>
+            <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.6)' }} />
+          </button>
+        </div>
+
+        {/* ── R2 C3 : SOMMEIL ─────────────────────────────── */}
+        <div style={{ ...darkCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <p style={{ ...lbl('rgba(160,130,220,0.7)') }}>Sommeil</p>
+            <Moon size={18} style={{ color: 'rgba(160,130,220,0.5)' }} />
+          </div>
+          <div>
+            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Dernière nuit</p>
+            <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: '#fff', lineHeight: 1, marginBottom: 6 }}>
+              — <span style={{ fontSize: 16, fontWeight: 500 }}>h</span>
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>Qualité · —</p>
+          </div>
+          {/* Placeholder sleep bars */}
+          <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 40 }}>
+            {[3, 5, 8, 6, 7, 4, 8, 7, 6, 8, 5, 7, 6, 4, 8, 7, 5, 6].map((h, i) => (
+              <div key={i} style={{ flex: 1, height: h * 4, borderRadius: 2,
+                background: `rgba(160,130,220,${0.15 + (h / 8) * 0.35})` }} />
+            ))}
+            <span style={{ position: 'absolute' }} /> {/* spacer */}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 8, background: 'rgba(160,130,220,0.08)', border: '1px solid rgba(160,130,220,0.15)', marginTop: 4 }}>
+            <AppleIcon size={11} style={{ color: 'rgba(160,130,220,0.7)', flexShrink: 0 }} />
+            <span style={{ fontSize: 9, color: 'rgba(160,130,220,0.6)' }}>Apple Santé — synchronisation bientôt</span>
+          </div>
+        </div>
+
+        {/* ── R2 C4 : FORME GÉNÉRALE ──────────────────────── */}
+        <div style={{ ...card(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <p style={{ ...lbl(TEAL) }}>Forme générale</p>
+          {[
+            { l: 'Running / sem.',    v: `${kmWeek.toFixed(1)} km`, pct: Math.min(100, (kmWeek / 30) * 100),            color: TEAL_BG },
+            { l: 'Sorties / sem.',    v: `${thisWeek.length} / 4`,  pct: Math.min(100, (thisWeek.length / 4) * 100),    color: ORANGE },
+            { l: 'Calories brûlées', v: '—',                        pct: 0,                                             color: '#5B6F3A' },
+            { l: 'Hydratation',      v: `${glasses} / ${GLASS_TARGET}`, pct: Math.min(100, (glasses / GLASS_TARGET) * 100), color: '#3B82F6' },
+          ].map(s => (
+            <div key={s.l}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s.l}</span>
+                <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: 'var(--wheat)' }}>{s.v}</span>
+              </div>
+              <div style={{ height: 5, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${s.pct}%`, borderRadius: 99, background: s.color, transition: 'width .5s ease' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── R3 C1-2 : PROGRAMME COURSE ──────────────────── */}
+        <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <p style={{ ...lbl('rgba(255,255,255,0.5)') }}>Programme Course à Pied</p>
+            <button onClick={() => router.push('/sport')}
+              style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)', background: 'none', border: 'none', cursor: 'pointer' }}>
+              Plan actuel ▾
+            </button>
+          </div>
+
+          {/* Sessions list from recent activities */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
+            {activities.length === 0 && !loading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 8 }}>
+                <Activity size={24} style={{ color: 'rgba(255,255,255,0.2)' }} />
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Aucune session enregistrée</p>
+                <button onClick={() => setShowRForm(true)}
+                  style={{ ...DF, fontSize: 11, fontWeight: 700, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
+                  + Ajouter un run
+                </button>
+              </div>
+            ) : activities.slice(0, 6).map((a, i) => {
+              const isToday = a.date === today.toISOString().slice(0, 10)
               return (
-                <div key={a.id} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#11686A', display: 'flex', alignItems:'center', justifyContent:'center', flexShrink: 0 }}>
-                    <Activity size={16} style={{ color: '#F0E4CC' }} />
+                <div key={a.id} className="health-row" onClick={() => router.push(`/sport/${a.id}`)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10,
+                    background: isToday ? `rgba(242,84,45,0.15)` : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${isToday ? 'rgba(242,84,45,0.3)' : 'rgba(255,255,255,0.06)'}`,
+                    cursor: 'pointer' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: isToday ? ORANGE : 'rgba(255,255,255,0.08)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Activity size={16} style={{ color: isToday ? '#fff' : 'rgba(255,255,255,0.4)' }} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p style={{ ...DF, fontWeight: 700, fontSize: 13, color: 'var(--wheat)' }}>
-                      {a.distance_km} km
-                      {a.notes ? ` — ${a.notes}` : ''}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: '#fff' }}>
+                      {(a as any).title ?? `Sortie ${i + 1} — ${a.distance_km?.toFixed(1)} km`}
                     </p>
-                    <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>
-                      {new Date(a.date).toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short' })}
-                      {a.duration_seconds ? ` · ${fmtDuration(a.duration_seconds)}` : ''}
+                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
+                      {a.duration_seconds ? fmtDur(a.duration_seconds) + ' · ' : ''}
+                      {a.distance_km ? `${a.distance_km.toFixed(1)} km` : ''}
+                      {a.elevation_m ? ` · +${a.elevation_m}m` : ''}
                     </p>
                   </div>
-                  {pace && <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: '#0E9594' }}>{pace}</span>}
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{fmtDate(a.date)}</p>
+                    {a.pace_sec_per_km && (
+                      <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: TEAL, marginTop: 2 }}>{fmtPace(a.pace_sec_per_km)}</p>
+                    )}
+                  </div>
+                  {isToday && (
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Check size={12} style={{ color: '#fff' }} />
+                    </div>
+                  )}
                 </div>
               )
             })}
           </div>
+
+          <button onClick={() => router.push('/sport')}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)' }}>VOIR TOUT LE PROGRAMME</span>
+            <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.35)' }} />
+          </button>
         </div>
 
-        {/* Right column */}
-        <div className="flex flex-col gap-[10px]">
-          {/* Weight evolution */}
-          <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 20 }}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#0E9594', textTransform: 'uppercase', marginBottom: 12 }}>Poids</p>
-            {latestWeight ? (
-              <>
-                <p style={{ ...DF, fontWeight: 900, fontSize: 44, color: 'var(--wheat)', lineHeight: 1 }}>
-                  {latestWeight} <span style={{ fontSize: 18, fontWeight: 500 }}>kg</span>
-                </p>
-                {weightTrend !== null && (
-                  <div className="flex items-center gap-1 mt-2">
-                    {weightTrend < 0 ? <TrendingDown size={14} style={{ color: '#0E9594' }} /> : <TrendingUp size={14} style={{ color: '#F2542D' }} />}
-                    <span style={{ fontSize: 11, color: weightTrend < 0 ? '#0E9594' : '#F2542D' }}>
-                      {weightTrend > 0 ? '+' : ''}{weightTrend.toFixed(1)} kg
-                    </span>
-                  </div>
-                )}
-                {/* Sparkline */}
-                <div className="flex items-end gap-0.5 mt-4" style={{ height: 40 }}>
-                  {metrics.slice(0,14).reverse().map((m, i) => {
-                    const vals = metrics.slice(0,14).map(x => x.weight_kg ?? 0)
-                    const min = Math.min(...vals); const max = Math.max(...vals)
-                    const h = max > min ? Math.max(4, ((m.weight_kg ?? 0) - min) / (max - min) * 36) : 20
-                    return <div key={i} style={{ flex: 1, height: h, borderRadius: 2, background: '#0E9594', opacity: 0.7 }} />
-                  })}
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center py-6 gap-2">
-                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune donnée</p>
-                <button onClick={() => setShowWeightForm(true)} style={{ fontSize: 11, color: '#11686A', ...DF, fontWeight: 700 }}>+ Ajouter</button>
-              </div>
-            )}
+        {/* ── R3 C3-4 : ACTIVITÉ HEBDOMADAIRE ─────────────── */}
+        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Activité hebdomadaire</p>
+            <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.35)' }}>Cette semaine</span>
           </div>
-
-          {/* Objectives */}
-          <div style={{ background: '#F2542D', borderRadius: 12, padding: 20 }}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#1A0A0A', textTransform: 'uppercase', marginBottom: 12 }}>Objectifs</p>
+          {/* Stats row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
             {[
-              { label: 'Distance hebdo', target: '30 km', current: `${totalKmWeek.toFixed(1)} km`, pct: Math.min(100, totalKmWeek/30*100) },
-              { label: 'Sorties / semaine', target: '4', current: String(thisWeekRuns.length), pct: Math.min(100, thisWeekRuns.length/4*100) },
-            ].map(obj => (
-              <div key={obj.label} className="mb-3">
-                <div className="flex justify-between mb-1">
-                  <span style={{ fontSize: 11, color: '#1A0A0A' }}>{obj.label}</span>
-                  <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#1A0A0A' }}>{obj.current} / {obj.target}</span>
-                </div>
-                <div style={{ height: 5, borderRadius: 99, background: 'rgba(0,0,0,0.2)', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 99, background: '#1A0A0A', width: `${obj.pct}%` }} />
-                </div>
+              { l: 'Durée totale', v: fmtDur(secWeek)       },
+              { l: 'Distance',     v: `${kmWeek.toFixed(1)} km` },
+              { l: 'Dénivelé',     v: elevWeek > 0 ? `+${elevWeek}m` : '—' },
+            ].map(s => (
+              <div key={s.l} style={{ background: 'rgba(240,228,204,0.08)', borderRadius: 8, padding: '10px 12px' }}>
+                <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.l}</p>
+                <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{s.v}</p>
               </div>
             ))}
           </div>
-
-          {/* Mesures corporelles */}
-          <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>Historique poids</p>
-            {metrics.slice(0,5).map(m => (
-              <div key={m.id} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                  {new Date(m.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' })}
-                </span>
-                <span style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>
-                  {m.weight_kg} kg
-                </span>
+          {/* Multi-bar chart */}
+          <div style={{ flex: 1, display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+            {dayLabels.map((day, i) => {
+              const km = dayKm[i]
+              const maxKm = Math.max(...dayKm, 1)
+              const h  = km > 0 ? Math.max(8, (km / maxKm) * 150) : 6
+              const isToday = i === todayIdx
+              return (
+                <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  {km > 0 && <span style={{ ...DF, fontSize: 9, fontWeight: 800, color: isToday ? ORANGE : 'rgba(240,228,204,0.55)' }}>{km.toFixed(1)}</span>}
+                  <div style={{
+                    width: '100%', height: h, borderRadius: '4px 4px 0 0',
+                    background: km > 0 ? (isToday ? ORANGE : 'rgba(240,228,204,0.35)') : 'rgba(240,228,204,0.08)',
+                  }} />
+                  <span style={{ ...DF, fontSize: 9, fontWeight: isToday ? 800 : 600, color: isToday ? ORANGE : 'rgba(240,228,204,0.45)', textTransform: 'uppercase' }}>{day}</span>
+                </div>
+              )
+            })}
+          </div>
+          {/* Legend */}
+          <div style={{ display: 'flex', gap: 14, marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(240,228,204,0.1)' }}>
+            {[{ c: TEAL, l: 'Course' }, { c: ORANGE, l: 'Aujourd\'hui' }, { c: 'rgba(240,228,204,0.35)', l: 'Autre' }].map(s => (
+              <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: s.c }} />
+                <span style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)' }}>{s.l}</span>
               </div>
             ))}
           </div>
         </div>
+
+        {/* ── R4 C1 : FRÉQUENCE CARDIAQUE ─────────────────── */}
+        <div style={{ ...darkCard(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <p style={{ ...lbl('rgba(255,80,80,0.7)') }}>Fréquence cardiaque</p>
+            <Heart size={16} style={{ color: 'rgba(255,80,80,0.5)' }} />
+          </div>
+          <div>
+            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Repos (moy.)</p>
+            <p style={{ ...DF, fontSize: 40, fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+              {avgHr ?? '—'} <span style={{ fontSize: 14, fontWeight: 500 }}>bpm</span>
+            </p>
+          </div>
+          <div style={{ flex: 1 }}>
+            <HrSparkLine data={hrData} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {activities.slice(0, 2).map(a => a.heart_rate_avg && (
+              <div key={a.id} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: 8, color: 'rgba(255,255,255,0.3)' }}>{fmtDate(a.date)}</p>
+                <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: '#ff5050', marginTop: 2 }}>{a.heart_rate_avg} <span style={{ fontSize: 10 }}>bpm</span></p>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => router.push('/sport')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.2)' }}>VOIR PLUS</span>
+            <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.2)' }} />
+          </button>
+        </div>
+
+        {/* ── R4 C2 : NUTRITION ───────────────────────────── */}
+        <div style={{ ...darkCard(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <p style={{ ...lbl('rgba(255,255,255,0.4)') }}>Nutrition</p>
+            <Utensils size={16} style={{ color: 'rgba(255,255,255,0.2)' }} />
+          </div>
+          <div>
+            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Calories aujourd&apos;hui</p>
+            <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+              {nutrition.cal.toLocaleString()} <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>/ {nutrition.calTarget.toLocaleString()} kcal</span>
+            </p>
+          </div>
+          <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(nutrition.cal / nutrition.calTarget) * 100}%`, borderRadius: 99, background: TEAL }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[
+              { l: 'Protéines', v: nutrition.prot, t: nutrition.protTarget, c: TEAL },
+              { l: 'Glucides',  v: nutrition.gluc, t: nutrition.glucTarget, c: ORANGE },
+              { l: 'Lipides',   v: nutrition.lip,  t: nutrition.lipTarget,  c: 'rgba(255,255,255,0.4)' },
+            ].map(m => (
+              <div key={m.l}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: m.c }} />
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{m.l}</span>
+                  </div>
+                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: '#fff' }}>{m.v}g <span style={{ color: 'rgba(255,255,255,0.3)' }}>/ {m.t}g</span></span>
+                </div>
+                <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${(m.v / m.t) * 100}%`, borderRadius: 99, background: m.c }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => router.push('/recettes')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.2)' }}>VOIR LES RECETTES</span>
+            <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.2)' }} />
+          </button>
+        </div>
+
+        {/* ── R4 C3 : HYDRATATION ─────────────────────────── */}
+        <div style={{ ...orangeCard(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <p style={{ ...lbl('#1A0A0A') }}>Hydratation</p>
+            <Droplets size={16} style={{ color: 'rgba(26,10,10,0.5)' }} />
+          </div>
+          <div>
+            <p style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Eau bue</p>
+            <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>
+              {(glasses * 0.25).toFixed(1)} <span style={{ fontSize: 14, fontWeight: 500 }}>L</span>
+              <span style={{ fontSize: 13, color: 'rgba(26,10,10,0.4)', fontWeight: 500 }}> / 2,5 L</span>
+            </p>
+            <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)', marginTop: 3 }}>{Math.round((glasses / GLASS_TARGET) * 100)}% de l&apos;objectif</p>
+          </div>
+          {/* Glasses grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+            {Array.from({ length: GLASS_TARGET }).map((_, i) => (
+              <button key={i} className="glass-btn" onClick={() => setGlasses(i < glasses ? i : i + 1)}
+                style={{ aspectRatio: '1', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: i < glasses ? 'rgba(26,10,10,0.3)' : 'rgba(26,10,10,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Droplets size={16} style={{ color: i < glasses ? '#1A0A0A' : 'rgba(26,10,10,0.3)' }} />
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setGlasses(v => Math.min(GLASS_TARGET, v + 1))}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(26,10,10,0.15)', border: 'none', borderRadius: 8, padding: '9px 0', cursor: 'pointer', justifyContent: 'center' }}>
+            <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#1A0A0A' }}>+ AJOUTER UN VERRE</span>
+          </button>
+        </div>
+
+        {/* ── R4 C4 : APPLE SANTÉ ─────────────────────────── */}
+        <div style={{ ...card(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <p style={{ ...lbl(TEAL) }}>Intégrations santé</p>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { icon: <AppleIcon size={18} />, name: 'Apple Santé', desc: 'Pas, sommeil, calories, FC', status: 'soon', color: '#666' },
+              { icon: <Activity size={18} />,  name: 'Strava',      desc: 'Activités course importées', status: 'active', color: '#FC4C02' },
+              { icon: <Heart size={18} />,     name: 'Garmin',      desc: 'Montres & capteurs',         status: 'soon', color: '#007DC3' },
+            ].map(s => (
+              <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10,
+                background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
+                <div style={{ color: s.color, flexShrink: 0 }}>{s.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--wheat)' }}>{s.name}</p>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>{s.desc}</p>
+                </div>
+                <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 4,
+                  background: s.status === 'active' ? 'rgba(14,149,148,0.2)' : 'var(--border)',
+                  color: s.status === 'active' ? TEAL : 'var(--text-muted)' }}>
+                  {s.status === 'active' ? 'Actif' : 'Bientôt'}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(14,149,148,0.08)', border: '1px solid rgba(14,149,148,0.2)' }}>
+            <p style={{ fontSize: 10, color: TEAL, ...DF, fontWeight: 600 }}>Sync Recettes → Nutrition</p>
+            <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>Les recettes consommées alimenteront automatiquement le suivi nutritionnel.</p>
+          </div>
+        </div>
+
+        {/* ── R5 C1-2 : MESURES CORPORELLES ───────────────── */}
+        <div style={{ ...card(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <p style={{ ...lbl() }}>Mesures corporelles</p>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+              {today.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, flex: 1 }}>
+            {[
+              { l: 'Tour de taille', v: `${mesures.taille} cm`,       delta: '-0.5 cm', up: false, color: TEAL },
+              { l: 'Masse grasse',   v: `${mesures.massGrasse} %`,     delta: '-0.3 %',  up: false, color: TEAL },
+              { l: 'Masse musculaire', v: `${mesures.massMuscul} kg`,  delta: '+0.4 kg', up: true,  color: ORANGE },
+              { l: 'IMC',            v: String(mesures.imc),           delta: 'Normal',  up: null,  color: WHEAT },
+            ].map(s => (
+              <div key={s.l} style={{ padding: '16px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
+                <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{s.l}</p>
+                <p style={{ ...DF, fontSize: 22, fontWeight: 900, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.v}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  {s.up === true  && <TrendingUp size={11}   style={{ color: ORANGE }} />}
+                  {s.up === false && <TrendingDown size={11} style={{ color: TEAL }} />}
+                  <span style={{ fontSize: 9, color: s.up === true ? ORANGE : s.up === false ? TEAL : 'var(--text-muted)' }}>{s.delta}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 'auto', borderTop: '1px solid var(--border)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>VOIR L&apos;HISTORIQUE</span>
+            <ChevronRight size={11} style={{ color: 'var(--text-muted)' }} />
+          </button>
+        </div>
+
+        {/* ── R5 C3-4 : DÉFIS & OBJECTIFS ─────────────────── */}
+        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
+          <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 18 }}>Défis &amp; Objectifs</p>
+          {/* Objectif principal */}
+          <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(240,228,204,0.08)', border: '1px solid rgba(240,228,204,0.12)', marginBottom: 14 }}>
+            <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Objectif actuel</p>
+            <p style={{ ...DF, fontSize: 22, fontWeight: 900, color: WHEAT, marginBottom: 8 }}>Courir 100 km / mois</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <span style={{ ...DF, fontSize: 13, fontWeight: 800, color: ORANGE }}>{Math.round((monthKm / 100) * 100)}%</span>
+              <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)' }}>{monthKm.toFixed(1)} / 100 km</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${Math.min(100, (monthKm / 100) * 100)}%`, borderRadius: 99, background: ORANGE, transition: 'width .5s ease' }} />
+            </div>
+          </div>
+          {/* Défis actifs */}
+          <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Défis actifs</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+            {[
+              { l: '30 km / semaine',   v: kmWeek.toFixed(1),           t: 30,  unit: 'km',     color: ORANGE },
+              { l: '4 sorties / sem.',  v: String(thisWeek.length),      t: 4,   unit: 'sorties', color: WHEAT },
+              { l: 'Total 500 km',      v: allKm.toFixed(0),             t: 500, unit: 'km',     color: TEAL },
+            ].map(d => {
+              const pct = Math.min(100, (parseFloat(d.v) / d.t) * 100)
+              return (
+                <div key={d.l} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)' }}>{d.l}</span>
+                      <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: WHEAT }}>{d.v} / {d.t} {d.unit}</span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: d.color, transition: 'width .5s ease' }} />
+                    </div>
+                  </div>
+                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: d.color, minWidth: 36, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
+                </div>
+              )
+            })}
+          </div>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(240,228,204,0.1)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.35)' }}>VOIR TOUS LES OBJECTIFS</span>
+            <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.35)' }} />
+          </button>
+        </div>
+
       </div>
     </div>
   )
