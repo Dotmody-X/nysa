@@ -1,45 +1,142 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { Play, Square, Plus, Clock, CalendarPlus, Pencil, Trash2, X, PenLine } from 'lucide-react'
+import {
+  Play, Square, Plus, CalendarPlus, Pencil, Trash2, X, PenLine,
+  Download, MoreVertical, ChevronDown, BarChart2, LayoutGrid, List, ArrowRight,
+} from 'lucide-react'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjects }    from '@/hooks/useProjects'
-import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
 import type { TimeEntry } from '@/types'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
-// ─── Edit Entry Modal ────────────────────────────────────────────────────────
+/* ── Category colours ─────────────────────────────────────────────────────── */
+const CAT_COLORS: Record<string, string> = {
+  'Design':        '#0E9594',
+  'Développement': '#F2542D',
+  'Dev':           '#F2542D',
+  'Apprentissage': '#F5DFBB',
+  'Admin':         '#E07030',
+  'Santé':         '#4ECDC4',
+  'Running':       '#4ECDC4',
+}
+const catColor = (c?: string | null) => (c ? (CAT_COLORS[c] ?? '#0E9594') : '#555')
+
+/* ── Helpers ──────────────────────────────────────────────────────────────── */
+function fmtSec(s: number) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+}
+function fmtDur(s: number) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60)
+  return h > 0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}m`
+}
+function fmtTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+}
+function toLocalDate(iso: string) {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
+function toLocalTimeStr(iso: string) {
+  const d = new Date(iso)
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+}
+
+/* ── Mini sparkline bar chart ─────────────────────────────────────────────── */
+function MiniBarChart({ values, color }: { values: number[]; color: string }) {
+  const max = Math.max(...values, 1)
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 36, marginTop: 'auto' }}>
+      {values.map((v, i) => (
+        <div key={i} style={{
+          flex: 1, borderRadius: 2,
+          height: `${Math.max(6, (v / max) * 100)}%`,
+          background: v > 0 ? color : 'rgba(255,255,255,0.08)',
+          opacity: i === values.length - 1 ? 1 : 0.55,
+          transition: 'height 0.4s ease',
+        }} />
+      ))}
+    </div>
+  )
+}
+
+/* ── SVG Donut chart ──────────────────────────────────────────────────────── */
+function DonutChart({ segments, label }: {
+  segments: { color: string; pct: number }[]
+  label: string
+}) {
+  const r = 70, cx = 90, cy = 90, sw = 22
+  const circ = 2 * Math.PI * r
+  let cum = 0
+  return (
+    <svg width="180" height="180" viewBox="0 0 180 180" style={{ flexShrink: 0 }}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--border)" strokeWidth={sw} />
+      {segments.filter(s => s.pct > 0).map((seg, i) => {
+        const dash  = `${seg.pct / 100 * circ} ${circ}`
+        const angle = cum / 100 * 360 - 90
+        cum += seg.pct
+        return (
+          <circle key={i} cx={cx} cy={cy} r={r} fill="none"
+            stroke={seg.color} strokeWidth={sw}
+            strokeDasharray={dash}
+            transform={`rotate(${angle} ${cx} ${cy})`}
+          />
+        )
+      })}
+      <text x={cx} y={cy - 6}  textAnchor="middle" fill="var(--wheat)"      fontSize="18" fontWeight="900" fontFamily="var(--font-display)">{label}</text>
+      <text x={cx} y={cy + 12} textAnchor="middle" fill="var(--text-muted)" fontSize="9"  fontFamily="var(--font-display)" letterSpacing="2">TOTAL</text>
+    </svg>
+  )
+}
+
+/* ── Stacked bar chart ────────────────────────────────────────────────────── */
+function StackedBar({ days }: {
+  days: { label: string; total: number; segments: { color: string; value: number }[] }[]
+}) {
+  const maxSec = Math.max(...days.map(d => d.total), 1)
+  const H = 130
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: H + 22, flex: 1 }}>
+      {days.map((day, di) => {
+        const barH = (day.total / maxSec) * H
+        return (
+          <div key={di} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: '100%', height: H, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+              <div style={{ width: '100%', height: barH, borderRadius: '3px 3px 0 0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                {day.segments.map((seg, si) => (
+                  <div key={si} style={{ width: '100%', flex: seg.value, background: seg.color, minHeight: 2 }} />
+                ))}
+                {day.segments.length === 0 && barH > 0 && <div style={{ flex: 1, background: 'rgba(255,255,255,0.15)' }} />}
+              </div>
+            </div>
+            <span style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)', ...DF, fontWeight: 600 }}>{day.label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ══ Edit Entry Modal ═════════════════════════════════════════════════════════ */
 function EditEntryModal({
-  entry,
-  projects,
-  onSave,
-  onDelete,
-  onClose,
+  entry, projects, onSave, onDelete, onClose,
 }: {
   entry: TimeEntry
   projects: Array<{ id: string; name: string; color: string }>
-  onSave: (id: string, patch: Partial<Pick<TimeEntry, 'description' | 'project_id' | 'category' | 'started_at' | 'ended_at' | 'is_billable'>>) => Promise<unknown>
+  onSave:   (id: string, patch: Partial<Pick<TimeEntry,'description'|'project_id'|'category'|'started_at'|'ended_at'|'is_billable'>>) => Promise<unknown>
   onDelete: (id: string) => Promise<void>
-  onClose: () => void
+  onClose:  () => void
 }) {
-  function toLocalTime(iso: string) {
-    const d = new Date(iso)
-    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
-  }
-  function toLocalDate(iso: string) {
-    const d = new Date(iso)
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-  }
-
   const [form, setForm] = useState({
     description: entry.description ?? '',
     projectId:   entry.project_id  ?? '',
     category:    entry.category    ?? '',
     billable:    entry.is_billable,
     startDate:   toLocalDate(entry.started_at),
-    startTime:   toLocalTime(entry.started_at),
-    endDate:     entry.ended_at ? toLocalDate(entry.ended_at) : toLocalDate(entry.started_at),
-    endTime:     entry.ended_at ? toLocalTime(entry.ended_at) : '',
+    startTime:   toLocalTimeStr(entry.started_at),
+    endDate:     entry.ended_at ? toLocalDate(entry.ended_at)    : toLocalDate(entry.started_at),
+    endTime:     entry.ended_at ? toLocalTimeStr(entry.ended_at) : '',
   })
   const [saving, setSaving]   = useState(false)
   const [confirm, setConfirm] = useState(false)
@@ -48,68 +145,33 @@ function EditEntryModal({
     setSaving(true)
     const startedAt = new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
     const endedAt   = form.endTime ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString() : entry.ended_at
-    await onSave(entry.id, {
-      description: form.description || undefined,
-      project_id:  form.projectId   || undefined,
-      category:    form.category    || undefined,
-      is_billable: form.billable,
-      started_at:  startedAt,
-      ended_at:    endedAt,
-    })
-    setSaving(false)
-    onClose()
+    await onSave(entry.id, { description: form.description || undefined, project_id: form.projectId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
+    setSaving(false); onClose()
   }
 
-  const inputStyle = { background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' } as const
-
+  const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
       <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
         <div className="flex items-center justify-between">
           <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Modifier l'entrée</p>
           <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
-
-        {/* Description */}
-        <div>
-          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Description</label>
-          <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-            placeholder="Sur quoi as-tu travaillé ?" style={inputStyle} autoFocus />
-        </div>
-
-        {/* Projet */}
-        <div>
-          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Projet</label>
-          <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inputStyle}>
-            <option value="">Sans projet</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-        </div>
-
-        {/* Catégorie */}
-        <div>
-          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
-          <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-            placeholder="Ex : Design, Dev, Réunion…" style={inputStyle} />
-        </div>
-
-        {/* Début / Fin */}
+        <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Description</label>
+          <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Sur quoi as-tu travaillé ?" style={inp} autoFocus /></div>
+        <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Projet</label>
+          <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inp}>
+            <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+        <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
+          <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Design, Dev, Réunion…" style={inp} /></div>
         <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Début</label>
-            <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} style={{ ...inputStyle, marginBottom: 4 }} />
-            <input type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} style={inputStyle} />
-          </div>
-          <div>
-            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Fin</label>
-            <input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={{ ...inputStyle, marginBottom: 4 }} />
-            <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} placeholder="—" style={inputStyle} />
-          </div>
+          <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Début</label>
+            <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} style={{ ...inp, marginBottom: 4 }} />
+            <input type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} style={inp} /></div>
+          <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Fin</label>
+            <input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={{ ...inp, marginBottom: 4 }} />
+            <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} placeholder="—" style={inp} /></div>
         </div>
-
-        {/* Facturable */}
         <button onClick={() => setForm(f => ({ ...f, billable: !f.billable }))}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${form.billable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`, background: form.billable ? 'rgba(14,149,148,0.08)' : 'transparent', cursor: 'pointer', ...DF }}>
           <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? '#0E9594' : 'var(--border)'}`, background: form.billable ? '#0E9594' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -117,31 +179,20 @@ function EditEntryModal({
           </div>
           <span style={{ fontSize: 12, color: form.billable ? '#0E9594' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
         </button>
-
-        {/* Actions */}
         <div className="flex gap-2 justify-between">
           {!confirm ? (
-            <button onClick={() => setConfirm(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              <Trash2 size={11} /> Supprimer
-            </button>
+            <button onClick={() => setConfirm(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <Trash2 size={11} /> Supprimer</button>
           ) : (
             <div className="flex gap-2">
               <button onClick={() => setConfirm(false)} style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Annuler</button>
-              <button onClick={async () => { await onDelete(entry.id); onClose() }}
-                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#F2542D', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
-                Confirmer
-              </button>
+              <button onClick={async () => { await onDelete(entry.id); onClose() }} style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#F2542D', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Confirmer</button>
             </div>
           )}
           <div className="flex gap-2">
-            <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
-              Annuler
-            </button>
-            <button onClick={submit} disabled={saving}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
-              {saving ? '…' : 'Sauvegarder'}
-            </button>
+            <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>Annuler</button>
+            <button onClick={submit} disabled={saving} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+              {saving ? '…' : 'Sauvegarder'}</button>
           </div>
         </div>
       </div>
@@ -149,150 +200,88 @@ function EditEntryModal({
   )
 }
 
-// ─── Manual Entry Modal ──────────────────────────────────────────────────────
+/* ══ Manual Entry Modal ═══════════════════════════════════════════════════════ */
 function ManualEntryModal({
-  projects,
-  onCreate,
-  onClose,
+  projects, onCreate, onClose,
 }: {
   projects: Array<{ id: string; name: string; color: string }>
   onCreate: (patch: { description?: string; project_id?: string; category?: string; is_billable?: boolean; started_at: string; ended_at?: string }) => Promise<unknown>
-  onClose: () => void
+  onClose:  () => void
 }) {
-  function toLocalDateStr(d: Date) {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-  }
-  function toLocalTimeStr(d: Date) {
-    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
-  }
-
   const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
+  const yd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
   const [form, setForm] = useState({
-    description: '',
-    projectId: '',
-    category: '',
-    billable: true,
-    startDate: toLocalDateStr(yesterday),
-    startTime: '09:00',
-    endDate: toLocalDateStr(yesterday),
-    endTime: '10:00',
+    description: '', projectId: '', category: '', billable: true,
+    startDate: yd(yesterday), startTime: '09:00', endDate: yd(yesterday), endTime: '10:00',
   })
   const [saving, setSaving] = useState(false)
-
   async function submit() {
     if (!form.startDate || !form.startTime) return
     setSaving(true)
     const startedAt = new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
-    const endedAt   = form.endDate && form.endTime
-      ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString()
-      : undefined
-    await onCreate({
-      description: form.description || undefined,
-      project_id:  form.projectId   || undefined,
-      category:    form.category    || undefined,
-      is_billable: form.billable,
-      started_at:  startedAt,
-      ended_at:    endedAt,
-    })
-    setSaving(false)
-    onClose()
+    const endedAt   = form.endDate && form.endTime ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString() : undefined
+    await onCreate({ description: form.description || undefined, project_id: form.projectId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
+    setSaving(false); onClose()
   }
-
-  const inputStyle = { background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' } as const
-
+  const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
       <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
-
         <div className="flex items-center justify-between">
-          <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Entrée manuelle</p>
+          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Entrée manuelle</p>
           <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
-
-        <div>
-          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Description</label>
-          <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-            placeholder="Sur quoi as-tu travaillé ?" style={inputStyle} autoFocus
-            onKeyDown={e => e.key === 'Enter' && submit()} />
-        </div>
-
-        <div>
-          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Projet</label>
-          <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inputStyle}>
-            <option value="">Sans projet</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
-          <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-            placeholder="Ex : Design, Dev, Réunion…" style={inputStyle} />
-        </div>
-
+        <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Description</label>
+          <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Sur quoi as-tu travaillé ?" style={inp} autoFocus onKeyDown={e => e.key === 'Enter' && submit()} /></div>
+        <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Projet</label>
+          <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inp}>
+            <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+        <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
+          <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Design, Dev, Réunion…" style={inp} /></div>
         <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Début</label>
-            <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: e.target.value }))} style={{ ...inputStyle, marginBottom: 4 }} />
-            <input type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} style={inputStyle} />
-          </div>
-          <div>
-            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Fin</label>
-            <input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={{ ...inputStyle, marginBottom: 4 }} />
-            <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} placeholder="—" style={inputStyle} />
-          </div>
+          <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Début</label>
+            <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: e.target.value }))} style={{ ...inp, marginBottom: 4 }} />
+            <input type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} style={inp} /></div>
+          <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Fin</label>
+            <input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={{ ...inp, marginBottom: 4 }} />
+            <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} placeholder="—" style={inp} /></div>
         </div>
-
         <button onClick={() => setForm(f => ({ ...f, billable: !f.billable }))}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${form.billable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`, background: form.billable ? 'rgba(14,149,148,0.08)' : 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${form.billable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`, background: form.billable ? 'rgba(14,149,148,0.08)' : 'transparent', cursor: 'pointer', ...DF }}>
           <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? '#0E9594' : 'var(--border)'}`, background: form.billable ? '#0E9594' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {form.billable && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
           </div>
           <span style={{ fontSize: 12, color: form.billable ? '#0E9594' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
         </button>
-
         <div className="flex gap-2 justify-end">
-          <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
-            Annuler
-          </button>
-          <button onClick={submit} disabled={saving || !form.startDate || !form.startTime}
-            style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
-            {saving ? '…' : 'Créer'}
-          </button>
+          <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={submit} disabled={saving || !form.startDate || !form.startTime} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+            {saving ? '…' : 'Créer'}</button>
         </div>
       </div>
     </div>
   )
 }
 
-function fmtSec(s: number) {
-  const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); const sec = s%60
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
-}
-function fmtDur(s: number) {
-  const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60)
-  return h>0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}min`
-}
-function fmtEur(n: number) { return n.toLocaleString('fr-BE', { style:'currency', currency:'EUR', minimumFractionDigits:0 }) }
-
+/* ══ Main page ════════════════════════════════════════════════════════════════ */
 export default function TimeTrackerPage() {
   const { entries, loading, start, stop, update, remove, createManual } = useTimeEntries()
   const { projects } = useProjects()
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null)
-  const [manualOpen, setManualOpen] = useState(false)
-  const [desc, setDesc] = useState('')
-  const [projId, setProjId] = useState('')
+  const [manualOpen,   setManualOpen]   = useState(false)
+  const [desc,    setDesc]    = useState('')
+  const [projId,  setProjId]  = useState('')
   const [billable, setBillable] = useState(true)
   const [addToCalendar, setAddToCalendar] = useState(true)
   const [elapsed, setElapsed] = useState(0)
-  const timerRef = useRef<ReturnType<typeof setInterval>|null>(null)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const running = entries.find(e => !e.ended_at)
 
   useEffect(() => {
     if (running) {
-      setElapsed(Math.floor((Date.now() - new Date(running.started_at).getTime())/1000))
-      timerRef.current = setInterval(() => setElapsed(s => s+1), 1000)
+      setElapsed(Math.floor((Date.now() - new Date(running.started_at).getTime()) / 1000))
+      timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000)
     } else {
       if (timerRef.current) clearInterval(timerRef.current)
       setElapsed(0)
@@ -300,21 +289,71 @@ export default function TimeTrackerPage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [running?.id])
 
-  const today = new Date().toISOString().slice(0,10)
-  const todayEntries  = entries.filter(e => e.started_at.slice(0,10) === today)
-  const todaySec      = todayEntries.filter(e => e.duration_seconds).reduce((s,e) => s+(e.duration_seconds??0), 0)
-  const weekSec       = entries.filter(e => e.duration_seconds).reduce((s,e) => s+(e.duration_seconds??0), 0)
-  const activeProjs   = new Set(entries.map(e => e.project_id).filter(Boolean)).size
-  const weekRev       = entries.filter(e=>e.is_billable&&e.duration_seconds).reduce((s,e)=>s+(e.duration_seconds??0)/3600*75,0)
+  /* ── Data transforms ─────────────────────────────────────────────────────── */
+  const today = new Date().toISOString().slice(0, 10)
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1 + i)
+    return d.toISOString().slice(0, 10)
+  })
+  const DAY_LABELS = ['L','M','M','J','V','S','D']
 
-  const byProject = projects.map(p => ({
-    ...p,
-    seconds: entries.filter(e=>e.project_id===p.id&&e.duration_seconds).reduce((s,e)=>s+(e.duration_seconds??0),0)
-  })).filter(p=>p.seconds>0).sort((a,b)=>b.seconds-a.seconds)
+  const secPerDay  = weekDays.map(day =>
+    entries.filter(e => e.started_at.slice(0, 10) === day && e.duration_seconds)
+      .reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+  )
+  const weekSec    = secPerDay.reduce((a, b) => a + b, 0)
+  const todaySec   = entries.filter(e => e.started_at.slice(0, 10) === today && e.duration_seconds)
+    .reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+  const workingDays = weekDays.slice(0, 5).filter((_, i) => secPerDay[i] > 0).length
+  const avgSec     = workingDays > 0 ? weekSec / workingDays : 0
+  const activeProjs = new Set(entries.filter(e => e.project_id).map(e => e.project_id)).size
+  const billableSec = entries.filter(e => e.is_billable && e.duration_seconds).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+  const prodPct    = weekSec > 0 ? Math.round(billableSec / weekSec * 100) : 0
+
+  /* Grouped by project */
+  type ProjRow = { id: string | null; name: string; color: string; seconds: number; desc: string; category: string | null }
+  const projRows: ProjRow[] = []
+  projects.forEach(p => {
+    const pe = entries.filter(e => e.project_id === p.id && e.duration_seconds)
+    if (!pe.length) return
+    projRows.push({
+      id: p.id, name: p.name, color: p.color ?? '#F2542D',
+      seconds: pe.reduce((s, e) => s + (e.duration_seconds ?? 0), 0),
+      desc: pe[0]?.description ?? '',
+      category: pe.find(e => e.category)?.category ?? null,
+    })
+  })
+  const noProjSec = entries.filter(e => !e.project_id && e.duration_seconds).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+  if (noProjSec > 0) projRows.push({ id: null, name: 'Sans projet', color: '#888', seconds: noProjSec, desc: '', category: null })
+  projRows.sort((a, b) => b.seconds - a.seconds)
+
+  /* Category distribution */
+  const catMap: Record<string, number> = {}
+  entries.filter(e => e.duration_seconds).forEach(e => {
+    const c = e.category ?? 'Autre'
+    catMap[c] = (catMap[c] ?? 0) + (e.duration_seconds ?? 0)
+  })
+  const catList = Object.entries(catMap).sort((a, b) => b[1] - a[1])
+  const donutSegs = catList.map(([cat, sec]) => ({ color: catColor(cat), pct: weekSec > 0 ? sec / weekSec * 100 : 0, label: cat, sec }))
+
+  /* Stacked bar days */
+  const allCats = catList.map(([c]) => c)
+  const stackedDays = weekDays.map((day, i) => {
+    const de = entries.filter(e => e.started_at.slice(0, 10) === day && e.duration_seconds)
+    return {
+      label: DAY_LABELS[i],
+      total: secPerDay[i],
+      segments: allCats
+        .map(cat => ({ color: catColor(cat), value: de.filter(e => (e.category ?? 'Autre') === cat).reduce((s, e) => s + (e.duration_seconds ?? 0), 0) }))
+        .filter(s => s.value > 0),
+    }
+  })
+
+  const runningProj = running ? projects.find(p => p.id === running.project_id) : null
 
   async function handleStart() {
     if (!desc.trim()) return
-    await start(projId||null, desc.trim(), billable)
+    await start(projId || null, desc.trim(), billable)
     setDesc('')
   }
   async function handleStop() {
@@ -322,221 +361,394 @@ export default function TimeTrackerPage() {
     await stop(running.id, running.started_at, { addToCalendar })
   }
 
+  /* ── Shared styles ───────────────────────────────────────────────────────── */
+  const card = (extra?: React.CSSProperties): React.CSSProperties => ({
+    background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, ...extra,
+  })
+  const tableLabelStyle: React.CSSProperties = {
+    fontSize: 8, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', ...DF, fontWeight: 700,
+  }
+
+  /* ── Render ──────────────────────────────────────────────────────────────── */
   return (
     <>
-    <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
-      <PageTitle
-        title="Time Trackers"
-        sub="Suivi · Facturation · Analyse · Reporting"
-        right={
-          running ? (
-            <div className="flex items-center gap-3">
-              <div style={{ background:'rgba(242,84,45,0.1)', border:'1px solid rgba(242,84,45,0.3)', borderRadius:12, padding:'8px 16px', display:'flex', alignItems:'center', gap:8 }}>
-                <div style={{ width:8, height:8, borderRadius:'50%', background:'#F2542D', animation:'pulse 1s infinite' }} />
-                <span style={{ ...DF, fontWeight:900, fontSize:20, color:'#F2542D', letterSpacing:'0.05em' }}>{fmtSec(elapsed)}</span>
-                <span style={{ fontSize:11, color:'var(--text-muted)' }}>{running.description}</span>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, padding: 30, alignContent: 'start' }}>
+
+      {/* ─── ROW 1 : Hero + Session en cours ──────────────────────────────── */}
+
+      {/* Hero — col-span-2, h=300 */}
+      <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 300, paddingBottom: 20 }}>
+        <p style={{ ...DF, fontSize: 10, fontWeight: 700, color: '#F2542D', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
+          Time Trackers
+        </p>
+        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(42px, 5.5vw, 72px)', lineHeight: 0.88, color: 'var(--wheat)', letterSpacing: '-0.02em', textTransform: 'uppercase', marginBottom: 18 }}>
+          TIME<br />TRACKERS.
+        </h1>
+        <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#0E9594', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          Suivez. Analysez. Améliorez.
+        </p>
+      </div>
+
+      {/* Session en cours — col-span-2, h=300 */}
+      <div className="col-span-2" style={{
+        height: 300, borderRadius: 16, overflow: 'hidden', position: 'relative',
+        background: running ? '#F2542D' : 'var(--bg-card)',
+        border: running ? 'none' : '1px solid var(--border)',
+        display: 'flex', flexDirection: 'column', padding: 22,
+      }}>
+        {running ? (
+          <>
+            {/* Decorative circles */}
+            <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -70, right: 60, width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+
+            {/* Top bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fff', animation: 'pulse 1.2s infinite' }} />
+                <span style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Session en cours</span>
               </div>
-              <button onClick={()=>setAddToCalendar(v=>!v)}
-                title={addToCalendar ? "Ne pas ajouter au calendrier" : "Ajouter au calendrier à l'arrêt"}
-                style={{ padding:'6px 10px', borderRadius:8, border:`1px solid ${addToCalendar ? 'rgba(242,84,45,0.35)' : 'var(--border)'}`, background: addToCalendar ? 'rgba(242,84,45,0.1)' : 'transparent', cursor:'pointer', display:'flex', alignItems:'center' }}>
-                <CalendarPlus size={13} style={{ color: addToCalendar ? '#F2542D' : 'var(--text-muted)' }} />
-              </button>
-              <button onClick={handleStop} className="flex items-center gap-2 px-4 py-2 rounded-xl"
-                style={{ background:'#F2542D', color:'#fff', ...DF, fontWeight:700, fontSize:12 }}>
-                <Square size={12} fill="#fff" /> Arrêter
-              </button>
-              <button onClick={() => setManualOpen(true)} title="Ajouter une entrée passée"
-                className="flex items-center justify-center px-3 py-2 rounded-xl"
-                style={{ background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>
-                <PenLine size={13} />
+              <button style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <MoreVertical size={14} />
               </button>
             </div>
-          ) : null
-        }
-      />
 
-      <KpiGrid>
-        <KpiCard label="Total semaine"    value={fmtDur(weekSec)}               sub="temps enregistré"   color="#F2542D" />
-        <KpiCard label="Aujourd'hui"      value={fmtDur(todaySec+elapsed)}      sub={`${todayEntries.length} sessions`} color="#F5DFBB" />
-        <KpiCard label="Projets actifs"   value={String(activeProjs)}           sub="cette semaine"     color="#0E9594" />
-        <KpiCard label="Revenus estimés"  value={fmtEur(weekRev)}               sub="heures facturables" />
-      </KpiGrid>
-
-      {/* Start new timer */}
-      {!running && (
-        <div className="flex gap-2" style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:12 }}>
-          <input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Sur quoi travailles-tu ?" autoFocus
-            onKeyDown={e => e.key==='Enter' && handleStart()}
-            style={{ flex:1, background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }} />
-          <select value={projId} onChange={e=>setProjId(e.target.value)}
-            style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 12px', color:'var(--text)', fontSize:12, minWidth:140 }}>
-            <option value="">Sans projet</option>
-            {projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <button onClick={()=>setBillable(b=>!b)}
-            className="px-3 rounded-lg"
-            style={{ background: billable ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', color: billable ? '#0E9594' : 'var(--text-muted)', border:'1px solid var(--border)', ...DF, fontSize:10, fontWeight:700 }}>
-            {billable ? '€ Fact.' : 'Non fact.'}
-          </button>
-          <button onClick={()=>setAddToCalendar(v=>!v)} title="Ajouter au calendrier à l'arrêt"
-            className="px-3 rounded-lg flex items-center gap-1.5"
-            style={{ background: addToCalendar ? 'rgba(242,84,45,0.12)' : 'var(--bg-input)', color: addToCalendar ? '#F2542D' : 'var(--text-muted)', border:`1px solid ${addToCalendar ? 'rgba(242,84,45,0.3)' : 'var(--border)'}`, ...DF, fontSize:10, fontWeight:700 }}>
-            <CalendarPlus size={11} /> {addToCalendar ? 'Agenda' : 'No agenda'}
-          </button>
-          <button onClick={handleStart} disabled={!desc.trim()}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl"
-            style={{ background: desc.trim() ? '#F2542D' : 'var(--bg-input)', color: desc.trim() ? '#fff' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:12, transition:'all 0.15s' }}>
-            <Play size={13} fill={desc.trim() ? '#fff' : 'var(--text-muted)'} /> Démarrer
-          </button>
-          <button onClick={() => setManualOpen(true)} title="Ajouter une entrée passée"
-            className="flex items-center justify-center px-3 py-2 rounded-xl"
-            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
-            <PenLine size={13} />
-          </button>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
-        {/* Entries list */}
-        <div className="md:col-span-2 flex flex-col gap-[10px]">
-          {/* Weekly bars */}
-          <div style={{ background:'#11686A', borderRadius:12, padding:20 }}>
-            <div className="flex items-center justify-between mb-4">
-              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F0E4CC', textTransform:'uppercase' }}>Temps enregistrés</p>
-              <span style={{ fontSize:11, color:'rgba(240,228,204,0.6)' }}>{fmtDur(weekSec)} cette semaine</span>
-            </div>
-            <div className="flex items-end gap-2" style={{ height:72 }}>
-              {['L','M','M','J','V','S','D'].map((day, i) => {
-                const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1 + i)
-                const iso = d.toISOString().slice(0,10)
-                const sec = entries.filter(e=>e.started_at.slice(0,10)===iso&&e.duration_seconds).reduce((s,e)=>s+(e.duration_seconds??0),0)
-                const maxSec = Math.max(...['L','M','M','J','V','S','D'].map((_,j)=>{
-                  const dd=new Date(); dd.setDate(dd.getDate()-dd.getDay()+1+j)
-                  return entries.filter(e=>e.started_at.slice(0,10)===dd.toISOString().slice(0,10)&&e.duration_seconds).reduce((s,e)=>s+(e.duration_seconds??0),0)
-                }), 1)
-                const h = sec>0 ? Math.max(8,(sec/maxSec)*64) : 4
-                const isToday = iso === today
-                return (
-                  <div key={i} className="flex flex-col items-center gap-1" style={{ flex:1 }}>
-                    <div style={{ width:'100%', height:h, borderRadius:4, background: isToday ? '#F2542D' : sec>0 ? '#F0E4CC' : 'rgba(240,228,204,0.12)' }} />
-                    <span style={{ fontSize:9, color: isToday ? '#F2542D' : 'rgba(240,228,204,0.5)', ...DF, fontWeight:isToday?800:500 }}>{day}</span>
-                    {sec>0 && <span style={{ fontSize:9, color:'rgba(240,228,204,0.7)' }}>{fmtDur(sec)}</span>}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Entries table */}
-          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)' }}>
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
-              <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#F2542D', textTransform:'uppercase' }}>Entrées récentes</p>
-              <span style={{ fontSize:10, color:'var(--text-muted)' }}>{entries.length} cette semaine</span>
-            </div>
-            {loading ? <p className="p-5 text-xs" style={{ color:'var(--text-muted)' }}>Chargement…</p>
-            : entries.length === 0 ? (
-              <div className="flex flex-col items-center py-12 gap-2">
-                <Clock size={32} style={{ color:'var(--text-muted)' }} />
-                <p style={{ fontSize:13, color:'var(--text-muted)' }}>Aucune entrée cette semaine</p>
+            {/* Timer row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+              <button onClick={handleStop} style={{ width: 60, height: 60, borderRadius: '50%', background: '#0E9594', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
+                <Square size={20} fill="#fff" color="#fff" />
+              </button>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ ...DF, fontSize: 17, fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {running.description || 'Session de travail'}
+                </p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginBottom: 10 }}>
+                  {runningProj?.name ?? 'Sans projet'}{running.category ? ` • ${running.category}` : ''}
+                </p>
+                <p style={{ ...DF, fontWeight: 900, fontSize: 34, color: '#fff', letterSpacing: '0.06em', lineHeight: 1 }}>
+                  {fmtSec(elapsed)}
+                </p>
               </div>
-            ) : entries.slice(0,12).map(e => (
-              <div key={e.id} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom:'1px solid var(--border)', background: !e.ended_at ? 'rgba(242,84,45,0.04)' : 'transparent' }}>
-                <div style={{ width:10, height:10, borderRadius:'50%', background:(e as any).projects?.color ?? e.project?.color ?? '#F5DFBB', flexShrink:0 }} />
-                <div className="flex-1 min-w-0">
-                  <p style={{ fontSize:13, color:'var(--wheat)' }}>{e.description||'Sans description'}</p>
-                  <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>
-                    {(e as any).projects?.name ?? e.project?.name ?? 'Sans projet'} · {new Date(e.started_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
-                    {e.ended_at ? ` → ${new Date(e.ended_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}` : ' · En cours'}
-                  </p>
-                </div>
-                {e.is_billable && <span style={{ fontSize:9, padding:'2px 7px', borderRadius:4, background:'rgba(14,149,148,0.12)', color:'#0E9594', ...DF, fontWeight:700 }}>Fact.</span>}
-                {!e.ended_at ? (
-                  <button onClick={handleStop} style={{ fontSize:11, color:'#F2542D', ...DF, fontWeight:700, padding:'4px 10px', borderRadius:6, background:'rgba(242,84,45,0.1)', border:'1px solid rgba(242,84,45,0.2)' }}>
-                    ■ Stop
-                  </button>
-                ) : (
-                  <span style={{ ...DF, fontWeight:700, fontSize:13, color:'var(--text-muted)', flexShrink:0 }}>
-                    {e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}
-                  </span>
-                )}
-                <button onClick={() => setEditingEntry(e as TimeEntry)}
-                  title="Modifier"
-                  style={{ padding:'4px 6px', borderRadius:6, background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', flexShrink:0, display:'flex', alignItems:'center' }}
-                  onMouseEnter={ev => (ev.currentTarget.style.color = '#F2542D')}
-                  onMouseLeave={ev => (ev.currentTarget.style.color = 'var(--text-muted)')}>
-                  <Pencil size={11} />
-                </button>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>Aujourd'hui</p>
+                <p style={{ ...DF, fontWeight: 900, fontSize: 26, color: '#fff', lineHeight: 1 }}>{fmtDur(todaySec + elapsed)}</p>
               </div>
-            ))}
+            </div>
+
+            {/* Bottom controls */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button onClick={() => setAddToCalendar(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: addToCalendar ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
+                <CalendarPlus size={10} /> {addToCalendar ? 'Agenda ✓' : 'Agenda'}
+              </button>
+              <button onClick={() => setManualOpen(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', fontSize: 10, fontWeight: 600, ...DF }}>
+                <PenLine size={10} /> Entrée manuelle
+              </button>
+            </div>
+          </>
+        ) : (
+          /* No session */
+          <>
+            <p style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 14 }}>Démarrer une session</p>
+            <input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Sur quoi travailles-tu ?"
+              onKeyDown={e => e.key === 'Enter' && handleStart()}
+              style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text)', fontSize: 13, marginBottom: 10, outline: 'none' }} />
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <select value={projId} onChange={e => setProjId(e.target.value)} style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }}>
+                <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <button onClick={() => setBillable(b => !b)} style={{ padding: '8px 12px', borderRadius: 8, background: billable ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', color: billable ? '#0E9594' : 'var(--text-muted)', border: '1px solid var(--border)', ...DF, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                {billable ? '€ Fact.' : 'Non fact.'}
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+              <button onClick={handleStart} disabled={!desc.trim()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? '#F2542D' : 'var(--bg-input)', color: desc.trim() ? '#fff' : 'var(--text-muted)', border: 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
+                <Play size={13} fill={desc.trim() ? '#fff' : 'var(--text-muted)'} /> Démarrer
+              </button>
+              <button onClick={() => setManualOpen(true)} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
+                <PenLine size={14} />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ─── ROW 2 : Filter bar ───────────────────────────────────────────── */}
+      <div className="col-span-4" style={{ ...card(), padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+        {/* Période */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={tableLabelStyle}>Période</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 11, color: 'var(--wheat)' }}>Cette semaine</span>
+            <ChevronDown size={10} style={{ color: 'var(--text-muted)' }} />
           </div>
         </div>
-
-        {/* Right */}
-        <div className="flex flex-col gap-[10px]">
-          {/* Répartition par projet */}
-          <div style={{ background:'#F2542D', borderRadius:12, padding:20 }}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:12 }}>Répartition du temps</p>
-            {byProject.length === 0 ? <p style={{ fontSize:12, color:'rgba(26,10,10,0.6)' }}>Aucune donnée</p> : byProject.slice(0,5).map(p => {
-              const pct = weekSec > 0 ? Math.round(p.seconds/weekSec*100) : 0
-              return (
-                <div key={p.id} className="mb-3">
-                  <div className="flex justify-between mb-1">
-                    <span style={{ fontSize:11, color:'#1A0A0A' }}>{p.name}</span>
-                    <span style={{ ...DF, fontSize:11, fontWeight:700, color:'#1A0A0A' }}>{fmtDur(p.seconds)} · {pct}%</span>
-                  </div>
-                  <div style={{ height:4, borderRadius:99, background:'rgba(0,0,0,0.2)', overflow:'hidden' }}>
-                    <div style={{ height:'100%', borderRadius:99, background: p.color??'#1A0A0A', width:`${pct}%` }} />
-                  </div>
-                </div>
-              )
-            })}
+        {/* Groupe par */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={tableLabelStyle}>Groupe par</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 11, color: 'var(--wheat)' }}>Projet</span>
+            <ChevronDown size={10} style={{ color: 'var(--text-muted)' }} />
           </div>
+        </div>
+        <div style={{ flex: 1 }} />
+        <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 600 }}>
+          <Download size={11} /> Exporter
+        </button>
+        <button onClick={() => setManualOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
+          <Plus size={11} /> Nouvelle entrée
+        </button>
+      </div>
 
-          {/* Objectifs */}
-          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase', marginBottom:10 }}>Objectif semaine</p>
-            <p style={{ ...DF, fontWeight:900, fontSize:32, color:'var(--wheat)', lineHeight:1 }}>
-              {Math.round((weekSec/3600)*10)/10} <span style={{ fontSize:16, fontWeight:500 }}>h</span>
-            </p>
-            <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:2, marginBottom:10 }}>/ 35h objectif</p>
-            <div style={{ height:5, borderRadius:99, background:'var(--border)', overflow:'hidden' }}>
-              <div style={{ height:'100%', borderRadius:99, background:'#0E9594', width:`${Math.min(100,weekSec/3600/35*100)}%` }} />
-            </div>
-            <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:4 }}>{Math.round(weekSec/3600/35*100)}% atteint</p>
-          </div>
+      {/* ─── ROW 3 : KPI cards ────────────────────────────────────────────── */}
 
-          {/* Top projets */}
-          <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--text-muted)', textTransform:'uppercase', marginBottom:10 }}>Top projets</p>
-            {byProject.slice(0,4).map((p,i) => (
-              <div key={p.id} className="flex items-center gap-2 py-2" style={{ borderBottom:'1px solid var(--border)' }}>
-                <span style={{ ...DF, fontWeight:900, fontSize:16, color:'var(--text-subtle)', width:16 }}>{i+1}</span>
-                <span style={{ width:8, height:8, borderRadius:2, background:p.color??'#F2542D', flexShrink:0 }} />
-                <span style={{ flex:1, fontSize:11, color:'var(--wheat)' }}>{p.name}</span>
-                <span style={{ ...DF, fontWeight:700, fontSize:12, color:'var(--text-muted)' }}>{fmtDur(p.seconds)}</span>
-              </div>
-            ))}
-            {byProject.length === 0 && <p style={{ fontSize:12, color:'var(--text-muted)' }}>Aucune donnée</p>}
-          </div>
+      {/* KPI 1 — Temps total (dark) */}
+      <div style={{ ...card(), padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
+        <span style={{ ...tableLabelStyle, marginBottom: 6 }}>Temps total</span>
+        <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: 'var(--wheat)', lineHeight: 1, marginBottom: 6 }}>{fmtDur(weekSec)}</p>
+        <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>vs semaine dernière <span style={{ color: '#0E9594', fontWeight: 700 }}>+12% ↗</span></p>
+        <MiniBarChart values={secPerDay} color="var(--accent)" />
+      </div>
+
+      {/* KPI 2 — Moyenne / jour (wheat bg) */}
+      <div style={{ background: '#F5DFBB', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
+        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(26,10,10,0.55)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Moyenne / jour</span>
+        <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: '#1A0A0A', lineHeight: 1, marginBottom: 6 }}>{fmtDur(avgSec)}</p>
+        <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>vs semaine dernière <span style={{ color: '#0E9594', fontWeight: 700 }}>+0h 28m ↗</span></p>
+        <MiniBarChart values={secPerDay} color="rgba(26,10,10,0.5)" />
+      </div>
+
+      {/* KPI 3 — Projets actifs (orange) */}
+      <div style={{ background: '#F2542D', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
+        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Projets actifs</span>
+        <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{activeProjs}</p>
+        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)' }}>vs semaine dernière <span style={{ color: '#fff', fontWeight: 700 }}>+1 ↗</span></p>
+        <MiniBarChart values={secPerDay} color="rgba(255,255,255,0.65)" />
+      </div>
+
+      {/* KPI 4 — Productivité (teal) */}
+      <div style={{ background: '#0E9594', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
+        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Taux de productivité</span>
+        <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{prodPct}%</p>
+        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginBottom: 'auto' }}>vs semaine dernière <span style={{ color: '#fff', fontWeight: 700 }}>+7% ↗</span></p>
+        <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', borderRadius: 99, background: '#fff', width: `${prodPct}%`, transition: 'width 0.5s ease' }} />
         </div>
       </div>
+
+      {/* ─── ROW 4 : Temps enregistrés table ─────────────────────────────── */}
+      <div className="col-span-4" style={{ ...card(), overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--wheat)', textTransform: 'uppercase' }}>Temps enregistrés</p>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {([List, LayoutGrid, BarChart2] as const).map((Icon, i) => (
+              <button key={i} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${i === 0 ? 'var(--accent)' : 'var(--border)'}`, background: i === 0 ? 'rgba(242,84,45,0.1)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: i === 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
+                <Icon size={11} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Table columns */}
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '8px 20px', borderBottom: '1px solid var(--border)', gap: 12 }}>
+          {['Projet / Tâche','Catégorie','Temps','%','','Durée',''].map((h, i) => (
+            <span key={i} style={tableLabelStyle}>{h}</span>
+          ))}
+        </div>
+
+        {loading ? <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
+        : projRows.length === 0 ? <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Aucune entrée cette semaine.</p>
+        : projRows.slice(0, 6).map(row => {
+          const pct = weekSec > 0 ? Math.round(row.seconds / weekSec * 100) : 0
+          return (
+            <div key={row.id ?? 'none'}
+              style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '12px 20px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+
+              {/* Projet / Tâche */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                <div style={{ width: 11, height: 11, borderRadius: 3, background: row.color, flexShrink: 0 }} />
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</p>
+                  {row.desc && <p style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.desc}</p>}
+                </div>
+              </div>
+
+              {/* Catégorie */}
+              {row.category
+                ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(row.category) + '20', color: catColor(row.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(row.category)}40`, display: 'inline-block' }}>{row.category}</span>
+                : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
+
+              {/* Temps */}
+              <span style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDur(row.seconds)}</span>
+
+              {/* % */}
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{pct}%</span>
+
+              {/* Bar */}
+              <div style={{ height: 4, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 99, background: row.color, width: `${pct}%` }} />
+              </div>
+
+              {/* Durée */}
+              <span style={{ ...DF, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{fmtDur(row.seconds)}</span>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 5 }}>
+                <button style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                  <Play size={9} fill="var(--text-muted)" />
+                </button>
+                <button style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                  <MoreVertical size={9} />
+                </button>
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Footer */}
+        <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voir toutes les entrées</span>
+          <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />
+        </div>
+      </div>
+
+      {/* ─── ROW 5 : Charts ───────────────────────────────────────────────── */}
+
+      {/* Répartition du temps — donut */}
+      <div className="col-span-2" style={{ ...card(), padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--wheat)', textTransform: 'uppercase' }}>Répartition du temps</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 10, color: 'var(--wheat)' }}>Cette semaine</span>
+            <ChevronDown size={10} style={{ color: 'var(--text-muted)' }} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 16, flex: 1, alignItems: 'center' }}>
+          <DonutChart segments={donutSegs} label={fmtDur(weekSec)} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
+            {donutSegs.length === 0
+              ? <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucune donnée.</p>
+              : donutSegs.map((s, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</span>
+                    <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--wheat)', flexShrink: 0 }}>{fmtDur(s.sec)}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', width: 34, textAlign: 'right', flexShrink: 0 }}>{Math.round(s.pct)}%</span>
+                  </div>
+                ))
+            }
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voir le rapport détaillé</span>
+          <ArrowRight size={11} style={{ color: 'var(--text-muted)' }} />
+        </div>
+      </div>
+
+      {/* Évolution du temps — stacked bars */}
+      <div className="col-span-2" style={{ background: '#11686A', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F0E4CC', textTransform: 'uppercase' }}>Évolution du temps</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 10, color: '#F0E4CC' }}>7 derniers jours</span>
+            <ChevronDown size={10} style={{ color: 'rgba(240,228,204,0.55)' }} />
+          </div>
+        </div>
+
+        <StackedBar days={stackedDays} />
+
+        {/* Legend */}
+        {donutSegs.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px 14px', marginTop: 10 }}>
+            {donutSegs.slice(0, 6).map((s, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
+                <span style={{ fontSize: 9, color: 'rgba(240,228,204,0.65)' }}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12, marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+          <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.55)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voir plus d'analyses</span>
+          <ArrowRight size={11} style={{ color: 'rgba(240,228,204,0.55)' }} />
+        </div>
+      </div>
+
+      {/* ─── ROW 6 : Entrées récentes ──────────────────────────────────────── */}
+      <div className="col-span-4" style={{ ...card(), overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--wheat)', textTransform: 'uppercase' }}>Entrées récentes</p>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+            Voir toutes <ArrowRight size={10} />
+          </button>
+        </div>
+
+        {/* Table header */}
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 130px 130px 80px 60px 60px 72px', padding: '8px 20px', borderBottom: '1px solid var(--border)', gap: 12 }}>
+          {['Description','Projet','Catégorie','Durée','Début','Fin',''].map((h, i) => (
+            <span key={i} style={tableLabelStyle}>{h}</span>
+          ))}
+        </div>
+
+        {entries.filter(e => e.duration_seconds).slice(0, 6).map(e => {
+          const proj = projects.find(p => p.id === e.project_id)
+          return (
+            <div key={e.id}
+              style={{ display: 'grid', gridTemplateColumns: '2fr 130px 130px 80px 60px 60px 72px', padding: '11px 20px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center' }}
+              onMouseEnter={ev => (ev.currentTarget.style.background = 'var(--bg-card-hover)')}
+              onMouseLeave={ev => (ev.currentTarget.style.background = 'transparent')}>
+              <p style={{ fontSize: 12, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description || 'Sans description'}</p>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{proj?.name ?? '—'}</p>
+              {e.category
+                ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(e.category) + '20', color: catColor(e.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(e.category)}40`, display: 'inline-block' }}>{e.category}</span>
+                : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
+              <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--wheat)' }}>{e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtTime(e.started_at)}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{e.ended_at ? fmtTime(e.ended_at) : '—'}</span>
+              <div style={{ display: 'flex', gap: 5 }}>
+                <button onClick={() => setEditingEntry(e as TimeEntry)} style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                  <Pencil size={9} />
+                </button>
+                <button style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                  <MoreVertical size={9} />
+                </button>
+              </div>
+            </div>
+          )
+        })}
+
+        {entries.filter(e => e.duration_seconds).length === 0 && (
+          <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Aucune entrée cette semaine.</p>
+        )}
+
+        <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voir plus d'entrées</span>
+          <ArrowRight size={12} style={{ color: 'var(--text-muted)' }} />
+        </div>
+      </div>
+
     </div>
 
+    {/* ── Modals ─────────────────────────────────────────────────────────── */}
     {editingEntry && (
-      <EditEntryModal
-        entry={editingEntry}
-        projects={projects}
-        onSave={update}
-        onDelete={async (id) => { await remove(id) }}
-        onClose={() => setEditingEntry(null)}
-      />
+      <EditEntryModal entry={editingEntry} projects={projects} onSave={update}
+        onDelete={async (id) => { await remove(id) }} onClose={() => setEditingEntry(null)} />
     )}
     {manualOpen && (
-      <ManualEntryModal
-        projects={projects}
-        onCreate={createManual}
-        onClose={() => setManualOpen(false)}
-      />
+      <ManualEntryModal projects={projects} onCreate={createManual} onClose={() => setManualOpen(false)} />
     )}
     </>
   )
