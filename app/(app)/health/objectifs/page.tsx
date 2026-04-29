@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, Target, Award, Droplets, Activity, Trash2, Check, Pencil, X, AlertTriangle } from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth'
@@ -163,13 +163,24 @@ export default function ObjectifsPage() {
   const router = useRouter()
   const { activities } = useHealth()
 
-  const [objectifs, setObjectifs] = useState<Objectif[]>([
+  const SEED_OBJECTIFS: Objectif[] = [
     { id: '1', label: 'Distance / semaine',     target: 30,  unit: 'km',      color: ORANGE,    category: 'course',      period: 'semaine', icon: 'activity' },
     { id: '2', label: 'Sorties / semaine',       target: 4,   unit: 'sorties', color: WHEAT,     category: 'course',      period: 'semaine', icon: 'activity' },
     { id: '3', label: 'Distance totale',         target: 500, unit: 'km',      color: TEAL,      category: 'course',      period: 'total',   icon: 'award' },
     { id: '4', label: 'Courir 100 km / mois',    target: 100, unit: 'km',      color: ORANGE,    category: 'course',      period: 'mois',    icon: 'target' },
     { id: '5', label: 'Hydratation journalière', target: 2.5, unit: 'L',       color: '#3B82F6', category: 'hydratation', period: 'jour',    icon: 'drops' },
-  ])
+  ]
+
+  const [objectifs, setObjectifs] = useState<Objectif[]>(() => {
+    try {
+      const saved = localStorage.getItem('nysa_objectifs')
+      return saved ? JSON.parse(saved) : SEED_OBJECTIFS
+    } catch { return SEED_OBJECTIFS }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('nysa_objectifs', JSON.stringify(objectifs))
+  }, [objectifs])
 
   const [showForm,   setShowForm]   = useState(false)
   const [editId,     setEditId]     = useState<string | null>(null)

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, TrendingDown, TrendingUp, Pencil, Trash2, Check, X, AlertTriangle } from 'lucide-react'
 
@@ -124,12 +124,23 @@ export default function MesuresPage() {
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM)
   const [confirmId, setConfirmId] = useState<string | null>(null)
 
-  const [mesures, setMesures] = useState<Mesure[]>([
+  const SEED: Mesure[] = [
     { id: '1', date: '2026-04-29', taille: 81,   massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 },
     { id: '2', date: '2026-03-15', taille: 81.5, massGrasse: 15.5, massMuscul: 55.9, imc: 22.1 },
     { id: '3', date: '2026-02-01', taille: 82,   massGrasse: 16.0, massMuscul: 55.5, imc: 22.3 },
     { id: '4', date: '2026-01-10', taille: 82.5, massGrasse: 16.4, massMuscul: 55.1, imc: 22.4 },
-  ])
+  ]
+
+  const [mesures, setMesures] = useState<Mesure[]>(() => {
+    try {
+      const saved = localStorage.getItem('nysa_mesures')
+      return saved ? JSON.parse(saved) : SEED
+    } catch { return SEED }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('nysa_mesures', JSON.stringify(mesures))
+  }, [mesures])
 
   const latest = mesures[0]
   const prev   = mesures[1]
