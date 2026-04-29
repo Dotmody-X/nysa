@@ -131,8 +131,25 @@ export default function HealthPage() {
   /* ── Nutrition local state ───────── */
   const [nutrition] = useState({ cal: 1842, calTarget: 2200, prot: 120, protTarget: 150, gluc: 180, glucTarget: 250, lip: 65, lipTarget: 80 })
 
-  /* ── Mesures corporelles ─────────── */
-  const [mesures]   = useState({ taille: 81, massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 })
+  /* ── Mesures corporelles — lues depuis localStorage (sync avec /health/mesures) ── */
+  const [mesures] = useState<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number; prev?: { taille?: number; massGrasse?: number; massMuscul?: number } }>(() => {
+    try {
+      const saved = localStorage.getItem('nysa_mesures')
+      if (!saved) return { taille: 81, massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 }
+      const arr = JSON.parse(saved) as Array<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number }>
+      const latest = arr[0] ?? {}
+      const prev   = arr[1] ?? {}
+      return { ...latest, prev }
+    } catch { return { taille: 81, massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 } }
+  })
+
+  /* ── Objectifs — lus depuis localStorage (sync avec /health/objectifs) ── */
+  const [lsObjectifs] = useState<Array<{ id: string; label: string; target: number; unit: string; color: string; period: string; category: string; currentOverride?: number }>>(() => {
+    try {
+      const saved = localStorage.getItem('nysa_objectifs')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
 
   /* ── Stats derivation ────────────── */
   const today     = new Date()
@@ -665,12 +682,20 @@ export default function HealthPage() {
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, flex: 1 }}>
-            {[
-              { l: 'Tour de taille', v: `${mesures.taille} cm`,       delta: '-0.5 cm', up: false, color: TEAL },
-              { l: 'Masse grasse',   v: `${mesures.massGrasse} %`,     delta: '-0.3 %',  up: false, color: TEAL },
-              { l: 'Masse musculaire', v: `${mesures.massMuscul} kg`,  delta: '+0.4 kg', up: true,  color: ORANGE },
-              { l: 'IMC',            v: String(mesures.imc),           delta: 'Normal',  up: null,  color: WHEAT },
-            ].map(s => (
+            {(() => {
+              const p = (mesures as any).prev ?? {}
+              const fmtDelta = (curr?: number, prev?: number, unit = '') => {
+                if (curr == null || prev == null) return ''
+                const d = curr - prev
+                return `${d > 0 ? '+' : ''}${d.toFixed(1)} ${unit}`.trim()
+              }
+              return [
+                { l: 'Tour de taille',    v: mesures.taille     != null ? `${mesures.taille} cm`     : '—', delta: fmtDelta(mesures.taille,     p.taille,     'cm'), up: mesures.taille != null && p.taille != null ? mesures.taille < p.taille : false, color: TEAL   },
+                { l: 'Masse grasse',      v: mesures.massGrasse != null ? `${mesures.massGrasse} %`  : '—', delta: fmtDelta(mesures.massGrasse, p.massGrasse, '%'),  up: mesures.massGrasse != null && p.massGrasse != null ? mesures.massGrasse < p.massGrasse : false, color: TEAL   },
+                { l: 'Masse musculaire',  v: mesures.massMuscul != null ? `${mesures.massMuscul} kg` : '—', delta: fmtDelta(mesures.massMuscul, p.massMuscul, 'kg'), up: mesures.massMuscul != null && p.massMuscul != null ? mesures.massMuscul > p.massMuscul : true,  color: ORANGE },
+                { l: 'IMC',              v: mesures.imc        != null ? String(mesures.imc)        : '—', delta: mesures.imc != null && mesures.imc < 25 ? 'Normal' : mesures.imc != null ? 'Surpoids' : '', up: null, color: WHEAT  },
+              ]
+            })().map(s => (
               <div key={s.l} style={{ padding: '16px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{s.l}</p>
                 <p style={{ ...DF, fontSize: 22, fontWeight: 900, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.v}</p>
@@ -708,12 +733,15 @@ export default function HealthPage() {
           {/* Défis actifs */}
           <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Défis actifs</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[
-              { l: '30 km / semaine',   v: kmWeek.toFixed(1),           t: 30,  unit: 'km',      color: ORANGE },
-              { l: '4 sorties / sem.',  v: String(thisWeek.length),      t: 4,   unit: 'sorties', color: WHEAT },
-              { l: 'Total 500 km',      v: allKm.toFixed(0),             t: 500, unit: 'km',      color: TEAL },
-              { l: 'Boire 2,5 L / jour', v: (glasses * 0.25).toFixed(1), t: 2.5, unit: 'L',       color: '#3B82F6' },
-            ].map(d => {
+            {(lsObjectifs.length > 0 ? lsObjectifs.slice(0, 4) : [
+              { id: '1', label: '30 km / semaine',    target: 30,  unit: 'km',      color: ORANGE,    currentOverride: undefined },
+              { id: '2', label: '4 sorties / sem.',   target: 4,   unit: 'sorties', color: WHEAT,     currentOverride: undefined },
+              { id: '3', label: 'Total 500 km',       target: 500, unit: 'km',      color: TEAL,      currentOverride: undefined },
+              { id: '5', label: 'Boire 2,5 L / jour', target: 2.5, unit: 'L',       color: '#3B82F6', currentOverride: undefined },
+            ]).map(obj => {
+              const autoVal = obj.id === '1' ? kmWeek : obj.id === '2' ? thisWeek.length : obj.id === '3' ? allKm : obj.id === '4' ? monthKm : obj.id === '5' ? glasses * 0.25 : 0
+              const rawV = obj.currentOverride != null ? obj.currentOverride : autoVal
+              const d = { l: obj.label, v: Number.isInteger(rawV) ? String(rawV) : rawV.toFixed(1), t: obj.target, unit: obj.unit, color: obj.color }
               const pct = Math.min(100, (parseFloat(d.v) / d.t) * 100)
               return (
                 <div key={d.l} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
