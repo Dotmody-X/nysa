@@ -111,6 +111,36 @@ export function useTimeEntries() {
     setEntries(e => e.filter(x => x.id !== id))
   }
 
+  async function createManual(patch: {
+    description?: string
+    project_id?: string
+    category?: string
+    is_billable?: boolean
+    started_at: string
+    ended_at?: string
+  }) {
+    const { data: { user } } = await supabase.auth.getUser()
+    const duration = patch.ended_at
+      ? Math.floor((new Date(patch.ended_at).getTime() - new Date(patch.started_at).getTime()) / 1000)
+      : undefined
+    const { data, error } = await supabase
+      .from('time_entries')
+      .insert({
+        user_id:          user!.id,
+        description:      patch.description ?? null,
+        project_id:       patch.project_id ?? null,
+        category:         patch.category ?? null,
+        is_billable:      patch.is_billable ?? true,
+        started_at:       patch.started_at,
+        ended_at:         patch.ended_at ?? null,
+        duration_seconds: duration ?? null,
+      })
+      .select('*, projects(name, color)')
+      .single()
+    if (!error && data) setEntries(prev => [data as TimeEntry, ...prev])
+    return { data, error }
+  }
+
   // Helpers calculs
   const totalSecondsToday = entries
     .filter(e => e.started_at.startsWith(new Date().toISOString().slice(0, 10)) && e.duration_seconds)
@@ -122,7 +152,7 @@ export function useTimeEntries() {
 
   return {
     entries, loading, refetch: fetch,
-    start, stop, update, remove,
+    start, stop, update, remove, createManual,
     totalSecondsToday, totalSecondsWeek,
   }
 }

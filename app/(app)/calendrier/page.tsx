@@ -569,6 +569,12 @@ function CalendrierContent() {
     ev: CalendarEvent; ghostEndPx: number
   } | null>(null)
 
+  // Pending drag — tracks pointer down before movement threshold
+  const pendingDragRef = useRef<{
+    ev: CalendarEvent; startX: number; startY: number
+    offsetPx: number; di: number; topPx: number; pointerId: number
+  } | null>(null)
+
   // Snap to 15-min grid
   function snapPx(px: number) { return Math.round(px / (SLOT_PX / 4)) * (SLOT_PX / 4) }
 
@@ -701,6 +707,7 @@ function CalendrierContent() {
   }
 
   async function handleOverlayUp() {
+    pendingDragRef.current = null
     if (dragging) {
       const { ev, ghostDay, ghostTopPx } = dragging
       const mins    = Math.round((ghostTopPx / SLOT_PX) * 60)
@@ -973,14 +980,31 @@ function CalendrierContent() {
                       const isSel  = selected?.id === ev.id
                       return (
                         <div key={ev.id}
-                          onClick={e => { if (!isDraggingThis) { e.stopPropagation(); setSelected(ev) } }}
                           onPointerDown={e => {
-                            // Only on left button, not on resize handle
                             if (e.button !== 0) return
                             if ((e.target as HTMLElement).dataset.resize) return
-                            e.preventDefault(); e.stopPropagation()
+                            e.stopPropagation()
+                            ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
                             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                            setDragging({ ev, offsetPx: e.clientY - rect.top, ghostDay: di, ghostTopPx: top })
+                            pendingDragRef.current = { ev, startX: e.clientX, startY: e.clientY, offsetPx: e.clientY - rect.top, di, topPx: top, pointerId: e.pointerId }
+                          }}
+                          onPointerMove={e => {
+                            const p = pendingDragRef.current
+                            if (!p || p.ev.id !== ev.id) return
+                            const dist = Math.hypot(e.clientX - p.startX, e.clientY - p.startY)
+                            if (dist > 6) {
+                              e.preventDefault()
+                              ;(e.currentTarget as HTMLElement).releasePointerCapture(p.pointerId)
+                              pendingDragRef.current = null
+                              setDragging({ ev: p.ev, offsetPx: p.offsetPx, ghostDay: p.di, ghostTopPx: p.topPx })
+                            }
+                          }}
+                          onPointerUp={e => {
+                            const p = pendingDragRef.current
+                            if (p && p.ev.id === ev.id) {
+                              pendingDragRef.current = null
+                              setSelected(ev)
+                            }
                           }}
                           style={{
                             position: 'absolute', top, height, left: 2, right: 2,

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { Play, Square, Plus, Clock, CalendarPlus, Pencil, Trash2, X } from 'lucide-react'
+import { Play, Square, Plus, Clock, CalendarPlus, Pencil, Trash2, X, PenLine } from 'lucide-react'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjects }    from '@/hooks/useProjects'
 import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
@@ -149,6 +149,122 @@ function EditEntryModal({
   )
 }
 
+// ─── Manual Entry Modal ──────────────────────────────────────────────────────
+function ManualEntryModal({
+  projects,
+  onCreate,
+  onClose,
+}: {
+  projects: Array<{ id: string; name: string; color: string }>
+  onCreate: (patch: { description?: string; project_id?: string; category?: string; is_billable?: boolean; started_at: string; ended_at?: string }) => Promise<unknown>
+  onClose: () => void
+}) {
+  function toLocalDateStr(d: Date) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+  }
+  function toLocalTimeStr(d: Date) {
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+  }
+
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
+  const [form, setForm] = useState({
+    description: '',
+    projectId: '',
+    category: '',
+    billable: true,
+    startDate: toLocalDateStr(yesterday),
+    startTime: '09:00',
+    endDate: toLocalDateStr(yesterday),
+    endTime: '10:00',
+  })
+  const [saving, setSaving] = useState(false)
+
+  async function submit() {
+    if (!form.startDate || !form.startTime) return
+    setSaving(true)
+    const startedAt = new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
+    const endedAt   = form.endDate && form.endTime
+      ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString()
+      : undefined
+    await onCreate({
+      description: form.description || undefined,
+      project_id:  form.projectId   || undefined,
+      category:    form.category    || undefined,
+      is_billable: form.billable,
+      started_at:  startedAt,
+      ended_at:    endedAt,
+    })
+    setSaving(false)
+    onClose()
+  }
+
+  const inputStyle = { background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' } as const
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
+      <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
+
+        <div className="flex items-center justify-between">
+          <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Entrée manuelle</p>
+          <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
+        </div>
+
+        <div>
+          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Description</label>
+          <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            placeholder="Sur quoi as-tu travaillé ?" style={inputStyle} autoFocus
+            onKeyDown={e => e.key === 'Enter' && submit()} />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Projet</label>
+          <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inputStyle}>
+            <option value="">Sans projet</option>
+            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
+          <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+            placeholder="Ex : Design, Dev, Réunion…" style={inputStyle} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Début</label>
+            <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: e.target.value }))} style={{ ...inputStyle, marginBottom: 4 }} />
+            <input type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} style={inputStyle} />
+          </div>
+          <div>
+            <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Fin</label>
+            <input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={{ ...inputStyle, marginBottom: 4 }} />
+            <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} placeholder="—" style={inputStyle} />
+          </div>
+        </div>
+
+        <button onClick={() => setForm(f => ({ ...f, billable: !f.billable }))}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${form.billable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`, background: form.billable ? 'rgba(14,149,148,0.08)' : 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
+          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? '#0E9594' : 'var(--border)'}`, background: form.billable ? '#0E9594' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {form.billable && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
+          </div>
+          <span style={{ fontSize: 12, color: form.billable ? '#0E9594' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
+        </button>
+
+        <div className="flex gap-2 justify-end">
+          <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
+            Annuler
+          </button>
+          <button onClick={submit} disabled={saving || !form.startDate || !form.startTime}
+            style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+            {saving ? '…' : 'Créer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function fmtSec(s: number) {
   const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); const sec = s%60
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
@@ -160,9 +276,10 @@ function fmtDur(s: number) {
 function fmtEur(n: number) { return n.toLocaleString('fr-BE', { style:'currency', currency:'EUR', minimumFractionDigits:0 }) }
 
 export default function TimeTrackerPage() {
-  const { entries, loading, start, stop, update, remove } = useTimeEntries()
+  const { entries, loading, start, stop, update, remove, createManual } = useTimeEntries()
   const { projects } = useProjects()
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null)
+  const [manualOpen, setManualOpen] = useState(false)
   const [desc, setDesc] = useState('')
   const [projId, setProjId] = useState('')
   const [billable, setBillable] = useState(true)
@@ -228,6 +345,11 @@ export default function TimeTrackerPage() {
                 style={{ background:'#F2542D', color:'#fff', ...DF, fontWeight:700, fontSize:12 }}>
                 <Square size={12} fill="#fff" /> Arrêter
               </button>
+              <button onClick={() => setManualOpen(true)} title="Ajouter une entrée passée"
+                className="flex items-center justify-center px-3 py-2 rounded-xl"
+                style={{ background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>
+                <PenLine size={13} />
+              </button>
             </div>
           ) : null
         }
@@ -265,6 +387,11 @@ export default function TimeTrackerPage() {
             className="flex items-center gap-2 px-5 py-2 rounded-xl"
             style={{ background: desc.trim() ? '#F2542D' : 'var(--bg-input)', color: desc.trim() ? '#fff' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:12, transition:'all 0.15s' }}>
             <Play size={13} fill={desc.trim() ? '#fff' : 'var(--text-muted)'} /> Démarrer
+          </button>
+          <button onClick={() => setManualOpen(true)} title="Ajouter une entrée passée"
+            className="flex items-center justify-center px-3 py-2 rounded-xl"
+            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>
+            <PenLine size={13} />
           </button>
         </div>
       )}
@@ -402,6 +529,13 @@ export default function TimeTrackerPage() {
         onSave={update}
         onDelete={async (id) => { await remove(id) }}
         onClose={() => setEditingEntry(null)}
+      />
+    )}
+    {manualOpen && (
+      <ManualEntryModal
+        projects={projects}
+        onCreate={createManual}
+        onClose={() => setManualOpen(false)}
       />
     )}
     </>
