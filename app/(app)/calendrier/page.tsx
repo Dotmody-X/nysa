@@ -882,7 +882,7 @@ function CalendrierContent() {
             const active = calView === v
             return (
               <button key={v} onClick={() => setCalView(v)}
-                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? 'var(--wheat)' : 'transparent', color: active ? '#111' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? '#F2542D' : 'transparent', color: active ? '#fff' : 'var(--text-muted)', transition: 'all 0.15s' }}>
                 {label}
               </button>
             )
