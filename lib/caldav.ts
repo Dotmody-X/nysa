@@ -337,7 +337,9 @@ export async function runAppleSync(
     .eq('user_id', userId)
     .eq('source', 'apple')
 
-  const existingMap = new Map((existing ?? []).map((e: any) => [e.external_id, e]))
+  const existingMap = new Map<string, { id: string; external_id: string; category: string | null }>(
+    (existing ?? []).map((e: any) => [e.external_id, e])
+  )
   const existingUids = new Set(existingMap.keys())
 
   // ── Ajouts ──────────────────────────────────────────────────────────────
