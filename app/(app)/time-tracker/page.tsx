@@ -551,7 +551,7 @@ export default function TimeTrackerPage() {
   /* ── Render ──────────────────────────────────────────────────────────────── */
   return (
     <>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, padding: 30, alignContent: 'start' }}>
+    <div className="bento-grid md:grid md:grid-cols-4 page-wrap" style={{ gap: 10, alignContent: 'start' }}>
 
       {/* ─── ROW 1 : Hero + Session en cours ──────────────────────────────── */}
 

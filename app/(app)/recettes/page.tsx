@@ -164,7 +164,7 @@ export default function RecettesPage() {
   ]
 
   return (
-    <div style={{ padding: 30, minHeight: '100%' }}>
+    <div className="page-wrap" style={{ minHeight: '100%' }}>
       <style>{`
         .rec-card:hover  { opacity: .92; transform: translateY(-1px); transition: .15s; }
         .rec-filter:hover{ opacity: .8; }
@@ -175,9 +175,7 @@ export default function RecettesPage() {
       {/* ══════════════════════════════════════════
           GRID — 4 cols × 5 rows
       ══════════════════════════════════════════ */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+      <div className="bento-grid md:grid md:grid-cols-4" style={{
         gridTemplateRows: '300px 300px 500px 400px 260px',
         gap: 10,
       }}>

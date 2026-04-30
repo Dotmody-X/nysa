@@ -605,9 +605,7 @@ export default function RapportsPage() {
       )}
 
       {/* ══ GRID ════════════════════════════════════════════════════════ */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+      <div className="bento-grid md:grid md:grid-cols-4" style={{
         gridTemplateRows: 'minmax(280px,auto) minmax(240px,auto) minmax(480px,auto) minmax(360px,auto) minmax(260px,auto) auto',
         gap: 12,
       }}>

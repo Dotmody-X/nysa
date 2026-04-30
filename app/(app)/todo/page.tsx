@@ -259,7 +259,7 @@ export default function TodoPage() {
 
   return (
     <>
-    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
+    <div className="page-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
 
       <PageTitle
         title="To Do List"

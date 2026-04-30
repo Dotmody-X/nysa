@@ -55,8 +55,8 @@ export default function DashboardPage() {
 
   return (
     <div
-      className="grid grid-cols-2 md:grid-cols-4"
-      style={{ gap: 10, padding: 30, minHeight: '100%' }}
+      className="bento-grid md:grid md:grid-cols-4"
+      style={{ gap: 10, padding: 'clamp(14px,3vw,30px)', minHeight: '100%' }}
     >
 
       {/* ═══════════════════════════════════════════════════════════ ROW 1 */}

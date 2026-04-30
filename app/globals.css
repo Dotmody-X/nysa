@@ -255,3 +255,97 @@ h1, h2, h3, h4, h5, h6 {
 .tag-teal   { background: rgba(17,  104, 106,  0.25); color: #4ECDC4; border: 1px solid rgba(17,  104, 106,  0.3);  }
 .tag-wheat  { background: rgba(245, 223, 187,  0.1);  color: #F5DFBB; border: 1px solid rgba(245, 223, 187,  0.2);  }
 .tag-espresso { background: rgba(86, 44, 44,   0.3);  color: #C99;    border: 1px solid rgba(86,  44,  44,   0.4);  }
+
+/* ============================================================
+   RESPONSIVE — Mobile-first utilities
+   ============================================================ */
+
+/* Page wrapper — responsive padding */
+.page-wrap {
+  padding: 16px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (min-width: 768px) {
+  .page-wrap {
+    padding: 20px 26px;
+    gap: 12px;
+  }
+}
+
+/* Bento grid — stacks to single column on mobile */
+.bento-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+.bento-grid > * {
+  grid-column: unset !important;
+  grid-row: unset !important;
+  min-height: auto !important;
+}
+@media (min-width: 768px) {
+  .bento-grid {
+    display: grid !important;
+    flex-direction: unset !important;
+  }
+}
+
+/* Sidebar + main content layout */
+@media (max-width: 767px) {
+  /* Collapse 3-col grids to 1 col */
+  .md\:grid-cols-3,
+  .md\:col-span-2 {
+    grid-template-columns: 1fr !important;
+  }
+  /* KPI grid: 2 cols on mobile */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  /* Page title font scale */
+  h1 {
+    font-size: clamp(28px, 8vw, 52px) !important;
+  }
+  /* Collapse any fixed-col inline grids to 1 col */
+  [style*="gridTemplateColumns: '1fr 2"],
+  [style*="gridTemplateColumns: '1fr 1fr 8"],
+  [style*="gridTemplateColumns: \"1fr 2"],
+  [style*="gridTemplateColumns:'1fr 2"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* Full-width drawers on mobile */
+  .drawer-mobile {
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border) !important;
+    top: auto !important;
+    bottom: 0 !important;
+    height: 85vh !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+  /* Sidebar panels collapse on mobile */
+  .sidebar-panel {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 100 !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* Bottom nav safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+  .main-scroll {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 768px) {
+  .main-scroll {
+    padding-bottom: 0;
+  }
+}
