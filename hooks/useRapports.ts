@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 
-export type RapportPeriod = 'week' | 'month'
+export type RapportPeriod = 'week' | 'month' | '3months' | 'year'
 
 export type ProjectStat = {
   project_id: string | null
@@ -57,17 +57,31 @@ function getRange(period: RapportPeriod, ref: Date): { start: string; end: strin
     const sun = new Date(mon)
     sun.setDate(mon.getDate() + 7)
     return { start: mon.toISOString().slice(0, 10), end: sun.toISOString().slice(0, 10), days: 7 }
-  } else {
+  }
+  if (period === 'month') {
     const start = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}-01`
     const endDate = new Date(ref.getFullYear(), ref.getMonth() + 1, 1)
     const end = endDate.toISOString().slice(0, 10)
     const days = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).getDate()
     return { start, end, days }
   }
+  if (period === '3months') {
+    const endD = new Date(ref)
+    endD.setDate(endD.getDate() + 1)
+    const startD = new Date(ref)
+    startD.setDate(ref.getDate() - 89)
+    return { start: startD.toISOString().slice(0, 10), end: endD.toISOString().slice(0, 10), days: 90 }
+  }
+  // year
+  const year = ref.getFullYear()
+  const startD = new Date(year, 0, 1)
+  const endD   = new Date(year + 1, 0, 1)
+  const days   = Math.ceil((endD.getTime() - startD.getTime()) / 86400000)
+  return { start: `${year}-01-01`, end: endD.toISOString().slice(0, 10), days }
 }
 
 export function useRapports(period: RapportPeriod, ref: Date) {
-  const [data, setData]     = useState<RapportData | null>(null)
+  const [data, setData]       = useState<RapportData | null>(null)
   const [loading, setLoading] = useState(true)
 
   const { start, end, days } = getRange(period, ref)
@@ -96,9 +110,9 @@ export function useRapports(period: RapportPeriod, ref: Date) {
     ;(projects ?? []).forEach(p => { projectMap[p.id] = { name: p.name, color: p.color ?? '#F2542D' } })
 
     // ── Time ──
-    const entries = timeEntries ?? []
-    const totalSeconds    = entries.reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
-    const billableSeconds = entries.filter(e => e.is_billable).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+    const entries          = timeEntries ?? []
+    const totalSeconds     = entries.reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+    const billableSeconds  = entries.filter(e => e.is_billable).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
 
     const projectStatsMap: Record<string, ProjectStat> = {}
     entries.forEach(e => {
@@ -125,9 +139,16 @@ export function useRapports(period: RapportPeriod, ref: Date) {
       const d = new Date(start + 'T12:00:00')
       d.setDate(d.getDate() + i)
       const dateStr = d.toISOString().slice(0, 10)
-      const label   = period === 'week'
-        ? d.toLocaleDateString('fr-BE', { weekday: 'short' })
-        : String(i + 1)
+      let label: string
+      if (period === 'week') {
+        label = d.toLocaleDateString('fr-BE', { weekday: 'short' })
+      } else if (period === 'month') {
+        label = String(i + 1)
+      } else if (period === '3months') {
+        label = i % 7 === 0 ? `S${Math.floor(i / 7) + 1}` : ''
+      } else {
+        label = i % 30 === 0 ? d.toLocaleDateString('fr-FR', { month: 'short' }) : ''
+      }
       const seconds = entries
         .filter(e => e.started_at?.slice(0, 10) === dateStr)
         .reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
@@ -144,14 +165,14 @@ export function useRapports(period: RapportPeriod, ref: Date) {
     const tasksLate  = allTasks.filter(t => t.status !== 'done' && t.due_date && t.due_date < today).length
 
     // ── Budget ──
-    const txs          = transactions ?? []
+    const txs         = transactions ?? []
     const totalIncome  = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
     const totalExpense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 
     // ── Health ──
-    const runList   = runs ?? []
-    const totalRuns = runList.length
-    const totalKm   = runList.reduce((s, r) => s + (r.distance_km ?? 0), 0)
+    const runList      = runs ?? []
+    const totalRuns    = runList.length
+    const totalKm      = runList.reduce((s, r) => s + (r.distance_km ?? 0), 0)
     const latestWeight = weights?.[0]?.weight_kg ?? null
 
     setData({
