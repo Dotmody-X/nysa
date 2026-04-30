@@ -380,7 +380,7 @@ function SportPageInner() {
   })
 
   return (
-    <div className="page-wrap" style={{ minHeight: '100%' }}>
+    <div style={{ padding: 30, minHeight: '100%' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         .sport-row-btn:hover { background: var(--bg-card-hover) !important; }
@@ -435,7 +435,9 @@ function SportPageInner() {
       {/* ══════════════════════════════════════════════════
           GRID LAYOUT — 4 cols, gap 10
       ══════════════════════════════════════════════════ */}
-      <div className="bento-grid md:grid md:grid-cols-4" style={{
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
         gridTemplateRows: '300px 300px 500px 500px 400px 260px',
         gap: 10,
       }}>

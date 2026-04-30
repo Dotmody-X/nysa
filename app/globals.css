@@ -308,12 +308,10 @@ h1, h2, h3, h4, h5, h6 {
   h1 {
     font-size: clamp(28px, 8vw, 52px) !important;
   }
-  /* Collapse any fixed-col inline grids to 1 col */
-  [style*="gridTemplateColumns: '1fr 2"],
-  [style*="gridTemplateColumns: '1fr 1fr 8"],
-  [style*="gridTemplateColumns: \"1fr 2"],
-  [style*="gridTemplateColumns:'1fr 2"] {
-    grid-template-columns: 1fr !important;
+  /* Budget/Rapports inline grid: 30px padding → 16px */
+  [style*="padding: 30"],
+  [style*="padding:30"] {
+    padding: 16px !important;
   }
   /* Full-width drawers on mobile */
   .drawer-mobile {
@@ -324,14 +322,6 @@ h1, h2, h3, h4, h5, h6 {
     bottom: 0 !important;
     height: 85vh !important;
     border-radius: 20px 20px 0 0 !important;
-  }
-  /* Sidebar panels collapse on mobile */
-  .sidebar-panel {
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 100 !important;
-    width: 100% !important;
-    border-radius: 0 !important;
   }
 }
 

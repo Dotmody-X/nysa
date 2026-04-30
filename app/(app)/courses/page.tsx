@@ -446,7 +446,7 @@ export default function CoursesPage() {
   }
 
   return (
-    <div className="page-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
+    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
       {/* ── Store Selector Modal ─────────────────── */}
       {showStoreSelector && (
         <StoreSelectorModal

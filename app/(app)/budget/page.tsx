@@ -871,7 +871,7 @@ export default function BudgetPage() {
       </div>
 
       {/* ════ GRID ════ */}
-      <div className="bento-grid md:grid md:grid-cols-4" style={{ gridTemplateRows:'300px 300px 500px 400px 260px', gap:12, flex:1 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gridTemplateRows:'300px 300px 500px 400px 260px', gap:12, flex:1 }}>
 
         {/* B1 Aperçu dépenses */}
         <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'none' }}>

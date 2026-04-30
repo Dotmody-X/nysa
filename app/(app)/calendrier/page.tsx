@@ -818,7 +818,7 @@ function CalendrierContent() {
 
   // ── Render
   return (
-    <div className="bento-grid md:grid md:grid-cols-4 page-wrap" style={{ gap: 10, alignContent: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, padding: 30, alignContent: 'start' }}>
 
       {/* Notification toast */}
       {notification && (

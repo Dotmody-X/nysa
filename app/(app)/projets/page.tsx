@@ -407,7 +407,7 @@ export default function ProjetsPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="bento-grid md:grid md:grid-cols-4 page-wrap" style={{ gap: 10, alignContent: 'start' }}>
+    <div style={{ padding: 30, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, alignContent: 'start' }}>
 
       {/* ── ROW 1 : Hero (2 cols) + VUE GLOBALE marques (2 cols) — 300px ──── */}
 

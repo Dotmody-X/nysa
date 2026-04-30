@@ -42,7 +42,7 @@ export default function ReglagesPage() {
   function applyAccent(color: string)  { setAccent(color); saveTheme(theme, color) }
 
   return (
-    <div className="page-wrap" style={{ display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
+    <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
       <PageTitle title="Réglages" sub="Personnalise · Intégrations · Données · Abonnement" />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[10px]">

@@ -220,7 +220,7 @@ export default function HealthPage() {
   }
 
   return (
-    <div className="page-wrap" style={{ minHeight: '100%' }}>
+    <div style={{ padding: 30, minHeight: '100%' }}>
       <style>{`
         .health-btn:hover { opacity: 0.85; }
         .health-row:hover { background: var(--bg-card-hover) !important; }
@@ -264,7 +264,9 @@ export default function HealthPage() {
       {/* ══════════════════════════════════════════════════
           GRID — 4 cols × 5 rows
       ══════════════════════════════════════════════════ */}
-      <div className="bento-grid md:grid md:grid-cols-4" style={{
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
         gridTemplateRows: '300px 300px 500px 400px 380px',
         gap: 10,
       }}>

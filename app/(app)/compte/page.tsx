@@ -35,7 +35,7 @@ export default function ComptePage() {
   const latestW    = metrics[0]?.weight_kg ?? null
 
   return (
-    <div className="page-wrap" style={{ display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
+    <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
       <PageTitle
         title="Mon Profil"
         sub="Hive sociale · Mes données · Voir mes activités"
