@@ -9,7 +9,7 @@ import { saveTheme, THEME_KEY } from '@/lib/theme'
 import type { ThemeMode } from '@/lib/theme'
 import { createClient } from '@/lib/supabase/client'
 
-type NavItem = { href: string; label: string; color?: string }
+type NavItem = { href: string; label: string; color?: string; accent?: boolean }
 
 const navItems: NavItem[] = [
   { href: '/',             label: 'Accueil',       color: 'var(--accent)' },
@@ -23,6 +23,7 @@ const navItems: NavItem[] = [
   { href: '/courses',      label: 'Courses',       color: 'var(--dark-cyan)' },
   { href: '/budget',       label: 'Budget',        color: 'var(--dark-cyan)' },
   { href: '/rapports',     label: 'Rapports',      color: 'var(--dark-cyan)' },
+  { href: '/agent',        label: 'Agent IA',      color: 'var(--accent)', accent: true },
 ]
 
 const themeOptions: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
@@ -108,42 +109,54 @@ export function Sidebar() {
 
       {/* ── Nav ──────────────────────────────────────────────── */}
       <nav className="flex-1 flex flex-col px-4 py-4 gap-0.5 overflow-y-auto">
-        {navItems.map(item => {
+        {navItems.map((item, idx) => {
           const active = isActive(item.href)
+          const prevItem = navItems[idx - 1]
+          const showSep = item.accent && prevItem && !prevItem.accent
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-3 px-2 py-2 rounded-[6px] group transition-all duration-100"
-              style={{
-                background: active ? 'rgba(242,84,45,0.1)' : 'transparent',
-                borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
-              }}
-            >
-              {/* Square bullet */}
-              <span
+            <div key={item.href}>
+              {showSep && (
+                <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />
+              )}
+              <Link
+                href={item.href}
+                className="flex items-center gap-3 px-2 py-2 rounded-[6px] group transition-all duration-100"
                 style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: 1,
-                  flexShrink: 0,
-                  background: active ? 'var(--accent)' : item.color ?? 'var(--dark-cyan)',
-                  opacity: active ? 1 : 0.6,
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: active ? 700 : 500,
-                  fontSize: '11px',
-                  letterSpacing: '0.08em',
-                  color: active ? 'var(--wheat)' : 'var(--text-muted)',
-                  textTransform: 'uppercase',
+                  background: active
+                    ? item.accent ? 'rgba(242,84,45,0.12)' : 'rgba(242,84,45,0.1)'
+                    : item.accent ? 'rgba(242,84,45,0.04)' : 'transparent',
+                  borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
+                  marginTop: item.accent ? 2 : 0,
                 }}
               >
-                {item.label}
-              </span>
-            </Link>
+                {/* Square bullet */}
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 1,
+                    flexShrink: 0,
+                    background: active ? 'var(--accent)' : item.color ?? 'var(--dark-cyan)',
+                    opacity: active ? 1 : item.accent ? 0.85 : 0.6,
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: active ? 700 : item.accent ? 600 : 500,
+                    fontSize: '11px',
+                    letterSpacing: '0.08em',
+                    color: active ? 'var(--wheat)' : item.accent ? 'var(--accent)' : 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {item.label}
+                </span>
+                {item.accent && !active && (
+                  <span style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: 'var(--accent)', opacity: 0.7, flexShrink: 0 }} />
+                )}
+              </Link>
+            </div>
           )
         })}
       </nav>
