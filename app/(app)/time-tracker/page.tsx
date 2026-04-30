@@ -400,6 +400,7 @@ export default function TimeTrackerPage() {
   const [view,         setView]         = useState<View>('list')
   const [showAllRecent, setShowAllRecent] = useState(false)
   const [openMenu,     setOpenMenu]     = useState<string | null>(null)
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null)
   const [manualOpen,   setManualOpen]   = useState(false)
   const [desc,    setDesc]    = useState('')
@@ -775,67 +776,128 @@ export default function TimeTrackerPage() {
             : groupedRows.length === 0 ? <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Aucune entrée sur cette période.</p>
             : groupedRows.map(row => {
                 const pct = totalSec > 0 ? Math.round(row.seconds / totalSec * 100) : 0
+                const isExpanded = expandedRows.has(row.id)
+                const rowEntries = filteredEntries.filter(e =>
+                  groupBy === 'project'  ? (row.id === 'none' ? !e.project_id : e.project_id === row.id) :
+                  groupBy === 'category' ? (e.category ?? 'Sans catégorie') === row.id :
+                  e.started_at.slice(0,10) === row.id
+                )
                 return (
-                  <div key={row.id}
-                    style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '12px 20px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                  <div key={row.id}>
+                    {/* ── Ligne groupe ── */}
+                    <div
+                      style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '12px 20px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center', cursor: 'pointer' }}
+                      onClick={() => setExpandedRows(prev => { const s = new Set(prev); s.has(row.id) ? s.delete(row.id) : s.add(row.id); return s })}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
 
-                    {/* Projet / Tâche */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                      <div style={{ width: 11, height: 11, borderRadius: 3, background: row.color, flexShrink: 0 }} />
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</p>
-                        {row.desc && <p style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.desc}</p>}
+                      {/* Projet / Tâche */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                        <ChevronDown size={12} style={{ color: 'var(--text-muted)', flexShrink: 0, transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                        <div style={{ width: 11, height: 11, borderRadius: 3, background: row.color, flexShrink: 0 }} />
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</p>
+                          {row.desc && <p style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.desc}</p>}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Catégorie */}
-                    {row.category
-                      ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(row.category) + '20', color: catColor(row.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(row.category)}40`, display: 'inline-block' }}>{row.category}</span>
-                      : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
+                      {/* Catégorie */}
+                      {row.category
+                        ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(row.category) + '20', color: catColor(row.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(row.category)}40`, display: 'inline-block' }}>{row.category}</span>
+                        : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
 
-                    {/* Temps */}
-                    <span style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDur(row.seconds)}</span>
+                      {/* Temps */}
+                      <span style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDur(row.seconds)}</span>
 
-                    {/* % */}
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{pct}%</span>
+                      {/* % */}
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{pct}%</span>
 
-                    {/* Bar */}
-                    <div style={{ height: 4, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: 99, background: row.color, width: `${pct}%` }} />
-                    </div>
+                      {/* Bar */}
+                      <div style={{ height: 4, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', borderRadius: 99, background: row.color, width: `${pct}%` }} />
+                      </div>
 
-                    {/* Durée */}
-                    <span style={{ ...DF, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{fmtDur(row.seconds)}</span>
+                      {/* Durée */}
+                      <span style={{ ...DF, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{fmtDur(row.seconds)}</span>
 
-                    {/* Actions */}
-                    <div style={{ display: 'flex', gap: 5 }}>
-                      <button
-                        onClick={() => handleStartForProject(row)}
-                        title="Démarrer une session"
-                        style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#F2542D'; (e.currentTarget as HTMLElement).style.color = '#F2542D' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
-                        <Play size={9} fill="currentColor" />
-                      </button>
-                      <div style={{ position: 'relative' }}>
+                      {/* Actions */}
+                      <div style={{ display: 'flex', gap: 5 }} onClick={e => e.stopPropagation()}>
                         <button
-                          onClick={() => setOpenMenu(openMenu === `proj-${row.id}` ? null : `proj-${row.id}`)}
-                          style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                          <MoreVertical size={9} />
+                          onClick={() => handleStartForProject(row)}
+                          title="Démarrer une session"
+                          style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#F2542D'; (e.currentTarget as HTMLElement).style.color = '#F2542D' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
+                          <Play size={9} fill="currentColor" />
                         </button>
-                        {openMenu === `proj-${row.id}` && (
-                          <ContextMenu
-                            onClose={() => setOpenMenu(null)}
-                            items={[
-                              { label: 'Démarrer une session', icon: <Play size={10} />, onClick: () => handleStartForProject(row) },
-                              { label: 'Entrée manuelle', icon: <PenLine size={10} />, onClick: () => setManualOpen(true) },
-                            ]}
-                          />
-                        )}
+                        <div style={{ position: 'relative' }}>
+                          <button
+                            onClick={() => setOpenMenu(openMenu === `proj-${row.id}` ? null : `proj-${row.id}`)}
+                            style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                            <MoreVertical size={9} />
+                          </button>
+                          {openMenu === `proj-${row.id}` && (
+                            <ContextMenu
+                              onClose={() => setOpenMenu(null)}
+                              items={[
+                                { label: 'Démarrer une session', icon: <Play size={10} />, onClick: () => handleStartForProject(row) },
+                                { label: 'Entrée manuelle', icon: <PenLine size={10} />, onClick: () => setManualOpen(true) },
+                              ]}
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
+
+                    {/* ── Sous-entrées (expand) ── */}
+                    {isExpanded && rowEntries.map(e => {
+                      const proj = projects.find(p => p.id === e.project_id)
+                      return (
+                        <div key={e.id}
+                          style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '9px 20px 9px 48px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center', background: 'var(--bg-input)' }}
+                          onMouseEnter={ev => (ev.currentTarget.style.background = 'var(--bg-card-hover)')}
+                          onMouseLeave={ev => (ev.currentTarget.style.background = 'var(--bg-input)')}>
+                          <p style={{ fontSize: 11, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description || 'Sans description'}</p>
+                          {proj
+                            ? <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                                <div style={{ width: 6, height: 6, borderRadius: 2, background: proj.color, flexShrink: 0 }} />
+                                <p style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{proj.name}</p>
+                              </div>
+                            : <span style={{ fontSize: 10, color: 'var(--text-subtle)' }}>—</span>}
+                          {e.category
+                            ? <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 5, background: catColor(e.category) + '20', color: catColor(e.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(e.category)}40`, display: 'inline-block', whiteSpace: 'nowrap' }}>{e.category}</span>
+                            : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
+                          <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--wheat)' }}>{e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}</span>
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{fmtTime(e.started_at)}</span>
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{e.ended_at ? fmtTime(e.ended_at) : '—'}</span>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button onClick={() => setEditingEntry(e as TimeEntry)}
+                              title="Modifier"
+                              style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
+                              onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = '#F2542D'; (ev.currentTarget as HTMLElement).style.color = '#F2542D' }}
+                              onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (ev.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
+                              <Pencil size={8} />
+                            </button>
+                            <div style={{ position: 'relative' }}>
+                              <button onClick={() => setOpenMenu(openMenu === `sub-${e.id}` ? null : `sub-${e.id}`)}
+                                style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                                <MoreVertical size={8} />
+                              </button>
+                              {openMenu === `sub-${e.id}` && (
+                                <ContextMenu
+                                  onClose={() => setOpenMenu(null)}
+                                  items={[
+                                    { label: 'Modifier', icon: <Pencil size={10} />, onClick: () => setEditingEntry(e as TimeEntry) },
+                                    { label: 'Dupliquer', icon: <Plus size={10} />, onClick: () => createManual({ description: e.description ?? undefined, project_id: e.project_id ?? undefined, category: e.category ?? undefined, is_billable: e.is_billable, started_at: new Date().toISOString() }) },
+                                    { label: 'Supprimer', icon: <Trash2 size={10} />, danger: true, onClick: () => remove(e.id) },
+                                  ]}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )
               })
