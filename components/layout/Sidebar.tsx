@@ -7,6 +7,7 @@ import { NysaLogo } from '@/components/ui/NysaLogo'
 import { useState, useEffect, useRef } from 'react'
 import { saveTheme, THEME_KEY } from '@/lib/theme'
 import type { ThemeMode } from '@/lib/theme'
+import { createClient } from '@/lib/supabase/client'
 
 type NavItem = { href: string; label: string; color?: string }
 
@@ -34,12 +35,26 @@ export function Sidebar() {
   const pathname = usePathname()
   const [themeOpen, setThemeOpen] = useState(false)
   const [currentTheme, setCurrentTheme] = useState<ThemeMode>('system')
+  const [displayName, setDisplayName] = useState('NYSA')
   const popoverRef = useRef<HTMLDivElement>(null)
 
-  // Read stored theme on mount
+  // Read stored theme on mount + load display name
   useEffect(() => {
     const stored = (localStorage.getItem(THEME_KEY) as ThemeMode) ?? 'system'
     setCurrentTheme(stored)
+
+    const supabase = createClient()
+    // Load initial name
+    supabase.auth.getUser().then(({ data }) => {
+      const name = data.user?.user_metadata?.display_name
+      if (name) setDisplayName(name)
+    })
+    // Live-sync: re-renders immediately after profile save
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const name = session?.user?.user_metadata?.display_name
+      if (name) setDisplayName(name)
+    })
+    return () => subscription.unsubscribe()
   }, [])
 
   // Close popover on outside click
@@ -148,7 +163,7 @@ export function Sidebar() {
             <User size={12} style={{ color: '#fff' }} />
           </div>
           <div className="min-w-0">
-            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: 'var(--wheat)', letterSpacing: '0.05em' }}>NYSA</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: 'var(--wheat)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
             <p style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Voir profil</p>
           </div>
         </Link>

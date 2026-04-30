@@ -66,6 +66,9 @@ export default function ComptePage() {
   const [showDelete, setShowDelete] = useState(false)
   const [deleteInput, setDeleteInput] = useState('')
 
+  // integration modal
+  const [activeIntegration, setActiveIntegration] = useState<string|null>(null)
+
   // streak
   const [streak, setStreak] = useState(0)
   const [streakDays, setStreakDays] = useState<boolean[]>([])
@@ -223,12 +226,12 @@ export default function ComptePage() {
   ]
 
   const prefItems = [
-    { icon: Settings,  label:'Général',          sub:'Paramètres généraux du compte' },
-    { icon: Bell,      label:'Notifications',    sub:'Gérer vos notifications' },
-    { icon: Palette,   label:'Apparence',        sub:'Thème, couleurs, affichage' },
-    { icon: Lock,      label:'Confidentialité',  sub:'Données et confidentialité' },
-    { icon: Keyboard,  label:'Raccourcis',       sub:'Gérer vos raccourcis clavier' },
-    { icon: Download,  label:'Sauvegarde',       sub:'Exporter ou importer vos données' },
+    { icon: Settings,  label:'Général',          sub:'Paramètres généraux du compte',  href:'/compte/general' },
+    { icon: Bell,      label:'Notifications',    sub:'Gérer vos notifications',         href:'/compte/notifications' },
+    { icon: Palette,   label:'Apparence',        sub:'Thème, couleurs, affichage',      href:'/reglages' },
+    { icon: Lock,      label:'Confidentialité',  sub:'Données et confidentialité',      href:'/compte/confidentialite' },
+    { icon: Keyboard,  label:'Raccourcis',       sub:'Gérer vos raccourcis clavier',    href:'/compte/raccourcis' },
+    { icon: Download,  label:'Sauvegarde',       sub:'Exporter ou importer vos données',href:'/compte/sauvegarde' },
   ]
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -257,6 +260,55 @@ export default function ComptePage() {
           </div>
         </>
       )}
+
+      {/* ── Integration modal ── */}
+      {activeIntegration && (() => {
+        const app = integrations.find(a => a.name === activeIntegration)!
+        const steps: Record<string, { title:string; desc:string; action?:string; actionLabel?:string; href?:string }> = {
+          'Strava':           { title:'Connecter Strava', desc:'Importez automatiquement vos activités running depuis Strava. Une fois connecté, vos courses apparaîtront dans le module Running.', action:'oauth', actionLabel:'Autoriser Strava', href:'/api/strava/auth' },
+          'Google Calendar':  { title:'Google Calendar', desc:'La synchronisation Google Calendar sera disponible dans une prochaine mise à jour. Utilisez Apple Calendar (CalDAV) pour synchroniser dès maintenant.', action:'soon' },
+          'Apple Health':     { title:'Apple Health', desc:'La synchronisation Apple Health sera disponible dans une prochaine mise à jour via HealthKit.', action:'soon' },
+          'Google Drive':     { title:'Google Drive', desc:'La synchronisation Google Drive sera disponible dans une prochaine mise à jour. Vos fichiers pourront être joints aux projets et recettes.', action:'soon' },
+          'Notion':           { title:'Notion', desc:'L\'intégration Notion sera disponible dans une prochaine mise à jour. Vous pourrez synchroniser vos bases de données Notion avec les tâches NYSA.', action:'soon' },
+        }
+        const info = steps[activeIntegration] ?? { title: activeIntegration, desc:'Intégration disponible prochainement.', action:'soon' }
+        return (
+          <>
+            <div onClick={()=>setActiveIntegration(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:200, backdropFilter:'blur(4px)' }} />
+            <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:16, padding:28, width:380, border:'1px solid var(--border)', boxShadow:'0 24px 60px rgba(0,0,0,0.4)' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                  <span style={{ fontSize:28 }}>{app.icon}</span>
+                  <div>
+                    <p style={{ ...DF, fontWeight:800, fontSize:15, color:'var(--wheat)' }}>{info.title}</p>
+                    <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:2 }}>
+                      <div style={{ width:6, height:6, borderRadius:'50%', background: app.connected ? TEAL : 'var(--text-subtle)' }} />
+                      <span style={{ fontSize:10, color: app.connected ? TEAL : 'var(--text-muted)' }}>{app.connected ? 'Connecté' : 'Non connecté'}</span>
+                    </div>
+                  </div>
+                </div>
+                <button onClick={()=>setActiveIntegration(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)' }}><X size={16}/></button>
+              </div>
+              <p style={{ fontSize:12, color:'var(--text-muted)', lineHeight:1.7, marginBottom:20 }}>{info.desc}</p>
+              {info.action === 'oauth' && !app.connected && (
+                <a href={info.href} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', background:ORANGE, color:'#fff', borderRadius:8, padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'none', cursor:'pointer', textDecoration:'none', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+                  {info.actionLabel}
+                </a>
+              )}
+              {info.action === 'oauth' && app.connected && (
+                <button style={{ width:'100%', background:'transparent', color:ORANGE, borderRadius:8, padding:'10px 0', ...DF, fontWeight:700, fontSize:12, border:`1px solid ${ORANGE}`, cursor:'pointer' }}>
+                  Déconnecter
+                </button>
+              )}
+              {info.action === 'soon' && (
+                <div style={{ padding:'12px 16px', borderRadius:10, background:'rgba(14,149,148,0.08)', border:'1px solid rgba(14,149,148,0.2)', textAlign:'center' }}>
+                  <span style={{ fontSize:11, color: TEAL, ...DF, fontWeight:700 }}>Prochainement disponible</span>
+                </div>
+              )}
+            </div>
+          </>
+        )
+      })()}
 
       {/* ══ HEADER ═══════════════════════════════════════════════════════════ */}
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:20 }}>
@@ -483,9 +535,11 @@ export default function ComptePage() {
           <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--border)' }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Préférences</p>
           </div>
-          {prefItems.map(({ icon: Icon, label, sub }) => (
-            <button key={label} onClick={label==='Apparence' ? ()=>router.push('/reglages') : undefined}
-              style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'10px 16px', background:'none', border:'none', borderBottom:'1px solid var(--border)', cursor:'pointer', textAlign:'left' }}>
+          {prefItems.map(({ icon: Icon, label, sub, href }) => (
+            <button key={label} onClick={()=>router.push(href)}
+              style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'10px 16px', background:'none', border:'none', borderBottom:'1px solid var(--border)', cursor:'pointer', textAlign:'left' }}
+              onMouseEnter={e=>(e.currentTarget.style.background='var(--bg-card-hover)')}
+              onMouseLeave={e=>(e.currentTarget.style.background='none')}>
               <div style={{ width:30, height:30, borderRadius:8, background:'var(--bg-input)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <Icon size={14} style={{ color:'var(--text-muted)' }} />
               </div>
@@ -504,11 +558,17 @@ export default function ComptePage() {
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Applications connectées</p>
           </div>
           {integrations.map(app => (
-            <div key={app.name} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 16px', borderBottom:'1px solid var(--border)' }}>
+            <button key={app.name} onClick={()=>setActiveIntegration(app.name)}
+              style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'10px 16px', background:'none', border:'none', borderBottom:'1px solid var(--border)', cursor:'pointer', textAlign:'left' }}
+              onMouseEnter={e=>(e.currentTarget.style.background='var(--bg-card-hover)')}
+              onMouseLeave={e=>(e.currentTarget.style.background='none')}>
               <span style={{ fontSize:18, flexShrink:0 }}>{app.icon}</span>
               <p style={{ flex:1, fontSize:12, color:'var(--wheat)' }}>{app.name}</p>
-              <div style={{ width:8, height:8, borderRadius:'50%', background: app.connected ? TEAL : 'var(--text-subtle)', flexShrink:0 }} />
-            </div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <span style={{ fontSize:9, color: app.connected ? TEAL : 'var(--text-subtle)', ...DF, fontWeight:600 }}>{app.connected ? 'Connecté' : 'Non connecté'}</span>
+                <div style={{ width:7, height:7, borderRadius:'50%', background: app.connected ? TEAL : 'var(--text-subtle)', flexShrink:0 }} />
+              </div>
+            </button>
           ))}
           <button onClick={()=>router.push('/reglages')}
             style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'10px 16px', background:'none', border:'none', cursor:'pointer', ...DF, fontWeight:700, fontSize:10, color:TEAL, textTransform:'uppercase', letterSpacing:'0.1em' }}>
