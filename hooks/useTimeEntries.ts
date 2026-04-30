@@ -50,7 +50,7 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
     return { data, error }
   }
 
-  async function stop(id: string, startedAt: string, options?: { addToCalendar?: boolean }) {
+  async function stop(id: string, startedAt: string, options?: { addToCalendar?: boolean; calendarLabel?: string }) {
     const endedAt  = new Date()
     const duration = Math.floor((endedAt.getTime() - new Date(startedAt).getTime()) / 1000)
     const { data, error } = await supabase
@@ -66,6 +66,8 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
     if (!error && data && options?.addToCalendar) {
       const entry = data as TimeEntry & { projects?: { name: string; color: string } }
       const { data: { user } } = await supabase.auth.getUser()
+      // Label : priorité au choix utilisateur, sinon nom du projet, sinon "Mixologue"
+      const category = options.calendarLabel ?? entry.projects?.name ?? 'Mixologue'
       const { data: ev } = await supabase.from('events').insert({
         user_id:    user!.id,
         title:      entry.description || 'Session de travail',
@@ -74,8 +76,7 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
         all_day:    false,
         source:     'manual',
         project_id: entry.project_id ?? null,
-        // Catégorie = nom du projet (pour correspondre au calendrier Apple)
-        category:   entry.category ?? entry.projects?.name ?? null,
+        category,
       }).select().single()
       calendarEvent = ev
       // Push vers Apple Calendar

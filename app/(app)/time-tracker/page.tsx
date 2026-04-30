@@ -247,6 +247,46 @@ function ContextMenu({ items, onClose }: {
   )
 }
 
+/* ── Label colours (calendar picker) ─────────────────────────────────────── */
+const LABEL_COLORS: Record<string, string> = {
+  'Mixologue': '#1A0A0A',
+  'E-Smoker':  '#7B5EA7',
+  'Aeterna':   '#8B7355',
+  'Travail':   '#0E9594',
+  'Perso':     '#4B8BF4',
+  'Santé':     '#4ECDC4',
+  'Running':   '#F2542D',
+}
+
+function LabelPickerDropdown({ labels, selected, onSelect, onClose }: {
+  labels: string[]
+  selected: string
+  onSelect: (l: string) => void
+  onClose: () => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+  return (
+    <div ref={ref} style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 200, background: '#0d1a1a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10, minWidth: 150, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+      <p style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', padding: '6px 10px 4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Calendrier cible</p>
+      {labels.map(l => (
+        <button key={l} onClick={() => onSelect(l)}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 7, background: l === selected ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', cursor: 'pointer', color: l === selected ? '#fff' : 'rgba(240,228,204,0.7)', fontSize: 11, fontWeight: l === selected ? 700 : 400, textAlign: 'left' }}
+          onMouseEnter={e => { if (l !== selected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)' }}
+          onMouseLeave={e => { if (l !== selected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[l] ?? '#888', flexShrink: 0 }} />
+          {l}
+          {l === selected && <span style={{ marginLeft: 'auto', fontSize: 10, color: '#F2542D' }}>✓</span>}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 /* ══ Edit Entry Modal ═════════════════════════════════════════════════════════ */
 function EditEntryModal({
   entry, projects, onSave, onDelete, onClose,
@@ -407,6 +447,9 @@ export default function TimeTrackerPage() {
   const [projId,  setProjId]  = useState('')
   const [billable, setBillable] = useState(true)
   const [addToCalendar, setAddToCalendar] = useState(true)
+  const [calendarLabel, setCalendarLabel] = useState('Mixologue')
+  const [availableLabels, setAvailableLabels] = useState<string[]>(['Mixologue', 'E-Smoker', 'Aeterna', 'Travail', 'Perso', 'Santé', 'Running'])
+  const [showLabelPicker, setShowLabelPicker] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -528,7 +571,7 @@ export default function TimeTrackerPage() {
   }
   async function handleStop() {
     if (!running) return
-    await stop(running.id, running.started_at, { addToCalendar })
+    await stop(running.id, running.started_at, { addToCalendar, calendarLabel })
   }
 
   async function handleStartForProject(row: Row) {
@@ -609,11 +652,30 @@ export default function TimeTrackerPage() {
                 <p style={{ ...DF, fontWeight: 900, fontSize: 26, color: '#fff', lineHeight: 1 }}>{fmtDur(todaySec + elapsed)}</p>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, alignItems: 'center', flexWrap: 'wrap' }}>
               <button onClick={() => setAddToCalendar(v => !v)}
                 style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: addToCalendar ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
                 <CalendarPlus size={10} /> {addToCalendar ? 'Agenda ✓' : 'Agenda'}
               </button>
+              {addToCalendar && (
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => setShowLabelPicker(v => !v)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[calendarLabel] ?? '#fff', flexShrink: 0 }} />
+                    {calendarLabel}
+                    <ChevronDown size={9} style={{ opacity: 0.7, transform: showLabelPicker ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                  </button>
+                  {showLabelPicker && (
+                    <LabelPickerDropdown
+                      labels={availableLabels}
+                      selected={calendarLabel}
+                      onSelect={l => { setCalendarLabel(l); setShowLabelPicker(false) }}
+                      onClose={() => setShowLabelPicker(false)}
+                    />
+                  )}
+                </div>
+              )}
               <button onClick={() => setManualOpen(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', fontSize: 10, fontWeight: 600, ...DF }}>
                 <PenLine size={10} /> Entrée manuelle
