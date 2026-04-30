@@ -211,11 +211,17 @@ export default function TodoPage() {
     setNewTitle(''); setShowForm(false)
   }
 
+  const TAB_COLORS: Record<string, string> = {
+    toutes:    '#F2542D',
+    priorites: '#9B72CF',
+    projets:   '#0E9594',
+    auto:      '#E8A838',
+  }
   const tabs = [
     { key: 'toutes',    label: 'Toutes les tâches' },
-    { key: 'priorites', label: 'Priorités' },
-    { key: 'projets',   label: 'Par projet' },
-    { key: 'auto',      label: 'Automatiques' },
+    { key: 'priorites', label: 'Priorités'          },
+    { key: 'projets',   label: 'Par projet'         },
+    { key: 'auto',      label: 'Automatiques'       },
   ]
 
   // ── Par projet : grouped view ─────────────────────────────────────────
@@ -225,6 +231,26 @@ export default function TodoPage() {
     tasks: activeTasks.filter(t => t.project_id === p.id),
   })).filter(g => g.tasks.length > 0)
   const noProjectTasks = activeTasks.filter(t => !t.project_id)
+
+  // ── Priorités : grouped by priority ──────────────────────────────────
+  const priorityGroups: { key: 'urgent'|'high'|'medium'|'low'; label: string; color: string }[] = [
+    { key: 'urgent', label: 'Urgent',  color: '#F2542D' },
+    { key: 'high',   label: 'Haute',   color: '#F5DFBB' },
+    { key: 'medium', label: 'Moyenne', color: '#0E9594' },
+    { key: 'low',    label: 'Basse',   color: '#888'    },
+  ]
+
+  // ── Automatiques : smart lists ────────────────────────────────────────
+  const now7d = new Date(); now7d.setDate(now7d.getDate() + 7)
+  const next7dStr = now7d.toISOString().slice(0, 10)
+  const autoGroups = [
+    { key: 'overdue',   label: 'En retard',           color: '#F2542D', tasks: filtered.filter(t => t.due_date && t.due_date < today && t.status !== 'done'), bg: 'rgba(242,84,45,0.05)' },
+    { key: 'today',     label: 'Aujourd\'hui',         color: '#F2542D', tasks: filtered.filter(t => t.due_date === today && t.status !== 'done'),              bg: undefined },
+    { key: 'next7d',    label: '7 prochains jours',   color: '#E8A838', tasks: filtered.filter(t => t.due_date && t.due_date > today && t.due_date <= next7dStr && t.status !== 'done'), bg: undefined },
+    { key: 'inprogress',label: 'En cours',             color: '#0E9594', tasks: filtered.filter(t => t.status === 'in_progress'),                                bg: undefined },
+    { key: 'nodate',    label: 'Sans date',            color: 'var(--text-muted)', tasks: filtered.filter(t => !t.due_date && t.status !== 'done'),             bg: undefined },
+    { key: 'done',      label: 'Terminées',            color: '#0E9594', tasks: filtered.filter(t => t.status === 'done').slice(0, 10),                         bg: undefined },
+  ].filter(g => g.tasks.length > 0)
 
   const inp: React.CSSProperties = {
     background: 'var(--bg-input)', border: '1px solid var(--border)',
@@ -256,14 +282,26 @@ export default function TodoPage() {
       </KpiGrid>
 
       {/* Tabs + search */}
-      <div className="flex gap-1">
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key as typeof tab)}
-            className="px-4 py-2 rounded-lg"
-            style={{ background: tab === t.key ? '#F2542D' : 'var(--bg-card)', color: tab === t.key ? '#fff' : 'var(--text-muted)', border: '1px solid var(--border)', ...DF, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
-            {t.label}
-          </button>
-        ))}
+      <div className="flex gap-1 flex-wrap">
+        {tabs.map(t => {
+          const active = tab === t.key
+          const col    = TAB_COLORS[t.key]
+          return (
+            <button key={t.key} onClick={() => { setTab(t.key as typeof tab); if (t.key !== 'projets') setFilterProject(null) }}
+              style={{
+                padding: '8px 18px', borderRadius: 9, cursor: 'pointer',
+                background: active ? col : 'var(--bg-card)',
+                color:      active ? '#fff' : 'var(--text-muted)',
+                border:     active ? 'none' : `1px solid var(--border)`,
+                outline:    active ? `2px solid ${col}44` : 'none',
+                outlineOffset: 1,
+                ...DF, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
+                transition: 'all 0.15s',
+              }}>
+              {t.label}
+            </button>
+          )
+        })}
         <div className="flex-1" />
         <div className="flex items-center gap-2 px-3 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <Search size={12} style={{ color: 'var(--text-muted)' }} />
@@ -303,45 +341,9 @@ export default function TodoPage() {
       {/* Lists + sidebar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
         <div className="md:col-span-2 flex flex-col gap-[10px]">
-          {tab === 'projets' ? (
-            <>
-              {filterProject && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'var(--bg-card)', borderRadius: 8, border: '1px solid var(--border)', alignSelf: 'flex-start' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 2, background: projects.find(p => p.id === filterProject)?.color ?? '#888', flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: 'var(--text)' }}>{projects.find(p => p.id === filterProject)?.name}</span>
-                  <button onClick={() => setFilterProject(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: 0, marginLeft: 2 }}>
-                    <X size={11} />
-                  </button>
-                </div>
-              )}
-              {projectGroups.map(g => (
-                <TaskSection
-                  key={g.project.id}
-                  title={g.project.name}
-                  color={g.project.color}
-                  tasks={g.tasks}
-                  onToggle={toggle}
-                  onEdit={setEditingTask}
-                  loading={loading}
-                  projects={projects}
-                />
-              ))}
-              {noProjectTasks.length > 0 && (
-                <TaskSection
-                  title="Sans projet"
-                  color="var(--text-muted)"
-                  tasks={noProjectTasks}
-                  onToggle={toggle}
-                  onEdit={setEditingTask}
-                  loading={loading}
-                  projects={projects}
-                />
-              )}
-              {projectGroups.length === 0 && noProjectTasks.length === 0 && (
-                <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: '20px 0' }}>Aucune tâche active</p>
-              )}
-            </>
-          ) : (
+
+          {/* ── TOUTES ── */}
+          {tab === 'toutes' && (
             <>
               <TaskSection title="Aujourd'hui"   color="#F2542D"           tasks={todayTasks}  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
               <TaskSection title="Cette semaine" color="#0E9594"           tasks={weekTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
@@ -354,6 +356,67 @@ export default function TodoPage() {
               )}
             </>
           )}
+
+          {/* ── PRIORITÉS ── */}
+          {tab === 'priorites' && (
+            <>
+              {priorityGroups.map(pg => {
+                const pgTasks = filtered.filter(t => t.priority === pg.key && t.status !== 'done')
+                return pgTasks.length > 0 ? (
+                  <TaskSection key={pg.key} title={pg.label} color={pg.color} tasks={pgTasks}
+                    onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+                ) : null
+              })}
+              {doneTasks.length > 0 && (
+                <TaskSection title="Terminées" color="#0E9594" tasks={doneTasks.slice(0, 10)}
+                  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} collapsed />
+              )}
+              {filtered.filter(t => t.status !== 'done').length === 0 && (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: '20px 0' }}>Aucune tâche active</p>
+              )}
+            </>
+          )}
+
+          {/* ── PAR PROJET ── */}
+          {tab === 'projets' && (
+            <>
+              {filterProject && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'var(--bg-card)', borderRadius: 8, border: '1px solid var(--border)', alignSelf: 'flex-start' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: projects.find(p => p.id === filterProject)?.color ?? '#888', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text)' }}>{projects.find(p => p.id === filterProject)?.name}</span>
+                  <button onClick={() => setFilterProject(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: 0, marginLeft: 2 }}>
+                    <X size={11} />
+                  </button>
+                </div>
+              )}
+              {projectGroups.map(g => (
+                <TaskSection key={g.project.id} title={g.project.name} color={g.project.color}
+                  tasks={g.tasks} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+              ))}
+              {noProjectTasks.length > 0 && (
+                <TaskSection title="Sans projet" color="var(--text-muted)" tasks={noProjectTasks}
+                  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+              )}
+              {projectGroups.length === 0 && noProjectTasks.length === 0 && (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: '20px 0' }}>Aucune tâche active</p>
+              )}
+            </>
+          )}
+
+          {/* ── AUTOMATIQUES ── */}
+          {tab === 'auto' && (
+            <>
+              {autoGroups.map(g => (
+                <TaskSection key={g.key} title={g.label} color={g.color} tasks={g.tasks} bg={g.bg}
+                  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects}
+                  collapsed={g.key === 'done'} />
+              ))}
+              {autoGroups.length === 0 && (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: '20px 0' }}>Aucune tâche active</p>
+              )}
+            </>
+          )}
+
         </div>
 
         <div className="flex flex-col gap-[10px]">
