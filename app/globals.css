@@ -275,21 +275,22 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Bento grid — stacks to single column on mobile */
-.bento-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 10px !important;
-}
-.bento-grid > * {
-  grid-column: unset !important;
-  grid-row: unset !important;
-  min-height: auto !important;
-}
+/* Bento grid — desktop grid, mobile single column */
 @media (min-width: 768px) {
   .bento-grid {
     display: grid !important;
-    flex-direction: unset !important;
+  }
+}
+@media (max-width: 767px) {
+  .bento-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .bento-grid > * {
+    grid-column: unset !important;
+    grid-row: unset !important;
+    min-height: auto !important;
   }
 }
 
