@@ -174,10 +174,11 @@ export default function TodoPage() {
   const { tasks, loading, create, toggle, update, remove } = useTasks()
   const { projects } = useProjects()
 
-  const [search,       setSearch]       = useState('')
-  const [tab,          setTab]          = useState<'toutes' | 'priorites' | 'auto'>('toutes')
-  const [showForm,     setShowForm]     = useState(false)
-  const [editingTask,  setEditingTask]  = useState<Task | null>(null)
+  const [search,        setSearch]        = useState('')
+  const [tab,           setTab]           = useState<'toutes' | 'priorites' | 'projets' | 'auto'>('toutes')
+  const [filterProject, setFilterProject] = useState<string | null>(null)
+  const [showForm,      setShowForm]      = useState(false)
+  const [editingTask,   setEditingTask]   = useState<Task | null>(null)
 
   const [newTitle,     setNewTitle]     = useState('')
   const [newPriority,  setNewPriority]  = useState<'urgent'|'high'|'medium'|'low'>('medium')
@@ -187,7 +188,8 @@ export default function TodoPage() {
   const today = new Date().toISOString().slice(0, 10)
 
   const filtered = tasks.filter(t =>
-    !search || t.title.toLowerCase().includes(search.toLowerCase())
+    (!search || t.title.toLowerCase().includes(search.toLowerCase())) &&
+    (!filterProject || t.project_id === filterProject)
   )
 
   const todayTasks  = filtered.filter(t => t.due_date === today && t.status !== 'done')
@@ -212,8 +214,17 @@ export default function TodoPage() {
   const tabs = [
     { key: 'toutes',    label: 'Toutes les tâches' },
     { key: 'priorites', label: 'Priorités' },
+    { key: 'projets',   label: 'Par projet' },
     { key: 'auto',      label: 'Automatiques' },
   ]
+
+  // ── Par projet : grouped view ─────────────────────────────────────────
+  const activeTasks = filtered.filter(t => t.status !== 'done')
+  const projectGroups = projects.map(p => ({
+    project: p,
+    tasks: activeTasks.filter(t => t.project_id === p.id),
+  })).filter(g => g.tasks.length > 0)
+  const noProjectTasks = activeTasks.filter(t => !t.project_id)
 
   const inp: React.CSSProperties = {
     background: 'var(--bg-input)', border: '1px solid var(--border)',
@@ -292,14 +303,56 @@ export default function TodoPage() {
       {/* Lists + sidebar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
         <div className="md:col-span-2 flex flex-col gap-[10px]">
-          <TaskSection title="Aujourd'hui"   color="#F2542D"          tasks={todayTasks}  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
-          <TaskSection title="Cette semaine" color="#0E9594"          tasks={weekTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
-          {lateTasks.length > 0 && (
-            <TaskSection title="En retard"   color="#F2542D"          tasks={lateTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} bg="rgba(242,84,45,0.05)" />
-          )}
-          <TaskSection title="Sans date"     color="var(--text-muted)" tasks={noDateTasks} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
-          {doneTasks.length > 0 && (
-            <TaskSection title="Terminées"   color="#0E9594"          tasks={doneTasks.slice(0, 10)} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} collapsed />
+          {tab === 'projets' ? (
+            <>
+              {filterProject && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'var(--bg-card)', borderRadius: 8, border: '1px solid var(--border)', alignSelf: 'flex-start' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: projects.find(p => p.id === filterProject)?.color ?? '#888', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: 'var(--text)' }}>{projects.find(p => p.id === filterProject)?.name}</span>
+                  <button onClick={() => setFilterProject(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: 0, marginLeft: 2 }}>
+                    <X size={11} />
+                  </button>
+                </div>
+              )}
+              {projectGroups.map(g => (
+                <TaskSection
+                  key={g.project.id}
+                  title={g.project.name}
+                  color={g.project.color}
+                  tasks={g.tasks}
+                  onToggle={toggle}
+                  onEdit={setEditingTask}
+                  loading={loading}
+                  projects={projects}
+                />
+              ))}
+              {noProjectTasks.length > 0 && (
+                <TaskSection
+                  title="Sans projet"
+                  color="var(--text-muted)"
+                  tasks={noProjectTasks}
+                  onToggle={toggle}
+                  onEdit={setEditingTask}
+                  loading={loading}
+                  projects={projects}
+                />
+              )}
+              {projectGroups.length === 0 && noProjectTasks.length === 0 && (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: '20px 0' }}>Aucune tâche active</p>
+              )}
+            </>
+          ) : (
+            <>
+              <TaskSection title="Aujourd'hui"   color="#F2542D"           tasks={todayTasks}  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+              <TaskSection title="Cette semaine" color="#0E9594"           tasks={weekTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+              {lateTasks.length > 0 && (
+                <TaskSection title="En retard"   color="#F2542D"           tasks={lateTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} bg="rgba(242,84,45,0.05)" />
+              )}
+              <TaskSection title="Sans date"     color="var(--text-muted)" tasks={noDateTasks} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+              {doneTasks.length > 0 && (
+                <TaskSection title="Terminées"   color="#0E9594"           tasks={doneTasks.slice(0, 10)} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} collapsed />
+              )}
+            </>
           )}
         </div>
 
@@ -323,6 +376,42 @@ export default function TodoPage() {
                 </div>
               )
             })}
+          </div>
+
+          {/* Projets */}
+          <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#0E9594', textTransform: 'uppercase', marginBottom: 10 }}>Projets</p>
+            {projects.map(p => {
+              const count   = tasks.filter(t => t.project_id === p.id && t.status !== 'done').length
+              const isActive = filterProject === p.id
+              return (
+                <button key={p.id}
+                  onClick={() => {
+                    setFilterProject(isActive ? null : p.id)
+                    setTab(isActive ? 'toutes' : 'projets')
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    width: '100%', padding: '6px 8px', borderRadius: 7, marginBottom: 2,
+                    background: isActive ? p.color + '22' : 'transparent',
+                    border: isActive ? `1px solid ${p.color}44` : '1px solid transparent',
+                    cursor: 'pointer',
+                  }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: p.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 11, color: isActive ? p.color : 'var(--text)', fontWeight: isActive ? 700 : 400 }}>{p.name}</span>
+                  </div>
+                  <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: isActive ? p.color : 'var(--text-muted)' }}>{count}</span>
+                </button>
+              )
+            })}
+            {projects.length === 0 && <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucun projet</p>}
+            {filterProject && (
+              <button onClick={() => { setFilterProject(null); setTab('toutes') }}
+                style={{ marginTop: 6, fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <X size={9} /> Réinitialiser le filtre
+              </button>
+            )}
           </div>
 
           {/* Filtres rapides */}
