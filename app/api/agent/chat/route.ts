@@ -85,6 +85,48 @@ async function loadUserContext(userId: string) {
 }
 
 async function generateResponse(message: string, context: any, userId: string): Promise<string> {
+  try {
+    // Appeler Condor (OpenClaw) pour une réponse intelligente
+    const openclawUrl = process.env.OPENCLAW_URL || 'http://localhost:8080'
+    const apiKey = process.env.OPENCLAW_API_KEY
+
+    // Préparer le contexte utilisateur pour Condor
+    const userContext = `
+Contexte utilisateur actuel:
+- Tâches: ${JSON.stringify(context.tasks.slice(0, 5))}
+- Événements prochains: ${JSON.stringify(context.events.slice(0, 5))}
+- Projets actifs: ${JSON.stringify(context.projects.filter((p: any) => p.status === 'active'))}
+- Budget du mois: ${context.budget.reduce((sum: number, b: any) => sum + (b.amount || 0), 0)}€
+- Temps tracké: ${Math.floor(context.timeEntries.reduce((sum: number, e: any) => sum + (e.duration_minutes || 0), 0) / 60)}h`
+
+    const response = await fetch(`${openclawUrl}/api/v1/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(apiKey && { 'Authorization': `Bearer ${apiKey}` })
+      },
+      body: JSON.stringify({
+        message: `${message}\n${userContext}`,
+        userId: userId
+      })
+    })
+
+    if (!response.ok) {
+      console.error('OpenClaw response error:', response.statusText)
+      // Fallback aux réponses simples si OpenClaw échoue
+      return generateFallbackResponse(message, context)
+    }
+
+    const data = await response.json()
+    return data.reply || data.message || 'Je n\'ai pas pu traiter ta demande.'
+  } catch (error) {
+    console.error('Error calling Condor:', error)
+    // Fallback aux réponses simples
+    return generateFallbackResponse(message, context)
+  }
+}
+
+function generateFallbackResponse(message: string, context: any): string {
   const msg = message.toLowerCase()
 
   // 1. ANALYSE DES TÂCHES
