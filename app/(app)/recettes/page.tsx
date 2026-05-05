@@ -1,8 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star } from 'lucide-react'
+import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVertical } from 'lucide-react'
 import { useRecipes } from '@/hooks/useRecipes'
+import { createClient } from '@/lib/supabase/client'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -115,6 +116,7 @@ function DonutChart({ slices, size = 110 }: { slices: { pct: number; color: stri
 ═══════════════════════════════════════════════════════════════ */
 export default function RecettesPage() {
   const router   = useRouter()
+  const supabase = createClient()
   const { recipes, loading } = useRecipes()
   const [filter, setFilter]     = useState('Toutes')
   const [search, setSearch]     = useState('')
@@ -122,6 +124,7 @@ export default function RecettesPage() {
   const [hydrated, setHydrated] = useState(false)
   const [newItem, setNewItem]   = useState('')
   const [showAddItem, setShowAddItem] = useState(false)
+  const [tab, setTab] = useState('recent') // 'recent' or 'mes'
   
   // Combine sample recipes with DB recipes
   const dbRecipes = recipes.map(r => ({
@@ -278,15 +281,26 @@ export default function RecettesPage() {
         </div>
 
         {/* ── R2 C1-4 : RECETTES RÉCENTES ──────────────────── */}
-        {filtered.slice(0, 4).map((r, i) => (
+        {filtered.slice(0, 4).map((r, i) => {
+          const isDbRecipe = recipes.some(rec => rec.id === r.id)
+          const handleDelete = async (e: React.MouseEvent) => {
+            e.stopPropagation()
+            if (!confirm('Supprimer cette recette?')) return
+            await supabase.from('recipes').delete().eq('id', r.id)
+            router.refresh()
+          }
+          return (
           <div key={r.id} className="rec-card" onClick={() => router.push(`/recettes/${r.id}`)}
             style={{ ...card(), cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 20, position: 'relative' }}>
-            {/* Fav */}
-            {r.fav && (
-              <div style={{ position: 'absolute', top: 12, right: 12 }}>
-                <Star size={12} fill={ORANGE} color={ORANGE} />
-              </div>
-            )}
+            {/* Fav + Delete */}
+            <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8 }}>
+              {r.fav && <Star size={12} fill={ORANGE} color={ORANGE} />}
+              {isDbRecipe && (
+                <button onClick={handleDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, padding: 0 }}>
+                  <Trash2 size={12} />
+                </button>
+              )}
+            </div>
             {/* Emoji + time */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
               <span style={{ fontSize: 38 }}>{r.emoji}</span>
@@ -312,7 +326,8 @@ export default function RecettesPage() {
               <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>L {r.fat}g</span>
             </div>
           </div>
-        ))}
+        )
+        })}
 
         {/* ── R3 C1-2 : PLANIFICATION DES REPAS ───────────── */}
         <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
