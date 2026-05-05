@@ -53,12 +53,31 @@ export default function RecipeEditPage() {
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [tagInput, setTagInput] = useState('')
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; color: string }>>([])
+  const [showNewCategory, setShowNewCategory] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
 
   useEffect(() => {
+    loadCategories()
     if (!isNew) {
       loadRecipe()
     }
   }, [id])
+
+  const loadCategories = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data, error } = await supabase
+        .from('recipe_categories')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name')
+      if (data) setCategories(data as any)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const loadRecipe = async () => {
     try {
@@ -75,11 +94,40 @@ export default function RecipeEditPage() {
     }
   }
 
+  const addCategory = async () => {
+    if (!newCategoryName.trim()) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data, error } = await supabase
+        .from('recipe_categories')
+        .insert({ user_id: user.id, name: newCategoryName.trim() })
+        .select()
+        .single()
+      if (data) {
+        setCategories(prev => [...prev, data as any])
+        setRecipe(prev => ({ ...prev, tags: [...new Set([...prev.tags, newCategoryName.trim()])] }))
+        setNewCategoryName('')
+        setShowNewCategory(false)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const handleSave = async () => {
     setSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+
+      // Ensure all tags exist as categories
+      for (const tag of recipe.tags) {
+        const exists = categories.some(c => c.name === tag)
+        if (!exists) {
+          await supabase.from('recipe_categories').insert({ user_id: user.id, name: tag })
+        }
+      }
 
       if (isNew) {
         const { data, error } = await supabase
@@ -247,14 +295,23 @@ export default function RecipeEditPage() {
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input type="text" placeholder="Ajouter une catégorie" value={tagInput} onChange={e => setTagInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addTag()}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <select onChange={e => {
+              if (e.target.value) {
+                setRecipe(prev => ({ ...prev, tags: [...new Set([...prev.tags, e.target.value])] }))
+                e.target.value = ''
+              }
+            }}
               style={{
                 flex: 1, padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
                 border: '1px solid var(--border)', color: WHEAT
-              }} />
-            <button onClick={addTag}
+              }}>
+              <option value="">Sélectionner une catégorie...</option>
+              {categories.filter(c => !recipe.tags.includes(c.name)).map(cat => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
+            <button onClick={() => setShowNewCategory(!showNewCategory)}
               style={{
                 padding: '8px 14px', borderRadius: 6, background: ORANGE, color: '#0C0C0C',
                 border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12
@@ -262,6 +319,22 @@ export default function RecipeEditPage() {
               <Plus size={14} />
             </button>
           </div>
+          {showNewCategory && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input type="text" placeholder="Nouvelle catégorie" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)}
+                style={{
+                  flex: 1, padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
+                  border: '1px solid var(--border)', color: WHEAT
+                }} />
+              <button onClick={addCategory}
+                style={{
+                  padding: '8px 14px', borderRadius: 6, background: ORANGE, color: '#0C0C0C',
+                  border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12
+                }}>
+                Créer
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
