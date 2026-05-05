@@ -190,7 +190,8 @@ export function parseStreamsToSegments(streams: Record<string, StravaStream>): A
   const watts = (streams.watts?.data || []) as number[]
   const temps = (streams.temp?.data || []) as number[]
   const grades = (streams.grade_smooth?.data || []) as number[]
-  const latlngs = (streams.latlng?.data || []) as [number, number][]
+  const latlngsRaw = streams.latlng?.data || []
+  const latlngs = (Array.isArray(latlngsRaw) ? latlngsRaw : []) as unknown as [number, number][]
 
   const segments: ActivitySegment[] = []
   let currentKm = 0
@@ -217,6 +218,11 @@ export function parseStreamsToSegments(streams: Record<string, StravaStream>): A
       const altStart = altitudes[lastIndex] || 0
       const altEnd = altitudes[endIndex - 1] || altStart
 
+      const latStartVal = latlngs && latlngs.length > lastIndex ? (latlngs[lastIndex] as any)?.[0] || 0 : 0
+      const lonStartVal = latlngs && latlngs.length > lastIndex ? (latlngs[lastIndex] as any)?.[1] || 0 : 0
+      const latEndVal = latlngs && latlngs.length > endIndex - 1 ? (latlngs[endIndex - 1] as any)?.[0] || 0 : 0
+      const lonEndVal = latlngs && latlngs.length > endIndex - 1 ? (latlngs[endIndex - 1] as any)?.[1] || 0 : 0
+
       segments.push({
         km_index: currentKm,
         km_start: prevDistKm,
@@ -233,10 +239,10 @@ export function parseStreamsToSegments(streams: Record<string, StravaStream>): A
         power_avg: kmWatts.length > 0 ? Math.round(kmWatts.reduce((a, b) => a + b) / kmWatts.length) : 0,
         temperature_avg: kmTemps.length > 0 ? Math.round(kmTemps.reduce((a, b) => a + b) / kmTemps.length) : 0,
         grade_avg: kmGrades.length > 0 ? kmGrades.reduce((a, b) => a + b) / kmGrades.length : 0,
-        lat_start: latlngs[lastIndex]?.[0] || 0,
-        lon_start: latlngs[lastIndex]?.[1] || 0,
-        lat_end: latlngs[endIndex - 1]?.[0] || 0,
-        lon_end: latlngs[endIndex - 1]?.[1] || 0,
+        lat_start: latStartVal,
+        lon_start: lonStartVal,
+        lat_end: latEndVal,
+        lon_end: lonEndVal,
       })
 
       currentKm++
