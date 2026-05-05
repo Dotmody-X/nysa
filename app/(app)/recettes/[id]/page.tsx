@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ChevronLeft, Plus, X, Trash2, Heart } from 'lucide-react'
+import { ChevronLeft, Edit, ShoppingCart, Heart } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -22,42 +22,21 @@ interface RecipeData {
   cook_time: number
   tags: string[]
   is_favorite: boolean
-  ingredients: Array<{ id: string; name: string; quantity: number; unit: string; calories_per_qty: number; protein_per_qty: number; carbs_per_qty: number; fat_per_qty: number }>
+  ingredients: any
   steps: string
 }
 
-export default function RecipePage() {
+export default function RecipeViewPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
-  const isNew = id === 'new'
   const supabase = createClient()
 
-  const [recipe, setRecipe] = useState<RecipeData>({
-    id: '',
-    name: '',
-    description: '',
-    servings: 4,
-    prep_time: 0,
-    cook_time: 0,
-    tags: [],
-    is_favorite: false,
-    ingredients: [],
-    steps: '',
-  })
-
-  const [newIngredient, setNewIngredient] = useState({
-    name: '', quantity: 0, unit: 'g',
-    calories_per_qty: 0, protein_per_qty: 0, carbs_per_qty: 0, fat_per_qty: 0,
-  })
-  const [loading, setLoading] = useState(!isNew)
-  const [saving, setSaving] = useState(false)
-  const [tagInput, setTagInput] = useState('')
+  const [recipe, setRecipe] = useState<RecipeData | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isNew) {
-      loadRecipe()
-    }
+    loadRecipe()
   }, [id])
 
   const loadRecipe = async () => {
@@ -75,97 +54,23 @@ export default function RecipePage() {
     }
   }
 
-  const handleSave = async () => {
-    setSaving(true)
+  const toggleFavorite = async () => {
+    if (!recipe) return
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      if (isNew) {
-        const { data, error } = await supabase
-          .from('recipes')
-          .insert({
-            user_id: user.id,
-            name: recipe.name,
-            description: recipe.description,
-            servings: recipe.servings,
-            prep_time: recipe.prep_time,
-            cook_time: recipe.cook_time,
-            tags: recipe.tags,
-            is_favorite: recipe.is_favorite,
-            ingredients: recipe.ingredients,
-            steps: recipe.steps,
-          })
-          .select()
-          .single()
-        if (data) router.push(`/recettes/${data.id}`)
-      } else {
-        await supabase
-          .from('recipes')
-          .update({
-            name: recipe.name,
-            description: recipe.description,
-            servings: recipe.servings,
-            prep_time: recipe.prep_time,
-            cook_time: recipe.cook_time,
-            tags: recipe.tags,
-            is_favorite: recipe.is_favorite,
-            ingredients: recipe.ingredients,
-            steps: recipe.steps,
-          })
-          .eq('id', id)
-      }
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!confirm('Supprimer cette recette?')) return
-    try {
-      await supabase.from('recipes').delete().eq('id', id)
-      router.push('/recettes')
+      await supabase
+        .from('recipes')
+        .update({ is_favorite: !recipe.is_favorite })
+        .eq('id', id)
+      setRecipe(prev => prev ? { ...prev, is_favorite: !prev.is_favorite } : null)
     } catch (e) {
       console.error(e)
     }
-  }
-
-  const addIngredient = () => {
-    if (!newIngredient.name.trim()) return
-    const id = Math.random().toString(36).slice(2)
-    setRecipe(prev => ({
-      ...prev,
-      ingredients: [...prev.ingredients, { ...newIngredient, id }]
-    }))
-    setNewIngredient({ name: '', quantity: 0, unit: 'g', calories_per_qty: 0, protein_per_qty: 0, carbs_per_qty: 0, fat_per_qty: 0 })
-  }
-
-  const removeIngredient = (ingId: string) => {
-    setRecipe(prev => ({
-      ...prev,
-      ingredients: prev.ingredients.filter(i => i.id !== ingId)
-    }))
-  }
-
-  const addTag = () => {
-    if (!tagInput.trim()) return
-    setRecipe(prev => ({
-      ...prev,
-      tags: [...new Set([...prev.tags, tagInput.trim()])]
-    }))
-    setTagInput('')
-  }
-
-  const removeTag = (tag: string) => {
-    setRecipe(prev => ({
-      ...prev,
-      tags: prev.tags.filter(t => t !== tag)
-    }))
   }
 
   if (loading) return <div style={{ padding: 30, color: WHEAT }}>Chargement...</div>
+  if (!recipe) return <div style={{ padding: 30, color: WHEAT }}>Recette non trouvée</div>
+
+  const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : []
 
   return (
     <div style={{ padding: 30, maxWidth: 900, margin: '0 auto' }}>
@@ -175,216 +80,100 @@ export default function RecipePage() {
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: WHEAT, padding: 0 }}>
           <ChevronLeft size={24} />
         </button>
-        <h1 style={{ ...DF, fontSize: 24, fontWeight: 900, color: WHEAT, flex: 1 }}>
-          {isNew ? 'Nouvelle recette' : 'Éditer recette'}
-        </h1>
-        <button onClick={() => setRecipe(prev => ({ ...prev, is_favorite: !prev.is_favorite }))}
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+        <h1 style={{ ...DF, fontSize: 28, fontWeight: 900, color: WHEAT, flex: 1 }}>{recipe.name}</h1>
+        <button onClick={toggleFavorite}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginRight: 12 }}>
           <Heart size={20} fill={recipe.is_favorite ? ORANGE : 'transparent'} color={ORANGE} />
+        </button>
+        <button onClick={() => router.push(`/recettes/${id}/edit`)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 8,
+            background: ORANGE, color: '#0C0C0C', border: 'none', cursor: 'pointer', fontWeight: 700
+          }}>
+          <Edit size={16} /> Modifier
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 30 }}>
-        {/* Infos basiques */}
-        <div style={{ ...card(), padding: 20 }}>
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>
-            Nom de la recette
-          </label>
-          <input type="text" value={recipe.name} onChange={e => setRecipe(prev => ({ ...prev, name: e.target.value }))}
-            style={{
-              width: '100%', padding: '10px 12px', borderRadius: 8, background: 'var(--bg-input)',
-              border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', marginBottom: 16
-            }} />
-
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>
-            Description
-          </label>
-          <textarea value={recipe.description} onChange={e => setRecipe(prev => ({ ...prev, description: e.target.value }))}
-            style={{
-              width: '100%', padding: '10px 12px', borderRadius: 8, background: 'var(--bg-input)',
-              border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', minHeight: 80, marginBottom: 16
-            }} />
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-            <div>
-              <label style={{ fontSize: 9, fontWeight: 700, color: TEAL, textTransform: 'uppercase' }}>Portions</label>
-              <input type="number" min="1" value={recipe.servings} onChange={e => setRecipe(prev => ({ ...prev, servings: parseInt(e.target.value) || 1 }))}
-                style={{
-                  width: '100%', padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                  border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', marginTop: 4
-                }} />
-            </div>
-            <div>
-              <label style={{ fontSize: 9, fontWeight: 700, color: TEAL, textTransform: 'uppercase' }}>Préparation (min)</label>
-              <input type="number" min="0" value={recipe.prep_time} onChange={e => setRecipe(prev => ({ ...prev, prep_time: parseInt(e.target.value) || 0 }))}
-                style={{
-                  width: '100%', padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                  border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', marginTop: 4
-                }} />
-            </div>
-            <div>
-              <label style={{ fontSize: 9, fontWeight: 700, color: TEAL, textTransform: 'uppercase' }}>Cuisson (min)</label>
-              <input type="number" min="0" value={recipe.cook_time} onChange={e => setRecipe(prev => ({ ...prev, cook_time: parseInt(e.target.value) || 0 }))}
-                style={{
-                  width: '100%', padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                  border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', marginTop: 4
-                }} />
-            </div>
-          </div>
+      {/* Info rapide */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 30 }}>
+        <div style={{ ...card(), padding: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>Portions</p>
+          <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT }}>{recipe.servings}</p>
         </div>
-
-        {/* Catégories */}
-        <div style={{ ...card(), padding: 20 }}>
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 12 }}>
-            Catégories
-          </label>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            {recipe.tags.map(tag => (
-              <button key={tag}
-                onClick={() => removeTag(tag)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 20,
-                  background: `${TEAL}20`, color: TEAL, border: `1px solid ${TEAL}40`, cursor: 'pointer', fontSize: 12, fontWeight: 600
-                }}>
-                {tag} <X size={14} />
-              </button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input type="text" placeholder="Ajouter une catégorie" value={tagInput} onChange={e => setTagInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addTag()}
-              style={{
-                flex: 1, padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }} />
-            <button onClick={addTag}
-              style={{
-                padding: '8px 14px', borderRadius: 6, background: ORANGE, color: '#0C0C0C',
-                border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12
-              }}>
-              <Plus size={14} />
-            </button>
-          </div>
+        <div style={{ ...card(), padding: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: TEAL, textTransform: 'uppercase', marginBottom: 8 }}>Prép.</p>
+          <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT }}>{recipe.prep_time}min</p>
+        </div>
+        <div style={{ ...card(), padding: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: TEAL, textTransform: 'uppercase', marginBottom: 8 }}>Cuisson</p>
+          <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT }}>{recipe.cook_time}min</p>
+        </div>
+        <div style={{ ...card(), padding: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>Total</p>
+          <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT }}>{recipe.prep_time + recipe.cook_time}min</p>
         </div>
       </div>
+
+      {/* Description */}
+      {recipe.description && (
+        <div style={{ ...card(), padding: 20, marginBottom: 20 }}>
+          <p style={{ color: WHEAT, lineHeight: 1.5 }}>{recipe.description}</p>
+        </div>
+      )}
+
+      {/* Catégories */}
+      {recipe.tags && recipe.tags.length > 0 && (
+        <div style={{ marginBottom: 20, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {recipe.tags.map(tag => (
+            <span key={tag} style={{
+              fontSize: 11, padding: '4px 10px', borderRadius: 20,
+              background: `${TEAL}20`, color: TEAL, ...DF, fontWeight: 700
+            }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Ingrédients */}
       <div style={{ ...card(), padding: 20, marginBottom: 20 }}>
-        <h2 style={{ ...DF, fontSize: 14, fontWeight: 900, color: WHEAT, marginBottom: 16 }}>Ingrédients</h2>
-        
-        {recipe.ingredients.length > 0 && (
-          <div style={{ marginBottom: 16, maxHeight: 300, overflowY: 'auto' }}>
-            {recipe.ingredients.map(ing => (
-              <div key={ing.id} style={{
-                display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 10, alignItems: 'center',
-                padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, marginBottom: 8
+        <h2 style={{ ...DF, fontSize: 16, fontWeight: 900, color: WHEAT, marginBottom: 16 }}>Ingrédients</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {ingredients.length === 0 ? (
+            <p style={{ color: WHEAT, opacity: 0.5 }}>Aucun ingrédient</p>
+          ) : (
+            ingredients.map((ing, i) => (
+              <div key={i} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                paddingBottom: 10, borderBottom: i < ingredients.length - 1 ? '1px solid var(--border)' : 'none'
               }}>
-                <span style={{ color: WHEAT, fontSize: 12 }}>{ing.name}</span>
-                <span style={{ color: WHEAT, fontSize: 12 }}>{ing.quantity} {ing.unit}</span>
-                <span style={{ color: TEAL, fontSize: 11, fontWeight: 600 }}>{Math.round(ing.calories_per_qty)} cal</span>
-                <button onClick={() => removeIngredient(ing.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, padding: 0 }}>
-                  <X size={16} />
-                </button>
+                <span style={{ color: WHEAT, fontSize: 13 }}>{ing.name}</span>
+                <span style={{ color: ORANGE, fontWeight: 700, fontSize: 12 }}>{ing.quantity} {ing.unit}</span>
               </div>
-            ))}
-          </div>
-        )}
-
-        <div style={{ background: 'rgba(242,84,45,0.05)', borderRadius: 8, padding: 16, border: `1px solid ${ORANGE}20` }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <input type="text" placeholder="Ingrédient" value={newIngredient.name} 
-              onChange={e => setNewIngredient(prev => ({ ...prev, name: e.target.value }))}
-              style={{
-                padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }} />
-            <input type="number" placeholder="Qty" step="0.1" value={newIngredient.quantity}
-              onChange={e => setNewIngredient(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 0 }))}
-              style={{
-                padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }} />
-            <select value={newIngredient.unit} onChange={e => setNewIngredient(prev => ({ ...prev, unit: e.target.value }))}
-              style={{
-                padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }}>
-              <option>g</option>
-              <option>ml</option>
-              <option>pc</option>
-              <option>cuillère</option>
-              <option>cup</option>
-            </select>
-            <input type="number" placeholder="Calories" step="0.1" value={newIngredient.calories_per_qty}
-              onChange={e => setNewIngredient(prev => ({ ...prev, calories_per_qty: parseFloat(e.target.value) || 0 }))}
-              style={{
-                padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <input type="number" placeholder="Protéines (g)" step="0.1" value={newIngredient.protein_per_qty}
-              onChange={e => setNewIngredient(prev => ({ ...prev, protein_per_qty: parseFloat(e.target.value) || 0 }))}
-              style={{
-                padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }} />
-            <input type="number" placeholder="Glucides (g)" step="0.1" value={newIngredient.carbs_per_qty}
-              onChange={e => setNewIngredient(prev => ({ ...prev, carbs_per_qty: parseFloat(e.target.value) || 0 }))}
-              style={{
-                padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }} />
-            <input type="number" placeholder="Lipides (g)" step="0.1" value={newIngredient.fat_per_qty}
-              onChange={e => setNewIngredient(prev => ({ ...prev, fat_per_qty: parseFloat(e.target.value) || 0 }))}
-              style={{
-                padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }} />
-            <button onClick={addIngredient}
-              style={{
-                padding: '8px 14px', borderRadius: 6, background: ORANGE, color: '#0C0C0C',
-                border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12
-              }}>
-              <Plus size={14} />
-            </button>
-          </div>
+            ))
+          )}
         </div>
       </div>
 
-      {/* Instructions */}
-      <div style={{ ...card(), padding: 20, marginBottom: 20 }}>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>
-          Consignes de préparation
-        </label>
-        <textarea value={recipe.steps} onChange={e => setRecipe(prev => ({ ...prev, steps: e.target.value }))}
-          placeholder="1. Étape 1\n2. Étape 2\n3. Étape 3"
-          style={{
-            width: '100%', padding: '12px', borderRadius: 8, background: 'var(--bg-input)',
-            border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', minHeight: 150
-          }} />
-      </div>
+      {/* Étapes */}
+      {recipe.steps && (
+        <div style={{ ...card(), padding: 20, marginBottom: 20 }}>
+          <h2 style={{ ...DF, fontSize: 16, fontWeight: 900, color: WHEAT, marginBottom: 16 }}>Consignes de préparation</h2>
+          <div style={{ whiteSpace: 'pre-wrap', color: WHEAT, lineHeight: 1.6, fontSize: 13 }}>
+            {recipe.steps}
+          </div>
+        </div>
+      )}
 
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: 12 }}>
-        <button onClick={handleSave} disabled={saving || !recipe.name.trim()}
-          style={{
-            flex: 1, padding: '12px', borderRadius: 8, background: ORANGE, color: '#0C0C0C',
-            border: 'none', cursor: saving ? 'default' : 'pointer', fontWeight: 700, opacity: saving || !recipe.name.trim() ? 0.5 : 1
-          }}>
-          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-        </button>
-        {!isNew && (
-          <button onClick={handleDelete}
-            style={{
-              padding: '12px 20px', borderRadius: 8, background: 'transparent', color: ORANGE,
-              border: `1px solid ${ORANGE}`, cursor: 'pointer', fontWeight: 700
-            }}>
-            <Trash2 size={18} />
-          </button>
-        )}
-      </div>
+      {/* CTA */}
+      <button
+        style={{
+          width: '100%', padding: '14px', borderRadius: 8, background: ORANGE, color: '#0C0C0C',
+          border: 'none', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center',
+          justifyContent: 'center', gap: 8, fontSize: 14
+        }}>
+        <ShoppingCart size={18} /> Ajouter aux courses
+      </button>
     </div>
   )
 }
