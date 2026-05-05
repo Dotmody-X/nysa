@@ -115,12 +115,13 @@ export function useRecipes() {
 
     const total = recipe.ingredients.reduce(
       (sum, ing) => {
-        const multiplier = (ing.quantity / 100) * (servings / (recipe.servings || 1))
+        const quantityInGrams = ing.quantity // quantity is already in the unit specified
+        const servingRatio = servings / (recipe.servings || 1)
         return {
-          calories: sum.calories + (ing.calories_per_qty * multiplier),
-          protein: sum.protein + (ing.protein_per_qty * multiplier),
-          carbs: sum.carbs + (ing.carbs_per_qty * multiplier),
-          fat: sum.fat + (ing.fat_per_qty * multiplier),
+          calories: sum.calories + (ing.calories_per_qty * quantityInGrams * servingRatio),
+          protein: sum.protein + (ing.protein_per_qty * quantityInGrams * servingRatio),
+          carbs: sum.carbs + (ing.carbs_per_qty * quantityInGrams * servingRatio),
+          fat: sum.fat + (ing.fat_per_qty * quantityInGrams * servingRatio),
         }
       },
       { calories: 0, protein: 0, carbs: 0, fat: 0 }
