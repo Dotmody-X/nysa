@@ -379,9 +379,10 @@ function ManualEntryModal({
 }) {
   const today = new Date()
   const yd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+  const currentTime = `${String(today.getHours()).padStart(2,'0')}:${String(today.getMinutes()).padStart(2,'0')}`
   const [form, setForm] = useState({
     description: '', projectId: '', category: '', billable: true,
-    startDate: yd(today), startTime: '09:00', endDate: yd(today), endTime: '10:00',
+    startDate: yd(today), startTime: currentTime, endDate: '', endTime: '',
   })
   const [saving, setSaving] = useState(false)
   async function submit() {
