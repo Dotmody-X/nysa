@@ -6,6 +6,8 @@ import { ArrowLeft, MapPin, Clock, Zap, TrendingUp, Flame, Wind } from 'lucide-r
 import { createClient } from '@/lib/supabase/client'
 import type { RunningActivity } from '@/types'
 import type { GpxPoint, GpxKmSplit } from '@/lib/parseGpx'
+import { useActivitySegments } from '@/hooks/useActivitySegments'
+import { SegmentDetails } from '@/components/sport/SegmentDetails'
 
 // Import Leaflet uniquement côté client
 const ActivityMap = dynamic(
@@ -124,6 +126,7 @@ export default function ActivityDetailPage() {
   const router  = useRouter()
   const [activity, setActivity] = useState<RunningActivity | null>(null)
   const [loading, setLoading]   = useState(true)
+  const { segments, loading: segmentsLoading } = useActivitySegments(id || null)
 
   useEffect(() => {
     async function load() {
@@ -311,6 +314,16 @@ export default function ActivityDetailPage() {
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Détails Strava km-par-km (depuis activity_segments) */}
+          {segments && segments.length > 0 && !segmentsLoading && (
+            <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16, marginTop: 16 }}>
+              <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F2542D', textTransform: 'uppercase', marginBottom: 16 }}>
+                ⚡ Détails Strava (km-par-km)
+              </p>
+              <SegmentDetails segments={segments} />
             </div>
           )}
         </div>

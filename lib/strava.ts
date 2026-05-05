@@ -98,6 +98,155 @@ export async function fetchActivities(
   return res.json()
 }
 
+// ── Fetch ALL activités (paginate) ─────────────────────────
+
+export async function fetchAllActivities(
+  accessToken: string,
+  after?: number
+): Promise<StravaActivity[]> {
+  const allActivities: StravaActivity[] = []
+  let page = 1
+  const perPage = 200 // Max allowed
+
+  while (true) {
+    const activities = await fetchActivities(accessToken, { page, perPage, after })
+    if (activities.length === 0) break
+    allActivities.push(...activities)
+    page++
+  }
+
+  return allActivities
+}
+
+// ── Strava Streams (détails par km) ────────────────────────
+
+export interface StravaStream {
+  type: string
+  data: number[]
+  series_type: string
+  original_size: number
+  resolution: string
+}
+
+export async function fetchActivityStreams(
+  accessToken: string,
+  activityId: number,
+  keys: string[] = ['time', 'distance', 'latlng', 'altitude', 'heartrate', 'cadence', 'watts', 'temp', 'moving', 'grade_smooth']
+): Promise<Record<string, StravaStream>> {
+  const params = new URLSearchParams({
+    key_by_type: 'true',
+  })
+  keys.forEach(k => params.append('keys', k))
+
+  const res = await fetch(`${STRAVA_BASE}/activities/${activityId}/streams?${params}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  
+  if (!res.ok) {
+    console.warn(`Strava streams fetch failed for activity ${activityId}: ${res.status}`)
+    return {}
+  }
+  
+  try {
+    return await res.json()
+  } catch (e) {
+    console.warn(`Failed to parse streams:`, e)
+    return {}
+  }
+}
+
+// ── Parse streams → segments (par km) ──────────────────────
+
+export interface ActivitySegment {
+  km_index: number         // 0, 1, 2, etc.
+  km_start: number        // distance in km at start of segment
+  km_end: number          // distance in km at end of segment
+  time_seconds: number    // elapsed time for this km
+  altitude_start: number
+  altitude_end: number
+  elevation_gain: number
+  pace_sec_per_km: number // time spent on this km
+  heart_rate_avg: number
+  heart_rate_min: number
+  heart_rate_max: number
+  cadence_avg: number
+  power_avg: number
+  temperature_avg: number
+  grade_avg: number
+  lat_start: number
+  lon_start: number
+  lat_end: number
+  lon_end: number
+}
+
+export function parseStreamsToSegments(streams: Record<string, StravaStream>): ActivitySegment[] {
+  if (!streams.distance?.data || !streams.time?.data) return []
+
+  const distances = streams.distance.data as number[]
+  const times = streams.time.data as number[]
+  const altitudes = (streams.altitude?.data || []) as number[]
+  const heartrates = (streams.heartrate?.data || []) as number[]
+  const cadences = (streams.cadence?.data || []) as number[]
+  const watts = (streams.watts?.data || []) as number[]
+  const temps = (streams.temp?.data || []) as number[]
+  const grades = (streams.grade_smooth?.data || []) as number[]
+  const latlngs = (streams.latlng?.data || []) as [number, number][]
+
+  const segments: ActivitySegment[] = []
+  let currentKm = 0
+  let lastIndex = 0
+
+  for (let i = 1; i < distances.length; i++) {
+    const distKm = distances[i] / 1000
+    const prevDistKm = distances[lastIndex] / 1000
+
+    // Chaque km complété
+    if (Math.floor(distKm) > currentKm) {
+      const nextKmIndex = distances.findIndex((d, idx) => idx > lastIndex && d / 1000 >= currentKm + 1)
+      const endIndex = nextKmIndex >= 0 ? nextKmIndex : i
+
+      // Extraire les données pour ce km
+      const kmHeartrates = heartrates.slice(lastIndex, endIndex).filter(h => h > 0)
+      const kmCadences = cadences.slice(lastIndex, endIndex).filter(c => c > 0)
+      const kmWatts = watts.slice(lastIndex, endIndex).filter(w => w > 0)
+      const kmTemps = temps.slice(lastIndex, endIndex)
+      const kmGrades = grades.slice(lastIndex, endIndex)
+      const kmAltitudes = altitudes.slice(lastIndex, endIndex)
+
+      const timeForKm = times[endIndex] - times[lastIndex]
+      const altStart = altitudes[lastIndex] || 0
+      const altEnd = altitudes[endIndex - 1] || altStart
+
+      segments.push({
+        km_index: currentKm,
+        km_start: prevDistKm,
+        km_end: distances[endIndex] / 1000,
+        time_seconds: timeForKm,
+        altitude_start: Math.round(altStart),
+        altitude_end: Math.round(altEnd),
+        elevation_gain: Math.max(0, altEnd - altStart),
+        pace_sec_per_km: timeForKm > 0 ? timeForKm : 0,
+        heart_rate_avg: kmHeartrates.length > 0 ? Math.round(kmHeartrates.reduce((a, b) => a + b) / kmHeartrates.length) : 0,
+        heart_rate_min: kmHeartrates.length > 0 ? Math.min(...kmHeartrates) : 0,
+        heart_rate_max: kmHeartrates.length > 0 ? Math.max(...kmHeartrates) : 0,
+        cadence_avg: kmCadences.length > 0 ? Math.round(kmCadences.reduce((a, b) => a + b) / kmCadences.length) : 0,
+        power_avg: kmWatts.length > 0 ? Math.round(kmWatts.reduce((a, b) => a + b) / kmWatts.length) : 0,
+        temperature_avg: kmTemps.length > 0 ? Math.round(kmTemps.reduce((a, b) => a + b) / kmTemps.length) : 0,
+        grade_avg: kmGrades.length > 0 ? kmGrades.reduce((a, b) => a + b) / kmGrades.length : 0,
+        lat_start: latlngs[lastIndex]?.[0] || 0,
+        lon_start: latlngs[lastIndex]?.[1] || 0,
+        lat_end: latlngs[endIndex - 1]?.[0] || 0,
+        lon_end: latlngs[endIndex - 1]?.[1] || 0,
+      })
+
+      currentKm++
+      lastIndex = endIndex
+    }
+  }
+
+  return segments
+}
+
 // ── Decode Google Encoded Polyline → [{lat, lon}] ──────────
 // Strava renvoie summary_polyline encodé (algo Google Polyline)
 
