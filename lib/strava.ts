@@ -130,27 +130,31 @@ export interface StravaStream {
 
 export async function fetchActivityStreams(
   accessToken: string,
-  activityId: number,
-  keys: string[] = ['time', 'distance', 'latlng', 'altitude', 'heartrate', 'cadence', 'watts', 'temp', 'moving', 'grade_smooth']
+  activityId: number
 ): Promise<Record<string, StravaStream>> {
+  // Fetch ALL available streams without filtering
   const params = new URLSearchParams({
     key_by_type: 'true',
   })
-  keys.forEach(k => params.append('keys', k))
+  // Get all possible streams
+  const allKeys = ['time', 'distance', 'latlng', 'altitude', 'heartrate', 'cadence', 'watts', 'temp', 'moving', 'grade_smooth']
+  allKeys.forEach(k => params.append('keys', k))
 
-  const res = await fetch(`${STRAVA_BASE}/activities/${activityId}/streams?${params}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
-  
-  if (!res.ok) {
-    console.warn(`Strava streams fetch failed for activity ${activityId}: ${res.status}`)
-    return {}
-  }
-  
   try {
-    return await res.json()
+    const res = await fetch(`${STRAVA_BASE}/activities/${activityId}/streams?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    
+    if (!res.ok) {
+      console.warn(`⚠️ Streams unavailable for activity ${activityId}: ${res.status}`)
+      return {}
+    }
+    
+    const data = await res.json()
+    console.log(`✅ Streams loaded for activity ${activityId}:`, Object.keys(data))
+    return data
   } catch (e) {
-    console.warn(`Failed to parse streams:`, e)
+    console.error(`❌ Failed to fetch streams for ${activityId}:`, e)
     return {}
   }
 }
@@ -194,15 +198,15 @@ export function parseStreamsToSegments(streams: Record<string, StravaStream>): A
   const latlngs = (Array.isArray(latlngsRaw) ? latlngsRaw : []) as unknown as [number, number][]
 
   const segments: ActivitySegment[] = []
-  let currentKm = 0
+  let currentKm = 1  // START AT KM 1, not 0!
   let lastIndex = 0
 
   for (let i = 1; i < distances.length; i++) {
     const distKm = distances[i] / 1000
     const prevDistKm = distances[lastIndex] / 1000
 
-    // Chaque km complété
-    if (Math.floor(distKm) > currentKm) {
+    // Chaque km complété (starting from km 1)
+    if (Math.floor(distKm) >= currentKm) {
       const nextKmIndex = distances.findIndex((d, idx) => idx > lastIndex && d / 1000 >= currentKm + 1)
       const endIndex = nextKmIndex >= 0 ? nextKmIndex : i
 
