@@ -125,6 +125,9 @@ export default function RecettesPage() {
   const [newItem, setNewItem]   = useState('')
   const [showAddItem, setShowAddItem] = useState(false)
   const [tab, setTab] = useState('recent') // 'recent' or 'mes'
+  const [catMenu, setCatMenu] = useState<string | null>(null) // For category 3-dot menus
+  const [mealPlan, setMealPlan] = useState(MEAL_PLAN)
+  const [selectedMealSlot, setSelectedMealSlot] = useState<{day: string; meal: string} | null>(null)
   
   // Combine sample recipes with DB recipes
   const dbRecipes = recipes.map(r => ({
@@ -361,17 +364,17 @@ export default function RecettesPage() {
                     </td>
                     {DAYS.map(day => {
                       const key = `${day}-${meal}`
-                      const entry = MEAL_PLAN[key]
+                      const entry = mealPlan[key]
                       return (
                         <td key={day} style={{ padding: '4px 3px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
                           {entry ? (
-                            <div style={{ background: 'rgba(14,149,148,0.15)', borderRadius: 5,
+                            <button onClick={() => setSelectedMealSlot({day, meal})} style={{ background: 'rgba(14,149,148,0.15)', borderRadius: 5,
                               padding: '4px 3px', fontSize: 8, color: '#0E9594', ...DF, fontWeight: 700,
-                              lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', border: 'none', cursor: 'pointer' }}>
                               {entry}
-                            </div>
+                            </button>
                           ) : (
-                            <button style={{ fontSize: 14, color: 'rgba(255,255,255,0.12)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>+</button>
+                            <button onClick={() => setSelectedMealSlot({day, meal})} style={{ fontSize: 14, color: 'rgba(255,255,255,0.12)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>+</button>
                           )}
                         </td>
                       )
@@ -395,16 +398,34 @@ export default function RecettesPage() {
             <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 12 }}>Catégories</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {CATEGORIES.map(cat => (
-                <button key={cat.name} className="rec-row"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '9px 12px', borderRadius: 8, background: 'rgba(240,228,204,0.05)',
-                    border: 'none', cursor: 'pointer', width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: 2, background: cat.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 11, color: 'rgba(240,228,204,0.8)' }}>{cat.name}</span>
-                  </div>
-                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>{cat.count} recettes</span>
-                </button>
+                <div key={cat.name} style={{ position: 'relative' }}>
+                  <button className="rec-row"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '9px 12px', borderRadius: 8, background: 'rgba(240,228,204,0.05)',
+                      border: 'none', cursor: 'pointer', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 2, background: cat.color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 11, color: 'rgba(240,228,204,0.8)' }}>{cat.name}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>{cat.count} recettes</span>
+                      <button onClick={(e) => { e.stopPropagation(); setCatMenu(catMenu === cat.name ? null : cat.name) }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'rgba(240,228,204,0.5)' }}>
+                        <MoreVertical size={12} />
+                      </button>
+                    </div>
+                  </button>
+                  {catMenu === cat.name && (
+                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: '#16162A', border: '1px solid rgba(240,228,204,0.1)', borderRadius: 8, zIndex: 10 }}>
+                      <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'rgba(240,228,204,0.7)', fontSize: 11, borderBottom: '1px solid rgba(240,228,204,0.06)' }}>
+                        ✏️ Éditer
+                      </button>
+                      <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: '#F2542D', fontSize: 11 }}>
+                        🗑️ Supprimer
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -459,7 +480,7 @@ export default function RecettesPage() {
           </div>
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto' }}>
-            {courses.map(c => (
+            {courses.length > 0 ? courses.map(c => (
               <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8,
                 padding: '8px 10px', borderRadius: 8,
                 background: c.done ? 'rgba(26,10,10,0.08)' : 'rgba(26,10,10,0.12)' }}>
@@ -476,35 +497,39 @@ export default function RecettesPage() {
                   <X size={10} color="rgba(26,10,10,0.35)" />
                 </button>
               </div>
-            ))}
+            )) : (
+              <p style={{ fontSize: 11, color: 'rgba(26,10,10,0.45)', textAlign: 'center', paddingTop: 20 }}>Aucun article pour le moment</p>
+            )}
           </div>
 
-          {showAddItem ? (
-            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-              <input value={newItem} onChange={e => setNewItem(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addCourse()}
-                placeholder="Nouvel article…" autoFocus
-                style={{ flex: 1, background: 'rgba(26,10,10,0.15)', border: '1px solid rgba(26,10,10,0.25)',
-                  borderRadius: 7, padding: '7px 10px', color: '#1A0A0A', fontSize: 11, outline: 'none' }} />
-              <button onClick={addCourse}
-                style={{ background: 'rgba(26,10,10,0.3)', border: 'none', borderRadius: 7, padding: '0 10px', cursor: 'pointer' }}>
-                <Check size={12} color="#1A0A0A" />
+          <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(26,10,10,0.1)' }}>
+            {showAddItem ? (
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input value={newItem} onChange={e => setNewItem(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addCourse()}
+                  placeholder="Nouvel article…" autoFocus
+                  style={{ flex: 1, background: 'rgba(26,10,10,0.15)', border: '1px solid rgba(26,10,10,0.25)',
+                    borderRadius: 7, padding: '7px 10px', color: '#1A0A0A', fontSize: 11, outline: 'none' }} />
+                <button onClick={addCourse}
+                  style={{ background: 'rgba(26,10,10,0.3)', border: 'none', borderRadius: 7, padding: '0 10px', cursor: 'pointer' }}>
+                  <Check size={12} color="#1A0A0A" />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setShowAddItem(true)} className="rec-btn"
+                style={{ width: '100%', padding: '9px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                  background: 'rgba(26,10,10,0.15)', color: '#1A0A0A', ...DF, fontWeight: 700, fontSize: 10 }}>
+                + Ajouter un article
               </button>
-            </div>
-          ) : (
-            <button onClick={() => setShowAddItem(true)} className="rec-btn"
-              style={{ marginTop: 10, padding: '9px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                background: 'rgba(26,10,10,0.15)', color: '#1A0A0A', ...DF, fontWeight: 700, fontSize: 10 }}>
-              + Ajouter un article
-            </button>
-          )}
+            )}
+          </div>
         </div>
 
         {/* ── R4 C3-4 : MES RECETTES ───────────────────────── */}
         <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <p style={{ ...lbl('rgba(255,255,255,0.4)') }}>Mes recettes</p>
-            <button onClick={() => {}} style={{ ...DF, fontSize: 9, fontWeight: 800, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => router.push('/recettes/toutes')} style={{ ...DF, fontSize: 9, fontWeight: 800, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
               VOIR TOUT
             </button>
           </div>
@@ -648,6 +673,27 @@ export default function RecettesPage() {
         </div>
 
       </div>
+
+      {/* Modal: Sélection de repas */}
+      {selectedMealSlot && (
+        <div onClick={() => setSelectedMealSlot(null)}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#16162A', borderRadius: 16, padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '1px solid rgba(240,228,204,0.1)' }}>
+            <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, marginBottom: 16 }}>{selectedMealSlot.day} - {selectedMealSlot.meal}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {filtered.map(r => (
+                <button key={r.id} onClick={() => {
+                  setMealPlan(prev => ({ ...prev, [`${selectedMealSlot.day}-${selectedMealSlot.meal}`]: `${r.emoji} ${r.name.split(' ').slice(0,2).join(' ')}` }))
+                  setSelectedMealSlot(null)
+                }} style={{ padding: '12px', textAlign: 'left', background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', borderRadius: 10, cursor: 'pointer', color: '#fff' }}>
+                  <p style={{ fontSize: 12, fontWeight: 700 }}>{r.emoji} {r.name}</p>
+                  <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.6)', marginTop: 4 }}>{r.cal} kcal • {r.time} min</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
