@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase = createClient(supabaseUrl, supabaseKey)
+const openclawGateway = process.env.OPENCLAW_GATEWAY_URL || 'http://192.168.1.100:18789' // Pi5 IP
+const openclawToken = process.env.OPENCLAW_TOKEN
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,15 +18,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Charger le contexte utilisateur
+    // Charger le contexte utilisateur complet
     const context = await loadUserContext(userId)
 
-    // Générer la réponse intelligente
+    // Envoyer à Cóndor (OpenClaw) pour une réponse intelligente
     const reply = await generateResponse(message, context, userId)
 
     return NextResponse.json({
       reply,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      context_loaded: true
     })
   } catch (error) {
     console.error('Agent error:', error)
@@ -86,42 +89,76 @@ async function loadUserContext(userId: string) {
 
 async function generateResponse(message: string, context: any, userId: string): Promise<string> {
   try {
-    // Appeler Condor (OpenClaw) pour une réponse intelligente
-    const openclawUrl = process.env.OPENCLAW_URL || 'http://localhost:8080'
-    const apiKey = process.env.OPENCLAW_API_KEY
-
-    // Préparer le contexte utilisateur pour Condor
+    // === AGENT CÓNDOR AVEC PLEINS POUVOIRS ===
+    // Envoyer le message + contexte complet + disponibilité des tools
+    
     const userContext = `
-Contexte utilisateur actuel:
-- Tâches: ${JSON.stringify(context.tasks.slice(0, 5))}
-- Événements prochains: ${JSON.stringify(context.events.slice(0, 5))}
-- Projets actifs: ${JSON.stringify(context.projects.filter((p: any) => p.status === 'active'))}
-- Budget du mois: ${context.budget.reduce((sum: number, b: any) => sum + (b.amount || 0), 0)}€
-- Temps tracké: ${Math.floor(context.timeEntries.reduce((sum: number, e: any) => sum + (e.duration_minutes || 0), 0) / 60)}h`
+🔥 **CONTEXTE NYSA COMPLET** (Nathan):
 
-    const response = await fetch(`${openclawUrl}/api/v1/chat`, {
+📋 **Tâches:** ${context.tasks.length} total
+  • Urgentes: ${context.tasks.filter((t: any) => t.priority === 'urgent' && t.status !== 'done').length}
+  • À faire: ${context.tasks.filter((t: any) => t.status === 'todo').length}
+  • Faites: ${context.tasks.filter((t: any) => t.status === 'done').length}
+  Top 3: ${context.tasks.slice(0, 3).map((t: any) => t.title).join(', ')}
+
+🎯 **Projets:** ${context.projects.length} total
+  • Actifs: ${context.projects.filter((p: any) => p.status === 'active').length}
+  • Complétés: ${context.projects.filter((p: any) => p.status === 'completed').length}
+  Détails: ${JSON.stringify(context.projects.slice(0, 3))}
+
+📅 **Événements (7j):** ${context.events.length}
+  ${context.events.slice(0, 5).map((e: any) => `• ${e.title} (${new Date(e.start_at).toLocaleDateString('fr-FR')})`).join('\n  ')}
+
+⏱️ **Time Tracking:** ${Math.floor(context.timeEntries.reduce((sum: number, e: any) => sum + (e.duration_seconds || 0), 0) / 3600)}h cette semaine
+
+💰 **Budget:** ${context.budget.reduce((sum: number, b: any) => sum + (b.amount || 0), 0)}€ ce mois
+
+🔧 **OUTILS DISPONIBLES:**
+  • read_nysa_file(path) - Lire un fichier NYSA
+  • write_nysa_file(path, content) - Modifier un fichier NYSA
+  • git_commit(message) - Commiter les changements
+  • git_push() - Pusher vers GitHub
+  • supabase_query(sql) - Exécuter une requête Supabase
+  • supabase_update(table, data, where) - Mettre à jour Supabase
+  • vercel_redeploy() - Redéployer NYSA sur Vercel
+  • create_task(title, priority, due_date) - Créer une tâche
+  • update_project(id, updates) - Modifier un projet
+  • Accès complet au code source NYSA
+  • Capacité à proposer et implémenter des changements
+
+Le message de Nathan: "${message}"
+
+🎯 Tu dois:
+1. Analyser la demande
+2. Utiliser les tools si nécessaire
+3. Être proactif et proposer des améliorations
+4. Exécuter les changements demandés
+5. Faire des commits Git automatiquement`
+
+    // Appel au vrai agent Cóndor
+    const response = await fetch(`${openclawGateway}/api/agent/query`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(apiKey && { 'Authorization': `Bearer ${apiKey}` })
+        ...(openclawToken && { 'Authorization': `Bearer ${openclawToken}` })
       },
       body: JSON.stringify({
-        message: `${message}\n${userContext}`,
-        userId: userId
+        message: userContext,
+        agentId: 'main',
+        userId: userId,
+        channelContext: 'nysa-web'
       })
     })
 
-    if (!response.ok) {
-      console.error('OpenClaw response error:', response.statusText)
-      // Fallback aux réponses simples si OpenClaw échoue
-      return generateFallbackResponse(message, context)
+    if (response.ok) {
+      const data = await response.json()
+      return data.reply || data.message || '✅ Je traite ta demande...'
     }
 
-    const data = await response.json()
-    return data.reply || data.message || 'Je n\'ai pas pu traiter ta demande.'
+    console.warn('OpenClaw API unavailable, using fallback')
+    return generateFallbackResponse(message, context)
   } catch (error) {
-    console.error('Error calling Condor:', error)
-    // Fallback aux réponses simples
+    console.error('Error calling Cóndor:', error)
     return generateFallbackResponse(message, context)
   }
 }

@@ -8,20 +8,21 @@ const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 type Message = { role: 'user'|'assistant'; content: string }
 
 const SUGGESTIONS = [
-  "Planifie ma semaine",
-  "Quelles sont mes tâches urgentes ?",
-  "Résume mon activité cette semaine",
-  "Aide-moi à prioriser mes projets",
-  "Analyse mon budget du mois",
-  "Quand est ma prochaine deadline ?",
+  "Planifie ma semaine et crée les tâches",
+  "Quelles sont mes urgences? Proposes des actions",
+  "Résumé complet + conseils pour avancer",
+  "Analysé mon budget et donne des recommandations",
+  "Refactorise la page Projects (propose du code)",
+  "Crée une nouvelle feature pour NYSA",
 ]
 
 export default function AgentPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { role:'assistant', content:"Bonjour ! Je suis ton assistant NYSA 🌟\n\nJe peux t'aider à planifier ta semaine, analyser tes données, ou simplement répondre à tes questions. Que puis-je faire pour toi ?" }
+    { role:'assistant', content:"🦅 **CÓNDOR CONNECTÉ**\n\nBonjour Nathan! Je suis ton assistant personnel avec accès complet à NYSA.\n\n✅ **Capacités:**\n• Analyser tes tâches, projets, budget, running\n• Modifier le code NYSA en temps réel\n• Faire des commits Git automatiques\n• Updater ta base de données\n• Redéployer sur Vercel\n• Donner des conseils avisés\n• Proposer des améliorations proactives\n\nQue veux-tu que je fasse? 🚀" }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [userId] = useState(() => localStorage.getItem('user_id') || 'nathan')
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }) }, [messages])
@@ -32,12 +33,32 @@ export default function AgentPage() {
     setMessages(m => [...m, userMsg])
     setInput('')
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1000))
-    const reply: Message = {
-      role: 'assistant',
-      content: "Je comprends ta demande. Cette fonctionnalité d'IA connectée à tes données NYSA arrive bientôt — je pourrai alors analyser tes tâches, projets, budget et activités en temps réel pour te donner des conseils personnalisés. 🚀"
+    
+    try {
+      const res = await fetch('/api/agent/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text.trim(),
+          userId: userId
+        })
+      })
+      
+      const data = await res.json()
+      const reply: Message = {
+        role: 'assistant',
+        content: data.reply || 'Erreur de connexion à l\'agent.'
+      }
+      setMessages(m => [...m, reply])
+    } catch (error) {
+      console.error('Chat error:', error)
+      const errorMsg: Message = {
+        role: 'assistant',
+        content: '❌ Erreur de connexion. Vérifie la config OpenClaw sur le Pi5.'
+      }
+      setMessages(m => [...m, errorMsg])
     }
-    setMessages(m => [...m, reply])
+    
     setLoading(false)
   }
 
@@ -136,14 +157,16 @@ export default function AgentPage() {
           </div>
 
           <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase', marginBottom:10 }}>Capacités</p>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase', marginBottom:10 }}>Plein Pouvoir</p>
             {[
-              '📋 Analyse tes tâches',
-              '⏱ Résumé time tracker',
-              '💰 Analyse budget',
-              '🏃 Stats running',
-              '📊 Rapport hebdo',
-              '🎯 Conseils priorités',
+              '📋 Analyse + Crée tâches',
+              '📝 Modifie le code',
+              '🔄 Git commits auto',
+              '💾 Met à jour Supabase',
+              '🚀 Redéploie Vercel',
+              '💡 Conseils proactifs',
+              '🎨 Refactorise features',
+              '🔍 Diagnostique issues',
             ].map(cap => (
               <div key={cap} className="flex items-center gap-2 py-2" style={{ borderBottom:'1px solid var(--border)' }}>
                 <span style={{ fontSize:12, color:'var(--text-muted)' }}>{cap}</span>
