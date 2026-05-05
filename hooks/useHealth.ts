@@ -12,11 +12,11 @@ export function useHealth() {
   const fetch = useCallback(async () => {
     setLoading(true)
     const [{ data: m }, { data: a }] = await Promise.all([
-      supabase.from('health_metrics').select('*').order('date', { ascending: false }).limit(30),
-      supabase.from('running_activities').select('*').order('date', { ascending: false }).limit(20),
+      supabase.from('health_metrics').select('*').order('date', { ascending: false }).limit(100),
+      supabase.from('running_activities').select('*').order('date', { ascending: false }), // NO LIMIT - fetch ALL
     ])
     setMetrics(m ?? [])
-    setActivities(a ?? [])
+    setActivities(a ?? []) // All activities
     setLoading(false)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

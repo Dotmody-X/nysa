@@ -769,7 +769,7 @@ function SportPageInner() {
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune sortie enregistrée</p>
               </div>
-            ) : activities.map(a => {
+            ) : activities.slice(0, 50).map(a => {
               const hasGpx = !!(a.raw_data as any)?.gpx
               return (
                 <button key={a.id} className="sport-row-btn" onClick={() => router.push(`/sport/${a.id}`)}
