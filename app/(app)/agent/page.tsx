@@ -22,10 +22,17 @@ export default function AgentPage() {
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [userId] = useState(() => localStorage.getItem('user_id') || 'nathan')
+  const [userId, setUserId] = useState('nathan')
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }) }, [messages])
+  useEffect(() => { 
+    bottomRef.current?.scrollIntoView({ behavior:'smooth' }) 
+  }, [messages])
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('user_id') || 'nathan'
+    setUserId(storedUserId)
+  }, [])
 
   async function sendMessage(text: string) {
     if (!text.trim() || loading) return
