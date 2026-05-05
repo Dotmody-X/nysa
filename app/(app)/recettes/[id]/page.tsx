@@ -23,7 +23,7 @@ interface RecipeData {
   tags: string[]
   is_favorite: boolean
   ingredients: Array<{ id: string; name: string; quantity: number; unit: string; calories_per_qty: number; protein_per_qty: number; carbs_per_qty: number; fat_per_qty: number }>
-  instructions: string
+  steps: string
 }
 
 export default function RecipePage() {
@@ -43,7 +43,7 @@ export default function RecipePage() {
     tags: [],
     is_favorite: false,
     ingredients: [],
-    instructions: '',
+    steps: '',
   })
 
   const [newIngredient, setNewIngredient] = useState({
@@ -94,7 +94,7 @@ export default function RecipePage() {
             tags: recipe.tags,
             is_favorite: recipe.is_favorite,
             ingredients: recipe.ingredients,
-            instructions: recipe.instructions,
+            steps: recipe.steps,
           })
           .select()
           .single()
@@ -111,7 +111,7 @@ export default function RecipePage() {
             tags: recipe.tags,
             is_favorite: recipe.is_favorite,
             ingredients: recipe.ingredients,
-            instructions: recipe.instructions,
+            steps: recipe.steps,
           })
           .eq('id', id)
       }
@@ -358,7 +358,7 @@ export default function RecipePage() {
         <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>
           Consignes de préparation
         </label>
-        <textarea value={recipe.instructions} onChange={e => setRecipe(prev => ({ ...prev, instructions: e.target.value }))}
+        <textarea value={recipe.steps} onChange={e => setRecipe(prev => ({ ...prev, steps: e.target.value }))}
           placeholder="1. Étape 1\n2. Étape 2\n3. Étape 3"
           style={{
             width: '100%', padding: '12px', borderRadius: 8, background: 'var(--bg-input)',
