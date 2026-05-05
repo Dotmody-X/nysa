@@ -30,10 +30,22 @@ function fmtDurLong(sec: number) {
   return h > 0 ? `${h}h ${m}min` : `${m} min`
 }
 function fmtDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+  const [y, m, day] = d.split('-')
+  const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(day))
+  return localDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
 }
 function fmtDateLong(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'long' })
+  const [y, m, day] = d.split('-')
+  const localDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(day))
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const diffDays = Math.round((localDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  let dateStr = localDate.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'long' })
+  if (diffDays === 0) return `Aujourd'hui`
+  if (diffDays === 1) return `Demain`
+  if (diffDays === -1) return `Hier`
+  if (diffDays > 1 && diffDays <= 6) return `J+${diffDays}`
+  if (diffDays < -1 && diffDays >= -6) return `J${diffDays}`
+  return dateStr
 }
 function stravaAuthUrl() {
   const clientId    = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID
@@ -357,7 +369,13 @@ function SportPageInner() {
 
   // Prochaine course : priorité au calendrier (label Running), sinon activité future
   const nextCalRun = calRunEvents[0] ?? null
-  const nextRun    = activities.find(a => new Date(a.date + 'T12:00:00') > today) ?? null
+  const nextRuns   = activities.filter(a => {
+    const [y, m, d] = a.date.split('-')
+    const actDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+    const todayMidnight = new Date(); todayMidnight.setHours(0, 0, 0, 0)
+    return actDate >= todayMidnight
+  }).slice(0, 5)
+  const nextRun = nextRuns[0] ?? null
 
   /* ── Card style helpers ──────────────────────────────── */
   const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
@@ -675,12 +693,15 @@ function SportPageInner() {
                   </p>
                 </div>
                 {(() => {
-                  const diff = Math.ceil((new Date(nextCalRun.start_at).getTime() - new Date().getTime()) / 86400000)
+                  const eventDate = new Date(nextCalRun.start_at); eventDate.setHours(0,0,0,0)
+                  const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0)
+                  const diff = Math.round((eventDate.getTime() - todayMidnight.getTime()) / 86400000)
+                  const label = diff === 0 ? 'Auj.' : diff === 1 ? 'Dem.' : `J+${diff}`
                   return (
                     <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                      <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: ORANGE, lineHeight: 1 }}>J-{diff}</p>
+                      <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: ORANGE, lineHeight: 1 }}>{label}</p>
                       <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2 }}>
-                        {diff <= 1 ? 'Demain !' : `${diff} jours`}
+                        {diff === 0 ? 'Aujourd\'hui' : diff === 1 ? 'Demain' : `${diff} jours`}
                       </p>
                     </div>
                   )

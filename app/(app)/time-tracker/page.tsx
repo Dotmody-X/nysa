@@ -377,18 +377,25 @@ function ManualEntryModal({
   onCreate: (patch: { description?: string; project_id?: string; category?: string; is_billable?: boolean; started_at: string; ended_at?: string }) => Promise<unknown>
   onClose:  () => void
 }) {
-  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
+  const today = new Date()
   const yd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
   const [form, setForm] = useState({
     description: '', projectId: '', category: '', billable: true,
-    startDate: yd(yesterday), startTime: '09:00', endDate: yd(yesterday), endTime: '10:00',
+    startDate: yd(today), startTime: '09:00', endDate: yd(today), endTime: '10:00',
   })
   const [saving, setSaving] = useState(false)
   async function submit() {
     if (!form.startDate || !form.startTime) return
     setSaving(true)
-    const startedAt = new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
-    const endedAt   = form.endDate && form.endTime ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString() : undefined
+    // Parse date/time as local, convert to ISO
+    const parseLocalDate = (date: string, time: string) => {
+      const [y, m, d] = date.split('-')
+      const [h, min] = time.split(':')
+      const dt = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), parseInt(h), parseInt(min), 0)
+      return dt.toISOString()
+    }
+    const startedAt = parseLocalDate(form.startDate, form.startTime)
+    const endedAt   = form.endDate && form.endTime ? parseLocalDate(form.endDate, form.endTime) : undefined
     await onCreate({ description: form.description || undefined, project_id: form.projectId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
     setSaving(false); onClose()
   }
