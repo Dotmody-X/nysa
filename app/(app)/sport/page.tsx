@@ -320,19 +320,16 @@ function SportPageInner() {
     dayData[idx] += a.distance_km ?? 0
   })
 
-  // 6-month progression
-  const months6: { label: string; km: number }[] = []
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(today); d.setMonth(d.getMonth() - i)
-    const y = d.getFullYear(); const m = d.getMonth()
-    const km = activities
-      .filter(a => { const ad = new Date(a.date + 'T12:00:00'); return ad.getFullYear() === y && ad.getMonth() === m })
-      .reduce((s, a) => s + (a.distance_km ?? 0), 0)
-    months6.push({
-      label: d.toLocaleDateString('fr-FR', { month: 'short' }),
-      km: parseFloat(km.toFixed(1)),
-    })
+  // Dynamic objectives — level up when achieved
+  const getNextObjective = (current: number, baseTarget: number) => {
+    // Each level = +20% of base target
+    const level = Math.floor(current / baseTarget) + 1
+    return baseTarget * level
   }
+  
+  const OBJ_KM_DYNAMIC = getNextObjective(kmWeek, 30)
+  const OBJ_SEANCES_DYNAMIC = getNextObjective(seancesWeek, 4)
+  const OBJ_ELEV_DYNAMIC = getNextObjective(elevWeek, 500)
 
   // Best times
   function bestTime(targetKm: number, tol = 1) {
@@ -353,11 +350,10 @@ function SportPageInner() {
     { name: 'Zone 5 — VO2max',       pct:  7, color: '#EF4444', time: '11min' },
   ]
 
-  // Objectives
-  const OBJ_KM  = 30; const OBJ_SEANCES = 4; const OBJ_ELEV = 500
-  const pctKm     = Math.min(100, (kmWeek / OBJ_KM) * 100)
-  const pctSeances= Math.min(100, (seancesWeek / OBJ_SEANCES) * 100)
-  const pctElev   = Math.min(100, (elevWeek / OBJ_ELEV) * 100)
+  // Objectives — dynamically adjust based on progress
+  const pctKm     = Math.min(100, (kmWeek / OBJ_KM_DYNAMIC) * 100)
+  const pctSeances= Math.min(100, (seancesWeek / OBJ_SEANCES_DYNAMIC) * 100)
+  const pctElev   = Math.min(100, (elevWeek / OBJ_ELEV_DYNAMIC) * 100)
 
   // Prochaine course : priorité au calendrier (label Running), sinon activité future
   const nextCalRun = calRunEvents[0] ?? null
@@ -502,9 +498,9 @@ function SportPageInner() {
           <p style={{ ...label('#1A0A0A'), marginBottom: 18 }}>Résumé de la semaine</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
             {[
-              { l: 'Distance',  v: `${kmWeek.toFixed(1)} km`,         pct: pctKm,      target: `${OBJ_KM} km` },
-              { l: 'Séances',   v: `${seancesWeek} / ${OBJ_SEANCES}`, pct: pctSeances, target: `${OBJ_SEANCES} sorties` },
-              { l: 'Dénivelé',  v: `+${elevWeek}m`,                    pct: pctElev,    target: `${OBJ_ELEV}m` },
+              { l: 'Distance',  v: `${kmWeek.toFixed(1)} km`,         pct: pctKm,      target: `${OBJ_KM_DYNAMIC} km` },
+              { l: 'Séances',   v: `${seancesWeek} / ${Math.ceil(OBJ_SEANCES_DYNAMIC)}`, pct: pctSeances, target: `${Math.ceil(OBJ_SEANCES_DYNAMIC)} sorties` },
+              { l: 'Dénivelé',  v: `+${elevWeek}m`,                    pct: pctElev,    target: `${Math.ceil(OBJ_ELEV_DYNAMIC)}m` },
               { l: 'Temps',     v: fmtDurLong(secWeek),                pct: Math.min(100, (secWeek / 7200) * 100), target: '2h' },
             ].map(obj => (
               <div key={obj.l}>
@@ -538,10 +534,10 @@ function SportPageInner() {
 
         {/* ── R2 : 4 KPI CARDS ──────────────────────────── */}
         {[
-          { l: 'Séances / semaine', v: String(seancesWeek), sub: `obj. ${OBJ_SEANCES}`, pct: pctSeances, color: TEAL, dark: true },
-          { l: 'Distance / semaine', v: `${kmWeek.toFixed(1)}`, unit: 'km', sub: `obj. ${OBJ_KM} km`, pct: pctKm, color: ORANGE, dark: false },
+          { l: 'Séances / semaine', v: String(seancesWeek), sub: `obj. ${Math.ceil(OBJ_SEANCES_DYNAMIC)}`, pct: pctSeances, color: TEAL, dark: true },
+          { l: 'Distance / semaine', v: `${kmWeek.toFixed(1)}`, unit: 'km', sub: `obj. ${Math.ceil(OBJ_KM_DYNAMIC)} km`, pct: pctKm, color: ORANGE, dark: false },
           { l: 'Allure moyenne', v: kmWeek > 0 && secWeek > 0 ? fmtPace(secWeek / kmWeek) : avgPaceAll > 0 ? fmtPace(avgPaceAll) : '—', sub: 'dernières sorties', color: '#11686A', dark: true },
-          { l: 'Dénivelé / semaine', v: `+${elevWeek}`, unit: 'm', sub: `obj. ${OBJ_ELEV}m`, pct: pctElev, color: '#5B6F3A', dark: true },
+          { l: 'Dénivelé / semaine', v: `+${elevWeek}`, unit: 'm', sub: `obj. ${Math.ceil(OBJ_ELEV_DYNAMIC)}m`, pct: pctElev, color: '#5B6F3A', dark: true },
         ].map((kpi, i) => (
           <div key={i} style={{
             background: kpi.color, borderRadius: 12, padding: '22px 22px 18px',
@@ -877,7 +873,7 @@ function SportPageInner() {
           <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(240,228,204,0.12)', display: 'flex', gap: 16 }}>
             <div style={{ flex: 1, background: 'rgba(240,228,204,0.07)', borderRadius: 8, padding: '10px 14px' }}>
               <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Objectif semaine</p>
-              <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT }}>{OBJ_KM} km · {OBJ_SEANCES} sorties</p>
+              <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT }}>{Math.ceil(OBJ_KM_DYNAMIC)} km · {Math.ceil(OBJ_SEANCES_DYNAMIC)} sorties</p>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <Donut pct={pctKm} color={ORANGE} size={52} stroke={6} />
@@ -948,42 +944,7 @@ function SportPageInner() {
           </div>
         </div>
 
-        {/* ── R6 : PROGRESSION 6 MOIS ───────────────────── */}
-        <div style={{ ...card(), gridColumn: 'span 4', padding: 24, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <p style={{ ...label() }}>Progression — 6 derniers mois</p>
-            <div style={{ display: 'flex', gap: 20 }}>
-              {[
-                { l: 'Total 6 mois', v: `${months6.reduce((s, m) => s + m.km, 0).toFixed(0)} km` },
-                { l: 'Moy / mois',   v: `${(months6.reduce((s, m) => s + m.km, 0) / 6).toFixed(0)} km` },
-              ].map(s => (
-                <div key={s.l} style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>{s.l}</p>
-                  <p style={{ ...DF, fontSize: 14, fontWeight: 800, color: 'var(--wheat)' }}>{s.v}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Bar chart 6 mois */}
-          <div style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-            {months6.map((m, i) => {
-              const maxKm = Math.max(...months6.map(x => x.km), 1)
-              const h = m.km > 0 ? Math.max(8, (m.km / maxKm) * 120) : 4
-              const isLast = i === months6.length - 1
-              return (
-                <div key={m.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  {m.km > 0 && <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: isLast ? ORANGE : 'var(--text-muted)' }}>{m.km.toFixed(0)}</span>}
-                  <div style={{ width: '100%', height: h, borderRadius: '4px 4px 0 0',
-                    background: m.km > 0 ? (isLast ? ORANGE : 'var(--bg-card-hover)') : 'var(--border)',
-                    border: `1px solid ${isLast ? ORANGE : 'var(--border)'}`,
-                    transition: 'height .4s ease' }} />
-                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: isLast ? ORANGE : 'var(--text-muted)', textTransform: 'uppercase' }}>{m.label}</span>
-                  <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>{m.km.toFixed(0)} km</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+
 
       </div>
     </div>
