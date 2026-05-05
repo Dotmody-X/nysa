@@ -33,23 +33,12 @@ const lbl = (color = ORANGE): React.CSSProperties => ({
 const DAYS  = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const MEALS = ['Petit-déj', 'Déjeuner', 'Dîner', 'Snack']
 
-const ALL_FILTERS = ['Toutes', 'Protéiné', 'Healthy', 'Rapide', 'Petit-déj', 'Végétarien']
+// Dynamic filters from recipes
+let ALL_FILTERS = ['Toutes']
 
-const SAMPLE_RECIPES = [
-  { id: '1', name: 'Saumon rôti, quinoa & légumes',    cal: 520, prot: 42, carbs: 38, fat: 16, time: 30, tags: ['Protéiné', 'Équilibré'], emoji: '🐟', fav: true  },
-  { id: '2', name: 'Buddha bowl poulet & avocat',       cal: 480, prot: 38, carbs: 44, fat: 18, time: 20, tags: ['Healthy', 'Rapide'],    emoji: '🥗', fav: false },
-  { id: '3', name: 'Overnight oats aux fruits rouges',  cal: 320, prot: 14, carbs: 52, fat: 8,  time: 5,  tags: ['Petit-déj', 'Sucré'],   emoji: '🫙', fav: true  },
-  { id: '4', name: 'Poulet teriyaki & riz jasmin',      cal: 560, prot: 44, carbs: 60, fat: 12, time: 25, tags: ['Asiatique'],            emoji: '🍱', fav: false },
-]
+const SAMPLE_RECIPES: any[] = []
 
-const CATEGORIES = [
-  { name: 'Protéiné',      count: 8,  color: ORANGE },
-  { name: 'Végétarien',    count: 6,  color: TEAL   },
-  { name: 'Rapide',        count: 5,  color: WHEAT  },
-  { name: 'Petit-déjeuner',count: 4,  color: '#A78BFA' },
-  { name: 'Asiatique',     count: 3,  color: '#F59E0B' },
-  { name: 'Dessert',       count: 2,  color: '#EC4899' },
-]
+const CATEGORIES: any[] = []
 
 const INGREDIENTS = [
   { name: 'Saumon', qty: '200g',  color: ORANGE },
@@ -60,31 +49,9 @@ const INGREDIENTS = [
   { name: 'Riz jasmin', qty: '180g', color: WHEAT },
 ]
 
-const SEED_COURSES: Array<{ id: string; item: string; qty: string; done: boolean }> = [
-  { id: '1', item: 'Saumon frais',     qty: '400g',  done: false },
-  { id: '2', item: 'Quinoa',           qty: '500g',  done: true  },
-  { id: '3', item: 'Avocat',           qty: '3 pcs', done: false },
-  { id: '4', item: 'Yaourt grec',      qty: '500g',  done: false },
-  { id: '5', item: 'Riz jasmin',       qty: '1 kg',  done: true  },
-  { id: '6', item: 'Poulet (blanc)',   qty: '600g',  done: false },
-  { id: '7', item: 'Fruits rouges',    qty: '250g',  done: false },
-]
+const SEED_COURSES: Array<{ id: string; item: string; qty: string; done: boolean }> = []
 
-const MEAL_PLAN: Record<string, string> = {
-  'Lun-Petit-déj': '🫙 Overnight oats',
-  'Lun-Déjeuner':  '🐟 Saumon quinoa',
-  'Lun-Dîner':     '🍱 Teriyaki',
-  'Mar-Petit-déj': '🫙 Overnight oats',
-  'Mar-Déjeuner':  '🥗 Buddha bowl',
-  'Mer-Déjeuner':  '🐟 Saumon quinoa',
-  'Mer-Dîner':     '🥗 Buddha bowl',
-  'Jeu-Petit-déj': '🫙 Overnight oats',
-  'Jeu-Déjeuner':  '🍱 Teriyaki',
-  'Ven-Déjeuner':  '🥗 Buddha bowl',
-  'Ven-Dîner':     '🐟 Saumon quinoa',
-  'Sam-Déjeuner':  '🍱 Teriyaki',
-  'Dim-Dîner':     '🐟 Saumon quinoa',
-}
+const MEAL_PLAN: Record<string, string> = {}
 
 /* ─── Donut SVG ──────────────────────────────────────────────── */
 function DonutChart({ slices, size = 110 }: { slices: { pct: number; color: string }[]; size?: number }) {
@@ -144,6 +111,31 @@ export default function RecettesPage() {
   }))
   
   const allRecipes = [...SAMPLE_RECIPES, ...dbRecipes]
+  
+  // Update ALL_FILTERS dynamically
+  ALL_FILTERS = ['Toutes', ...Array.from(new Set(allRecipes.flatMap(r => r.tags || [])))]
+
+  /* ── Load meal plans from Supabase ── */
+  useEffect(() => {
+    const loadMealPlan = async () => {
+      try {
+        const { data, error } = await supabase.from('meal_plans').select('*')
+        if (data && !error) {
+          const plan: Record<string, string> = {}
+          data.forEach((mp: any) => {
+            const recipe = allRecipes.find(r => r.id === mp.recipe_id)
+            if (recipe) {
+              plan[`${mp.day}-${mp.meal_type}`] = `${recipe.emoji} ${recipe.name}`
+            }
+          })
+          setMealPlan(plan)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    loadMealPlan()
+  }, [recipes])
 
   /* ── localStorage persistence for shopping list ── */
   useEffect(() => {
@@ -174,7 +166,7 @@ export default function RecettesPage() {
 
   const filtered = allRecipes.filter(r => {
     const matchSearch = !search || r.name.toLowerCase().includes(search.toLowerCase())
-    const matchFilter = filter === 'Toutes' || r.tags.some(t => t.toLowerCase().includes(filter.toLowerCase()))
+    const matchFilter = filter === 'Toutes' || (r.tags || []).some((t: string) => t.toLowerCase().includes(filter.toLowerCase()))
     return matchSearch && matchFilter
   })
 
@@ -314,7 +306,7 @@ export default function RecettesPage() {
             <p style={{ ...DF, fontWeight: 800, fontSize: 13, color: WHEAT, lineHeight: 1.3, marginBottom: 8, flex: 1 }}>{r.name}</p>
             {/* Tags */}
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
-              {r.tags.map(tag => (
+              {r.tags.map((tag: string) => (
                 <span key={tag} style={{ fontSize: 8, padding: '2px 7px', borderRadius: 4,
                   background: 'rgba(14,149,148,0.12)', color: TEAL, ...DF, fontWeight: 700 }}>{tag}</span>
               ))}
@@ -549,7 +541,7 @@ export default function RecettesPage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                  {r.tags.slice(0, 1).map(tag => (
+                  {r.tags.slice(0, 1).map((tag: string) => (
                     <span key={tag} style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4,
                       background: 'rgba(14,149,148,0.15)', color: TEAL, ...DF, fontWeight: 700 }}>{tag}</span>
                   ))}
