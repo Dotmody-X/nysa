@@ -3,10 +3,14 @@ import { useState, useRef, useEffect } from 'react'
 import {
   Plus, Search, MoreVertical, X, Pencil, Trash2,
   CheckSquare, ChevronRight, Link2, Users, Calendar,
+  FileUp, Trash, Download, Edit2, Save,
 } from 'lucide-react'
 import { useProjects }    from '@/hooks/useProjects'
 import { useTasks }       from '@/hooks/useTasks'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useProjectNotes } from '@/hooks/useProjectNotes'
+import { useProjectFiles } from '@/hooks/useProjectFiles'
+import { useProjectSettings } from '@/hooks/useProjectSettings'
 import type { Project }   from '@/types'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -308,6 +312,119 @@ type StatusFilter = 'tous' | 'active' | 'paused' | 'completed' | 'archived'
 type TabType      = 'apercu' | 'taches' | 'temps' | 'fichiers' | 'notes' | 'parametres'
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Composants: Notes, Fichiers, Paramétres
+// ─────────────────────────────────────────────────────────────────────────────
+
+function NoteCreator({ projectColor, onCreate }: { projectColor: string; onCreate: (title: string, content: string, color: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [color, setColor] = useState('#F2F2F0')
+  const colors = ['#F2F2F0', '#FFF4E6', '#F0F9E6', '#E6F7FF', '#FFF0F5']
+
+  const handleSubmit = () => {
+    if (!title.trim() || !content.trim()) return
+    onCreate(title, content, color)
+    setTitle('')
+    setContent('')
+    setColor('#F2F2F0')
+    setIsOpen(false)
+  }
+
+  return (
+    <>
+      {!isOpen ? (
+        <button onClick={() => setIsOpen(true)} style={{ padding: '12px 16px', borderRadius: 8, background: projectColor + '15', border: `1px solid ${projectColor}33`, color: projectColor, fontSize: 12, fontWeight: 600, cursor: 'pointer', width: '100%' }}>
+          + Ajouter une note
+        </button>
+      ) : (
+        <div style={{ padding: 14, background: color, border: `1px solid ${projectColor}33`, borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <input type="text" placeholder="Titre..." value={title} onChange={(e) => setTitle(e.target.value)} style={{ fontSize: 12, padding: 8, borderRadius: 4, border: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, fontFamily: 'var(--font-display)' }} />
+          <textarea placeholder="Contenu..." value={content} onChange={(e) => setContent(e.target.value)} style={{ fontSize: 12, padding: 8, borderRadius: 4, border: '1px solid rgba(0,0,0,0.1)', minHeight: 60, fontFamily: 'system-ui', resize: 'none' }} />
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {colors.map(c => (
+                <button key={c} onClick={() => setColor(c)} style={{ width: 18, height: 18, borderRadius: 4, background: c, border: color === c ? `2px solid var(--wheat)` : '1px solid rgba(0,0,0,0.1)', cursor: 'pointer' }} />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setIsOpen(false)} style={{ padding: '6px 10px', fontSize: 10, borderRadius: 4, background: 'none', border: '1px solid rgba(0,0,0,0.1)', cursor: 'pointer' }}>Annuler</button>
+              <button onClick={handleSubmit} style={{ padding: '6px 10px', fontSize: 10, borderRadius: 4, background: projectColor, color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Créer</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function NoteCard({ note, onUpdate, onDelete }: { note: any; onUpdate: (id: string, data: any) => void; onDelete: (id: string) => void }) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [title, setTitle] = useState(note.title)
+  const [content, setContent] = useState(note.content)
+
+  const handleSave = () => {
+    onUpdate(note.id, { title, content })
+    setIsEditing(false)
+  }
+
+  return (
+    <div style={{ padding: 14, background: note.color, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 10, position: 'relative', minHeight: 150 }}>
+      {!isEditing ? (
+        <>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.8)', margin: 0 }}>{note.title}</p>
+          <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', margin: 0, flex: 1, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{note.content}</p>
+          <div style={{ display: 'flex', gap: 6, fontSize: 10, color: 'rgba(0,0,0,0.5)', justifyContent: 'space-between' }}>
+            <span>{new Date(note.updated_at).toLocaleDateString('fr-FR')}</span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setIsEditing(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.5)' }}><Edit2 size={12} /></button>
+              <button onClick={() => onDelete(note.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626' }}><Trash size={12} /></button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} style={{ fontSize: 12, padding: 6, borderRadius: 4, border: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, fontFamily: 'var(--font-display)' }} />
+          <textarea value={content} onChange={(e) => setContent(e.target.value)} style={{ fontSize: 11, padding: 6, borderRadius: 4, border: '1px solid rgba(0,0,0,0.1)', minHeight: 80, fontFamily: 'system-ui', resize: 'none' }} />
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+            <button onClick={() => setIsEditing(false)} style={{ padding: '4px 8px', fontSize: 10, borderRadius: 3, background: 'rgba(0,0,0,0.1)', border: 'none', cursor: 'pointer' }}>Annuler</button>
+            <button onClick={handleSave} style={{ padding: '4px 8px', fontSize: 10, borderRadius: 3, background: '#16A34A', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Sauver</button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function SettingsPanel({ projectId, settings, onSave }: { projectId: string; settings: Record<string, any>; onSave: (key: string, value: any) => void }) {
+  const [isOpen, setIsOpen] = useState<string | null>(null)
+  const [values, setValues] = useState(settings)
+
+  const settingDefs = [
+    { key: 'archived', label: 'Archiver le projet', type: 'boolean' },
+    { key: 'visibility', label: 'Visibilité', type: 'select', options: ['private', 'team', 'public'] },
+    { key: 'notify_on_update', label: 'Notifications de mise à jour', type: 'boolean' },
+  ]
+
+  return (
+    <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {settingDefs.map(def => (
+        <div key={def.key} style={{ padding: 12, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ fontSize: 12, color: 'var(--wheat)', fontWeight: 500 }}>{def.label}</label>
+          {def.type === 'boolean' ? (
+            <input type="checkbox" checked={values[def.key] === true} onChange={(e) => { setValues(v => ({ ...v, [def.key]: e.target.checked })); onSave(def.key, e.target.checked) }} style={{ cursor: 'pointer' }} />
+          ) : def.type === 'select' ? (
+            <select value={values[def.key] ?? 'private'} onChange={(e) => { setValues(v => ({ ...v, [def.key]: e.target.value })); onSave(def.key, e.target.value) }} style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid var(--border)', fontSize: 11, cursor: 'pointer' }}>
+              {def.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Page principale
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ProjetsPage() {
@@ -322,6 +439,9 @@ export default function ProjetsPage() {
   const [editModal,    setEditModal]    = useState<Project | null>(null)
   const [createModal,  setCreateModal]  = useState(false)
   const [contextMenu,  setContextMenu]  = useState<{ projectId: string; x: number; y: number } | null>(null)
+  const { notes, create: createNote, update: updateNote, remove: removeNote } = useProjectNotes(selected || '')
+  const { files, upload: uploadFile, remove: removeFile, getDownloadUrl } = useProjectFiles(selected || '')
+  const { settings, set: setSetting } = useProjectSettings(selected || '')
   const cmRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -714,10 +834,75 @@ export default function ProjetsPage() {
             </div>
           )}
 
-          {(tab === 'temps' || tab === 'fichiers' || tab === 'notes' || tab === 'parametres') && (
-            <div style={{ padding: 40, textAlign: 'center' }}>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Section en cours de développement</p>
+          {tab === 'temps' && (
+            <div style={{ padding: 20 }}>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>Section en cours de développement</p>
             </div>
+          )}
+
+          {tab === 'fichiers' && (
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Uploader */}
+              <div style={{ padding: 20, border: '2px dashed var(--border)', borderRadius: 10, textAlign: 'center', cursor: 'pointer', background: 'rgba(242,84,45,0.02)' }}
+                onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.background = 'rgba(242,84,45,0.08)' }}
+                onDragLeave={(e) => { e.currentTarget.style.background = 'rgba(242,84,45,0.02)' }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  const file = e.dataTransfer.files[0]
+                  if (file) uploadFile(file)
+                }}>
+                <input type="file" id="file-upload" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) uploadFile(e.target.files[0]) }} />
+                <label htmlFor="file-upload" style={{ cursor: 'pointer', display: 'block' }}>
+                  <FileUp size={20} style={{ margin: '0 auto 8px', color: '#F2542D' }} />
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)', marginBottom: 4 }}>Glissez des fichiers ici ou cliquez pour sélectionner</p>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Max 50 MB par fichier</p>
+                </label>
+              </div>
+              {/* Liste fichiers */}
+              {files.length === 0 ? (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucun fichier</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {files.map(f => (
+                    <div key={f.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 12, color: 'var(--wheat)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.filename}</p>
+                        <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{(f.file_size / 1024 / 1024).toFixed(2)} MB · {new Date(f.created_at).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, marginLeft: 12 }}>
+                        <a href={getDownloadUrl(f.file_path)} download={f.filename} style={{ color: '#F2542D', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Download size={14} />
+                        </a>
+                        <button onClick={() => removeFile(f.id, f.file_path)} style={{ color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'notes' && (
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Nouveau note */}
+              <NoteCreator projectColor={selectedProject.color} onCreate={(title, content, color) => createNote(title, content, color)} />
+              {/* Liste notes */}
+              {notes.length === 0 ? (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucune note</p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                  {notes.map(n => (
+                    <NoteCard key={n.id} note={n} onUpdate={updateNote} onDelete={removeNote} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'parametres' && (
+            <SettingsPanel projectId={selected || ''} settings={settings} onSave={setSetting} />
           )}
         </div>
       )}

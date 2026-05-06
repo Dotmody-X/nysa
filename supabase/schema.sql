@@ -401,3 +401,73 @@ CREATE TRIGGER set_updated_at_recipes
 CREATE TRIGGER set_updated_at_integrations
   BEFORE UPDATE ON integrations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ============================================================
+-- PROJECT NOTES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS project_notes (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  project_id    uuid REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
+  title         text NOT NULL,
+  content       text NOT NULL,
+  color         text DEFAULT '#F2F2F0',
+  created_at    timestamptz DEFAULT now(),
+  updated_at    timestamptz DEFAULT now()
+);
+
+ALTER TABLE project_notes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own project notes" ON project_notes;
+CREATE POLICY "Users manage own project notes" ON project_notes
+  FOR ALL USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_project_notes_project_id ON project_notes(project_id);
+
+DROP TRIGGER IF EXISTS set_updated_at_project_notes ON project_notes;
+CREATE TRIGGER set_updated_at_project_notes
+  BEFORE UPDATE ON project_notes
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ============================================================
+-- PROJECT FILES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS project_files (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  project_id    uuid REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
+  filename      text NOT NULL,
+  file_path     text NOT NULL,
+  file_size     integer NOT NULL,
+  file_type     text NOT NULL,
+  created_at    timestamptz DEFAULT now()
+);
+
+ALTER TABLE project_files ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own project files" ON project_files;
+CREATE POLICY "Users manage own project files" ON project_files
+  FOR ALL USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_project_files_project_id ON project_files(project_id);
+
+-- ============================================================
+-- PROJECT SETTINGS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS project_settings (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  project_id    uuid REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
+  key           text NOT NULL,
+  value         jsonb,
+  created_at    timestamptz DEFAULT now(),
+  updated_at    timestamptz DEFAULT now(),
+  UNIQUE(project_id, key)
+);
+
+ALTER TABLE project_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users manage own project settings" ON project_settings;
+CREATE POLICY "Users manage own project settings" ON project_settings
+  FOR ALL USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_project_settings_project_id ON project_settings(project_id);
+
+DROP TRIGGER IF EXISTS set_updated_at_project_settings ON project_settings;
+CREATE TRIGGER set_updated_at_project_settings
+  BEFORE UPDATE ON project_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
