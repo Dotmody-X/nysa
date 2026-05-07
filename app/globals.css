@@ -1,35 +1,16 @@
 @import "tailwindcss";
 
 /* ============================================================
-   NYSA Design System v3.0 — Earthy Palette
+   NYSA Design System v3.1 — Earthy Palette (FIXED)
    
-   Palette: 12 couleurs warm, earthy & elegant
-   
-   Générales:
-     Creamy Ivory   #f5f1ed  (245,241,237)  Light, subtle
-     Camel          #c9b8a3  (201,184,163)  Secondary, warm
-     Chocolate      #5c4a42  (92,74,66)     Primary, grounded
-   
-   Catégories:
-     Budget → Burnt Orange #d97e35
-     Courses → Mustard Yellow #d4a24f
-     Recettes → Warm Blush #d9a79e
-     Time-Tracker → Deep Teal #1e4d5c
-     Sport → Sage Green #7a8a7e
-     Health → Olive Green #6b7a51
-     Rapports → Aubergine #4d3942
-     Projets → Terracota #a85c3f
-     Calendrier → Rosewood #8b5a54
-     Todo → Mustard Yellow #d4a24f
-     Agent → Chocolate Brown #5c4a42
-   
-   ♿ WCAG AA/AAA Accessible
-   🌓 Smart dark/light mode
-   📱 Responsive & scalable
+   STRUCTURE:
+   - General Colors: Backgrounds + Text (used everywhere)
+   - Category Colors: Accent per page (distinct & visible)
+   - Proper hierarchy with good contrast
    
    ============================================================ */
 
-/* ── Couleurs de base ─────────────────────────────────────── */
+/* ── Couleurs de base (constantes) ─────────────────────────── */
 :root {
   /* Générales */
   --creamy-ivory: #f5f1ed;
@@ -47,10 +28,8 @@
   --terracota: #a85c3f;
   --rosewood: #8b5a54;
 
-  /* Sidebar */
+  /* Spacing */
   --sidebar-width: 220px;
-
-  /* Radius */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
@@ -61,80 +40,76 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* Backgrounds */
-  --bg:             #0a0805;
-  --bg-card:        #1a1510;
-  --bg-card-hover:  #24201a;
-  --bg-sidebar:     #0f0b08;
-  --bg-input:       #15120d;
+  /* GENERAL — Backgrounds & Text */
+  --bg:             #0a0805;              /* Very dark brown */
+  --bg-card:        #1a1510;              /* Charcoal */
+  --bg-card-hover:  #24201a;              /* Slightly lighter */
+  --bg-sidebar:     #0f0b08;              /* Near black */
+  --bg-input:       #15120d;              /* Dark input */
 
-  /* Text */
-  --text:           #f5f1ed;        /* Creamy Ivory — AAA */
-  --text-muted:     #c9b8a3;        /* Camel — AA */
-  --text-subtle:    rgba(201, 184, 163, 0.50);
+  --text:           #f5f1ed;              /* Creamy Ivory — Primary text (AAA) */
+  --text-muted:     #c9b8a3;              /* Camel — Secondary text (AA) */
+  --text-subtle:    rgba(201, 184, 163, 0.50); /* Camel @ 50% */
 
-  /* Borders */
-  --border:         rgba(201, 184, 163, 0.12);
-  --border-active:  rgba(217, 126, 53, 0.40);
+  --border:         rgba(201, 184, 163, 0.15);
+  --border-active:  rgba(201, 184, 163, 0.40);
 
-  /* Status */
-  --success:        #7a8a7e;        /* Sage Green */
-  --warning:        #d4a24f;        /* Mustard Yellow */
-  --danger:         #d97e35;        /* Burnt Orange */
-  --info:           #1e4d5c;        /* Deep Teal */
+  /* STATUS Colors */
+  --success:        #7a8a7e;              /* Sage Green */
+  --warning:        #d4a24f;              /* Mustard */
+  --danger:         #d97e35;              /* Burnt Orange */
+  --info:           #1e4d5c;              /* Deep Teal */
 
-  /* Category Accents */
-  --accent-budget:     #d97e35;     /* Burnt Orange */
-  --accent-courses:    #d4a24f;     /* Mustard Yellow */
-  --accent-recettes:   #d9a79e;     /* Warm Blush */
-  --accent-time:       #1e4d5c;     /* Deep Teal */
-  --accent-sport:      #7a8a7e;     /* Sage Green */
-  --accent-health:     #6b7a51;     /* Olive Green */
-  --accent-rapports:   #4d3942;     /* Aubergine */
-  --accent-projets:    #a85c3f;     /* Terracota */
-  --accent-calendar:   #8b5a54;     /* Rosewood */
-  --accent-todo:       #d4a24f;     /* Mustard Yellow */
-  --accent-agent:      #5c4a42;     /* Chocolate Brown */
+  /* CATEGORY ACCENTS — Bright & saturated for dark bg */
+  --accent-budget:     #d97e35;           /* Burnt Orange — Financial */
+  --accent-courses:    #d4a24f;           /* Mustard Yellow — Shopping */
+  --accent-recettes:   #d9a79e;           /* Warm Blush — Culinary */
+  --accent-time:       #1e4d5c;           /* Deep Teal — Focus */
+  --accent-sport:      #7a8a7e;           /* Sage Green — Wellness */
+  --accent-health:     #6b7a51;           /* Olive Green — Growth */
+  --accent-rapports:   #4d3942;           /* Aubergine — Analysis */
+  --accent-projets:    #a85c3f;           /* Terracota — Creative */
+  --accent-calendar:   #8b5a54;           /* Rosewood — Time */
+  --accent-todo:       #d4a24f;           /* Mustard Yellow — Action */
+  --accent-agent:      #5c4a42;           /* Chocolate — Intelligent */
 }
 
 /* ── Thème clair ──────────────────────────────────────────── */
 [data-theme="light"] {
   color-scheme: light;
 
-  /* Backgrounds */
-  --bg:             #f5f1ed;        /* Creamy Ivory */
-  --bg-card:        #ffffff;
-  --bg-card-hover:  #ede7e0;
-  --bg-sidebar:     #ede7e0;
-  --bg-input:       #f5f1ed;
+  /* GENERAL — Backgrounds & Text */
+  --bg:             #f5f1ed;              /* Creamy Ivory — Main background */
+  --bg-card:        #ffffff;              /* White cards */
+  --bg-card-hover:  #ede7e0;              /* Slight tan hover */
+  --bg-sidebar:     #ede7e0;              /* Light sidebar */
+  --bg-input:       #f5f1ed;              /* Light input */
 
-  /* Text (inverted for contrast) */
-  --text:           #5c4a42;        /* Chocolate Brown — AAA */
-  --text-muted:     #8b6f63;        /* Camel darker — AA */
-  --text-subtle:    rgba(92, 74, 66, 0.50);
+  --text:           #5c4a42;              /* Chocolate Brown — Primary text (AAA) */
+  --text-muted:     #8b6f63;              /* Darker camel — Secondary text (AA) */
+  --text-subtle:    rgba(92, 74, 66, 0.50); /* Brown @ 50% */
 
-  /* Borders */
-  --border:         rgba(92, 74, 66, 0.12);
-  --border-active:  rgba(217, 126, 53, 0.50);
+  --border:         rgba(92, 74, 66, 0.15);
+  --border-active:  rgba(92, 74, 66, 0.40);
 
-  /* Status */
-  --success:        #6b7a51;        /* Olive Green (darker) */
-  --warning:        #a85c3f;        /* Terracota (darker) */
-  --danger:         #8b5a54;        /* Rosewood (darker) */
-  --info:           #1e4d5c;        /* Deep Teal (same) */
+  /* STATUS Colors */
+  --success:        #6b7a51;              /* Olive Green (darker) */
+  --warning:        #a85c3f;              /* Terracota (darker) */
+  --danger:         #8b5a54;              /* Rosewood (darker) */
+  --info:           #1e4d5c;              /* Deep Teal (same) */
 
-  /* Category Accents (darker versions for light bg) */
-  --accent-budget:     #b86b2a;
-  --accent-courses:    #b8942a;
-  --accent-recettes:   #c28b80;
-  --accent-time:       #1e4d5c;
-  --accent-sport:      #667168;
-  --accent-health:     #5a6844;
-  --accent-rapports:   #3d2f38;
-  --accent-projets:    #8f4a33;
-  --accent-calendar:   #6d4a43;
-  --accent-todo:       #b8942a;
-  --accent-agent:      #4d3f38;
+  /* CATEGORY ACCENTS — Darker for light bg */
+  --accent-budget:     #b86b2a;           /* Burnt Orange darker */
+  --accent-courses:    #b8942a;           /* Mustard darker */
+  --accent-recettes:   #c28b80;           /* Blush darker */
+  --accent-time:       #1e4d5c;           /* Deep Teal (same) */
+  --accent-sport:      #667168;           /* Sage darker */
+  --accent-health:     #5a6844;           /* Olive darker */
+  --accent-rapports:   #3d2f38;           /* Aubergine darker */
+  --accent-projets:    #8f4a33;           /* Terracota darker */
+  --accent-calendar:   #6d4a43;           /* Rosewood darker */
+  --accent-todo:       #b8942a;           /* Mustard darker */
+  --accent-agent:      #4d3f38;           /* Chocolate darker */
 }
 
 /* ── Thème système (OS) ───────────────────────────────────── */
@@ -152,8 +127,8 @@
     --text-muted:     #8b6f63;
     --text-subtle:    rgba(92, 74, 66, 0.50);
 
-    --border:         rgba(92, 74, 66, 0.12);
-    --border-active:  rgba(217, 126, 53, 0.50);
+    --border:         rgba(92, 74, 66, 0.15);
+    --border-active:  rgba(92, 74, 66, 0.40);
 
     --success:        #6b7a51;
     --warning:        #a85c3f;
@@ -188,8 +163,8 @@
     --text-muted:     #c9b8a3;
     --text-subtle:    rgba(201, 184, 163, 0.50);
 
-    --border:         rgba(201, 184, 163, 0.12);
-    --border-active:  rgba(217, 126, 53, 0.40);
+    --border:         rgba(201, 184, 163, 0.15);
+    --border-active:  rgba(201, 184, 163, 0.40);
 
     --success:        #7a8a7e;
     --warning:        #d4a24f;
@@ -276,6 +251,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 800;
+  color: var(--text);
 }
 
 /* ============================================================
@@ -317,43 +293,34 @@ h1, h2, h3, h4, h5, h6 {
    Utilitaires Tailwind pour Couleurs
    ============================================================ */
 
-/* Générales */
+/* Text colors */
 .text-primary   { @apply text-[color:var(--text)] }
 .text-muted     { @apply text-[color:var(--text-muted)] }
 .text-subtle    { @apply text-[color:var(--text-subtle)] }
 
-/* Catégories */
-.accent-budget     { @apply text-[color:var(--accent-budget)] }
-.accent-courses    { @apply text-[color:var(--accent-courses)] }
-.accent-recettes   { @apply text-[color:var(--accent-recettes)] }
-.accent-time       { @apply text-[color:var(--accent-time)] }
-.accent-sport      { @apply text-[color:var(--accent-sport)] }
-.accent-health     { @apply text-[color:var(--accent-health)] }
-.accent-rapports   { @apply text-[color:var(--accent-rapports)] }
-.accent-projets    { @apply text-[color:var(--accent-projets)] }
-.accent-calendar   { @apply text-[color:var(--accent-calendar)] }
-.accent-todo       { @apply text-[color:var(--accent-todo)] }
-.accent-agent      { @apply text-[color:var(--accent-agent)] }
+/* Category text accents */
+.text-budget    { @apply text-[color:var(--accent-budget)] }
+.text-courses   { @apply text-[color:var(--accent-courses)] }
+.text-recettes  { @apply text-[color:var(--accent-recettes)] }
+.text-time      { @apply text-[color:var(--accent-time)] }
+.text-sport     { @apply text-[color:var(--accent-sport)] }
+.text-health    { @apply text-[color:var(--accent-health)] }
+.text-rapports  { @apply text-[color:var(--accent-rapports)] }
+.text-projets   { @apply text-[color:var(--accent-projets)] }
+.text-calendar  { @apply text-[color:var(--accent-calendar)] }
+.text-todo      { @apply text-[color:var(--accent-todo)] }
+.text-agent     { @apply text-[color:var(--accent-agent)] }
 
 /* Borders */
-.border-border   { @apply border-[color:var(--border)] }
+.border-border  { @apply border-[color:var(--border)] }
 
 /* Font display */
-.font-display    { @apply [font-family:var(--font-display)] }
+.font-display   { @apply [font-family:var(--font-display)] }
 
 /* ============================================================
-   Utilitaires Brand
+   Brand Utilities
    ============================================================ */
 
-/* Gradient de titre hero */
-.nysa-gradient-text {
-  background: linear-gradient(135deg, var(--text) 0%, var(--accent-budget) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Card standard */
 .nysa-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -361,16 +328,14 @@ h1, h2, h3, h4, h5, h6 {
   padding: 1rem;
 }
 
-/* Transition globale */
 .nysa-transition {
   transition: all 0.15s ease;
 }
 
 /* ============================================================
-   RESPONSIVE — Mobile-first utilities
+   RESPONSIVE
    ============================================================ */
 
-/* Page wrapper — responsive padding */
 .page-wrap {
   padding: 16px;
   min-height: 100%;
@@ -385,7 +350,6 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Bento grid — desktop grid, mobile single column */
 @media (min-width: 768px) {
   .bento-grid {
     display: grid !important;
@@ -404,22 +368,17 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Sidebar + main content layout */
 @media (max-width: 767px) {
-  /* Collapse 3-col grids to 1 col */
   .md\:grid-cols-3,
   .md\:col-span-2 {
     grid-template-columns: 1fr !important;
   }
-  /* KPI grid: 2 cols on mobile */
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
-  /* Page title font scale */
   h1 {
     font-size: clamp(28px, 8vw, 52px) !important;
   }
-  /* Full-width drawers on mobile */
   .drawer-mobile {
     width: 100% !important;
     border-left: none !important;
@@ -431,7 +390,6 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Bottom nav safe area */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .bottom-nav {
     padding-bottom: calc(8px + env(safe-area-inset-bottom));

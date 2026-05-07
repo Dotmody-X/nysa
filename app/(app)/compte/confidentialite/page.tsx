@@ -5,7 +5,7 @@ import { ArrowLeft, Download, AlertTriangle, X, Shield, Eye, EyeOff, Lock } from
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = 'var(--azul)', ORANGE = 'var(--accent)', WHEAT = 'var(--text)'
+const TEAL = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
 
 function PrivacyRow({ icon: Icon, label, sub, value, onChange }: {
   icon: React.ElementType; label: string; sub: string; value: boolean; onChange: (v: boolean) => void
@@ -16,7 +16,7 @@ function PrivacyRow({ icon: Icon, label, sub, value, onChange }: {
         <Icon size={15} style={{ color: 'var(--text-muted)' }} />
       </div>
       <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 12, color: 'var(--wheat)', fontWeight: 500 }}>{label}</p>
+        <p style={{ fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{label}</p>
         <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.5 }}>{sub}</p>
       </div>
       <button onClick={() => onChange(!value)}
@@ -97,7 +97,7 @@ export default function ConfidentialitePage() {
           Téléchargez une copie complète de toutes vos données au format JSON : tâches, sessions de travail, transactions, courses, santé.
         </p>
         <button onClick={exportData}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: 'var(--bg-input)', color: 'var(--wheat)', borderRadius: 8, padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: 'var(--bg-input)', color: 'var(--text)', borderRadius: 8, padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
           <Download size={13} /> Exporter en JSON
         </button>
       </div>
@@ -121,7 +121,7 @@ export default function ConfidentialitePage() {
           <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 201, background: 'var(--bg-card)', borderRadius: 16, padding: 28, width: 400, border: '1px solid rgba(242,84,45,0.3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <AlertTriangle size={20} style={{ color: ORANGE }} />
-              <p style={{ ...DF, fontWeight: 800, fontSize: 15, color: 'var(--wheat)' }}>Supprimer mon compte</p>
+              <p style={{ ...DF, fontWeight: 800, fontSize: 15, color: 'var(--text)' }}>Supprimer mon compte</p>
               <button onClick={() => setShowDelete(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={16} /></button>
             </div>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.6 }}>

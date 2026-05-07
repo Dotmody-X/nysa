@@ -15,7 +15,7 @@ import type { DayStat, ProjectStat } from '@/hooks/useRapports'
 import type { MonthSummary } from '@/hooks/useBudget'
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const ORANGE  = 'var(--accent)'
+const ORANGE  = 'var(--accent-budget)'
 const TEAL    = 'var(--azul)'
 const WHEAT   = 'var(--text)'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -297,7 +297,7 @@ export default function RapportsPage() {
 
   // ── Donut segments ──────────────────────────────────────────────────────
   const donutSegments = useMemo(() => {
-    const PALETTE = ['var(--azul)','var(--accent)','#9B72CF','#E8A838','#3ABCB8','#C45E3E','#7C6FAF','#5E9C8F']
+    const PALETTE = ['var(--azul)','var(--accent-budget)','#9B72CF','#E8A838','#3ABCB8','#C45E3E','#7C6FAF','#5E9C8F']
     return (data?.projectStats ?? []).slice(0, 8).map((p, i) => ({
       color: p.color !== '#888' ? p.color : PALETTE[i % PALETTE.length],
       value: p.total_seconds,

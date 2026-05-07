@@ -51,20 +51,20 @@ export default function DashboardPage() {
       {/* Hero — col-span-2 */}
       <div className="col-span-2 flex flex-col justify-between p-4 md:p-6">
         <div>
-          <p className="text-xs font-bold tracking-wider uppercase mb-2" style={{ color: 'var(--accent)' }}>
+          <p className="text-xs font-bold tracking-wider uppercase mb-2" style={{ color: 'var(--accent-budget)' }}>
             {greeting}
           </p>
-          <h1 className="font-display font-black text-4xl md:text-5xl lg:text-6xl leading-tight" style={{ color: 'var(--wheat)', letterSpacing: '-0.01em' }}>
+          <h1 className="font-display font-black text-4xl md:text-5xl lg:text-6xl leading-tight" style={{ color: 'var(--text)', letterSpacing: '-0.01em' }}>
             FOCUS.<br />PLAN.<br />PROGRESS.
           </h1>
         </div>
-        <p className="text-xs font-medium mt-3" style={{ color: 'var(--dark-cyan)' }}>
+        <p className="text-xs font-medium mt-3" style={{ color: 'var(--accent-time)' }}>
           {todayCapitalized}
         </p>
       </div>
 
       {/* Agent IA — col-span-2, orange */}
-      <div className="col-span-2 flex flex-col justify-between p-5 md:p-6 rounded-lg md:rounded-xl" style={{ background: 'var(--accent)' }}>
+      <div className="col-span-2 flex flex-col justify-between p-5 md:p-6 rounded-lg md:rounded-xl" style={{ background: 'var(--accent-budget)' }}>
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={14} style={{ color: 'var(--bg)' }} />
@@ -89,16 +89,16 @@ export default function DashboardPage() {
       {/* ═══════════════════════════════════════════════════════════ ROW 2 — 4 nav cards */}
 
       {/* Calendrier */}
-      <NavCard href="/calendrier" bg="var(--accent-alt)" logoColor="var(--accent)" label="CALENDRIER" value={loading ? '…' : `${data?.todayEvents.length ?? 0} événement${(data?.todayEvents.length ?? 0) !== 1 ? 's' : ''}`} sub="aujourd'hui" textColor="var(--bg)" />
+      <NavCard href="/calendrier" bg="var(--creamy-ivory)" logoColor="var(--accent-budget)" label="CALENDRIER" value={loading ? '…' : `${data?.todayEvents.length ?? 0} événement${(data?.todayEvents.length ?? 0) !== 1 ? 's' : ''}`} sub="aujourd'hui" textColor="var(--bg)" />
 
       {/* Time Trackers */}
-      <NavCard href="/time-tracker" bg="var(--stormy-teal)" logoColor="var(--wheat)" label="TIME TRACKERS" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub="aujourd'hui" textColor="var(--wheat)" />
+      <NavCard href="/time-tracker" bg="var(--accent-time)" logoColor="var(--text)" label="TIME TRACKERS" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub="aujourd'hui" textColor="var(--text)" />
 
       {/* Projets */}
-      <NavCard href="/projets" bg="var(--dark-cyan)" logoColor="var(--bg)" label="PROJETS" value={loading ? '…' : `${data?.activeProjects.length ?? 0} actif${(data?.activeProjects.length ?? 0) !== 1 ? 's' : ''}`} sub="en cours" textColor="var(--bg)" />
+      <NavCard href="/projets" bg="var(--accent-time)" logoColor="var(--bg)" label="PROJETS" value={loading ? '…' : `${data?.activeProjects.length ?? 0} actif${(data?.activeProjects.length ?? 0) !== 1 ? 's' : ''}`} sub="en cours" textColor="var(--bg)" />
 
       {/* To Do List */}
-      <NavCard href="/todo" bg="var(--accent)" logoColor="var(--bg)" label="TO DO LIST" value={loading ? '…' : `${totalTasks} tâche${totalTasks !== 1 ? 's' : ''}`} sub={`${doneTasks} terminée${doneTasks !== 1 ? 's' : ''}`} textColor="var(--bg)" />
+      <NavCard href="/todo" bg="var(--accent-budget)" logoColor="var(--bg)" label="TO DO LIST" value={loading ? '…' : `${totalTasks} tâche${totalTasks !== 1 ? 's' : ''}`} sub={`${doneTasks} terminée${doneTasks !== 1 ? 's' : ''}`} textColor="var(--bg)" />
 
       {/* ═══════════════════════════════════════════════════════════ CONTENT — Simplified for brevity */}
       {/* TODO: Implement remaining cards with same refactoring pattern */}

@@ -9,7 +9,7 @@ import type { Task } from '@/types'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 const PRIORITY_COLOR: Record<string, string> = {
-  urgent: 'var(--accent)', high: 'var(--text)', medium: 'var(--azul)', low: '#888',
+  urgent: 'var(--accent-budget)', high: 'var(--text)', medium: 'var(--azul)', low: '#888',
 }
 const PRIORITY_BG: Record<string, string> = {
   urgent: 'rgba(242,84,45,0.15)', high: 'rgba(245,223,187,0.1)', medium: 'rgba(14,149,148,0.12)', low: 'rgba(136,136,136,0.12)',
@@ -59,7 +59,7 @@ function EditTaskModal({
   }
 
   const inp: React.CSSProperties = {
-    background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)',
+    background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)',
     borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%',
   }
 
@@ -72,7 +72,7 @@ function EditTaskModal({
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Modifier la tâche</p>
+          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Modifier la tâche</p>
           <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
 
@@ -141,14 +141,14 @@ function EditTaskModal({
         <div className="flex gap-2 justify-between items-center">
           {!confirm ? (
             <button onClick={() => setConfirm(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent-budget)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Trash2 size={11} /> Supprimer
             </button>
           ) : (
             <div className="flex gap-2">
               <button onClick={() => setConfirm(false)} style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Annuler</button>
               <button onClick={async () => { await onDelete(task.id); onClose() }}
-                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
+                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent-budget)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
                 Confirmer
               </button>
             </div>
@@ -159,7 +159,7 @@ function EditTaskModal({
               Annuler
             </button>
             <button onClick={submit} disabled={saving || !form.title.trim()}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent-budget)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
               {saving ? '…' : 'Sauvegarder'}
             </button>
           </div>
@@ -212,7 +212,7 @@ export default function TodoPage() {
   }
 
   const TAB_COLORS: Record<string, string> = {
-    toutes:    'var(--accent)',
+    toutes:    'var(--accent-budget)',
     priorites: '#9B72CF',
     projets:   'var(--azul)',
     auto:      '#E8A838',
@@ -234,7 +234,7 @@ export default function TodoPage() {
 
   // ── Priorités : grouped by priority ──────────────────────────────────
   const priorityGroups: { key: 'urgent'|'high'|'medium'|'low'; label: string; color: string }[] = [
-    { key: 'urgent', label: 'Urgent',  color: 'var(--accent)' },
+    { key: 'urgent', label: 'Urgent',  color: 'var(--accent-budget)' },
     { key: 'high',   label: 'Haute',   color: 'var(--text)' },
     { key: 'medium', label: 'Moyenne', color: 'var(--azul)' },
     { key: 'low',    label: 'Basse',   color: '#888'    },
@@ -244,8 +244,8 @@ export default function TodoPage() {
   const now7d = new Date(); now7d.setDate(now7d.getDate() + 7)
   const next7dStr = now7d.toISOString().slice(0, 10)
   const autoGroups = [
-    { key: 'overdue',   label: 'En retard',           color: 'var(--accent)', tasks: filtered.filter(t => t.due_date && t.due_date < today && t.status !== 'done'), bg: 'rgba(242,84,45,0.05)' },
-    { key: 'today',     label: 'Aujourd\'hui',         color: 'var(--accent)', tasks: filtered.filter(t => t.due_date === today && t.status !== 'done'),              bg: undefined },
+    { key: 'overdue',   label: 'En retard',           color: 'var(--accent-budget)', tasks: filtered.filter(t => t.due_date && t.due_date < today && t.status !== 'done'), bg: 'rgba(242,84,45,0.05)' },
+    { key: 'today',     label: 'Aujourd\'hui',         color: 'var(--accent-budget)', tasks: filtered.filter(t => t.due_date === today && t.status !== 'done'),              bg: undefined },
     { key: 'next7d',    label: '7 prochains jours',   color: '#E8A838', tasks: filtered.filter(t => t.due_date && t.due_date > today && t.due_date <= next7dStr && t.status !== 'done'), bg: undefined },
     { key: 'inprogress',label: 'En cours',             color: 'var(--azul)', tasks: filtered.filter(t => t.status === 'in_progress'),                                bg: undefined },
     { key: 'nodate',    label: 'Sans date',            color: 'var(--text-muted)', tasks: filtered.filter(t => !t.due_date && t.status !== 'done'),             bg: undefined },
@@ -267,7 +267,7 @@ export default function TodoPage() {
         right={
           <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl"
-            style={{ background: 'var(--accent)', color: '#fff', ...DF, fontWeight: 700, fontSize: 12 }}>
+            style={{ background: 'var(--accent-budget)', color: '#fff', ...DF, fontWeight: 700, fontSize: 12 }}>
             <Plus size={14} /> Ajouter une tâche
           </button>
         }
@@ -277,7 +277,7 @@ export default function TodoPage() {
       <KpiGrid>
         <KpiCard label="Tâches totales"   value={String(tasks.filter(t => t.status !== 'done').length)} sub="actives" />
         <KpiCard label="Proches deadline" value={String(weekTasks.length)}  color="var(--text)" />
-        <KpiCard label="Urgentes"         value={String(urgentTasks.length)} color="var(--accent)" />
+        <KpiCard label="Urgentes"         value={String(urgentTasks.length)} color="var(--accent-budget)" />
         <KpiCard label="Terminées"        value={String(doneTasks.length)}   color="var(--azul)" />
       </KpiGrid>
 
@@ -332,7 +332,7 @@ export default function TodoPage() {
             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
           <button type="submit"
-            style={{ background: 'var(--accent)', color: '#fff', borderRadius: 8, padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+            style={{ background: 'var(--accent-budget)', color: '#fff', borderRadius: 8, padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
             Créer
           </button>
         </form>
@@ -345,10 +345,10 @@ export default function TodoPage() {
           {/* ── TOUTES ── */}
           {tab === 'toutes' && (
             <>
-              <TaskSection title="Aujourd'hui"   color="var(--accent)"           tasks={todayTasks}  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+              <TaskSection title="Aujourd'hui"   color="var(--accent-budget)"           tasks={todayTasks}  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
               <TaskSection title="Cette semaine" color="var(--azul)"           tasks={weekTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
               {lateTasks.length > 0 && (
-                <TaskSection title="En retard"   color="var(--accent)"           tasks={lateTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} bg="rgba(242,84,45,0.05)" />
+                <TaskSection title="En retard"   color="var(--accent-budget)"           tasks={lateTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} bg="rgba(242,84,45,0.05)" />
               )}
               <TaskSection title="Sans date"     color="var(--text-muted)" tasks={noDateTasks} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
               {doneTasks.length > 0 && (
@@ -424,7 +424,7 @@ export default function TodoPage() {
 
           {/* Répartition priorités */}
           <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 12 }}>Répartition priorités</p>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent-budget)', textTransform: 'uppercase', marginBottom: 12 }}>Répartition priorités</p>
             {(['urgent', 'high', 'medium', 'low'] as const).map(p => {
               const count = tasks.filter(t => t.priority === p && t.status !== 'done').length
               const total = tasks.filter(t => t.status !== 'done').length
@@ -478,7 +478,7 @@ export default function TodoPage() {
           </div>
 
           {/* Filtres rapides */}
-          <div style={{ background: 'var(--accent)', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--accent-budget)', borderRadius: 12, padding: 16 }}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#1A0A0A', textTransform: 'uppercase', marginBottom: 10 }}>Filtres rapides</p>
             {[
               { label: 'Sans projet', count: tasks.filter(t => !t.project_id && t.status !== 'done').length },
@@ -557,7 +557,7 @@ function TaskSection({
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <p style={{ fontSize: 13, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <p style={{ fontSize: 13, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--text)', textDecoration: t.status === 'done' ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {t.title}
                       </p>
                       <div className="flex items-center gap-3 mt-0.5">
@@ -590,7 +590,7 @@ function TaskSection({
                       onClick={() => onEdit(t)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ padding: '4px 6px', borderRadius: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', alignItems: 'center' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent-budget)')}
                       onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
                       <Pencil size={11} />
                     </button>
@@ -632,7 +632,7 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
           return (
             <span key={i} style={{
               fontSize: 10, padding: '3px 2px', borderRadius: 4,
-              background: isToday ? 'var(--accent)' : 'transparent',
+              background: isToday ? 'var(--accent-budget)' : 'transparent',
               color: isToday ? '#fff' : hasTasks ? 'var(--azul)' : 'var(--text-muted)',
               fontWeight: isToday || hasTasks ? 700 : 400,
             }}>{d}</span>

@@ -5,7 +5,7 @@ import { ArrowLeft, Download, Upload, Check, AlertTriangle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = 'var(--azul)', ORANGE = 'var(--accent)', WHEAT = 'var(--text)'
+const TEAL = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
 
 type ExportStatus = 'idle' | 'loading' | 'done' | 'error'
 
@@ -167,7 +167,7 @@ export default function SauvegardePage() {
         </div>
         <input ref={fileRef} type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
         <button onClick={() => fileRef.current?.click()}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: 'var(--bg-input)', color: 'var(--wheat)', borderRadius: 8, padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: 'var(--bg-input)', color: 'var(--text)', borderRadius: 8, padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
           <Upload size={13} /> Sélectionner un fichier JSON
         </button>
         {importMsg && (

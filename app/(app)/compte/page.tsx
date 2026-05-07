@@ -14,7 +14,7 @@ import { useRapports } from '@/hooks/useRapports'
 import { saveTheme, loadTheme, type ThemeMode } from '@/lib/theme'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = 'var(--azul)', TEAL_BG = 'var(--azul)', ORANGE = 'var(--accent)', WHEAT = 'var(--text)'
+const TEAL = 'var(--azul)', TEAL_BG = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
 
 function fmtH(sec: number) {
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60)
@@ -245,7 +245,7 @@ export default function ComptePage() {
           <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:16, padding:28, width:400, border:'1px solid rgba(242,84,45,0.3)' }}>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
               <AlertTriangle size={20} style={{ color: ORANGE }} />
-              <p style={{ ...DF, fontWeight:800, fontSize:15, color:'var(--wheat)' }}>Supprimer mon compte</p>
+              <p style={{ ...DF, fontWeight:800, fontSize:15, color:'var(--text)' }}>Supprimer mon compte</p>
               <button onClick={()=>setShowDelete(false)} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)' }}><X size={16} /></button>
             </div>
             <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:16, lineHeight:1.6 }}>
@@ -280,7 +280,7 @@ export default function ComptePage() {
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   <span style={{ fontSize:28 }}>{app.icon}</span>
                   <div>
-                    <p style={{ ...DF, fontWeight:800, fontSize:15, color:'var(--wheat)' }}>{info.title}</p>
+                    <p style={{ ...DF, fontWeight:800, fontSize:15, color:'var(--text)' }}>{info.title}</p>
                     <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:2 }}>
                       <div style={{ width:6, height:6, borderRadius:'50%', background: app.connected ? TEAL : 'var(--text-subtle)' }} />
                       <span style={{ fontSize:10, color: app.connected ? TEAL : 'var(--text-muted)' }}>{app.connected ? 'Connecté' : 'Non connecté'}</span>
@@ -352,7 +352,7 @@ export default function ComptePage() {
             <div style={{ flex:1, minWidth:0 }}>
               {editMode ? (
                 <input value={displayName} onChange={e=>setDisplayName(e.target.value)} autoFocus
-                  style={{ width:'100%', background:'var(--bg-input)', border:`1px solid ${ORANGE}`, borderRadius:8, padding:'6px 10px', color:'var(--wheat)', fontSize:16, fontWeight:700, fontFamily:'var(--font-display)', marginBottom:4 }} />
+                  style={{ width:'100%', background:'var(--bg-input)', border:`1px solid ${ORANGE}`, borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:16, fontWeight:700, fontFamily:'var(--font-display)', marginBottom:4 }} />
               ) : (
                 <p style={{ ...DF, fontWeight:900, fontSize:20, color:WHEAT, marginBottom:2 }}>{displayName}</p>
               )}
@@ -544,7 +544,7 @@ export default function ComptePage() {
                 <Icon size={14} style={{ color:'var(--text-muted)' }} />
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ fontSize:12, color:'var(--wheat)', fontWeight:500 }}>{label}</p>
+                <p style={{ fontSize:12, color:'var(--text)', fontWeight:500 }}>{label}</p>
                 <p style={{ fontSize:9, color:'var(--text-muted)', marginTop:1 }}>{sub}</p>
               </div>
               <ChevronRight size={12} style={{ color:'var(--text-subtle)', flexShrink:0 }} />
@@ -563,7 +563,7 @@ export default function ComptePage() {
               onMouseEnter={e=>(e.currentTarget.style.background='var(--bg-card-hover)')}
               onMouseLeave={e=>(e.currentTarget.style.background='none')}>
               <span style={{ fontSize:18, flexShrink:0 }}>{app.icon}</span>
-              <p style={{ flex:1, fontSize:12, color:'var(--wheat)' }}>{app.name}</p>
+              <p style={{ flex:1, fontSize:12, color:'var(--text)' }}>{app.name}</p>
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                 <span style={{ fontSize:9, color: app.connected ? TEAL : 'var(--text-subtle)', ...DF, fontWeight:600 }}>{app.connected ? 'Connecté' : 'Non connecté'}</span>
                 <div style={{ width:7, height:7, borderRadius:'50%', background: app.connected ? TEAL : 'var(--text-subtle)', flexShrink:0 }} />
@@ -590,7 +590,7 @@ export default function ComptePage() {
             <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 20px', borderBottom:'1px solid var(--border)', borderRight: i%3!==2 ? '1px solid var(--border)' : 'none' }}>
               <span style={{ fontSize:18, flexShrink:0 }}>{a.icon}</span>
               <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ fontSize:12, color:'var(--wheat)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.label}</p>
+                <p style={{ fontSize:12, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.label}</p>
                 <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{a.sub}</p>
               </div>
             </div>
@@ -670,7 +670,7 @@ export default function ComptePage() {
           <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:16 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:WHEAT, textTransform:'uppercase', marginBottom:8 }}>Exporter mes données</p>
             <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:10, lineHeight:1.5 }}>Téléchargez une copie de toutes vos données au format JSON.</p>
-            <button onClick={exportData} style={{ width:'100%', background:'var(--bg-input)', color:'var(--wheat)', borderRadius:8, padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:'1px solid var(--border)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+            <button onClick={exportData} style={{ width:'100%', background:'var(--bg-input)', color:'var(--text)', borderRadius:8, padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:'1px solid var(--border)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
               <Download size={12} /> Exporter
             </button>
           </div>

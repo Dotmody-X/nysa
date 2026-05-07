@@ -10,7 +10,7 @@ import { useHealth } from '@/hooks/useHealth'
 /* ─── Constants ─────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL   = 'var(--azul)'
-const ORANGE = 'var(--accent)'
+const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 const TEAL_BG = 'var(--azul)'
 const DARK   = '#1A1A2E'
@@ -470,7 +470,7 @@ export default function HealthPage() {
             <div key={s.l}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s.l}</span>
-                <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: 'var(--wheat)' }}>{s.v}</span>
+                <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: 'var(--text)' }}>{s.v}</span>
               </div>
               <div style={{ height: 5, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${s.pct}%`, borderRadius: 99, background: s.color, transition: 'width .5s ease' }} />
@@ -708,7 +708,7 @@ export default function HealthPage() {
                 background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
                 <div style={{ color: s.color, flexShrink: 0 }}>{s.icon}</div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--wheat)' }}>{s.name}</p>
+                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--text)' }}>{s.name}</p>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>{s.desc}</p>
                 </div>
                 <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 4,

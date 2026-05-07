@@ -50,7 +50,7 @@ export function useThemeColors(): ThemeColors {
   if (isDark) {
     // Dark mode colors
     return {
-      accent: 'var(--accent)',
+      accent: 'var(--accent-budget)',
       accentLight: 'var(--text)',
       text: 'var(--text)',
       textMuted: 'rgba(245, 223, 187, 0.45)',
@@ -67,7 +67,7 @@ export function useThemeColors(): ThemeColors {
     // Light mode colors (INVERTED for readability)
     return {
       accent: '#D94020',     // Darker orange
-      accentLight: 'var(--accent)', // Original orange
+      accentLight: 'var(--accent-budget)', // Original orange
       text: 'var(--text)',
       textMuted: '#5A5A5A',  // Darker gray
       textSubtle: '#8A8A8A', // Medium gray

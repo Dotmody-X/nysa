@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL    = 'var(--azul)'
-const ORANGE  = 'var(--accent)'
+const ORANGE  = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 const TEAL_BG = 'var(--azul)'
 
@@ -412,7 +412,7 @@ export default function RecettesPage() {
                       <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'rgba(240,228,204,0.7)', fontSize: 11, borderBottom: '1px solid rgba(240,228,204,0.06)' }}>
                         ✏️ Éditer
                       </button>
-                      <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 11 }}>
+                      <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--accent-budget)', fontSize: 11 }}>
                         🗑️ Supprimer
                       </button>
                     </div>

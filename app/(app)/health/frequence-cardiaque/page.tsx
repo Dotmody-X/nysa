@@ -5,7 +5,7 @@ import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL   = 'var(--azul)'
-const ORANGE = 'var(--accent)'
+const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 const RED    = '#ff5050'
 
@@ -184,7 +184,7 @@ export default function FrequenceCardiaqueePage() {
               <div key={a.id} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px 80px 80px', gap: 0,
                 padding: '14px 20px', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
                 <div>
-                  <p style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>
+                  <p style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                     {(a as any).title ?? `Course`}
                   </p>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{fmtDate(a.date)}</p>

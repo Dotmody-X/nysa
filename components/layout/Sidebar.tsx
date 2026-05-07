@@ -12,18 +12,18 @@ import { createClient } from '@/lib/supabase/client'
 type NavItem = { href: string; label: string; color?: string; accent?: boolean }
 
 const navItems: NavItem[] = [
-  { href: '/',             label: 'Accueil',       color: 'var(--accent)' },
-  { href: '/calendrier',   label: 'Calendrier',    color: 'var(--dark-cyan)' },
-  { href: '/time-tracker', label: 'Time Trackers', color: 'var(--dark-cyan)' },
-  { href: '/projets',      label: 'Projets',       color: 'var(--dark-cyan)' },
-  { href: '/todo',         label: 'To Do List',    color: 'var(--dark-cyan)' },
-  { href: '/sport',        label: 'Running',       color: 'var(--dark-cyan)' },
-  { href: '/health',       label: 'Health',        color: 'var(--dark-cyan)' },
-  { href: '/recettes',     label: 'Recettes',      color: 'var(--dark-cyan)' },
-  { href: '/courses',      label: 'Courses',       color: 'var(--dark-cyan)' },
-  { href: '/budget',       label: 'Budget',        color: 'var(--dark-cyan)' },
-  { href: '/rapports',     label: 'Rapports',      color: 'var(--dark-cyan)' },
-  { href: '/agent',        label: 'Agent IA',      color: 'var(--accent)', accent: true },
+  { href: '/',             label: 'Accueil',       color: 'var(--accent-budget)' },
+  { href: '/calendrier',   label: 'Calendrier',    color: 'var(--accent-time)' },
+  { href: '/time-tracker', label: 'Time Trackers', color: 'var(--accent-time)' },
+  { href: '/projets',      label: 'Projets',       color: 'var(--accent-time)' },
+  { href: '/todo',         label: 'To Do List',    color: 'var(--accent-time)' },
+  { href: '/sport',        label: 'Running',       color: 'var(--accent-time)' },
+  { href: '/health',       label: 'Health',        color: 'var(--accent-time)' },
+  { href: '/recettes',     label: 'Recettes',      color: 'var(--accent-time)' },
+  { href: '/courses',      label: 'Courses',       color: 'var(--accent-time)' },
+  { href: '/budget',       label: 'Budget',        color: 'var(--accent-time)' },
+  { href: '/rapports',     label: 'Rapports',      color: 'var(--accent-time)' },
+  { href: '/agent',        label: 'Agent IA',      color: 'var(--accent-budget)', accent: true },
 ]
 
 const themeOptions: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
@@ -93,10 +93,10 @@ export function Sidebar() {
         className="flex flex-col items-center justify-center gap-2 py-6"
         style={{ borderBottom: '1px solid var(--border)' }}
       >
-        <NysaLogo size={52} color="var(--accent)" />
+        <NysaLogo size={52} color="var(--accent-budget)" />
         <p
           style={{
-            color: 'var(--wheat)',
+            color: 'var(--text)',
             fontFamily: 'var(--font-display)',
             fontWeight: 800,
             fontSize: '13px',
@@ -125,7 +125,7 @@ export function Sidebar() {
                   background: active
                     ? item.accent ? 'rgba(242,84,45,0.12)' : 'rgba(242,84,45,0.1)'
                     : item.accent ? 'rgba(242,84,45,0.04)' : 'transparent',
-                  borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
+                  borderLeft: active ? '2px solid var(--accent-budget)' : '2px solid transparent',
                   marginTop: item.accent ? 2 : 0,
                 }}
               >
@@ -136,7 +136,7 @@ export function Sidebar() {
                     height: 7,
                     borderRadius: 1,
                     flexShrink: 0,
-                    background: active ? 'var(--accent)' : item.color ?? 'var(--dark-cyan)',
+                    background: active ? 'var(--accent-budget)' : item.color ?? 'var(--accent-time)',
                     opacity: active ? 1 : item.accent ? 0.85 : 0.6,
                   }}
                 />
@@ -146,14 +146,14 @@ export function Sidebar() {
                     fontWeight: active ? 700 : item.accent ? 600 : 500,
                     fontSize: '11px',
                     letterSpacing: '0.08em',
-                    color: active ? 'var(--wheat)' : item.accent ? 'var(--accent)' : 'var(--text-muted)',
+                    color: active ? 'var(--text)' : item.accent ? 'var(--accent-budget)' : 'var(--text-muted)',
                     textTransform: 'uppercase',
                   }}
                 >
                   {item.label}
                 </span>
                 {item.accent && !active && (
-                  <span style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: 'var(--accent)', opacity: 0.7, flexShrink: 0 }} />
+                  <span style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: 'var(--accent-budget)', opacity: 0.7, flexShrink: 0 }} />
                 )}
               </Link>
             </div>
@@ -171,12 +171,12 @@ export function Sidebar() {
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'linear-gradient(135deg, var(--accent), var(--dark-cyan))' }}
+            style={{ background: 'linear-gradient(135deg, var(--accent-budget), var(--accent-time))' }}
           >
             <User size={12} style={{ color: '#fff' }} />
           </div>
           <div className="min-w-0">
-            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: 'var(--wheat)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: 'var(--text)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
             <p style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Voir profil</p>
           </div>
         </Link>
@@ -187,7 +187,7 @@ export function Sidebar() {
             href="/reglages"
             className="flex-1 flex items-center justify-center py-2 rounded-[6px] transition-all"
             style={{
-              color: isActive('/reglages') ? 'var(--accent)' : 'var(--text-muted)',
+              color: isActive('/reglages') ? 'var(--accent-budget)' : 'var(--text-muted)',
               background: isActive('/reglages') ? 'rgba(242,84,45,0.08)' : 'transparent',
             }}
           >
@@ -200,7 +200,7 @@ export function Sidebar() {
               onClick={() => setThemeOpen(o => !o)}
               className="w-full flex items-center justify-center py-2 rounded-[6px] transition-all"
               style={{
-                color: themeOpen ? 'var(--accent)' : 'var(--text-muted)',
+                color: themeOpen ? 'var(--accent-budget)' : 'var(--text-muted)',
                 background: themeOpen ? 'rgba(242,84,45,0.08)' : 'transparent',
               }}
             >
@@ -240,15 +240,15 @@ export function Sidebar() {
                         gap: 4,
                         padding: '7px 8px',
                         borderRadius: 8,
-                        border: active ? '1.5px solid var(--accent)' : '1.5px solid var(--border)',
+                        border: active ? '1.5px solid var(--accent-budget)' : '1.5px solid var(--border)',
                         background: active ? 'rgba(242,84,45,0.1)' : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.12s',
                         minWidth: 42,
                       }}
                     >
-                      <Icon size={14} style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }} />
-                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--wheat)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      <Icon size={14} style={{ color: active ? 'var(--accent-budget)' : 'var(--text-muted)' }} />
+                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--text)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
                         {label}
                       </span>
                     </button>

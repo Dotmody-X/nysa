@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const STRAVA_ORANGE = '#FC4C02'
 const TEAL          = 'var(--azul)'
-const ORANGE        = 'var(--accent)'
+const ORANGE        = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 /* ─── Helpers ────────────────────────────────────────────── */
@@ -681,7 +681,7 @@ function SportPageInner() {
                   <Calendar size={22} style={{ color: WHEAT }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--wheat)' }}>
+                  <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>
                     {nextCalRun.title}
                     <span style={{ fontSize: 9, marginLeft: 8, padding: '2px 6px', borderRadius: 4,
                       background: 'rgba(14,149,148,0.15)', color: TEAL, ...DF, fontWeight: 700 }}>Calendrier</span>
@@ -713,7 +713,7 @@ function SportPageInner() {
                   <Activity size={22} style={{ color: WHEAT }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--wheat)' }}>
+                  <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>
                     {(nextRun as any).title ?? `Course — ${fmtDate(nextRun.date)}`}
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{fmtDateLong(nextRun.date)}</p>
@@ -751,7 +751,7 @@ function SportPageInner() {
           <div style={{ ...card(), padding: 22, flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <p style={{ ...label(TEAL) }}>Évolution de l&apos;allure</p>
-              <span style={{ ...DF, fontSize: 14, fontWeight: 800, color: 'var(--wheat)' }}>
+              <span style={{ ...DF, fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>
                 {avgPaceAll > 0 ? fmtPace(avgPaceAll) : '—'}
               </span>
             </div>
@@ -796,7 +796,7 @@ function SportPageInner() {
                     {hasGpx ? <Zap size={16} style={{ color: ORANGE }} /> : <Activity size={16} style={{ color: WHEAT }} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--wheat)', lineHeight: 1.2 }}>
+                    <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>
                       {(a as any).title ?? `Course du ${fmtDate(a.date)}`}
                       {hasGpx && <span style={{ fontSize: 8, marginLeft: 6, padding: '2px 5px', borderRadius: 3, background: 'rgba(242,84,45,0.15)', color: ORANGE, ...DF, fontWeight: 700 }}>GPX</span>}
                     </p>
@@ -804,7 +804,7 @@ function SportPageInner() {
                   </div>
                   <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
                     <div style={{ textAlign: 'right' }}>
-                      <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: 'var(--wheat)', lineHeight: 1 }}>{a.distance_km?.toFixed(1)}</p>
+                      <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{a.distance_km?.toFixed(1)}</p>
                       <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>km</p>
                     </div>
                     {a.duration_seconds != null && (
@@ -835,7 +835,7 @@ function SportPageInner() {
             {/* Total time in zones */}
             <div style={{ marginTop: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 14, borderTop: '1px solid var(--border)' }}>
               <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Temps total analysé</p>
-              <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--wheat)' }}>{fmtDurLong(secWeek)}</p>
+              <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{fmtDurLong(secWeek)}</p>
             </div>
           </div>
           <div style={{ ...card(), padding: 20 }}>
@@ -843,7 +843,7 @@ function SportPageInner() {
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               {activities.slice(0, 5).filter(a => a.heart_rate_avg).map(a => (
                 <div key={a.id} style={{ textAlign: 'center' }}>
-                  <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: 'var(--wheat)' }}>{a.heart_rate_avg}</p>
+                  <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: 'var(--text)' }}>{a.heart_rate_avg}</p>
                   <p style={{ fontSize: 8, color: 'var(--text-muted)' }}>{fmtDate(a.date)}</p>
                 </div>
               ))}
@@ -943,7 +943,7 @@ function SportPageInner() {
                 {run && <p style={{ fontSize: 9, color: 'var(--text-subtle)', marginTop: 2 }}>{fmtDate(run.date)}</p>}
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: run ? 'var(--wheat)' : 'var(--text-muted)', lineHeight: 1 }}>
+                <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: run ? 'var(--text)' : 'var(--text-muted)', lineHeight: 1 }}>
                   {run ? fmtDur(run.duration_seconds ?? 0) : '—'}
                 </p>
                 {run?.pace_sec_per_km && <p style={{ fontSize: 9, color: TEAL, marginTop: 2 }}>{fmtPace(run.pace_sec_per_km)}</p>}
@@ -957,7 +957,7 @@ function SportPageInner() {
                 !b || (a.distance_km ?? 0) > (b.distance_km ?? 0) ? a : b, null)
               return best ? (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--wheat)' }}>{best.distance_km?.toFixed(1)} km</p>
+                  <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{best.distance_km?.toFixed(1)} km</p>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{fmtDate(best.date)}</p>
                 </div>
               ) : <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>—</p>

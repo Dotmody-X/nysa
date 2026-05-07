@@ -67,7 +67,7 @@ export const EXCEL_CATEGORIES: NewCategory[] = [
   { name:'Le Mixologue',      type:'income',  subtype:'income',  color:'var(--azul)', icon:'💼', budget_monthly:2300 },
   // Charges fixes (bills)
   { name:'Loyé & Charges',    type:'expense', subtype:'bill',    color:'#7C6FAF', icon:'🏠', budget_monthly:960  },
-  { name:'Gaz & Electricité', type:'expense', subtype:'bill',    color:'var(--accent)', icon:'⚡', budget_monthly:100  },
+  { name:'Gaz & Electricité', type:'expense', subtype:'bill',    color:'var(--accent-budget)', icon:'⚡', budget_monthly:100  },
   { name:'Assurance',         type:'expense', subtype:'bill',    color:'#5E9C8F', icon:'🛡', budget_monthly:25   },
   { name:'Mutuel. NG',        type:'expense', subtype:'bill',    color:'#3ABCB8', icon:'🏥', budget_monthly:50   },
   { name:'Internet',          type:'expense', subtype:'bill',    color:'#E8A838', icon:'📡', budget_monthly:45   },
@@ -77,7 +77,7 @@ export const EXCEL_CATEGORIES: NewCategory[] = [
   // Investissement (classé bill car récurrent)
   { name:'Invest',            type:'expense', subtype:'bill',    color:'var(--azul)', icon:'📈', budget_monthly:290  },
   // Dépenses variables
-  { name:'Course',            type:'expense', subtype:'expense', color:'var(--accent)', icon:'🛒', budget_monthly:400  },
+  { name:'Course',            type:'expense', subtype:'expense', color:'var(--accent-budget)', icon:'🛒', budget_monthly:400  },
   { name:'Restaurant',        type:'expense', subtype:'expense', color:'#E8A838', icon:'🍽', budget_monthly:50   },
   { name:'Vêtements',         type:'expense', subtype:'expense', color:'#7C6FAF', icon:'👕', budget_monthly:50   },
   { name:'Maison',            type:'expense', subtype:'expense', color:'#5E9C8F', icon:'🪴', budget_monthly:50   },

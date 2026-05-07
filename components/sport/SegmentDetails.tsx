@@ -5,7 +5,7 @@ import { TrendingUp, Zap, Activity } from 'lucide-react'
 import type { ActivitySegment } from '@/hooks/useActivitySegments'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const ORANGE = 'var(--accent)'
+const ORANGE = 'var(--accent-budget)'
 const TEAL = 'var(--azul)'
 
 function fmtPace(sec: number) {
@@ -179,19 +179,19 @@ export function SegmentDetails({ segments }: { segments: ActivitySegment[] }) {
                   <td style={{ padding: '8px', textAlign: 'center', fontWeight: 700, color: ORANGE, ...DF }}>
                     {seg.km_index}
                   </td>
-                  <td style={{ padding: '8px', textAlign: 'center', color: 'var(--wheat)', fontSize: 9 }}>
+                  <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text)', fontSize: 9 }}>
                     {fmtPace(seg.pace_sec_per_km)}
                   </td>
                   <td style={{ padding: '8px', textAlign: 'center', color: seg.heart_rate_avg ? '#FF6B35' : 'var(--text-muted)', fontSize: 9 }}>
                     {seg.heart_rate_avg ? seg.heart_rate_avg : '—'}
                   </td>
-                  <td style={{ padding: '8px', textAlign: 'center', color: 'var(--wheat)', fontSize: 9 }}>
+                  <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text)', fontSize: 9 }}>
                     {seg.cadence_avg ? seg.cadence_avg : '—'}
                   </td>
                   <td style={{
                     padding: '8px',
                     textAlign: 'center',
-                    color: Math.abs(seg.grade_avg) > 0.2 ? ORANGE : Math.abs(seg.grade_avg) > 0 ? 'var(--wheat)' : 'var(--text-muted)',
+                    color: Math.abs(seg.grade_avg) > 0.2 ? ORANGE : Math.abs(seg.grade_avg) > 0 ? 'var(--text)' : 'var(--text-muted)',
                     fontSize: 9,
                   }}>
                     {Math.abs(seg.grade_avg) > 0.1 ? `${seg.grade_avg.toFixed(1)}%` : '—'}
@@ -229,7 +229,7 @@ export function SegmentDetails({ segments }: { segments: ActivitySegment[] }) {
           }}>
             <div>
               <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4, ...DF, fontWeight: 700 }}>Allure</p>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                 {fmtPace(segments[selectedKm].pace_sec_per_km)}
               </p>
             </div>
@@ -247,7 +247,7 @@ export function SegmentDetails({ segments }: { segments: ActivitySegment[] }) {
             {segments[selectedKm].cadence_avg > 0 && (
               <div>
                 <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4, ...DF, fontWeight: 700 }}>Cadence</p>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                   {segments[selectedKm].cadence_avg} rpm
                 </p>
               </div>
@@ -265,14 +265,14 @@ export function SegmentDetails({ segments }: { segments: ActivitySegment[] }) {
               <p style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: Math.abs(segments[selectedKm].grade_avg) > 0.2 ? ORANGE : 'var(--wheat)',
+                color: Math.abs(segments[selectedKm].grade_avg) > 0.2 ? ORANGE : 'var(--text)',
               }}>
                 {Math.abs(segments[selectedKm].grade_avg) > 0.1 ? `${segments[selectedKm].grade_avg.toFixed(1)}%` : '—'}
               </p>
             </div>
             <div>
               <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4, ...DF, fontWeight: 700 }}>Temps</p>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
                 {fmtTime(segments[selectedKm].time_seconds)}
               </p>
             </div>

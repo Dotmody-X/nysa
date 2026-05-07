@@ -59,7 +59,7 @@ const SHORTCUTS: { category: string; items: { keys: string[]; label: string }[] 
 
 function Kbd({ k }: { k: string }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 26, height: 22, padding: '0 6px', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 5, fontSize: 10, color: 'var(--wheat)', ...DF, fontWeight: 700, boxShadow: '0 1px 0 var(--border)' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 26, height: 22, padding: '0 6px', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 5, fontSize: 10, color: 'var(--text)', ...DF, fontWeight: 700, boxShadow: '0 1px 0 var(--border)' }}>
       {k}
     </span>
   )
@@ -87,7 +87,7 @@ export default function RaccourcisPage() {
             </div>
             {cat.items.map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 18px', borderBottom: i < cat.items.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                <p style={{ fontSize: 12, color: 'var(--wheat)' }}>{item.label}</p>
+                <p style={{ fontSize: 12, color: 'var(--text)' }}>{item.label}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   {item.keys.map((k, ki) => (
                     <span key={ki} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

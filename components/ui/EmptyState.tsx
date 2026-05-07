@@ -45,7 +45,7 @@ export function EmptyState({
             <Link
               href={action.href}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--accent)', color: 'var(--bg)' }}
+              style={{ background: 'var(--accent-budget)', color: 'var(--bg)' }}
             >
               <Plus size={16} />
               {action.label}
@@ -54,7 +54,7 @@ export function EmptyState({
             <button
               onClick={action.onClick}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--accent)', color: 'var(--bg)' }}
+              style={{ background: 'var(--accent-budget)', color: 'var(--bg)' }}
             >
               <Plus size={16} />
               {action.label}

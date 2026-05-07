@@ -23,7 +23,7 @@ const TIME_COL     = 44
 
 // Catégories fixes avec couleurs NYSA
 const CATEGORIES: Record<string, string> = {
-  Travail:  'var(--accent)',
+  Travail:  'var(--accent-budget)',
   Perso:    'var(--azul)',
   Santé:    '#B45309',
   Running:  'var(--azul)',
@@ -33,7 +33,7 @@ const CATEGORIES: Record<string, string> = {
 
 // Palette NYSA pour les catégories dynamiques (noms de calendriers Apple)
 const NYSA_PALETTE = [
-  'var(--accent)', // orange fiery
+  'var(--accent-budget)', // orange fiery
   'var(--azul)', // teal
   '#9333EA', // violet
   '#2563EB', // bleu
@@ -191,10 +191,10 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-[8px] flex items-center justify-center" style={{ background: 'var(--bg-input)' }}>
-              {loadingCals ? <RefreshCw size={14} style={{ color: 'var(--wheat)', opacity: 0.5 }} /> : <Apple size={16} style={{ color: 'var(--wheat)' }} />}
+              {loadingCals ? <RefreshCw size={14} style={{ color: 'var(--text)', opacity: 0.5 }} /> : <Apple size={16} style={{ color: 'var(--text)' }} />}
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>Apple Calendar</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text)', fontFamily: 'var(--font-display)' }}>Apple Calendar</p>
               <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{stepLabel}</p>
             </div>
           </div>
@@ -206,8 +206,8 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
           <>
             <div className="rounded-[10px] p-4 flex flex-col gap-2" style={{ background: 'rgba(14,149,148,0.12)', border: '1px solid rgba(14,149,148,0.25)' }}>
               <p className="text-xs font-semibold" style={{ color: 'var(--azul)' }}>Avant de continuer</p>
-              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--wheat)' }}>
-                Apple exige un <strong style={{ color: 'var(--wheat)' }}>mot de passe spécifique à l'app</strong> pour les accès tiers. Ton mot de passe Apple ID principal ne fonctionnera pas.
+              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text)' }}>
+                Apple exige un <strong style={{ color: 'var(--text)' }}>mot de passe spécifique à l'app</strong> pour les accès tiers. Ton mot de passe Apple ID principal ne fonctionnera pas.
               </p>
             </div>
             <div className="flex flex-col gap-2">
@@ -217,14 +217,14 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
                 { n: '3', t: 'Clique sur', link: '+', desc: ', donne le nom "NYSA", copie le mdp' },
               ].map(s => (
                 <div key={s.n} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold" style={{ background: 'var(--accent)', color: '#fff' }}>{s.n}</div>
-                  <p className="text-[11px] leading-relaxed" style={{ color: 'var(--wheat)' }}>
-                    {s.t} <span style={{ color: 'var(--wheat)' }}>{s.link}</span> {s.desc}
+                  <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold" style={{ background: 'var(--accent-budget)', color: '#fff' }}>{s.n}</div>
+                  <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text)' }}>
+                    {s.t} <span style={{ color: 'var(--text)' }}>{s.link}</span> {s.desc}
                   </p>
                 </div>
               ))}
             </div>
-            <button onClick={() => setStep(2)} className="w-full py-2.5 rounded-[8px] text-sm font-semibold" style={{ background: 'var(--accent)', color: '#fff' }}>
+            <button onClick={() => setStep(2)} className="w-full py-2.5 rounded-[8px] text-sm font-semibold" style={{ background: 'var(--accent-budget)', color: '#fff' }}>
               J'ai mon mot de passe →
             </button>
           </>
@@ -239,18 +239,18 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
                 <input autoFocus type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="nom@icloud.com"
                   className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg-input)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+                  style={{ background: 'var(--bg-input)', color: 'var(--text)', border: '1px solid var(--border)' }} />
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-widest mb-1.5 block" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>Mot de passe spécifique</label>
                 <input type="password" value={pass} onChange={e => setPass(e.target.value)}
                   placeholder="xxxx-xxxx-xxxx-xxxx"
                   className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-                  style={{ background: 'var(--bg-input)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+                  style={{ background: 'var(--bg-input)', color: 'var(--text)', border: '1px solid var(--border)' }} />
               </div>
             </div>
             {result && (
-              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? 'var(--azul)' : 'var(--accent)' }}>
+              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? 'var(--azul)' : 'var(--accent-budget)' }}>
                 {result}
               </p>
             )}
@@ -260,7 +260,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
               </button>
               <button onClick={handleConnect} disabled={syncing || !email || !pass}
                 className="flex-1 py-2 rounded-[8px] text-sm font-semibold disabled:opacity-40"
-                style={{ background: 'var(--accent)', color: '#fff' }}>
+                style={{ background: 'var(--accent-budget)', color: '#fff' }}>
                 {syncing ? 'Connexion…' : 'Connecter →'}
               </button>
             </div>
@@ -272,7 +272,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
           <>
             <div className="rounded-[10px] p-3" style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }}>
               <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                Coche les calendriers à <strong style={{ color: 'var(--wheat)' }}>inclure</strong> dans NYSA. Les autres seront ignorés.
+                Coche les calendriers à <strong style={{ color: 'var(--text)' }}>inclure</strong> dans NYSA. Les autres seront ignorés.
               </p>
             </div>
 
@@ -296,7 +296,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
                     }}>
                       {isIncluded && <span style={{ color: '#fff', fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</span>}
                     </div>
-                    <span style={{ fontSize: 12, color: isIncluded ? 'var(--wheat)' : 'var(--text-subtle)', fontWeight: isIncluded ? 500 : 400 }}>
+                    <span style={{ fontSize: 12, color: isIncluded ? 'var(--text)' : 'var(--text-subtle)', fontWeight: isIncluded ? 500 : 400 }}>
                       {cal.name}
                     </span>
                   </div>
@@ -305,7 +305,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
             </div>
 
             {result && (
-              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? 'var(--azul)' : 'var(--accent)' }}>
+              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? 'var(--azul)' : 'var(--accent-budget)' }}>
                 {result}
               </p>
             )}
@@ -316,7 +316,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
               </button>
               <button onClick={handleApplyFilter} disabled={syncing}
                 className="flex-1 py-2.5 rounded-[8px] text-sm font-semibold disabled:opacity-40"
-                style={{ background: 'var(--accent)', color: '#fff' }}>
+                style={{ background: 'var(--accent-budget)', color: '#fff' }}>
                 {syncing ? 'Sync…' : `Appliquer (${calendars.length - excluded.length}/${calendars.length})`}
               </button>
             </div>
@@ -415,7 +415,7 @@ function EventModal({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold" style={{ color: 'var(--wheat)', fontFamily: 'var(--font-display)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text)', fontFamily: 'var(--font-display)' }}>
               {isEdit ? "Modifier l'événement" : 'Nouvel événement'}
             </p>
             <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
@@ -431,7 +431,7 @@ function EventModal({
             onKeyDown={e => e.key === 'Enter' && submit()}
             placeholder="Titre de l'événement…"
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-            style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+            style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
 
           {/* Heures */}
           <div className="flex gap-2">
@@ -439,20 +439,20 @@ function EventModal({
               <label className="text-[9px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Début</label>
               <input type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))}
                 className="w-full px-2.5 py-1.5 rounded-[7px] text-xs outline-none"
-                style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+                style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
             </div>
             <div className="flex-1">
               <label className="text-[9px] uppercase tracking-widest mb-1 block" style={{ color: 'var(--text-muted)' }}>Fin</label>
               <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))}
                 className="w-full px-2.5 py-1.5 rounded-[7px] text-xs outline-none"
-                style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+                style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
             </div>
           </div>
 
           {/* Catégorie + couleur */}
           <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-            style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
+            style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }}>
             {extraCategories.length > 0 && (
               <optgroup label="Apple Calendar">
                 {extraCategories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -472,7 +472,7 @@ function EventModal({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <label className="text-[9px] uppercase tracking-widest block" style={{ color: 'var(--text-muted)' }}>Projet</label>
               <button type="button" onClick={() => setShowNewProj(v => !v)}
-                style={{ fontSize: 9, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                style={{ fontSize: 9, color: 'var(--accent-budget)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Plus size={9} /> Nouveau
               </button>
             </div>
@@ -483,9 +483,9 @@ function EventModal({
                 <input autoFocus value={newProjName} onChange={e => setNewProjName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleCreateProject()}
                   placeholder="Nom du projet…"
-                  style={{ flex: 1, background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid rgba(242,84,45,0.4)', borderRadius: 7, padding: '6px 10px', fontSize: 12, outline: 'none' }} />
+                  style={{ flex: 1, background: 'var(--bg)', color: 'var(--text)', border: '1px solid rgba(242,84,45,0.4)', borderRadius: 7, padding: '6px 10px', fontSize: 12, outline: 'none' }} />
                 <button onClick={handleCreateProject} disabled={creatingProj || !newProjName.trim()}
-                  style={{ padding: '6px 12px', borderRadius: 7, background: 'var(--accent)', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', opacity: creatingProj ? 0.5 : 1 }}>
+                  style={{ padding: '6px 12px', borderRadius: 7, background: 'var(--accent-budget)', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', opacity: creatingProj ? 0.5 : 1 }}>
                   {creatingProj ? '…' : 'OK'}
                 </button>
               </div>
@@ -493,7 +493,7 @@ function EventModal({
 
             <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))}
               className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-              style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }}>
+              style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }}>
               <option value="">Sans projet</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
@@ -511,13 +511,13 @@ function EventModal({
           <input type="text" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
             placeholder="Lieu (optionnel)…"
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
-            style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+            style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
 
           {/* Notes */}
           <textarea rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
             placeholder="Notes…"
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none resize-none"
-            style={{ background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)' }} />
+            style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
         </div>
 
         <div className="flex gap-2 justify-end">
@@ -526,7 +526,7 @@ function EventModal({
           </button>
           <button onClick={submit} disabled={saving || !form.title.trim()}
             className="px-4 py-2 rounded-[8px] text-xs font-semibold disabled:opacity-40"
-            style={{ background: 'var(--accent)', color: '#fff' }}>
+            style={{ background: 'var(--accent-budget)', color: '#fff' }}>
             {saving ? '…' : isEdit ? 'Modifier' : 'Créer'}
           </button>
         </div>
@@ -823,7 +823,7 @@ function CalendrierContent() {
       {/* Notification toast */}
       {notification && (
         <div className="fixed top-4 right-4 z-50 px-4 py-2.5 rounded-[10px] text-sm font-semibold"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--wheat)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
           {notification}
         </div>
       )}
@@ -832,10 +832,10 @@ function CalendrierContent() {
 
       {/* Hero title — col-span-2, 300px */}
       <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '10px 0 20px 0', height: 300 }}>
-        <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
+        <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--accent-budget)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
           Calendrier
         </p>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 1, color: 'var(--wheat)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 1, color: 'var(--text)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
           Votre journée.<br />Votre plan.
         </h1>
         <p style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 500, color: 'var(--azul)', marginTop: 12, textTransform: 'capitalize' }}>
@@ -882,7 +882,7 @@ function CalendrierContent() {
             const active = calView === v
             return (
               <button key={v} onClick={() => setCalView(v)}
-                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? 'var(--accent)' : 'transparent', color: active ? '#fff' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? 'var(--accent-budget)' : 'transparent', color: active ? '#fff' : 'var(--text-muted)', transition: 'all 0.15s' }}>
                 {label}
               </button>
             )
@@ -894,20 +894,20 @@ function CalendrierContent() {
           <button onClick={prevPeriod} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
             <ChevronLeft size={13} style={{ color: 'var(--text-muted)' }} />
           </button>
-          <button onClick={goToday} style={{ padding: '5px 16px', borderRadius: 8, fontSize: 11, fontWeight: 500, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--wheat)', cursor: 'pointer' }}>
+          <button onClick={goToday} style={{ padding: '5px 16px', borderRadius: 8, fontSize: 11, fontWeight: 500, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', cursor: 'pointer' }}>
             Aujourd'hui
           </button>
           <button onClick={nextPeriod} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
             <ChevronRight size={13} style={{ color: 'var(--text-muted)' }} />
           </button>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--wheat)', fontFamily: 'var(--font-display)', minWidth: 150, textAlign: 'center', textTransform: 'capitalize', letterSpacing: '-0.01em' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-display)', minWidth: 150, textAlign: 'center', textTransform: 'capitalize', letterSpacing: '-0.01em' }}>
             {periodTitle}
           </span>
         </div>
 
         {/* + Événement */}
         <button onClick={() => setModalDate((calView === 'day' ? dayStart : today).toISOString().slice(0, 10))}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', border: 'none', letterSpacing: '0.04em' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: 'var(--accent-budget)', color: '#fff', cursor: 'pointer', border: 'none', letterSpacing: '0.04em' }}>
           <Plus size={13} /> ÉVÉNEMENT
         </button>
       </div>
@@ -945,7 +945,7 @@ function CalendrierContent() {
                   }}
                   onMouseEnter={e => { if (!isToday) (e.currentTarget as HTMLElement).style.background = 'var(--bg-card-hover)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isToday ? 'rgba(242,84,45,0.04)' : 'transparent' }}>
-                  <div style={{ width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isToday ? 'var(--accent)' : 'transparent', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', color: isToday ? '#fff' : 'var(--wheat)', marginBottom: 3 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isToday ? 'var(--accent-budget)' : 'transparent', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', color: isToday ? '#fff' : 'var(--text)', marginBottom: 3 }}>
                     {day.getDate()}
                   </div>
                   {filtered.slice(0, 2).map(ev => {
@@ -983,9 +983,9 @@ function CalendrierContent() {
                 <div style={{
                   width: 26, height: 26, borderRadius: '50%', margin: '0 auto',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isToday ? 'var(--accent)' : 'transparent',
+                  background: isToday ? 'var(--accent-budget)' : 'transparent',
                   fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-display)',
-                  color: isToday ? '#fff' : 'var(--wheat)',
+                  color: isToday ? '#fff' : 'var(--text)',
                 }}>
                   {day.getDate()}
                 </div>
@@ -1040,8 +1040,8 @@ function CalendrierContent() {
             {/* Now line */}
             {todayInWeek && nowMins >= 0 && nowMins <= TOTAL_HOURS * 60 && (
               <div style={{ position: 'absolute', top: nowPx, left: TIME_COL, right: 0, display: 'flex', alignItems: 'center', zIndex: 20, pointerEvents: 'none' }}>
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', marginLeft: -3.5 }} />
-                <div style={{ flex: 1, height: 1, background: 'var(--accent)', opacity: 0.85 }} />
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent-budget)', marginLeft: -3.5 }} />
+                <div style={{ flex: 1, height: 1, background: 'var(--accent-budget)', opacity: 0.85 }} />
               </div>
             )}
 
@@ -1177,7 +1177,7 @@ function CalendrierContent() {
             <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', background: evColor(selected), flexShrink: 0, marginTop: 2 }} />
-                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--wheat)', lineHeight: 1.3, fontFamily: 'var(--font-display)' }}>{selected.title}</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', lineHeight: 1.3, fontFamily: 'var(--font-display)' }}>{selected.title}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Clock size={10} style={{ color: 'var(--text-muted)' }} />
@@ -1192,7 +1192,7 @@ function CalendrierContent() {
                   <Pencil size={11} /> Modifier
                 </button>
                 <button onClick={() => handleDelete(selected.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent-budget)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   <Trash2 size={11} /> Supprimer
                 </button>
               </div>
@@ -1214,9 +1214,9 @@ function CalendrierContent() {
               <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderBottom: '1px solid var(--border)' }}>
                 {t.status === 'done'
                   ? <CheckCircle2 size={12} style={{ color: 'var(--azul)', flexShrink: 0 }} />
-                  : <Circle size={12} style={{ color: t.priority === 'urgent' ? 'var(--accent)' : 'var(--text-muted)', flexShrink: 0 }} />}
+                  : <Circle size={12} style={{ color: t.priority === 'urgent' ? 'var(--accent-budget)' : 'var(--text-muted)', flexShrink: 0 }} />}
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 11, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{t.title}</p>
+                  <p style={{ fontSize: 11, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--text)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{t.title}</p>
                 </div>
               </div>
             ))}
@@ -1228,7 +1228,7 @@ function CalendrierContent() {
           <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <p style={labelStyle}>Filtrer</p>
             {activeCategories.length > 0 && (
-              <button onClick={() => setActiveCategories([])} style={{ fontSize: 9, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>Réinitialiser</button>
+              <button onClick={() => setActiveCategories([])} style={{ fontSize: 9, color: 'var(--accent-budget)', background: 'none', border: 'none', cursor: 'pointer' }}>Réinitialiser</button>
             )}
           </div>
           <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', maxHeight: 200 }}>
@@ -1243,7 +1243,7 @@ function CalendrierContent() {
                 <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => toggleCategory(cat)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
-                    <span style={{ fontSize: 11, color: 'var(--wheat)' }}>{cat}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text)' }}>{cat}</span>
                   </div>
                   <div style={{ width: 14, height: 14, borderRadius: 4, border: `1.5px solid ${active ? color : 'var(--border)'}`, background: active ? color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {active && <span style={{ color: '#fff', fontSize: 9, lineHeight: 1 }}>✓</span>}
@@ -1284,7 +1284,7 @@ function CalendrierContent() {
         </div>
 
         {/* RAPPELS — orange */}
-        <div style={{ ...card({ background: 'var(--accent)', border: '1px solid var(--accent)' }), display: 'flex', flexDirection: 'column' }}>
+        <div style={{ ...card({ background: 'var(--accent-budget)', border: '1px solid var(--accent-budget)' }), display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Bell size={11} color="rgba(255,255,255,0.9)" />
             <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Rappels</p>
@@ -1321,10 +1321,10 @@ function CalendrierContent() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: appleConnected ? 'rgba(14,149,148,0.08)' : 'var(--bg-card-hover)', border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.25)' : 'var(--border)'}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 7, background: appleConnected ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Apple size={14} style={{ color: appleConnected ? 'var(--azul)' : 'var(--wheat)' }} />
+                  <Apple size={14} style={{ color: appleConnected ? 'var(--azul)' : 'var(--text)' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)' }}>Apple Calendar</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Apple Calendar</p>
                   <p style={{ fontSize: 9, color: appleConnected ? 'var(--azul)' : 'var(--text-muted)' }}>
                     {appleConnected ? (syncing ? 'Sync…' : lastSync ? `Sync ${lastSync.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}` : 'Connecté') : 'CalDAV'}
                   </p>
@@ -1341,10 +1341,10 @@ function CalendrierContent() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border)', opacity: 0.5 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Calendar size={14} style={{ color: 'var(--wheat)' }} />
+                  <Calendar size={14} style={{ color: 'var(--text)' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)' }}>Google Calendar</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Google Calendar</p>
                   <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>Bientôt disponible</p>
                 </div>
               </div>

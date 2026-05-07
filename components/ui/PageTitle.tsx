@@ -12,8 +12,8 @@ export function PageTitle({ title, sub, right }: PageTitleProps) {
   return (
     <div className="flex items-end justify-between" style={{ marginBottom: 20 }}>
       <div>
-        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1 }}>
-          {title}<span style={{ color: 'var(--accent)' }}>.</span>
+        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--accent-budget)', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1 }}>
+          {title}<span style={{ color: 'var(--accent-budget)' }}>.</span>
         </h1>
         {sub && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.05em' }}>{sub}</p>}
       </div>
@@ -31,7 +31,7 @@ export function KpiGrid({ children }: { children: React.ReactNode }) {
 }
 
 export function KpiCard({
-  label, value, sub, color = 'var(--wheat)', bg = 'var(--bg-card)',
+  label, value, sub, color = 'var(--text)', bg = 'var(--bg-card)',
 }: { label: string; value: string; sub?: string; color?: string; bg?: string }) {
   return (
     <div className="flex flex-col justify-between p-4" style={{ background: bg, borderRadius: 12, border: '1px solid var(--border)', minHeight: 90 }}>
@@ -42,7 +42,7 @@ export function KpiCard({
   )
 }
 
-export function SectionCard({ children, title, titleColor = 'var(--accent)', bg = 'var(--bg-card)', action, style }: {
+export function SectionCard({ children, title, titleColor = 'var(--accent-budget)', bg = 'var(--bg-card)', action, style }: {
   children: React.ReactNode; title?: string; titleColor?: string
   bg?: string; action?: React.ReactNode; style?: React.CSSProperties
 }) {

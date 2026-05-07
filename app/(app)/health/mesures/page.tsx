@@ -5,7 +5,7 @@ import { ArrowLeft, Plus, TrendingDown, TrendingUp, Pencil, Trash2, Check, X, Al
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL   = 'var(--azul)'
-const ORANGE = 'var(--accent)'
+const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
@@ -24,7 +24,7 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
             <AlertTriangle size={18} style={{ color: ORANGE }} />
           </div>
           <div>
-            <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--wheat)', lineHeight: 1.2 }}>Confirmer la suppression</p>
+            <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>Confirmer la suppression</p>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{message}</p>
           </div>
         </div>
@@ -344,7 +344,7 @@ export default function MesuresPage() {
             <div key={m.id} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 100px 80px 72px',
               padding: '14px 20px', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
               <div>
-                <p style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDate(m.date)}</p>
+                <p style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{fmtDate(m.date)}</p>
                 {m.notes && <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{m.notes}</p>}
               </div>
               {[
@@ -357,7 +357,7 @@ export default function MesuresPage() {
                 const isGood = d == null ? null : (s.good ? d > 0 : d < 0)
                 return (
                   <div key={si} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                    <span style={{ ...DF, fontSize: 14, fontWeight: 800, color: 'var(--wheat)' }}>
+                    <span style={{ ...DF, fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>
                       {s.v != null ? `${s.v} ${s.unit}` : '—'}
                     </span>
                     {d !== null && (

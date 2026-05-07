@@ -49,8 +49,8 @@ function getPeriodDates(period: Period): { from: string; to?: string } {
 /* ── Category colours ─────────────────────────────────────────────────────── */
 const CAT_COLORS: Record<string, string> = {
   'Design':        'var(--azul)',
-  'Développement': 'var(--accent)',
-  'Dev':           'var(--accent)',
+  'Développement': 'var(--accent-budget)',
+  'Dev':           'var(--accent-budget)',
   'Apprentissage': 'var(--text)',
   'Admin':         '#E07030',
   'Santé':         '#4ECDC4',
@@ -139,7 +139,7 @@ function DonutChart({ segments, label }: {
           />
         )
       })}
-      <text x={cx} y={cy - 6}  textAnchor="middle" fill="var(--wheat)"      fontSize="18" fontWeight="900" fontFamily="var(--font-display)">{label}</text>
+      <text x={cx} y={cy - 6}  textAnchor="middle" fill="var(--text)"      fontSize="18" fontWeight="900" fontFamily="var(--font-display)">{label}</text>
       <text x={cx} y={cy + 12} textAnchor="middle" fill="var(--text-muted)" fontSize="9"  fontFamily="var(--font-display)" letterSpacing="2">TOTAL</text>
     </svg>
   )
@@ -194,7 +194,7 @@ function Dropdown<T extends string>({
 
   const bg     = dark ? 'rgba(255,255,255,0.1)'  : 'var(--bg-input)'
   const border = dark ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--border)'
-  const txtC   = dark ? 'var(--text-muted)' : 'var(--wheat)'
+  const txtC   = dark ? 'var(--text-muted)' : 'var(--text)'
   const muted  = dark ? 'rgba(240,228,204,0.55)' : 'var(--text-muted)'
   const menuBg = dark ? '#0d4a4b' : 'var(--bg-card)'
   const menuBorder = dark ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--border)'
@@ -210,7 +210,7 @@ function Dropdown<T extends string>({
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100, background: menuBg, border: menuBorder, borderRadius: 8, minWidth: '100%', padding: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
           {options.map(opt => (
             <div key={opt} onClick={() => { onChange(opt); setOpen(false) }}
-              style={{ padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: opt === value ? 'var(--accent)' : txtC, fontWeight: opt === value ? 700 : 400, background: opt === value ? 'rgba(242,84,45,0.08)' : 'transparent' }}
+              style={{ padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: opt === value ? 'var(--accent-budget)' : txtC, fontWeight: opt === value ? 700 : 400, background: opt === value ? 'rgba(242,84,45,0.08)' : 'transparent' }}
               onMouseEnter={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = dark ? 'rgba(255,255,255,0.07)' : 'var(--bg-card-hover)' }}
               onMouseLeave={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
               {labels[opt]}
@@ -237,7 +237,7 @@ function ContextMenu({ items, onClose }: {
     <div ref={ref} style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', zIndex: 100, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, minWidth: 160, padding: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
       {items.map((item, i) => (
         <button key={i} onClick={() => { item.onClick(); onClose() }}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: item.danger ? 'var(--accent)' : 'var(--wheat)', fontWeight: item.danger ? 600 : 400, textAlign: 'left' }}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: item.danger ? 'var(--accent-budget)' : 'var(--text)', fontWeight: item.danger ? 600 : 400, textAlign: 'left' }}
           onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
           {item.icon}<span>{item.label}</span>
@@ -255,7 +255,7 @@ const LABEL_COLORS: Record<string, string> = {
   'Travail':   'var(--azul)',
   'Perso':     '#4B8BF4',
   'Santé':     '#4ECDC4',
-  'Running':   'var(--accent)',
+  'Running':   'var(--accent-budget)',
 }
 
 function LabelPickerDropdown({ labels, selected, onSelect, onClose }: {
@@ -280,7 +280,7 @@ function LabelPickerDropdown({ labels, selected, onSelect, onClose }: {
           onMouseLeave={e => { if (l !== selected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[l] ?? '#888', flexShrink: 0 }} />
           {l}
-          {l === selected && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--accent)' }}>✓</span>}
+          {l === selected && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--accent-budget)' }}>✓</span>}
         </button>
       ))}
     </div>
@@ -318,12 +318,12 @@ function EditEntryModal({
     setSaving(false); onClose()
   }
 
-  const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' }
+  const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
       <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Modifier l'entrée</p>
+          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Modifier l'entrée</p>
           <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
         <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Description</label>
@@ -350,17 +350,17 @@ function EditEntryModal({
         </button>
         <div className="flex gap-2 justify-between">
           {!confirm ? (
-            <button onClick={() => setConfirm(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            <button onClick={() => setConfirm(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent-budget)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Trash2 size={11} /> Supprimer</button>
           ) : (
             <div className="flex gap-2">
               <button onClick={() => setConfirm(false)} style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Annuler</button>
-              <button onClick={async () => { await onDelete(entry.id); onClose() }} style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Confirmer</button>
+              <button onClick={async () => { await onDelete(entry.id); onClose() }} style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent-budget)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Confirmer</button>
             </div>
           )}
           <div className="flex gap-2">
             <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>Annuler</button>
-            <button onClick={submit} disabled={saving} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+            <button onClick={submit} disabled={saving} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent-budget)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
               {saving ? '…' : 'Sauvegarder'}</button>
           </div>
         </div>
@@ -400,12 +400,12 @@ function ManualEntryModal({
     await onCreate({ description: form.description || undefined, project_id: form.projectId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
     setSaving(false); onClose()
   }
-  const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' }
+  const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
       <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--wheat)' }}>Entrée manuelle</p>
+          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Entrée manuelle</p>
           <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
         <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Description</label>
@@ -432,7 +432,7 @@ function ManualEntryModal({
         </button>
         <div className="flex gap-2 justify-end">
           <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>Annuler</button>
-          <button onClick={submit} disabled={saving || !form.startDate || !form.startTime} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+          <button onClick={submit} disabled={saving || !form.startDate || !form.startTime} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent-budget)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
             {saving ? '…' : 'Créer'}</button>
         </div>
       </div>
@@ -519,7 +519,7 @@ export default function TimeTrackerPage() {
       projects.forEach(p => {
         const pe = entries.filter(e => e.project_id === p.id && e.duration_seconds)
         if (!pe.length) return
-        rows.push({ id: p.id, name: p.name, color: p.color ?? 'var(--accent)',
+        rows.push({ id: p.id, name: p.name, color: p.color ?? 'var(--accent-budget)',
           seconds: pe.reduce((s, e) => s + (e.duration_seconds ?? 0), 0),
           desc: pe[0]?.description ?? '', category: pe.find(e => e.category)?.category ?? null })
       })
@@ -545,7 +545,7 @@ export default function TimeTrackerPage() {
       .map(([day, sec]) => ({
         id: day,
         name: new Date(day + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' }),
-        color: 'var(--accent)', seconds: sec, desc: '', category: null,
+        color: 'var(--accent-budget)', seconds: sec, desc: '', category: null,
       }))
   })()
 
@@ -609,10 +609,10 @@ export default function TimeTrackerPage() {
 
       {/* Hero — col-span-2, h=300 */}
       <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 300, paddingBottom: 20 }}>
-        <p style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
+        <p style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--accent-budget)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
           Time Trackers
         </p>
-        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(42px, 5.5vw, 72px)', lineHeight: 0.88, color: 'var(--wheat)', letterSpacing: '-0.02em', textTransform: 'uppercase', marginBottom: 18 }}>
+        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(42px, 5.5vw, 72px)', lineHeight: 0.88, color: 'var(--text)', letterSpacing: '-0.02em', textTransform: 'uppercase', marginBottom: 18 }}>
           TIME<br />TRACKERS.
         </h1>
         <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--azul)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
@@ -623,7 +623,7 @@ export default function TimeTrackerPage() {
       {/* Session en cours — col-span-2, h=300 */}
       <div className="col-span-2" style={{
         height: 300, borderRadius: 16, overflow: 'hidden', position: 'relative',
-        background: running ? 'var(--accent)' : 'var(--bg-card)',
+        background: running ? 'var(--accent-budget)' : 'var(--bg-card)',
         border: running ? 'none' : '1px solid var(--border)',
         display: 'flex', flexDirection: 'column', padding: 22,
       }}>
@@ -705,7 +705,7 @@ export default function TimeTrackerPage() {
               </button>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
-              <button onClick={handleStart} disabled={!desc.trim()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? 'var(--accent)' : 'var(--bg-input)', color: desc.trim() ? '#fff' : 'var(--text-muted)', border: 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
+              <button onClick={handleStart} disabled={!desc.trim()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? 'var(--accent-budget)' : 'var(--bg-input)', color: desc.trim() ? '#fff' : 'var(--text-muted)', border: 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
                 <Play size={13} fill={desc.trim() ? '#fff' : 'var(--text-muted)'} /> Démarrer
               </button>
               <button onClick={() => setManualOpen(true)} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
@@ -743,7 +743,7 @@ export default function TimeTrackerPage() {
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 600 }}>
           <Download size={11} /> Exporter
         </button>
-        <button onClick={() => setManualOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
+        <button onClick={() => setManualOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: 'var(--accent-budget)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
           <Plus size={11} /> Nouvelle entrée
         </button>
       </div>
@@ -753,9 +753,9 @@ export default function TimeTrackerPage() {
       {/* KPI 1 — Temps total */}
       <div style={{ ...card(), padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
         <span style={{ ...tableLabelStyle, marginBottom: 6 }}>Temps total</span>
-        <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: 'var(--wheat)', lineHeight: 1, marginBottom: 6 }}>{fmtDur(totalSec)}</p>
+        <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: 'var(--text)', lineHeight: 1, marginBottom: 6 }}>{fmtDur(totalSec)}</p>
         <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{PERIOD_LABELS[period]}</p>
-        <MiniBarChart values={secPerDay} color="var(--accent)" />
+        <MiniBarChart values={secPerDay} color="var(--accent-budget)" />
       </div>
 
       {/* KPI 2 — Moyenne / jour (wheat bg) */}
@@ -767,7 +767,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 3 — Projets actifs (orange) */}
-      <div style={{ background: 'var(--accent)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--accent-budget)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Projets actifs</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{activeProjs}</p>
@@ -789,7 +789,7 @@ export default function TimeTrackerPage() {
       <div className="col-span-4" style={{ ...card(), overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--wheat)', textTransform: 'uppercase' }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--text)', textTransform: 'uppercase' }}>
             Temps enregistrés — {GROUPBY_LABELS[groupBy]}
           </p>
           <div style={{ display: 'flex', gap: 4 }}>
@@ -798,7 +798,7 @@ export default function TimeTrackerPage() {
               { icon: BarChart2, v: 'chart' as View },
             ] as const).map(({ icon: Icon, v }) => (
               <button key={v} onClick={() => setView(v)}
-                style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${view === v ? 'var(--accent)' : 'var(--border)'}`, background: view === v ? 'rgba(242,84,45,0.1)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: view === v ? 'var(--accent)' : 'var(--text-muted)' }}>
+                style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${view === v ? 'var(--accent-budget)' : 'var(--border)'}`, background: view === v ? 'rgba(242,84,45,0.1)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: view === v ? 'var(--accent-budget)' : 'var(--text-muted)' }}>
                 <Icon size={11} />
               </button>
             ))}
@@ -817,11 +817,11 @@ export default function TimeTrackerPage() {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <div style={{ width: 9, height: 9, borderRadius: 2, background: row.color, flexShrink: 0 }} />
-                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--wheat)' }}>{row.name}</span>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>{row.name}</span>
                         </div>
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{Math.round(pct)}%</span>
-                          <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDur(row.seconds)}</span>
+                          <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{fmtDur(row.seconds)}</span>
                         </div>
                       </div>
                       <div style={{ height: 6, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
@@ -866,7 +866,7 @@ export default function TimeTrackerPage() {
                         <ChevronDown size={12} style={{ color: 'var(--text-muted)', flexShrink: 0, transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                         <div style={{ width: 11, height: 11, borderRadius: 3, background: row.color, flexShrink: 0 }} />
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</p>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</p>
                           {row.desc && <p style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.desc}</p>}
                         </div>
                       </div>
@@ -877,7 +877,7 @@ export default function TimeTrackerPage() {
                         : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
 
                       {/* Temps */}
-                      <span style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDur(row.seconds)}</span>
+                      <span style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{fmtDur(row.seconds)}</span>
 
                       {/* % */}
                       <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{pct}%</span>
@@ -896,7 +896,7 @@ export default function TimeTrackerPage() {
                           onClick={() => handleStartForProject(row)}
                           title="Démarrer une session"
                           style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent-budget)'; (e.currentTarget as HTMLElement).style.color = 'var(--accent-budget)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
                           <Play size={9} fill="currentColor" />
                         </button>
@@ -927,7 +927,7 @@ export default function TimeTrackerPage() {
                           style={{ display: 'grid', gridTemplateColumns: '2fr 130px 90px 50px 1fr 90px 72px', padding: '9px 20px 9px 48px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center', background: 'var(--bg-input)' }}
                           onMouseEnter={ev => (ev.currentTarget.style.background = 'var(--bg-card-hover)')}
                           onMouseLeave={ev => (ev.currentTarget.style.background = 'var(--bg-input)')}>
-                          <p style={{ fontSize: 11, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description || 'Sans description'}</p>
+                          <p style={{ fontSize: 11, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description || 'Sans description'}</p>
                           {proj
                             ? <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
                                 <div style={{ width: 6, height: 6, borderRadius: 2, background: proj.color, flexShrink: 0 }} />
@@ -937,14 +937,14 @@ export default function TimeTrackerPage() {
                           {e.category
                             ? <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 5, background: catColor(e.category) + '20', color: catColor(e.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(e.category)}40`, display: 'inline-block', whiteSpace: 'nowrap' }}>{e.category}</span>
                             : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
-                          <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--wheat)' }}>{e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}</span>
+                          <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--text)' }}>{e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}</span>
                           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{fmtTime(e.started_at)}</span>
                           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{e.ended_at ? fmtTime(e.ended_at) : '—'}</span>
                           <div style={{ display: 'flex', gap: 4 }}>
                             <button onClick={() => setEditingEntry(e as TimeEntry)}
                               title="Modifier"
                               style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
-                              onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (ev.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
+                              onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--accent-budget)'; (ev.currentTarget as HTMLElement).style.color = 'var(--accent-budget)' }}
                               onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (ev.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
                               <Pencil size={8} />
                             </button>
@@ -980,7 +980,7 @@ export default function TimeTrackerPage() {
           <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 11, color: 'var(--text-muted)', ...DF, fontWeight: 600 }}>{groupedRows.length} groupe{groupedRows.length > 1 ? 's' : ''} · {fmtDur(totalSec)} total</span>
             <button onClick={() => exportCSV(filteredEntries, projects)}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--accent-budget)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
               Exporter <Download size={10} />
             </button>
           </div>
@@ -992,7 +992,7 @@ export default function TimeTrackerPage() {
       {/* Répartition du temps — donut */}
       <div className="col-span-2" style={{ ...card(), padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--wheat)', textTransform: 'uppercase' }}>Répartition du temps</p>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text)', textTransform: 'uppercase' }}>Répartition du temps</p>
           <Dropdown<Period>
             value={period}
             options={['this_week','last_7','this_month','last_month']}
@@ -1010,7 +1010,7 @@ export default function TimeTrackerPage() {
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
                     <span style={{ flex: 1, fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</span>
-                    <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--wheat)', flexShrink: 0 }}>{fmtDur(s.sec)}</span>
+                    <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--text)', flexShrink: 0 }}>{fmtDur(s.sec)}</span>
                     <span style={{ fontSize: 10, color: 'var(--text-muted)', width: 34, textAlign: 'right', flexShrink: 0 }}>{Math.round(s.pct)}%</span>
                   </div>
                 ))
@@ -1060,12 +1060,12 @@ export default function TimeTrackerPage() {
       <div className="col-span-4" style={{ ...card(), overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--wheat)', textTransform: 'uppercase' }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', color: 'var(--text)', textTransform: 'uppercase' }}>
             Entrées récentes
             {filteredEntries.length > 0 && <span style={{ fontSize: 9, color: 'var(--text-muted)', marginLeft: 8, fontWeight: 400 }}>({filteredEntries.length})</span>}
           </p>
           <button onClick={() => setShowAllRecent(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--accent-budget)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
             {showAllRecent ? 'Voir moins' : 'Voir toutes'} <ArrowRight size={10} style={{ transform: showAllRecent ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
         </div>
@@ -1086,7 +1086,7 @@ export default function TimeTrackerPage() {
               style={{ display: 'grid', gridTemplateColumns: '2fr 130px 130px 80px 60px 60px 72px', padding: '11px 20px', borderBottom: '1px solid var(--border)', gap: 12, alignItems: 'center' }}
               onMouseEnter={ev => (ev.currentTarget.style.background = 'var(--bg-card-hover)')}
               onMouseLeave={ev => (ev.currentTarget.style.background = 'transparent')}>
-              <p style={{ fontSize: 12, color: 'var(--wheat)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description || 'Sans description'}</p>
+              <p style={{ fontSize: 12, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description || 'Sans description'}</p>
               {proj
                 ? <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
                     <div style={{ width: 7, height: 7, borderRadius: 2, background: proj.color, flexShrink: 0 }} />
@@ -1096,14 +1096,14 @@ export default function TimeTrackerPage() {
               {e.category
                 ? <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 6, background: catColor(e.category) + '20', color: catColor(e.category), ...DF, fontWeight: 700, border: `1px solid ${catColor(e.category)}40`, display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{e.category}</span>
                 : <span style={{ fontSize: 9, color: 'var(--text-subtle)' }}>—</span>}
-              <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--wheat)' }}>{e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}</span>
+              <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{e.duration_seconds ? fmtDur(e.duration_seconds) : '—'}</span>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtTime(e.started_at)}</span>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{e.ended_at ? fmtTime(e.ended_at) : '—'}</span>
               <div style={{ display: 'flex', gap: 5 }}>
                 <button onClick={() => setEditingEntry(e as TimeEntry)}
                   title="Modifier"
                   style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
-                  onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (ev.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
+                  onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--accent-budget)'; (ev.currentTarget as HTMLElement).style.color = 'var(--accent-budget)' }}
                   onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (ev.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
                   <Pencil size={9} />
                 </button>

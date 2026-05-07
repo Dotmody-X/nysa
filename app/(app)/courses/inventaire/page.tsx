@@ -10,7 +10,7 @@ import { AlertTriangle as AlertIcon } from 'lucide-react'
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL    = 'var(--azul)'
-const ORANGE  = 'var(--accent)'
+const ORANGE  = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 const TEAL_BG = 'var(--azul)'
 

@@ -7,7 +7,7 @@ import { useHealth } from '@/hooks/useHealth'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL    = 'var(--azul)'
 const TEAL_BG = 'var(--azul)'
-const ORANGE  = 'var(--accent)'
+const ORANGE  = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 function fmtDate(d: string) {
@@ -182,10 +182,10 @@ export default function PoidsPage() {
             <div key={m.id} style={{ display: 'flex', alignItems: 'center', padding: '14px 20px',
               borderBottom: '1px solid var(--border)', gap: 16 }}>
               <div style={{ flex: 1 }}>
-                <p style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--wheat)' }}>{fmtDate(m.date)}</p>
+                <p style={{ ...DF, fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{fmtDate(m.date)}</p>
                 {m.notes && <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{m.notes}</p>}
               </div>
-              <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: 'var(--wheat)', minWidth: 80, textAlign: 'right' }}>
+              <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: 'var(--text)', minWidth: 80, textAlign: 'right' }}>
                 {m.weight_kg} <span style={{ fontSize: 11, fontWeight: 500 }}>kg</span>
               </p>
               {diff !== null && (

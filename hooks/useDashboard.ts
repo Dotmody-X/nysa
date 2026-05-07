@@ -111,7 +111,7 @@ export function useDashboard() {
 
       // Build project map
       const projectMap: Record<string, { name: string; color: string }> = {}
-      ;(projects ?? []).forEach(p => { projectMap[p.id] = { name: p.name, color: p.color ?? 'var(--accent)' } })
+      ;(projects ?? []).forEach(p => { projectMap[p.id] = { name: p.name, color: p.color ?? 'var(--accent-budget)' } })
 
       // Tasks for today
       const todayTasks = (tasks ?? []).map(t => ({

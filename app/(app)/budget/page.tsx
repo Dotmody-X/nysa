@@ -8,12 +8,12 @@ import {
 import { useBudget, useMultiMonthSummary, INITIAL_COMPTES, EXCEL_CATEGORIES, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
 
 // ── Constantes ──────────────────────────────────────────────────────────────
-const ORANGE  = 'var(--accent)'
+const ORANGE  = 'var(--accent-budget)'
 const TEAL    = 'var(--azul)'
 const TEAL_BG = 'var(--azul)'
 const WHEAT   = 'var(--text)'
 const DARK    = 'var(--bg)'
-const PALETTE = ['var(--accent)','var(--azul)','#E8A838','#7C6FAF','#3ABCB8','#E46A45','#9B72CF','#C45E3E','#5E9C8F','#E8C84A']
+const PALETTE = ['var(--accent-budget)','var(--azul)','#E8A838','#7C6FAF','#3ABCB8','#E46A45','#9B72CF','#C45E3E','#5E9C8F','#E8C84A']
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 type Compte     = { id:string; name:string; balance:number; type:string; icon:string }

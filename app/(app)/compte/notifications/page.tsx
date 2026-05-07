@@ -5,7 +5,7 @@ import { ArrowLeft, Bell, CheckSquare, Activity, Wallet, TrendingUp, Zap } from 
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = 'var(--azul)', ORANGE = 'var(--accent)', WHEAT = 'var(--text)'
+const TEAL = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
 
 type NotifPrefs = {
   taskReminders:   boolean
@@ -27,7 +27,7 @@ function Toggle({ value, onChange, label, sub, icon: Icon, color }: {
         <Icon size={16} style={{ color: value ? color : 'var(--text-muted)' }} />
       </div>
       <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 12, color: 'var(--wheat)', fontWeight: 500 }}>{label}</p>
+        <p style={{ fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{label}</p>
         <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{sub}</p>
       </div>
       <button onClick={() => onChange(!value)}

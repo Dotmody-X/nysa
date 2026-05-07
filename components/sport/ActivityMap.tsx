@@ -72,7 +72,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
 
         // Route orange NYSA
         L.polyline(latlngs, {
-          color:    'var(--accent)',
+          color:    'var(--accent-budget)',
           weight:   3.5,
           opacity:  0.92,
           lineCap:  'round',
@@ -90,7 +90,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         // Marqueur arrivée — orange
         L.marker(latlngs[latlngs.length - 1], {
           icon: L.divIcon({
-            html: '<div style="width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--text);box-shadow:0 0 8px rgba(242,84,45,0.6)"></div>',
+            html: '<div style="width:12px;height:12px;border-radius:50%;background:var(--accent-budget);border:2px solid var(--text);box-shadow:0 0 8px rgba(242,84,45,0.6)"></div>',
             className: '', iconAnchor: [6, 6],
           }),
         }).addTo(map)

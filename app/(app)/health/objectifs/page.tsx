@@ -7,7 +7,7 @@ import { useHealth } from '@/hooks/useHealth'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL    = 'var(--azul)'
 const TEAL_BG = 'var(--azul)'
-const ORANGE  = 'var(--accent)'
+const ORANGE  = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 type Objectif = {
@@ -35,7 +35,7 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
             <AlertTriangle size={18} style={{ color: ORANGE }} />
           </div>
           <div>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, color: 'var(--wheat)', lineHeight: 1.2 }}>Confirmer la suppression</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>Confirmer la suppression</p>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{message}</p>
           </div>
         </div>
@@ -336,7 +336,7 @@ export default function ObjectifsPage() {
                       </span>
                       <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{PERIOD_LABELS[obj.period]}</span>
                     </div>
-                    <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: done ? obj.color : 'var(--wheat)' }}>{obj.label}</p>
+                    <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: done ? obj.color : 'var(--text)' }}>{obj.label}</p>
                   </div>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
                     {done && (

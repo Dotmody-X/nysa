@@ -14,7 +14,7 @@ interface StatCardProps {
 }
 
 const accentColor: Record<AccentColor, string> = {
-  fiery: 'var(--accent)',
+  fiery: 'var(--accent-budget)',
   cyan:  'var(--azul)',
   teal:  'var(--azul)',
   wheat: 'var(--text)',
@@ -39,7 +39,7 @@ export function StatCard({ label, value, unit, sub, icon, accent = 'cyan', trend
 
       {/* Valeur principale */}
       <div className="flex items-end gap-1.5">
-        <span className="text-2xl font-bold leading-none" style={{ color: 'var(--wheat)' }}>
+        <span className="text-2xl font-bold leading-none" style={{ color: 'var(--text)' }}>
           {value}
         </span>
         {unit && (
@@ -60,7 +60,7 @@ export function StatCard({ label, value, unit, sub, icon, accent = 'cyan', trend
           {trend !== undefined && (
             <span
               className="text-xs font-medium"
-              style={{ color: trend >= 0 ? 'var(--azul)' : 'var(--accent)' }}
+              style={{ color: trend >= 0 ? 'var(--azul)' : 'var(--accent-budget)' }}
             >
               {trend >= 0 ? '+' : ''}{trend}%
             </span>

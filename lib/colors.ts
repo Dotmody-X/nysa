@@ -5,7 +5,7 @@
 
 export const themeColors = {
   // Accents (fixed)
-  accent: 'var(--accent)',          // Orange (same in all modes)
+  accent: 'var(--accent-budget)',          // Orange (same in all modes)
   
   // Text colors (theme-aware, use var(--)
   textPrimary: 'var(--text)',
@@ -13,12 +13,12 @@ export const themeColors = {
   textSubtle: 'var(--text-subtle)',
   
   // Secondary colors (theme-aware)
-  wheat: 'var(--wheat)',           // Light in dark, dark in light
-  accentLight: 'var(--accent-light)', // F0E4CC in dark, D94020 in light
+  wheat: 'var(--text)',           // Light in dark, dark in light
+  accentLight: 'var(--accent-budget)', // F0E4CC in dark, D94020 in light
   
   // Base colors (theme-aware)
-  cyan: 'var(--dark-cyan)',
-  teal: 'var(--stormy-teal)',
+  cyan: 'var(--accent-time)',
+  teal: 'var(--accent-time)',
   success: 'var(--success)',
   warning: 'var(--warning)',
   danger: 'var(--danger)',
@@ -35,7 +35,7 @@ export const themeColors = {
  * Used for data visualization - consistent across themes
  */
 export const chartPalette = [
-  'var(--accent)',  // Orange (accent)
+  'var(--accent-budget)',  // Orange (accent)
   'var(--azul)',  // Cyan
   '#E8A838',  // Gold
   '#7C6FAF',  // Purple

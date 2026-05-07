@@ -12,7 +12,7 @@ export function PageHeader({ title, sub, actions }: PageHeaderProps) {
       <div>
         <h1
           className="text-xl font-bold tracking-wider uppercase"
-          style={{ color: 'var(--wheat)' }}
+          style={{ color: 'var(--text)' }}
         >
           {title}
         </h1>
