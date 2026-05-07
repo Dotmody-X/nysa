@@ -5,6 +5,8 @@ import {
   Target, Zap, Calendar, MoreVertical, ExternalLink,
   Trash2, Edit2, X, Check, Save, BarChart2, RefreshCw,
 } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useBudget, useMultiMonthSummary, INITIAL_COMPTES, EXCEL_CATEGORIES, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
 
 // ── Constantes ──────────────────────────────────────────────────────────────
@@ -189,13 +191,8 @@ export default function BudgetPage() {
   const [goals,    setGoals]    = useState<Goal[]>([])
   const [hydrated, setHydrated] = useState(false)
   useEffect(() => {
-    setComptes(JSON.parse(localStorage.getItem('nysa_comptes_v2') || 'null') ?? INITIAL_COMPTES)
-    setGoals(JSON.parse(localStorage.getItem('nysa_objectifs_v2') || 'null') ?? [
-      { id:'ep_nath',     label:'Ep. Nath',      target:5000,  current:500,  color:TEAL,     icon:'💰' },
-      { id:'ep_rev_nath', label:'Ep. Rev Nath',  target:3000,  current:250,  color:'#7C6FAF',icon:'📈' },
-      { id:'ep_couple',   label:'Ep. Couple',    target:10000, current:0,    color:'#E8A838',icon:'👫' },
-      { id:'urgence',     label:'Fonds urgence', target:6000,  current:3000, color:'#3ABCB8',icon:'🛡' },
-    ])
+    setComptes([])
+    setGoals([])
     setHydrated(true)
   }, [])
   useEffect(() => { if (hydrated) localStorage.setItem('nysa_comptes_v2',   JSON.stringify(comptes))  }, [comptes,  hydrated])
@@ -801,6 +798,21 @@ export default function BudgetPage() {
   }
 
   // ════════ RENDU ════════════════════════════════════════════════════════════
+
+  // Empty state for demo mode
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = comptes.length > 0 || cur.transactions.length > 0 || cur.categories.length > 0
+  if (noDemoMode && !hasData && hydrated) {
+    return (
+      <PageEmpty
+        icon="💰"
+        title="Budget vide"
+        description="Commencez à tracker vos revenus et dépenses"
+        actionLabel="Ajouter une transaction"
+        actionOnClick={() => setShowTxModal(true)}
+      />
+    )
+  }
 
   return (
     <div style={{ padding:'20px 26px', display:'flex', flexDirection:'column', gap:14, minHeight:'100%' }}>

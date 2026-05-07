@@ -5,6 +5,8 @@ import {
   CheckSquare, ChevronRight, Link2, Users, Calendar,
   FileUp, Trash, Download, Edit2, Save,
 } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useProjects }    from '@/hooks/useProjects'
 import { useTasks }       from '@/hooks/useTasks'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
@@ -526,6 +528,19 @@ export default function ProjetsPage() {
   ]
 
   // ── Render ─────────────────────────────────────────────────────────────────
+  // Empty state for demo mode
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = projects.length > 0
+  if (noDemoMode && !hasData) {
+    return (
+      <PageEmpty
+        icon="🎯"
+        title="Projets vide"
+        description="Commencez à créer vos projets"
+      />
+    )
+  }
+
   return (
     <div style={{ padding: 30, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, alignContent: 'start' }}>
 

@@ -1,6 +1,8 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { Send, Sparkles, RotateCcw } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { PageTitle } from '@/components/ui/PageTitle'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -68,6 +70,10 @@ export default function AgentPage() {
     
     setLoading(false)
   }
+
+  // Empty state for demo mode — skip if isDemoModeDisabled (this page is always useful)
+  const noDemoMode = isDemoModeDisabled()
+  // Agent page is always available, no empty state needed
 
   return (
     <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, height:'100%' }}>

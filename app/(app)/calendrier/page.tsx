@@ -7,6 +7,8 @@ import {
   Trash2, Calendar, Bell, RefreshCw, Link2, CheckCircle2, Circle,
   Apple, Pencil,
 } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useCalendar, CalendarEvent, NewEvent } from '@/hooks/useCalendar'
 import { useTasks } from '@/hooks/useTasks'
 import { useProjects } from '@/hooks/useProjects'
@@ -817,6 +819,19 @@ function CalendrierContent() {
   }
 
   // ── Render
+  // Empty state for demo mode
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = events.length > 0
+  if (noDemoMode && !hasData) {
+    return (
+      <PageEmpty
+        icon="📅"
+        title="Calendrier vide"
+        description="Commencez à ajouter vos événements"
+      />
+    )
+  }
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, padding: 30, alignContent: 'start' }}>
 

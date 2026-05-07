@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVertical } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useRecipes } from '@/hooks/useRecipes'
 import { createClient } from '@/lib/supabase/client'
 
@@ -178,6 +180,19 @@ export default function RecettesPage() {
     { pct: Math.round((nutrition.carbs / totalMacrosG) * 100), color: ORANGE },
     { pct: Math.round((nutrition.fat   / totalMacrosG) * 100), color: WHEAT  },
   ]
+
+  // Empty state for demo mode
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = filtered.length > 0 && hydrated
+  if (noDemoMode && !hasData && hydrated) {
+    return (
+      <PageEmpty
+        icon="🍳"
+        title="Recettes vide"
+        description="Commencez à ajouter vos recettes préférées"
+      />
+    )
+  }
 
   return (
     <div style={{ padding: 30, minHeight: '100%' }}>

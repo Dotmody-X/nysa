@@ -8,6 +8,8 @@ import {
   Award, Zap, Heart, Flame, Star, Target,
   BarChart2, ChevronRight,
 } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useRapports } from '@/hooks/useRapports'
 import { useHealth }   from '@/hooks/useHealth'
 import { useMultiMonthSummary } from '@/hooks/useBudget'
@@ -593,6 +595,19 @@ export default function RapportsPage() {
     { key: '3m',   label: '3 MOIS' },
     { key: 'year', label: 'CETTE ANNÉE' },
   ]
+
+  // Empty state for demo mode
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = (data?.totalSeconds ?? 0) > 0 || (data?.tasksDone ?? 0) > 0 || (data?.totalIncome ?? 0) > 0
+  if (noDemoMode && !hasData) {
+    return (
+      <PageEmpty
+        icon="📊"
+        title="Rapports vide"
+        description="Commencez à tracker votre activité pour générer des rapports"
+      />
+    )
+  }
 
   return (
     <div style={{ padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: 12, minHeight: '100%' }}>

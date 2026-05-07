@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { Plus, Search, CheckCircle2, Circle, Clock, ChevronDown, Pencil, Trash2, X } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useTasks } from '@/hooks/useTasks'
 import { useProjects } from '@/hooks/useProjects'
 import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
@@ -255,6 +257,19 @@ export default function TodoPage() {
   const inp: React.CSSProperties = {
     background: 'var(--bg-input)', border: '1px solid var(--border)',
     borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12,
+  }
+
+  // Empty state for demo mode
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = tasks.length > 0
+  if (noDemoMode && !hasData) {
+    return (
+      <PageEmpty
+        icon="✓"
+        title="To Do vide"
+        description="Commencez à ajouter vos premières tâches"
+      />
+    )
   }
 
   return (

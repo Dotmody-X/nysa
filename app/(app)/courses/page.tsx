@@ -6,6 +6,8 @@ import {
   ChevronRight, Zap, Tag, Bell, Truck, Users, Star, TrendingDown,
   Package, AlertTriangle, MapPin, Calendar, Store, Navigation,
 } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { searchProducts, getProductByBarcode, guessCategory, OFFProduct } from '@/lib/openFoodFacts'
 import { getRecentDiscountedPrices, discountPct, type OpenPrice } from '@/lib/openPrices'

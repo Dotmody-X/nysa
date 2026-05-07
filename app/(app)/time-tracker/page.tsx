@@ -4,6 +4,8 @@ import {
   Play, Square, Plus, CalendarPlus, Pencil, Trash2, X, PenLine,
   Download, MoreVertical, ChevronDown, BarChart2, LayoutGrid, List, ArrowRight,
 } from 'lucide-react'
+import { PageEmpty } from '@/components/ui/PageEmpty'
+import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjects }    from '@/hooks/useProjects'
 import type { TimeEntry } from '@/types'
@@ -601,6 +603,19 @@ export default function TimeTrackerPage() {
   const visibleEntries  = showAllRecent ? filteredEntries : filteredEntries.slice(0, 6)
 
   /* ── Render ──────────────────────────────────────────────────────────────── */
+  // Empty state for demo mode
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = filteredEntries.length > 0
+  if (noDemoMode && !hasData) {
+    return (
+      <PageEmpty
+        icon="⏱️"
+        title="Time Tracker vide"
+        description="Commencez à tracker votre temps de travail"
+      />
+    )
+  }
+
   return (
     <>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, padding: 30, alignContent: 'start' }}>
