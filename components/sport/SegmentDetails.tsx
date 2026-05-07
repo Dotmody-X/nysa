@@ -5,8 +5,8 @@ import { TrendingUp, Zap, Activity } from 'lucide-react'
 import type { ActivitySegment } from '@/hooks/useActivitySegments'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const ORANGE = '#F2542D'
-const TEAL = '#0E9594'
+const ORANGE = 'var(--accent)'
+const TEAL = 'var(--azul)'
 
 function fmtPace(sec: number) {
   if (!sec || !isFinite(sec)) return '—'

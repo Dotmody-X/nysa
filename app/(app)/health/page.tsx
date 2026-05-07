@@ -9,10 +9,10 @@ import { useHealth } from '@/hooks/useHealth'
 
 /* ─── Constants ─────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL   = '#0E9594'
-const ORANGE = '#F2542D'
+const TEAL   = 'var(--azul)'
+const ORANGE = 'var(--accent)'
 const WHEAT   = 'var(--text)'
-const TEAL_BG = '#11686A'
+const TEAL_BG = 'var(--azul)'
 const DARK   = '#1A1A2E'
 
 /* ─── Helpers ───────────────────────────────────────────────── */
@@ -105,7 +105,7 @@ const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
 })
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: '#16162A', borderRadius: 12, overflow: 'hidden', ...extra,
+  background: 'var(--bg)', borderRadius: 12, overflow: 'hidden', ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,

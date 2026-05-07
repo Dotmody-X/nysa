@@ -79,12 +79,12 @@ export default function AgentPage() {
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
             <div className="flex items-center gap-3">
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#F2542D,#0E9594)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent),var(--azul))', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Sparkles size={16} style={{ color:'#fff' }} />
               </div>
               <div>
                 <p style={{ ...DF, fontWeight:800, fontSize:13, color:'var(--wheat)' }}>NYSA AI</p>
-                <p style={{ fontSize:10, color:'#0E9594' }}>● En ligne</p>
+                <p style={{ fontSize:10, color:'var(--azul)' }}>● En ligne</p>
               </div>
             </div>
             <button onClick={() => setMessages([{ role:'assistant', content:"Conversation réinitialisée. Comment puis-je t'aider ?" }])}
@@ -98,13 +98,13 @@ export default function AgentPage() {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role==='user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role==='assistant' && (
-                  <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,#F2542D,#0E9594)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginRight:8, marginTop:2 }}>
+                  <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent),var(--azul))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginRight:8, marginTop:2 }}>
                     <Sparkles size={12} style={{ color:'#fff' }} />
                   </div>
                 )}
                 <div style={{
                   maxWidth:'75%', padding:'10px 14px', borderRadius: msg.role==='user' ? '14px 14px 4px 14px' : '4px 14px 14px 14px',
-                  background: msg.role==='user' ? '#F2542D' : 'var(--bg-input)',
+                  background: msg.role==='user' ? 'var(--accent)' : 'var(--bg-input)',
                   border: msg.role==='user' ? 'none' : '1px solid var(--border)',
                 }}>
                   <p style={{ fontSize:13, color: msg.role==='user' ? '#fff' : 'var(--wheat)', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{msg.content}</p>
@@ -113,7 +113,7 @@ export default function AgentPage() {
             ))}
             {loading && (
               <div className="flex justify-start items-center gap-3">
-                <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,#F2542D,#0E9594)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent),var(--azul))', display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <Sparkles size={12} style={{ color:'#fff' }} />
                 </div>
                 <div style={{ padding:'10px 14px', borderRadius:'4px 14px 14px 14px', background:'var(--bg-input)', border:'1px solid var(--border)' }}>
@@ -141,7 +141,7 @@ export default function AgentPage() {
               <button
                 onClick={()=>sendMessage(input)}
                 disabled={!input.trim()||loading}
-                style={{ width:36, height:36, borderRadius:9, background: input.trim()&&!loading ? '#F2542D' : 'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s', flexShrink:0 }}>
+                style={{ width:36, height:36, borderRadius:9, background: input.trim()&&!loading ? 'var(--accent)' : 'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s', flexShrink:0 }}>
                 <Send size={14} style={{ color: input.trim()&&!loading ? '#fff' : 'var(--text-muted)' }} />
               </button>
             </div>
@@ -150,7 +150,7 @@ export default function AgentPage() {
 
         {/* Right — suggestions */}
         <div className="flex flex-col gap-[10px]">
-          <div style={{ background:'#F2542D', borderRadius:12, padding:20 }}>
+          <div style={{ background:'var(--accent)', borderRadius:12, padding:20 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:12 }}>Suggestions</p>
             <div className="flex flex-col gap-2">
               {SUGGESTIONS.map(s => (
@@ -164,7 +164,7 @@ export default function AgentPage() {
           </div>
 
           <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:16 }}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#0E9594', textTransform:'uppercase', marginBottom:10 }}>Plein Pouvoir</p>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--azul)', textTransform:'uppercase', marginBottom:10 }}>Plein Pouvoir</p>
             {[
               '📋 Analyse + Crée tâches',
               '📝 Modifie le code',

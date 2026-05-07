@@ -13,11 +13,11 @@ import { STORE_CHAINS, getChainById, mapCategoryToDepartment, type StoreChain, t
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL    = '#0E9594'
-const ORANGE  = '#F2542D'
+const TEAL    = 'var(--azul)'
+const ORANGE  = 'var(--accent)'
 const WHEAT   = 'var(--text)'
-const TEAL_BG = '#11686A'
-const DARK    = '#16162A'
+const TEAL_BG = 'var(--azul)'
+const DARK    = 'var(--bg)'
 
 /* ─── Helpers ────────────────────────────────────────────────── */
 function fmtEur(n: number) { return n.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }) }

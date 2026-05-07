@@ -1,33 +1,41 @@
 @import "tailwindcss";
 
 /* ============================================================
-   NYSA — Design System
-   Palette :
-     Wheat          #F5DFBB
-     Dark Cyan      #0E9594
-     Stormy Teal    #11686A
-     Fiery Terrac.  #F2542D
-     Espresso       #562C2C
+   NYSA Design System v2.0 — Palette Nathan
+   
+   6 couleurs exclusives + système accessible dark/light
+   
+   Palette:
+     Cloud         #cdd0db  (gris-bleu clair 83%)
+     Azul          #9197aa  (bleu-gris moyen 62%)
+     Mimosa        #f7b557  (jaune-orange 65%)
+     Orange        #e27921  (orange moyen 51%)
+     Aperol        #c1521e  (orange-rouge foncé 44%)
+     Green Leaves  #60693a  (vert-gris très foncé 32%)
+   
+   ♿ WCAG AA/AAA Accessible
+   🔍 Colorblind-friendly design
+   🌓 Smart dark/light mode system
+   
    ============================================================ */
 
 /* ── Couleurs brand (constantes) ─────────────────────────── */
 :root {
-  --dark-cyan:      #0E9594;
-  --stormy-teal:    #11686A;
-  --espresso:       #562C2C;
-
-  /* Accent principal — peut être overridé par le thème custom */
-  --accent:         #F2542D;
-  --accent-alt:     #F5DFBB;
-  --accent-light:   #F0E4CC;  /* Couleur claire pour graphiques */
+  /* Palette exclusive (6 couleurs) */
+  --cloud:        #cdd0db;
+  --azul:         #9197aa;
+  --mimosa:       #f7b557;
+  --orange-ny:    #e27921;
+  --aperol:       #c1521e;
+  --green-leaves: #60693a;
 
   /* Sidebar */
-  --sidebar-width:  220px;
+  --sidebar-width: 220px;
 
   /* Radius */
-  --radius-sm:      6px;
-  --radius-md:      10px;
-  --radius-lg:      16px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
 }
 
 /* ── Thème sombre (défaut) ───────────────────────────────── */
@@ -35,50 +43,64 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --wheat:          #F5DFBB;
-  --fiery:          var(--accent);
-
+  /* Backgrounds */
   --bg:             #0C0C0C;
   --bg-card:        #161616;
   --bg-card-hover:  #1E1E1E;
   --bg-sidebar:     #111111;
-  --bg-input:       #1A1A1A;
-  --border:         rgba(245, 223, 187, 0.08);
-  --border-active:  rgba(242, 84, 45, 0.4);
+  --bg-input:       var(--text);
 
-  --text:           #F5DFBB;
-  --text-muted:     rgba(245, 223, 187, 0.45);
-  --text-subtle:    rgba(245, 223, 187, 0.25);
+  /* Text (Cloud → Azul → Subtle) */
+  --text:           #cdd0db;        /* Cloud — texte principal (AAA) */
+  --text-muted:     #9197aa;        /* Azul — texte secondaire (AA) */
+  --text-subtle:    rgba(145, 151, 170, 0.60); /* Azul @ 60% */
 
-  --success:        #0E9594;
-  --warning:        #F5DFBB;
-  --danger:         #F2542D;
-  --accent-light:   #F0E4CC;  /* Light accent for dark mode */
+  /* Accents */
+  --accent:         #e27921;        /* Orange — primary interactive */
+  --accent-light:   #f7b557;        /* Mimosa — warning, highlights */
+  --accent-dark:    #c1521e;        /* Aperol — danger */
+
+  /* Status */
+  --success:        #60693a;        /* Green Leaves (limited contrast) */
+  --warning:        #f7b557;        /* Mimosa */
+  --danger:         #c1521e;        /* Aperol */
+  --info:           #9197aa;        /* Azul */
+
+  /* Borders */
+  --border:         rgba(205, 208, 219, 0.12);   /* Cloud @ 12% */
+  --border-active:  rgba(226, 121, 33, 0.40);    /* Orange @ 40% */
 }
 
 /* ── Thème clair ──────────────────────────────────────────── */
 [data-theme="light"] {
   color-scheme: light;
 
-  --wheat:          #1A1A1A;
-  --fiery:          var(--accent);
-
+  /* Backgrounds */
   --bg:             #F5F4F0;
   --bg-card:        #FFFFFF;
   --bg-card-hover:  #F0EFEB;
   --bg-sidebar:     #ECEAE4;
   --bg-input:       #F5F4F0;
-  --border:         rgba(0, 0, 0, 0.15);
-  --border-active:  rgba(242, 84, 45, 0.6);
 
-  --text:           #1A1A1A;
-  --text-muted:     #5A5A5A;            /* Contraste amélioré (était rgba(26,26,26,0.55)) */
-  --text-subtle:    #8A8A8A;            /* Contraste amélioré (était rgba(26,26,26,0.3)) */
+  /* Text (inversion pour contraste) */
+  --text:           #60693a;        /* Green Leaves — texte principal (AA) */
+  --text-muted:     #c1521e;        /* Aperol — texte secondaire (AA) */
+  --text-subtle:    rgba(193, 82, 30, 0.55);    /* Aperol @ 55% */
 
-  --success:        #0A7A79;
-  --warning:        #C47D00;
-  --danger:         #D94020;
-  --accent-light:   #D94020;  /* Dark accent for light mode */
+  /* Accents */
+  --accent:         #c1521e;        /* Aperol — primary interactive */
+  --accent-light:   #e27921;        /* Orange — warning, highlights */
+  --accent-dark:    #60693a;        /* Green Leaves — danger, important */
+
+  /* Status */
+  --success:        #60693a;        /* Green Leaves */
+  --warning:        #e27921;        /* Orange */
+  --danger:         #c1521e;        /* Aperol */
+  --info:           #9197aa;        /* Azul */
+
+  /* Borders */
+  --border:         rgba(96, 105, 58, 0.15);    /* Green Leaves @ 15% */
+  --border-active:  rgba(193, 82, 30, 0.50);    /* Aperol @ 50% */
 }
 
 /* ── Thème système (OS) ───────────────────────────────────── */
@@ -86,24 +108,27 @@
   [data-theme="system"] {
     color-scheme: light;
 
-    --wheat:          #1A1A1A;
-    --fiery:          var(--accent);
-
     --bg:             #F5F4F0;
     --bg-card:        #FFFFFF;
     --bg-card-hover:  #F0EFEB;
     --bg-sidebar:     #ECEAE4;
     --bg-input:       #F5F4F0;
-    --border:         rgba(0, 0, 0, 0.15);
-    --border-active:  rgba(242, 84, 45, 0.6);
 
-    --text:           #1A1A1A;
-    --text-muted:     #5A5A5A;            /* Contraste amélioré */
-    --text-subtle:    #8A8A8A;            /* Contraste amélioré */
+    --text:           #60693a;
+    --text-muted:     #c1521e;
+    --text-subtle:    rgba(193, 82, 30, 0.55);
 
-    --success:        #0A7A79;
-    --warning:        #C47D00;
-    --danger:         #D94020;
+    --accent:         #c1521e;
+    --accent-light:   #e27921;
+    --accent-dark:    #60693a;
+
+    --success:        #60693a;
+    --warning:        #e27921;
+    --danger:         #c1521e;
+    --info:           #9197aa;
+
+    --border:         rgba(96, 105, 58, 0.15);
+    --border-active:  rgba(193, 82, 30, 0.50);
   }
 }
 
@@ -111,48 +136,63 @@
   [data-theme="system"] {
     color-scheme: dark;
 
-    --wheat:          #F5DFBB;
-    --fiery:          var(--accent);
-
     --bg:             #0C0C0C;
     --bg-card:        #161616;
     --bg-card-hover:  #1E1E1E;
     --bg-sidebar:     #111111;
-    --bg-input:       #1A1A1A;
-    --border:         rgba(245, 223, 187, 0.08);
-    --border-active:  rgba(242, 84, 45, 0.4);
+    --bg-input:       var(--text);
 
-    --text:           #F5DFBB;
-    --text-muted:     rgba(245, 223, 187, 0.45);
-    --text-subtle:    rgba(245, 223, 187, 0.25);
+    --text:           #cdd0db;
+    --text-muted:     #9197aa;
+    --text-subtle:    rgba(145, 151, 170, 0.60);
 
-    --success:        #0E9594;
-    --warning:        #F5DFBB;
-    --danger:         #F2542D;
+    --accent:         #e27921;
+    --accent-light:   #f7b557;
+    --accent-dark:    #c1521e;
+
+    --success:        #60693a;
+    --warning:        #f7b557;
+    --danger:         #c1521e;
+    --info:           #9197aa;
+
+    --border:         rgba(205, 208, 219, 0.12);
+    --border-active:  rgba(226, 121, 33, 0.40);
   }
 }
 
 /* ============================================================
-   Thème Tailwind v4 (variables custom utilisables via bg-*, text-*, etc.)
+   Thème Tailwind v4 (variables custom)
    ============================================================ */
 @theme inline {
-  --color-bg:           var(--bg);
-  --color-bg-card:      var(--bg-card);
-  --color-bg-sidebar:   var(--bg-sidebar);
-  --color-bg-input:     var(--bg-input);
-  --color-border:       var(--border);
+  --color-bg:             var(--bg);
+  --color-bg-card:        var(--bg-card);
+  --color-bg-card-hover:  var(--bg-card-hover);
+  --color-bg-sidebar:     var(--bg-sidebar);
+  --color-bg-input:       var(--bg-input);
+  --color-border:         var(--border);
+  --color-border-active:  var(--border-active);
 
-  --color-wheat:        var(--wheat);
-  --color-cyan:         var(--dark-cyan);
-  --color-teal:         var(--stormy-teal);
-  --color-fiery:        var(--fiery);
-  --color-espresso:     var(--espresso);
+  --color-cloud:          var(--cloud);
+  --color-azul:           var(--azul);
+  --color-mimosa:         var(--mimosa);
+  --color-orange-ny:      var(--orange-ny);
+  --color-aperol:         var(--aperol);
+  --color-green-leaves:   var(--green-leaves);
 
-  --color-text:         var(--text);
-  --color-muted:        var(--text-muted);
+  --color-text:           var(--text);
+  --color-text-muted:     var(--text-muted);
+  --color-text-subtle:    var(--text-subtle);
 
-  --font-sans:          var(--font-sora), 'Sora', system-ui, -apple-system, sans-serif;
-  --font-display:       var(--font-saira), 'Saira', system-ui, -apple-system, sans-serif;
+  --color-success:        var(--success);
+  --color-warning:        var(--warning);
+  --color-danger:         var(--danger);
+  --color-info:           var(--info);
+  --color-accent:         var(--accent);
+  --color-accent-light:   var(--accent-light);
+  --color-accent-dark:    var(--accent-dark);
+
+  --font-sans:            var(--font-sora), 'Sora', system-ui, -apple-system, sans-serif;
+  --font-display:         var(--font-saira), 'Saira', system-ui, -apple-system, sans-serif;
 }
 
 /* ============================================================
@@ -204,39 +244,63 @@ h1, h2, h3, h4, h5, h6 {
    Sélection texte
    ============================================================ */
 ::selection {
-  background: rgba(242, 84, 45, 0.3);
-  color: var(--wheat);
+  background: var(--accent);
+  color: var(--bg);
 }
 
 /* ============================================================
    Focus visible global
    ============================================================ */
 :focus-visible {
-  outline: 2px solid var(--fiery);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
 /* ============================================================
-   Utilitaires NYSA
+   Utilitaires Tailwind pour Couleurs
+   ============================================================ */
+
+/* Classes de couleurs — bg-* */
+.bg-cloud        { @apply bg-[color:var(--cloud)] }
+.bg-azul         { @apply bg-[color:var(--azul)] }
+.bg-mimosa       { @apply bg-[color:var(--mimosa)] }
+.bg-orange-ny    { @apply bg-[color:var(--orange-ny)] }
+.bg-aperol       { @apply bg-[color:var(--aperol)] }
+.bg-green-leaves { @apply bg-[color:var(--green-leaves)] }
+
+/* Classes de texte — text-* */
+.text-cloud        { @apply text-[color:var(--cloud)] }
+.text-azul         { @apply text-[color:var(--azul)] }
+.text-mimosa       { @apply text-[color:var(--mimosa)] }
+.text-orange-ny    { @apply text-[color:var(--orange-ny)] }
+.text-aperol       { @apply text-[color:var(--aperol)] }
+.text-green-leaves { @apply text-[color:var(--green-leaves)] }
+.text-muted        { @apply text-[color:var(--text-muted)] }
+.text-subtle       { @apply text-[color:var(--text-subtle)] }
+
+/* Classes de border */
+.border-border   { @apply border-[color:var(--border)] }
+.border-accent   { @apply border-[color:var(--accent)] }
+
+/* Font display */
+.font-display    { @apply [font-family:var(--font-display)] }
+
+/* ============================================================
+   Utilitaires Brand
    ============================================================ */
 
 /* Gradient de titre hero */
 .nysa-gradient-text {
-  background: linear-gradient(135deg, var(--wheat) 0%, var(--fiery) 60%);
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Lueur teal */
-.nysa-glow-teal {
-  box-shadow: 0 0 20px rgba(14, 149, 148, 0.3);
-}
-
-/* Lueur orange */
-.nysa-glow-fiery {
-  box-shadow: 0 0 20px rgba(242, 84, 45, 0.25);
+/* Lueur accent */
+.nysa-glow-accent {
+  box-shadow: 0 0 20px rgba(226, 121, 33, 0.25);
 }
 
 /* Card standard */
@@ -252,12 +316,11 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.15s ease;
 }
 
-/* Tag / Badge de couleur */
-.tag-fiery  { background: rgba(242, 84, 45,   0.15); color: #F2542D; border: 1px solid rgba(242, 84, 45,   0.25); }
-.tag-cyan   { background: rgba(14,  149, 148,  0.15); color: #0E9594; border: 1px solid rgba(14,  149, 148,  0.25); }
-.tag-teal   { background: rgba(17,  104, 106,  0.25); color: #4ECDC4; border: 1px solid rgba(17,  104, 106,  0.3);  }
-.tag-wheat  { background: rgba(245, 223, 187,  0.1);  color: #F5DFBB; border: 1px solid rgba(245, 223, 187,  0.2);  }
-.tag-espresso { background: rgba(86, 44, 44,   0.3);  color: #C99;    border: 1px solid rgba(86,  44,  44,   0.4);  }
+/* Badge/Tag colors */
+.tag-accent      { background: rgba(226, 121, 33, 0.15); color: var(--accent); border: 1px solid rgba(226, 121, 33, 0.25); }
+.tag-success     { background: rgba(96, 105, 58, 0.15); color: var(--success); border: 1px solid rgba(96, 105, 58, 0.25); }
+.tag-warning     { background: rgba(247, 181, 87, 0.15); color: var(--warning); border: 1px solid rgba(247, 181, 87, 0.25); }
+.tag-danger      { background: rgba(193, 82, 30, 0.15); color: var(--danger); border: 1px solid rgba(193, 82, 30, 0.25); }
 
 /* ============================================================
    RESPONSIVE — Mobile-first utilities
@@ -311,11 +374,6 @@ h1, h2, h3, h4, h5, h6 {
   /* Page title font scale */
   h1 {
     font-size: clamp(28px, 8vw, 52px) !important;
-  }
-  /* Budget/Rapports inline grid: 30px padding → 16px */
-  [style*="padding: 30"],
-  [style*="padding:30"] {
-    padding: 16px !important;
   }
   /* Full-width drawers on mobile */
   .drawer-mobile {

@@ -5,7 +5,7 @@ import { ArrowLeft, Download, AlertTriangle, X, Shield, Eye, EyeOff, Lock } from
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = '#0E9594', ORANGE = '#F2542D', WHEAT = '#F5DFBB'
+const TEAL = 'var(--azul)', ORANGE = 'var(--accent)', WHEAT = 'var(--text)'
 
 function PrivacyRow({ icon: Icon, label, sub, value, onChange }: {
   icon: React.ElementType; label: string; sub: string; value: boolean; onChange: (v: boolean) => void

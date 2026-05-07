@@ -4,8 +4,8 @@ import { ArrowLeft, Heart, Activity } from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL   = '#0E9594'
-const ORANGE = '#F2542D'
+const TEAL   = 'var(--azul)'
+const ORANGE = 'var(--accent)'
 const WHEAT   = 'var(--text)'
 const RED    = '#ff5050'
 
@@ -136,7 +136,7 @@ export default function FrequenceCardiaqueePage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 16 }}>
         {/* Chart */}
-        <div style={{ padding: 24, borderRadius: 12, background: '#16162A', border: '1px solid rgba(255,80,80,0.15)' }}>
+        <div style={{ padding: 24, borderRadius: 12, background: 'var(--bg)', border: '1px solid rgba(255,80,80,0.15)' }}>
           <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'rgba(255,80,80,0.7)', textTransform: 'uppercase', marginBottom: 16 }}>
             Tendance FC
           </p>

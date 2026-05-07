@@ -9,7 +9,7 @@ import type { Task } from '@/types'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 const PRIORITY_COLOR: Record<string, string> = {
-  urgent: '#F2542D', high: '#F5DFBB', medium: '#0E9594', low: '#888',
+  urgent: 'var(--accent)', high: 'var(--text)', medium: 'var(--azul)', low: '#888',
 }
 const PRIORITY_BG: Record<string, string> = {
   urgent: 'rgba(242,84,45,0.15)', high: 'rgba(245,223,187,0.1)', medium: 'rgba(14,149,148,0.12)', low: 'rgba(136,136,136,0.12)',
@@ -141,14 +141,14 @@ function EditTaskModal({
         <div className="flex gap-2 justify-between items-center">
           {!confirm ? (
             <button onClick={() => setConfirm(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Trash2 size={11} /> Supprimer
             </button>
           ) : (
             <div className="flex gap-2">
               <button onClick={() => setConfirm(false)} style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Annuler</button>
               <button onClick={async () => { await onDelete(task.id); onClose() }}
-                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#F2542D', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
+                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
                 Confirmer
               </button>
             </div>
@@ -159,7 +159,7 @@ function EditTaskModal({
               Annuler
             </button>
             <button onClick={submit} disabled={saving || !form.title.trim()}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
               {saving ? '…' : 'Sauvegarder'}
             </button>
           </div>
@@ -212,9 +212,9 @@ export default function TodoPage() {
   }
 
   const TAB_COLORS: Record<string, string> = {
-    toutes:    '#F2542D',
+    toutes:    'var(--accent)',
     priorites: '#9B72CF',
-    projets:   '#0E9594',
+    projets:   'var(--azul)',
     auto:      '#E8A838',
   }
   const tabs = [
@@ -234,9 +234,9 @@ export default function TodoPage() {
 
   // ── Priorités : grouped by priority ──────────────────────────────────
   const priorityGroups: { key: 'urgent'|'high'|'medium'|'low'; label: string; color: string }[] = [
-    { key: 'urgent', label: 'Urgent',  color: '#F2542D' },
+    { key: 'urgent', label: 'Urgent',  color: 'var(--accent)' },
     { key: 'high',   label: 'Haute',   color: 'var(--text)' },
-    { key: 'medium', label: 'Moyenne', color: '#0E9594' },
+    { key: 'medium', label: 'Moyenne', color: 'var(--azul)' },
     { key: 'low',    label: 'Basse',   color: '#888'    },
   ]
 
@@ -244,12 +244,12 @@ export default function TodoPage() {
   const now7d = new Date(); now7d.setDate(now7d.getDate() + 7)
   const next7dStr = now7d.toISOString().slice(0, 10)
   const autoGroups = [
-    { key: 'overdue',   label: 'En retard',           color: '#F2542D', tasks: filtered.filter(t => t.due_date && t.due_date < today && t.status !== 'done'), bg: 'rgba(242,84,45,0.05)' },
-    { key: 'today',     label: 'Aujourd\'hui',         color: '#F2542D', tasks: filtered.filter(t => t.due_date === today && t.status !== 'done'),              bg: undefined },
+    { key: 'overdue',   label: 'En retard',           color: 'var(--accent)', tasks: filtered.filter(t => t.due_date && t.due_date < today && t.status !== 'done'), bg: 'rgba(242,84,45,0.05)' },
+    { key: 'today',     label: 'Aujourd\'hui',         color: 'var(--accent)', tasks: filtered.filter(t => t.due_date === today && t.status !== 'done'),              bg: undefined },
     { key: 'next7d',    label: '7 prochains jours',   color: '#E8A838', tasks: filtered.filter(t => t.due_date && t.due_date > today && t.due_date <= next7dStr && t.status !== 'done'), bg: undefined },
-    { key: 'inprogress',label: 'En cours',             color: '#0E9594', tasks: filtered.filter(t => t.status === 'in_progress'),                                bg: undefined },
+    { key: 'inprogress',label: 'En cours',             color: 'var(--azul)', tasks: filtered.filter(t => t.status === 'in_progress'),                                bg: undefined },
     { key: 'nodate',    label: 'Sans date',            color: 'var(--text-muted)', tasks: filtered.filter(t => !t.due_date && t.status !== 'done'),             bg: undefined },
-    { key: 'done',      label: 'Terminées',            color: '#0E9594', tasks: filtered.filter(t => t.status === 'done').slice(0, 10),                         bg: undefined },
+    { key: 'done',      label: 'Terminées',            color: 'var(--azul)', tasks: filtered.filter(t => t.status === 'done').slice(0, 10),                         bg: undefined },
   ].filter(g => g.tasks.length > 0)
 
   const inp: React.CSSProperties = {
@@ -267,7 +267,7 @@ export default function TodoPage() {
         right={
           <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl"
-            style={{ background: '#F2542D', color: '#fff', ...DF, fontWeight: 700, fontSize: 12 }}>
+            style={{ background: 'var(--accent)', color: '#fff', ...DF, fontWeight: 700, fontSize: 12 }}>
             <Plus size={14} /> Ajouter une tâche
           </button>
         }
@@ -276,9 +276,9 @@ export default function TodoPage() {
       {/* KPIs */}
       <KpiGrid>
         <KpiCard label="Tâches totales"   value={String(tasks.filter(t => t.status !== 'done').length)} sub="actives" />
-        <KpiCard label="Proches deadline" value={String(weekTasks.length)}  color="#F5DFBB" />
-        <KpiCard label="Urgentes"         value={String(urgentTasks.length)} color="#F2542D" />
-        <KpiCard label="Terminées"        value={String(doneTasks.length)}   color="#0E9594" />
+        <KpiCard label="Proches deadline" value={String(weekTasks.length)}  color="var(--text)" />
+        <KpiCard label="Urgentes"         value={String(urgentTasks.length)} color="var(--accent)" />
+        <KpiCard label="Terminées"        value={String(doneTasks.length)}   color="var(--azul)" />
       </KpiGrid>
 
       {/* Tabs + search */}
@@ -332,7 +332,7 @@ export default function TodoPage() {
             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
           <button type="submit"
-            style={{ background: '#F2542D', color: '#fff', borderRadius: 8, padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+            style={{ background: 'var(--accent)', color: '#fff', borderRadius: 8, padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
             Créer
           </button>
         </form>
@@ -345,14 +345,14 @@ export default function TodoPage() {
           {/* ── TOUTES ── */}
           {tab === 'toutes' && (
             <>
-              <TaskSection title="Aujourd'hui"   color="#F2542D"           tasks={todayTasks}  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
-              <TaskSection title="Cette semaine" color="#0E9594"           tasks={weekTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+              <TaskSection title="Aujourd'hui"   color="var(--accent)"           tasks={todayTasks}  onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
+              <TaskSection title="Cette semaine" color="var(--azul)"           tasks={weekTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
               {lateTasks.length > 0 && (
-                <TaskSection title="En retard"   color="#F2542D"           tasks={lateTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} bg="rgba(242,84,45,0.05)" />
+                <TaskSection title="En retard"   color="var(--accent)"           tasks={lateTasks}   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} bg="rgba(242,84,45,0.05)" />
               )}
               <TaskSection title="Sans date"     color="var(--text-muted)" tasks={noDateTasks} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} />
               {doneTasks.length > 0 && (
-                <TaskSection title="Terminées"   color="#0E9594"           tasks={doneTasks.slice(0, 10)} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} collapsed />
+                <TaskSection title="Terminées"   color="var(--azul)"           tasks={doneTasks.slice(0, 10)} onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} collapsed />
               )}
             </>
           )}
@@ -368,7 +368,7 @@ export default function TodoPage() {
                 ) : null
               })}
               {doneTasks.length > 0 && (
-                <TaskSection title="Terminées" color="#0E9594" tasks={doneTasks.slice(0, 10)}
+                <TaskSection title="Terminées" color="var(--azul)" tasks={doneTasks.slice(0, 10)}
                   onToggle={toggle} onEdit={setEditingTask} loading={loading} projects={projects} collapsed />
               )}
               {filtered.filter(t => t.status !== 'done').length === 0 && (
@@ -424,7 +424,7 @@ export default function TodoPage() {
 
           {/* Répartition priorités */}
           <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F2542D', textTransform: 'uppercase', marginBottom: 12 }}>Répartition priorités</p>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 12 }}>Répartition priorités</p>
             {(['urgent', 'high', 'medium', 'low'] as const).map(p => {
               const count = tasks.filter(t => t.priority === p && t.status !== 'done').length
               const total = tasks.filter(t => t.status !== 'done').length
@@ -443,7 +443,7 @@ export default function TodoPage() {
 
           {/* Projets */}
           <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#0E9594', textTransform: 'uppercase', marginBottom: 10 }}>Projets</p>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--azul)', textTransform: 'uppercase', marginBottom: 10 }}>Projets</p>
             {projects.map(p => {
               const count   = tasks.filter(t => t.project_id === p.id && t.status !== 'done').length
               const isActive = filterProject === p.id
@@ -478,7 +478,7 @@ export default function TodoPage() {
           </div>
 
           {/* Filtres rapides */}
-          <div style={{ background: '#F2542D', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--accent)', borderRadius: 12, padding: 16 }}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#1A0A0A', textTransform: 'uppercase', marginBottom: 10 }}>Filtres rapides</p>
             {[
               { label: 'Sans projet', count: tasks.filter(t => !t.project_id && t.status !== 'done').length },
@@ -551,7 +551,7 @@ function TaskSection({
                     {/* Checkbox */}
                     <button onClick={() => onToggle(t.id, t.status)} style={{ flexShrink: 0 }}>
                       {t.status === 'done'
-                        ? <CheckCircle2 size={16} style={{ color: '#0E9594' }} />
+                        ? <CheckCircle2 size={16} style={{ color: 'var(--azul)' }} />
                         : <Circle size={16} style={{ color: 'var(--text-muted)' }} />}
                     </button>
 
@@ -573,7 +573,7 @@ function TaskSection({
                           </span>
                         )}
                         {t.status === 'in_progress' && (
-                          <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'rgba(14,149,148,0.12)', color: '#0E9594', ...DF, fontWeight: 700 }}>En cours</span>
+                          <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'rgba(14,149,148,0.12)', color: 'var(--azul)', ...DF, fontWeight: 700 }}>En cours</span>
                         )}
                       </div>
                     </div>
@@ -590,7 +590,7 @@ function TaskSection({
                       onClick={() => onEdit(t)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ padding: '4px 6px', borderRadius: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', alignItems: 'center' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = '#F2542D')}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
                       onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
                       <Pencil size={11} />
                     </button>
@@ -618,7 +618,7 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
 
   return (
     <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
-      <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#0E9594', textTransform: 'uppercase', marginBottom: 10 }}>Calendrier</p>
+      <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--azul)', textTransform: 'uppercase', marginBottom: 10 }}>Calendrier</p>
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'capitalize' }}>{monthName}</p>
       <div className="grid grid-cols-7 gap-0.5 text-center">
         {['L','M','M','J','V','S','D'].map((d, i) => (
@@ -632,8 +632,8 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
           return (
             <span key={i} style={{
               fontSize: 10, padding: '3px 2px', borderRadius: 4,
-              background: isToday ? '#F2542D' : 'transparent',
-              color: isToday ? '#fff' : hasTasks ? '#0E9594' : 'var(--text-muted)',
+              background: isToday ? 'var(--accent)' : 'transparent',
+              color: isToday ? '#fff' : hasTasks ? 'var(--azul)' : 'var(--text-muted)',
               fontWeight: isToday || hasTasks ? 700 : 400,
             }}>{d}</span>
           )

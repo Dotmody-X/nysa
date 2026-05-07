@@ -10,8 +10,8 @@ import { createClient } from '@/lib/supabase/client'
 /* ─── Constants ──────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const STRAVA_ORANGE = '#FC4C02'
-const TEAL          = '#0E9594'
-const ORANGE        = '#F2542D'
+const TEAL          = 'var(--azul)'
+const ORANGE        = 'var(--accent)'
 const WHEAT   = 'var(--text)'
 
 /* ─── Helpers ────────────────────────────────────────────── */
@@ -266,7 +266,7 @@ function SportPageInner() {
           end_at:   endAt.toISOString(),
           all_day:  false,
           category: 'Running',
-          color:    '#0E9594',
+          color:    'var(--azul)',
           source:   'manual',
         })
         .select()
@@ -383,7 +383,7 @@ function SportPageInner() {
     overflow: 'hidden', ...extra,
   })
   const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: '#11686A', borderRadius: 12, overflow: 'hidden', ...extra,
+    background: 'var(--azul)', borderRadius: 12, overflow: 'hidden', ...extra,
   })
   const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
     background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
@@ -554,7 +554,7 @@ function SportPageInner() {
         {[
           { l: 'Séances / semaine', v: String(seancesWeek), sub: `obj. ${Math.ceil(OBJ_SEANCES_DYNAMIC)}`, pct: pctSeances, color: TEAL, dark: true },
           { l: 'Distance / semaine', v: `${kmWeek.toFixed(1)}`, unit: 'km', sub: `obj. ${Math.ceil(OBJ_KM_DYNAMIC)} km`, pct: pctKm, color: ORANGE, dark: false },
-          { l: 'Allure moyenne', v: kmWeek > 0 && secWeek > 0 ? fmtPace(secWeek / kmWeek) : avgPaceAll > 0 ? fmtPace(avgPaceAll) : '—', sub: 'dernières sorties', color: '#11686A', dark: true },
+          { l: 'Allure moyenne', v: kmWeek > 0 && secWeek > 0 ? fmtPace(secWeek / kmWeek) : avgPaceAll > 0 ? fmtPace(avgPaceAll) : '—', sub: 'dernières sorties', color: 'var(--azul)', dark: true },
           { l: 'Dénivelé / semaine', v: `+${elevWeek}`, unit: 'm', sub: `obj. ${Math.ceil(OBJ_ELEV_DYNAMIC)}m`, pct: pctElev, color: '#5B6F3A', dark: true },
         ].map((kpi, i) => (
           <div key={i} style={{
@@ -709,7 +709,7 @@ function SportPageInner() {
               </div>
             ) : nextRun ? (
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                <div style={{ width: 52, height: 52, borderRadius: 10, background: '#11686A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 52, height: 52, borderRadius: 10, background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Activity size={22} style={{ color: WHEAT }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -781,7 +781,7 @@ function SportPageInner() {
               <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
             ) : activities.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 40, gap: 10 }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#11686A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Activity size={20} style={{ color: WHEAT }} />
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune sortie enregistrée</p>
@@ -792,7 +792,7 @@ function SportPageInner() {
                 <button key={a.id} className="sport-row-btn" onClick={() => router.push(`/sport/${a.id}`)}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
                     borderBottom: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 8, background: '#11686A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {hasGpx ? <Zap size={16} style={{ color: ORANGE }} /> : <Activity size={16} style={{ color: WHEAT }} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

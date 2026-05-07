@@ -7,10 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL    = '#0E9594'
-const ORANGE  = '#F2542D'
+const TEAL    = 'var(--azul)'
+const ORANGE  = 'var(--accent)'
 const WHEAT   = 'var(--text)'
-const TEAL_BG = '#11686A'
+const TEAL_BG = 'var(--azul)'
 
 /* ─── Card helpers ───────────────────────────────────────────── */
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
@@ -23,7 +23,7 @@ const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
 })
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: '#16162A', borderRadius: 12, overflow: 'hidden', ...extra,
+  background: 'var(--bg)', borderRadius: 12, overflow: 'hidden', ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
@@ -361,7 +361,7 @@ export default function RecettesPage() {
                         <td key={day} style={{ padding: '4px 3px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
                           {entry ? (
                             <button onClick={() => setSelectedMealSlot({day, meal})} style={{ background: 'rgba(14,149,148,0.15)', borderRadius: 5,
-                              padding: '4px 3px', fontSize: 8, color: '#0E9594', ...DF, fontWeight: 700,
+                              padding: '4px 3px', fontSize: 8, color: 'var(--azul)', ...DF, fontWeight: 700,
                               lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', border: 'none', cursor: 'pointer' }}>
                               {entry}
                             </button>
@@ -408,11 +408,11 @@ export default function RecettesPage() {
                     </div>
                   </button>
                   {catMenu === cat.name && (
-                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: '#16162A', border: '1px solid rgba(240,228,204,0.1)', borderRadius: 8, zIndex: 10 }}>
+                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'var(--bg)', border: '1px solid rgba(240,228,204,0.1)', borderRadius: 8, zIndex: 10 }}>
                       <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'rgba(240,228,204,0.7)', fontSize: 11, borderBottom: '1px solid rgba(240,228,204,0.06)' }}>
                         ✏️ Éditer
                       </button>
-                      <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: '#F2542D', fontSize: 11 }}>
+                      <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 11 }}>
                         🗑️ Supprimer
                       </button>
                     </div>
@@ -670,7 +670,7 @@ export default function RecettesPage() {
       {selectedMealSlot && (
         <div onClick={() => setSelectedMealSlot(null)}
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#16162A', borderRadius: 16, padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '1px solid rgba(240,228,204,0.1)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 16, padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '1px solid rgba(240,228,204,0.1)' }}>
             <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, marginBottom: 16 }}>{selectedMealSlot.day} - {selectedMealSlot.meal}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {filtered.map(r => (

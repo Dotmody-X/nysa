@@ -7,8 +7,8 @@ import { PageTitle } from '@/components/ui/PageTitle'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 const ACCENT_PRESETS = [
-  { label: 'Fiery',    color: '#F2542D' },
-  { label: 'Cyan',     color: '#0E9594' },
+  { label: 'Fiery',    color: 'var(--accent)' },
+  { label: 'Cyan',     color: 'var(--azul)' },
   { label: 'Violet',   color: '#7C3AED' },
   { label: 'Rose',     color: '#EC4899' },
   { label: 'Amber',    color: '#F59E0B' },
@@ -29,11 +29,11 @@ const TABS = [
 export default function ReglagesPage() {
   const [tab, setTab] = useState('profil')
   const [theme, setTheme] = useState<ThemeMode>('dark')
-  const [accent, setAccent] = useState('#F2542D')
+  const [accent, setAccent] = useState('var(--accent)')
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('nysa-theme') as ThemeMode : 'dark'
-    const storedAccent = typeof window !== 'undefined' ? localStorage.getItem('nysa-accent') ?? '#F2542D' : '#F2542D'
+    const storedAccent = typeof window !== 'undefined' ? localStorage.getItem('nysa-accent') ?? 'var(--accent)' : 'var(--accent)'
     setTheme(stored ?? 'dark')
     setAccent(storedAccent)
   }, [])
@@ -53,8 +53,8 @@ export default function ReglagesPage() {
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
-                style={{ background: tab===t.key ? 'rgba(242,84,45,0.1)' : 'transparent', borderLeft: tab===t.key ? '2px solid #F2542D' : '2px solid transparent' }}>
-                <Icon size={14} style={{ color: tab===t.key ? '#F2542D' : 'var(--text-muted)' }} />
+                style={{ background: tab===t.key ? 'rgba(242,84,45,0.1)' : 'transparent', borderLeft: tab===t.key ? '2px solid var(--accent)' : '2px solid transparent' }}>
+                <Icon size={14} style={{ color: tab===t.key ? 'var(--accent)' : 'var(--text-muted)' }} />
                 <span style={{ ...DF, fontSize:11, fontWeight: tab===t.key ? 700 : 500, color: tab===t.key ? 'var(--wheat)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{t.label}</span>
               </button>
             )
@@ -78,7 +78,7 @@ export default function ReglagesPage() {
 function ProfilTab() {
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'#F2542D', textTransform:'uppercase', marginBottom:20 }}>Profil</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent)', textTransform:'uppercase', marginBottom:20 }}>Profil</p>
       <div className="flex flex-col gap-4">
         {[
           { label:'Nom', placeholder:'Ton prénom', type:'text' },
@@ -92,7 +92,7 @@ function ProfilTab() {
               style={{ width:'100%', background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }} />
           </div>
         ))}
-        <button style={{ background:'#F2542D', color:'#fff', borderRadius:10, padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:700, fontSize:12, width:'fit-content', marginTop:8 }}>
+        <button style={{ background:'var(--accent)', color:'#fff', borderRadius:10, padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:700, fontSize:12, width:'fit-content', marginTop:8 }}>
           Sauvegarder
         </button>
       </div>
@@ -102,27 +102,27 @@ function ProfilTab() {
 
 function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; accent: string; onTheme:(t:ThemeMode)=>void; onAccent:(c:string)=>void }) {
   const themes: { key: ThemeMode; label: string; bg: string; preview: string }[] = [
-    { key:'dark',   label:'Sombre',  bg:'#0C0C0C', preview:'#1A1A1A' },
+    { key:'dark',   label:'Sombre',  bg:'#0C0C0C', preview:'var(--text)' },
     { key:'light',  label:'Clair',   bg:'#F5F4F0', preview:'#FFFFFF' },
     { key:'system', label:'Système', bg:'linear-gradient(135deg,#0C0C0C 50%,#F5F4F0 50%)', preview:'#888' },
   ]
   return (
     <div className="flex flex-col gap-[10px]">
       <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
-        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'#F2542D', textTransform:'uppercase', marginBottom:16 }}>Thème</p>
+        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent)', textTransform:'uppercase', marginBottom:16 }}>Thème</p>
         <div className="grid grid-cols-3 gap-3">
           {themes.map(t => (
             <button key={t.key} onClick={() => onTheme(t.key)}
               className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all"
-              style={{ border:`2px solid ${theme===t.key ? '#F2542D' : 'var(--border)'}`, background:'var(--bg-input)' }}>
+              style={{ border:`2px solid ${theme===t.key ? 'var(--accent)' : 'var(--border)'}`, background:'var(--bg-input)' }}>
               <div style={{ width:48, height:32, borderRadius:6, background:t.bg, border:'1px solid var(--border)' }} />
-              <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? '#F2542D' : 'var(--text-muted)' }}>{t.label}</span>
+              <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? 'var(--accent)' : 'var(--text-muted)' }}>{t.label}</span>
             </button>
           ))}
         </div>
       </div>
       <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
-        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'#0E9594', textTransform:'uppercase', marginBottom:16 }}>Couleur accent</p>
+        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--azul)', textTransform:'uppercase', marginBottom:16 }}>Couleur accent</p>
         <div className="grid grid-cols-4 gap-2 mb-4">
           {ACCENT_PRESETS.map(p => (
             <button key={p.color} onClick={() => onAccent(p.color)}
@@ -147,7 +147,7 @@ function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; acce
 function NotifsTab() {
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'#F2542D', textTransform:'uppercase', marginBottom:20 }}>Notifications</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent)', textTransform:'uppercase', marginBottom:20 }}>Notifications</p>
       {[
         { label:'Rappels de tâches',     desc:'Notif avant deadline' },
         { label:'Résumé quotidien',       desc:'Chaque matin à 9h' },
@@ -161,7 +161,7 @@ function NotifsTab() {
             <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{n.desc}</p>
           </div>
           <div style={{ width:40, height:22, borderRadius:99, background:'rgba(14,149,148,0.3)', cursor:'pointer', position:'relative' }}>
-            <div style={{ width:18, height:18, borderRadius:'50%', background:'#0E9594', position:'absolute', top:2, right:2, transition:'all 0.2s' }} />
+            <div style={{ width:18, height:18, borderRadius:'50%', background:'var(--azul)', position:'absolute', top:2, right:2, transition:'all 0.2s' }} />
           </div>
         </div>
       ))}
@@ -172,12 +172,12 @@ function NotifsTab() {
 function DonneesTab() {
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'#F2542D', textTransform:'uppercase', marginBottom:20 }}>Données & Sauvegardes</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent)', textTransform:'uppercase', marginBottom:20 }}>Données & Sauvegardes</p>
       {[
-        { label:'Exporter toutes les données', desc:'Export JSON complet', color:'#0E9594' },
-        { label:'Exporter les tâches',         desc:'Format CSV',          color:'#0E9594' },
-        { label:'Exporter les finances',       desc:'Format Excel/CSV',    color:'#0E9594' },
-        { label:'Supprimer toutes les données', desc:'Action irréversible', color:'#F2542D' },
+        { label:'Exporter toutes les données', desc:'Export JSON complet', color:'var(--azul)' },
+        { label:'Exporter les tâches',         desc:'Format CSV',          color:'var(--azul)' },
+        { label:'Exporter les finances',       desc:'Format Excel/CSV',    color:'var(--azul)' },
+        { label:'Supprimer toutes les données', desc:'Action irréversible', color:'var(--accent)' },
       ].map(a => (
         <div key={a.label} className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)' }}>
           <div>
@@ -206,7 +206,7 @@ function RaccourcisTab() {
   ]
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'#F2542D', textTransform:'uppercase', marginBottom:20 }}>Raccourcis clavier</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent)', textTransform:'uppercase', marginBottom:20 }}>Raccourcis clavier</p>
       <div className="grid grid-cols-2 gap-2">
         {shortcuts.map(s => (
           <div key={s.action} className="flex items-center justify-between px-4 py-3 rounded-lg" style={{ background:'var(--bg-input)', border:'1px solid var(--border)' }}>
@@ -222,7 +222,7 @@ function RaccourcisTab() {
 function AboutTab() {
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'#F2542D', textTransform:'uppercase', marginBottom:20 }}>À propos</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent)', textTransform:'uppercase', marginBottom:20 }}>À propos</p>
       <div className="flex flex-col gap-4">
         <div>
           <p style={{ fontFamily:'var(--font-display)', fontWeight:900, fontSize:32, color:'var(--wheat)' }}>NYSA</p>

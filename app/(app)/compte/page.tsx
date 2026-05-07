@@ -14,7 +14,7 @@ import { useRapports } from '@/hooks/useRapports'
 import { saveTheme, loadTheme, type ThemeMode } from '@/lib/theme'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = '#0E9594', TEAL_BG = '#11686A', ORANGE = '#F2542D', WHEAT = '#F5DFBB'
+const TEAL = 'var(--azul)', TEAL_BG = 'var(--azul)', ORANGE = 'var(--accent)', WHEAT = 'var(--text)'
 
 function fmtH(sec: number) {
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60)

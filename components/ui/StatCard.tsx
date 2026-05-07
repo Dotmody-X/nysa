@@ -14,10 +14,10 @@ interface StatCardProps {
 }
 
 const accentColor: Record<AccentColor, string> = {
-  fiery: '#F2542D',
-  cyan:  '#0E9594',
-  teal:  '#11686A',
-  wheat: '#F5DFBB',
+  fiery: 'var(--accent)',
+  cyan:  'var(--azul)',
+  teal:  'var(--azul)',
+  wheat: 'var(--text)',
 }
 
 export function StatCard({ label, value, unit, sub, icon, accent = 'cyan', trend }: StatCardProps) {
@@ -60,7 +60,7 @@ export function StatCard({ label, value, unit, sub, icon, accent = 'cyan', trend
           {trend !== undefined && (
             <span
               className="text-xs font-medium"
-              style={{ color: trend >= 0 ? '#0E9594' : '#F2542D' }}
+              style={{ color: trend >= 0 ? 'var(--azul)' : 'var(--accent)' }}
             >
               {trend >= 0 ? '+' : ''}{trend}%
             </span>

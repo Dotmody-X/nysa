@@ -40,7 +40,7 @@ function groupeColor(g: string | undefined): string {
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  active:    { label: 'Actif',    color: '#0E9594', bg: 'rgba(14,149,148,0.12)'   },
+  active:    { label: 'Actif',    color: 'var(--azul)', bg: 'rgba(14,149,148,0.12)'   },
   paused:    { label: 'En pause', color: '#D97706', bg: 'rgba(217,119,6,0.12)'    },
   completed: { label: 'Terminé',  color: '#16A34A', bg: 'rgba(22,163,74,0.12)'    },
   archived:  { label: 'Archivé',  color: '#6B7280', bg: 'rgba(107,114,128,0.12)'  },
@@ -49,7 +49,7 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
 const PRIORITY_META: Record<string, { label: string; color: string }> = {
   low:    { label: 'Basse',   color: '#6B7280' },
   medium: { label: 'Moyenne', color: '#D97706' },
-  high:   { label: 'Haute',   color: '#F2542D' },
+  high:   { label: 'Haute',   color: 'var(--accent)' },
   urgent: { label: 'Urgente', color: '#DC2626' },
 }
 
@@ -114,7 +114,7 @@ function Dropdown<T extends string>({
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
           {options.map(o => (
             <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }}
-              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 11, color: o.value === value ? '#F2542D' : 'var(--wheat)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: o.value === value ? 700 : 400 }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 11, color: o.value === value ? 'var(--accent)' : 'var(--wheat)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: o.value === value ? 700 : 400 }}
               onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
               {o.label}
@@ -141,7 +141,7 @@ function ProjectModal({
   const isEdit = !!project
   const [form, setForm] = useState({
     name:        project?.name        ?? '',
-    color:       project?.color       ?? '#0E9594',
+    color:       project?.color       ?? 'var(--azul)',
     description: project?.description ?? '',
     status:      (project?.status     ?? 'active')  as Project['status'],
     priority:    (project?.priority   ?? 'medium')  as Project['priority'],
@@ -274,7 +274,7 @@ function ProjectModal({
         <div className="flex gap-2 justify-between items-center">
           {isEdit && onDelete && !confirm && (
             <button onClick={() => setConfirm(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Trash2 size={11} /> Supprimer
             </button>
           )}
@@ -283,7 +283,7 @@ function ProjectModal({
               <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Confirmer ?</span>
               <button onClick={() => setConfirm(false)} style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Non</button>
               <button onClick={async () => { await onDelete!(project!.id); onClose() }}
-                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#F2542D', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
+                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
                 Oui
               </button>
             </div>
@@ -295,7 +295,7 @@ function ProjectModal({
               Annuler
             </button>
             <button onClick={submit} disabled={saving || !form.name.trim()}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
               {saving ? '…' : isEdit ? 'Sauvegarder' : 'Créer'}
             </button>
           </div>
@@ -533,19 +533,19 @@ export default function ProjetsPage() {
 
       {/* Hero */}
       <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 300, padding: '10px 0 20px 0' }}>
-        <p style={{ fontSize: 11, ...DF, fontWeight: 700, color: '#F2542D', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
+        <p style={{ fontSize: 11, ...DF, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
           Projets
         </p>
         <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 1, color: 'var(--wheat)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
           Gérez.<br />Livrez.
         </h1>
-        <p style={{ ...DF, fontSize: 12, fontWeight: 500, color: '#0E9594', marginTop: 12 }}>
+        <p style={{ ...DF, fontSize: 12, fontWeight: 500, color: 'var(--azul)', marginTop: 12 }}>
           {projects.length} projet{projects.length !== 1 ? 's' : ''} · {tasks.length} tâche{tasks.length !== 1 ? 's' : ''}
         </p>
       </div>
 
       {/* VUE GLOBALE — 4 marques avec temps semaine */}
-      <div className="col-span-2" style={{ ...card, background: '#F2542D', border: '1px solid #F2542D', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--accent)', border: '1px solid var(--accent)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
           <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{totalSec > 0 ? fmtHours(totalSec) : '—'} cette semaine</span>
@@ -602,7 +602,7 @@ export default function ProjetsPage() {
         />
         <div style={{ flex: 1 }} />
         <button onClick={() => setCreateModal(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           <Plus size={13} /> NOUVEAU PROJET
         </button>
       </div>
@@ -619,7 +619,7 @@ export default function ProjetsPage() {
         ) : filtered.length === 0 ? (
           <div style={{ padding: '30px 20px', textAlign: 'center' }}>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>Aucun projet</p>
-            <button onClick={() => setCreateModal(true)} style={{ color: '#F2542D', fontSize: 12, ...DF, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>+ Créer un projet</button>
+            <button onClick={() => setCreateModal(true)} style={{ color: 'var(--accent)', fontSize: 12, ...DF, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>+ Créer un projet</button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -822,7 +822,7 @@ export default function ProjetsPage() {
                     const pm2 = PRIORITY_META[t.priority]  ?? { label: t.priority, color: '#555' }
                     return (
                       <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)' }}>
-                        <CheckSquare size={12} style={{ color: t.status === 'done' ? '#0E9594' : 'var(--text-muted)', flexShrink: 0 }} />
+                        <CheckSquare size={12} style={{ color: t.status === 'done' ? 'var(--azul)' : 'var(--text-muted)', flexShrink: 0 }} />
                         <span style={{ flex: 1, fontSize: 12, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none' }}>{t.title}</span>
                         <span style={{ fontSize: 10, color: sm2.color, fontWeight: 600 }}>{sm2.label}</span>
                         <span style={{ fontSize: 10, color: pm2.color, fontWeight: 600 }}>{pm2.label}</span>
@@ -853,7 +853,7 @@ export default function ProjetsPage() {
                 }}>
                 <input type="file" id="file-upload" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) uploadFile(e.target.files[0]) }} />
                 <label htmlFor="file-upload" style={{ cursor: 'pointer', display: 'block' }}>
-                  <FileUp size={20} style={{ margin: '0 auto 8px', color: '#F2542D' }} />
+                  <FileUp size={20} style={{ margin: '0 auto 8px', color: 'var(--accent)' }} />
                   <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)', marginBottom: 4 }}>Glissez des fichiers ici ou cliquez pour sélectionner</p>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Max 50 MB par fichier</p>
                 </label>
@@ -870,7 +870,7 @@ export default function ProjetsPage() {
                         <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{(f.file_size / 1024 / 1024).toFixed(2)} MB · {new Date(f.created_at).toLocaleDateString('fr-FR')}</p>
                       </div>
                       <div style={{ display: 'flex', gap: 8, marginLeft: 12 }}>
-                        <a href={getDownloadUrl(f.file_path)} download={f.filename} style={{ color: '#F2542D', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <a href={getDownloadUrl(f.file_path)} download={f.filename} style={{ color: 'var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <Download size={14} />
                         </a>
                         <button onClick={() => removeFile(f.id, f.file_path)} style={{ color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -935,7 +935,7 @@ export default function ProjetsPage() {
                       onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                        <CheckSquare size={12} style={{ color: t.status === 'done' ? '#0E9594' : 'var(--text-muted)', flexShrink: 0 }} />
+                        <CheckSquare size={12} style={{ color: t.status === 'done' ? 'var(--azul)' : 'var(--text-muted)', flexShrink: 0 }} />
                         <span style={{ fontSize: 12, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
                       </div>
                       <span style={{ fontSize: 10, color: sm2.color, fontWeight: 600 }}>{sm2.label}</span>
@@ -967,7 +967,7 @@ export default function ProjetsPage() {
       {/* ── ROW 6 : RÉPARTITION PAR MARQUE (teal, col-span-2) + ACTIVITÉ + LIENS */}
 
       {/* RÉPARTITION PAR MARQUE */}
-      <div className="col-span-2" style={{ ...card, background: '#0E9594', border: '1px solid #0E9594', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '1px solid var(--azul)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(255,255,255,0.2)', flexShrink: 0 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition par marque</p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>
@@ -1047,7 +1047,7 @@ export default function ProjetsPage() {
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Link2 size={20} style={{ color: '#0E9594' }} />
+            <Link2 size={20} style={{ color: 'var(--azul)' }} />
           </div>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.6 }}>
             Fichiers & liens<br />à venir
@@ -1068,7 +1068,7 @@ export default function ProjetsPage() {
               { label: 'Supprimer',    icon: <Trash2 size={11} />,       danger: true,  action: async () => { await remove(proj.id); setContextMenu(null); if (selected === proj.id) setSelected(null) } },
             ].map(item => (
               <button key={item.label} onClick={item.action}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 14px', fontSize: 11, color: item.danger ? '#F2542D' : 'var(--wheat)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', ...DF, fontWeight: 600 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 14px', fontSize: 11, color: item.danger ? 'var(--accent)' : 'var(--wheat)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', ...DF, fontWeight: 600 }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
                 {item.icon} {item.label}

@@ -9,10 +9,10 @@ import { AlertTriangle as AlertIcon } from 'lucide-react'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL    = '#0E9594'
-const ORANGE  = '#F2542D'
+const TEAL    = 'var(--azul)'
+const ORANGE  = 'var(--accent)'
 const WHEAT   = 'var(--text)'
-const TEAL_BG = '#11686A'
+const TEAL_BG = 'var(--azul)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,

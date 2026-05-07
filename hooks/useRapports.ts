@@ -107,7 +107,7 @@ export function useRapports(period: RapportPeriod, ref: Date) {
     ])
 
     const projectMap: Record<string, { name: string; color: string }> = {}
-    ;(projects ?? []).forEach(p => { projectMap[p.id] = { name: p.name, color: p.color ?? '#F2542D' } })
+    ;(projects ?? []).forEach(p => { projectMap[p.id] = { name: p.name, color: p.color ?? 'var(--accent)' } })
 
     // ── Time ──
     const entries          = timeEntries ?? []

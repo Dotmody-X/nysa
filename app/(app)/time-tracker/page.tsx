@@ -48,15 +48,15 @@ function getPeriodDates(period: Period): { from: string; to?: string } {
 
 /* ── Category colours ─────────────────────────────────────────────────────── */
 const CAT_COLORS: Record<string, string> = {
-  'Design':        '#0E9594',
-  'Développement': '#F2542D',
-  'Dev':           '#F2542D',
-  'Apprentissage': '#F5DFBB',
+  'Design':        'var(--azul)',
+  'Développement': 'var(--accent)',
+  'Dev':           'var(--accent)',
+  'Apprentissage': 'var(--text)',
   'Admin':         '#E07030',
   'Santé':         '#4ECDC4',
   'Running':       '#4ECDC4',
 }
-const catColor = (c?: string | null) => (c ? (CAT_COLORS[c] ?? '#0E9594') : '#555')
+const catColor = (c?: string | null) => (c ? (CAT_COLORS[c] ?? 'var(--azul)') : '#555')
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
 function fmtSec(s: number) {
@@ -194,7 +194,7 @@ function Dropdown<T extends string>({
 
   const bg     = dark ? 'rgba(255,255,255,0.1)'  : 'var(--bg-input)'
   const border = dark ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--border)'
-  const txtC   = dark ? '#F0E4CC' : 'var(--wheat)'
+  const txtC   = dark ? 'var(--text-muted)' : 'var(--wheat)'
   const muted  = dark ? 'rgba(240,228,204,0.55)' : 'var(--text-muted)'
   const menuBg = dark ? '#0d4a4b' : 'var(--bg-card)'
   const menuBorder = dark ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--border)'
@@ -210,7 +210,7 @@ function Dropdown<T extends string>({
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 100, background: menuBg, border: menuBorder, borderRadius: 8, minWidth: '100%', padding: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
           {options.map(opt => (
             <div key={opt} onClick={() => { onChange(opt); setOpen(false) }}
-              style={{ padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: opt === value ? '#F2542D' : txtC, fontWeight: opt === value ? 700 : 400, background: opt === value ? 'rgba(242,84,45,0.08)' : 'transparent' }}
+              style={{ padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: opt === value ? 'var(--accent)' : txtC, fontWeight: opt === value ? 700 : 400, background: opt === value ? 'rgba(242,84,45,0.08)' : 'transparent' }}
               onMouseEnter={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = dark ? 'rgba(255,255,255,0.07)' : 'var(--bg-card-hover)' }}
               onMouseLeave={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
               {labels[opt]}
@@ -237,7 +237,7 @@ function ContextMenu({ items, onClose }: {
     <div ref={ref} style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', zIndex: 100, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, minWidth: 160, padding: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
       {items.map((item, i) => (
         <button key={i} onClick={() => { item.onClick(); onClose() }}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: item.danger ? '#F2542D' : 'var(--wheat)', fontWeight: item.danger ? 600 : 400, textAlign: 'left' }}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: item.danger ? 'var(--accent)' : 'var(--wheat)', fontWeight: item.danger ? 600 : 400, textAlign: 'left' }}
           onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-card-hover)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
           {item.icon}<span>{item.label}</span>
@@ -252,10 +252,10 @@ const LABEL_COLORS: Record<string, string> = {
   'Mixologue': '#1A0A0A',
   'E-Smoker':  '#7B5EA7',
   'Aeterna':   '#8B7355',
-  'Travail':   '#0E9594',
+  'Travail':   'var(--azul)',
   'Perso':     '#4B8BF4',
   'Santé':     '#4ECDC4',
-  'Running':   '#F2542D',
+  'Running':   'var(--accent)',
 }
 
 function LabelPickerDropdown({ labels, selected, onSelect, onClose }: {
@@ -280,7 +280,7 @@ function LabelPickerDropdown({ labels, selected, onSelect, onClose }: {
           onMouseLeave={e => { if (l !== selected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[l] ?? '#888', flexShrink: 0 }} />
           {l}
-          {l === selected && <span style={{ marginLeft: 'auto', fontSize: 10, color: '#F2542D' }}>✓</span>}
+          {l === selected && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--accent)' }}>✓</span>}
         </button>
       ))}
     </div>
@@ -343,24 +343,24 @@ function EditEntryModal({
         </div>
         <button onClick={() => setForm(f => ({ ...f, billable: !f.billable }))}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${form.billable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`, background: form.billable ? 'rgba(14,149,148,0.08)' : 'transparent', cursor: 'pointer', ...DF }}>
-          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? '#0E9594' : 'var(--border)'}`, background: form.billable ? '#0E9594' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? 'var(--azul)' : 'var(--border)'}`, background: form.billable ? 'var(--azul)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {form.billable && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
           </div>
-          <span style={{ fontSize: 12, color: form.billable ? '#0E9594' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
+          <span style={{ fontSize: 12, color: form.billable ? 'var(--azul)' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
         </button>
         <div className="flex gap-2 justify-between">
           {!confirm ? (
-            <button onClick={() => setConfirm(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            <button onClick={() => setConfirm(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Trash2 size={11} /> Supprimer</button>
           ) : (
             <div className="flex gap-2">
               <button onClick={() => setConfirm(false)} style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Annuler</button>
-              <button onClick={async () => { await onDelete(entry.id); onClose() }} style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#F2542D', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Confirmer</button>
+              <button onClick={async () => { await onDelete(entry.id); onClose() }} style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Confirmer</button>
             </div>
           )}
           <div className="flex gap-2">
             <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>Annuler</button>
-            <button onClick={submit} disabled={saving} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+            <button onClick={submit} disabled={saving} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
               {saving ? '…' : 'Sauvegarder'}</button>
           </div>
         </div>
@@ -425,14 +425,14 @@ function ManualEntryModal({
         </div>
         <button onClick={() => setForm(f => ({ ...f, billable: !f.billable }))}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${form.billable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`, background: form.billable ? 'rgba(14,149,148,0.08)' : 'transparent', cursor: 'pointer', ...DF }}>
-          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? '#0E9594' : 'var(--border)'}`, background: form.billable ? '#0E9594' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? 'var(--azul)' : 'var(--border)'}`, background: form.billable ? 'var(--azul)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {form.billable && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
           </div>
-          <span style={{ fontSize: 12, color: form.billable ? '#0E9594' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
+          <span style={{ fontSize: 12, color: form.billable ? 'var(--azul)' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
         </button>
         <div className="flex gap-2 justify-end">
           <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>Annuler</button>
-          <button onClick={submit} disabled={saving || !form.startDate || !form.startTime} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+          <button onClick={submit} disabled={saving || !form.startDate || !form.startTime} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
             {saving ? '…' : 'Créer'}</button>
         </div>
       </div>
@@ -519,7 +519,7 @@ export default function TimeTrackerPage() {
       projects.forEach(p => {
         const pe = entries.filter(e => e.project_id === p.id && e.duration_seconds)
         if (!pe.length) return
-        rows.push({ id: p.id, name: p.name, color: p.color ?? '#F2542D',
+        rows.push({ id: p.id, name: p.name, color: p.color ?? 'var(--accent)',
           seconds: pe.reduce((s, e) => s + (e.duration_seconds ?? 0), 0),
           desc: pe[0]?.description ?? '', category: pe.find(e => e.category)?.category ?? null })
       })
@@ -545,7 +545,7 @@ export default function TimeTrackerPage() {
       .map(([day, sec]) => ({
         id: day,
         name: new Date(day + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' }),
-        color: '#F2542D', seconds: sec, desc: '', category: null,
+        color: 'var(--accent)', seconds: sec, desc: '', category: null,
       }))
   })()
 
@@ -609,13 +609,13 @@ export default function TimeTrackerPage() {
 
       {/* Hero — col-span-2, h=300 */}
       <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 300, paddingBottom: 20 }}>
-        <p style={{ ...DF, fontSize: 10, fontWeight: 700, color: '#F2542D', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
+        <p style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
           Time Trackers
         </p>
         <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(42px, 5.5vw, 72px)', lineHeight: 0.88, color: 'var(--wheat)', letterSpacing: '-0.02em', textTransform: 'uppercase', marginBottom: 18 }}>
           TIME<br />TRACKERS.
         </h1>
-        <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#0E9594', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+        <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--azul)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
           Suivez. Analysez. Améliorez.
         </p>
       </div>
@@ -623,7 +623,7 @@ export default function TimeTrackerPage() {
       {/* Session en cours — col-span-2, h=300 */}
       <div className="col-span-2" style={{
         height: 300, borderRadius: 16, overflow: 'hidden', position: 'relative',
-        background: running ? '#F2542D' : 'var(--bg-card)',
+        background: running ? 'var(--accent)' : 'var(--bg-card)',
         border: running ? 'none' : '1px solid var(--border)',
         display: 'flex', flexDirection: 'column', padding: 22,
       }}>
@@ -641,7 +641,7 @@ export default function TimeTrackerPage() {
               </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
-              <button onClick={handleStop} style={{ width: 60, height: 60, borderRadius: '50%', background: '#0E9594', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
+              <button onClick={handleStop} style={{ width: 60, height: 60, borderRadius: '50%', background: 'var(--azul)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
                 <Square size={20} fill="#fff" color="#fff" />
               </button>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -700,12 +700,12 @@ export default function TimeTrackerPage() {
               <select value={projId} onChange={e => setProjId(e.target.value)} style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }}>
                 <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
-              <button onClick={() => setBillable(b => !b)} style={{ padding: '8px 12px', borderRadius: 8, background: billable ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', color: billable ? '#0E9594' : 'var(--text-muted)', border: '1px solid var(--border)', ...DF, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => setBillable(b => !b)} style={{ padding: '8px 12px', borderRadius: 8, background: billable ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', color: billable ? 'var(--azul)' : 'var(--text-muted)', border: '1px solid var(--border)', ...DF, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
                 {billable ? '€ Fact.' : 'Non fact.'}
               </button>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
-              <button onClick={handleStart} disabled={!desc.trim()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? '#F2542D' : 'var(--bg-input)', color: desc.trim() ? '#fff' : 'var(--text-muted)', border: 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
+              <button onClick={handleStart} disabled={!desc.trim()} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? 'var(--accent)' : 'var(--bg-input)', color: desc.trim() ? '#fff' : 'var(--text-muted)', border: 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
                 <Play size={13} fill={desc.trim() ? '#fff' : 'var(--text-muted)'} /> Démarrer
               </button>
               <button onClick={() => setManualOpen(true)} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
@@ -743,7 +743,7 @@ export default function TimeTrackerPage() {
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 600 }}>
           <Download size={11} /> Exporter
         </button>
-        <button onClick={() => setManualOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: '#F2542D', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
+        <button onClick={() => setManualOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
           <Plus size={11} /> Nouvelle entrée
         </button>
       </div>
@@ -759,7 +759,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 2 — Moyenne / jour (wheat bg) */}
-      <div style={{ background: '#F5DFBB', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: 'var(--text)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(26,10,10,0.55)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Moyenne / jour</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: '#1A0A0A', lineHeight: 1, marginBottom: 6 }}>{fmtDur(avgSec)}</p>
         <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>{workingDays} jour{workingDays > 1 ? 's' : ''} travaillé{workingDays > 1 ? 's' : ''}</p>
@@ -767,7 +767,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 3 — Projets actifs (orange) */}
-      <div style={{ background: '#F2542D', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--accent)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Projets actifs</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{activeProjs}</p>
@@ -776,7 +776,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 4 — Productivité (teal) */}
-      <div style={{ background: '#0E9594', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: 'var(--azul)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Taux facturable</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{prodPct}%</p>
         <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginBottom: 'auto' }}>{fmtDur(billableSec)} facturables</p>
@@ -896,7 +896,7 @@ export default function TimeTrackerPage() {
                           onClick={() => handleStartForProject(row)}
                           title="Démarrer une session"
                           style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#F2542D'; (e.currentTarget as HTMLElement).style.color = '#F2542D' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
                           <Play size={9} fill="currentColor" />
                         </button>
@@ -944,7 +944,7 @@ export default function TimeTrackerPage() {
                             <button onClick={() => setEditingEntry(e as TimeEntry)}
                               title="Modifier"
                               style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
-                              onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = '#F2542D'; (ev.currentTarget as HTMLElement).style.color = '#F2542D' }}
+                              onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (ev.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
                               onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (ev.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
                               <Pencil size={8} />
                             </button>
@@ -980,7 +980,7 @@ export default function TimeTrackerPage() {
           <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 11, color: 'var(--text-muted)', ...DF, fontWeight: 600 }}>{groupedRows.length} groupe{groupedRows.length > 1 ? 's' : ''} · {fmtDur(totalSec)} total</span>
             <button onClick={() => exportCSV(filteredEntries, projects)}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
               Exporter <Download size={10} />
             </button>
           </div>
@@ -1025,7 +1025,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* Évolution du temps — stacked bars */}
-      <div className="col-span-2" style={{ background: '#11686A', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
+      <div className="col-span-2" style={{ background: 'var(--azul)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Évolution du temps</p>
           <Dropdown<Period>
@@ -1065,7 +1065,7 @@ export default function TimeTrackerPage() {
             {filteredEntries.length > 0 && <span style={{ fontSize: 9, color: 'var(--text-muted)', marginLeft: 8, fontWeight: 400 }}>({filteredEntries.length})</span>}
           </p>
           <button onClick={() => setShowAllRecent(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
             {showAllRecent ? 'Voir moins' : 'Voir toutes'} <ArrowRight size={10} style={{ transform: showAllRecent ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
         </div>
@@ -1103,7 +1103,7 @@ export default function TimeTrackerPage() {
                 <button onClick={() => setEditingEntry(e as TimeEntry)}
                   title="Modifier"
                   style={{ width: 26, height: 26, borderRadius: '50%', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
-                  onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = '#F2542D'; (ev.currentTarget as HTMLElement).style.color = '#F2542D' }}
+                  onMouseEnter={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (ev.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
                   onMouseLeave={ev => { (ev.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (ev.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}>
                   <Pencil size={9} />
                 </button>

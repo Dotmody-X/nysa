@@ -5,7 +5,7 @@ import { ArrowLeft, Bell, CheckSquare, Activity, Wallet, TrendingUp, Zap } from 
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = '#0E9594', ORANGE = '#F2542D', WHEAT = '#F5DFBB'
+const TEAL = 'var(--azul)', ORANGE = 'var(--accent)', WHEAT = 'var(--text)'
 
 type NotifPrefs = {
   taskReminders:   boolean

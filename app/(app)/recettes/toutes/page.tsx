@@ -6,8 +6,8 @@ import { useRecipes } from '@/hooks/useRecipes'
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = '#0E9594'
-const ORANGE = '#F2542D'
+const TEAL = 'var(--azul)'
+const ORANGE = 'var(--accent)'
 const WHEAT   = 'var(--text)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({

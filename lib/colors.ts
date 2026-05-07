@@ -5,7 +5,7 @@
 
 export const themeColors = {
   // Accents (fixed)
-  accent: '#F2542D',          // Orange (same in all modes)
+  accent: 'var(--accent)',          // Orange (same in all modes)
   
   // Text colors (theme-aware, use var(--)
   textPrimary: 'var(--text)',
@@ -35,8 +35,8 @@ export const themeColors = {
  * Used for data visualization - consistent across themes
  */
 export const chartPalette = [
-  '#F2542D',  // Orange (accent)
-  '#0E9594',  // Cyan
+  'var(--accent)',  // Orange (accent)
+  'var(--azul)',  // Cyan
   '#E8A838',  // Gold
   '#7C6FAF',  // Purple
   '#3ABCB8',  // Teal

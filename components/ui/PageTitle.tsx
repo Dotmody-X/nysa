@@ -12,7 +12,7 @@ export function PageTitle({ title, sub, right }: PageTitleProps) {
   return (
     <div className="flex items-end justify-between" style={{ marginBottom: 20 }}>
       <div>
-        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(28px, 4vw, 44px)', color: '#F2542D', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1 }}>
+        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1 }}>
           {title}<span style={{ color: 'var(--accent)' }}>.</span>
         </h1>
         {sub && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.05em' }}>{sub}</p>}

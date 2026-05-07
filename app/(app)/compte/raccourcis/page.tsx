@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = '#0E9594', WHEAT = '#F5DFBB'
+const TEAL = 'var(--azul)', WHEAT = 'var(--text)'
 
 const SHORTCUTS: { category: string; items: { keys: string[]; label: string }[] }[] = [
   {

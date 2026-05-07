@@ -23,18 +23,18 @@ const TIME_COL     = 44
 
 // Catégories fixes avec couleurs NYSA
 const CATEGORIES: Record<string, string> = {
-  Travail:  '#F2542D',
-  Perso:    '#0E9594',
+  Travail:  'var(--accent)',
+  Perso:    'var(--azul)',
   Santé:    '#B45309',
-  Running:  '#11686A',
+  Running:  'var(--azul)',
   Réunion:  '#9333EA',
   Autre:    '#555',
 }
 
 // Palette NYSA pour les catégories dynamiques (noms de calendriers Apple)
 const NYSA_PALETTE = [
-  '#F2542D', // orange fiery
-  '#0E9594', // teal
+  'var(--accent)', // orange fiery
+  'var(--azul)', // teal
   '#9333EA', // violet
   '#2563EB', // bleu
   '#16A34A', // vert
@@ -205,7 +205,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
         {step === 1 && (
           <>
             <div className="rounded-[10px] p-4 flex flex-col gap-2" style={{ background: 'rgba(14,149,148,0.12)', border: '1px solid rgba(14,149,148,0.25)' }}>
-              <p className="text-xs font-semibold" style={{ color: '#0E9594' }}>Avant de continuer</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--azul)' }}>Avant de continuer</p>
               <p className="text-[11px] leading-relaxed" style={{ color: 'var(--wheat)' }}>
                 Apple exige un <strong style={{ color: 'var(--wheat)' }}>mot de passe spécifique à l'app</strong> pour les accès tiers. Ton mot de passe Apple ID principal ne fonctionnera pas.
               </p>
@@ -217,14 +217,14 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
                 { n: '3', t: 'Clique sur', link: '+', desc: ', donne le nom "NYSA", copie le mdp' },
               ].map(s => (
                 <div key={s.n} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold" style={{ background: '#F2542D', color: '#fff' }}>{s.n}</div>
+                  <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold" style={{ background: 'var(--accent)', color: '#fff' }}>{s.n}</div>
                   <p className="text-[11px] leading-relaxed" style={{ color: 'var(--wheat)' }}>
                     {s.t} <span style={{ color: 'var(--wheat)' }}>{s.link}</span> {s.desc}
                   </p>
                 </div>
               ))}
             </div>
-            <button onClick={() => setStep(2)} className="w-full py-2.5 rounded-[8px] text-sm font-semibold" style={{ background: '#F2542D', color: '#fff' }}>
+            <button onClick={() => setStep(2)} className="w-full py-2.5 rounded-[8px] text-sm font-semibold" style={{ background: 'var(--accent)', color: '#fff' }}>
               J'ai mon mot de passe →
             </button>
           </>
@@ -250,7 +250,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
               </div>
             </div>
             {result && (
-              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? '#0E9594' : '#F2542D' }}>
+              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? 'var(--azul)' : 'var(--accent)' }}>
                 {result}
               </p>
             )}
@@ -260,7 +260,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
               </button>
               <button onClick={handleConnect} disabled={syncing || !email || !pass}
                 className="flex-1 py-2 rounded-[8px] text-sm font-semibold disabled:opacity-40"
-                style={{ background: '#F2542D', color: '#fff' }}>
+                style={{ background: 'var(--accent)', color: '#fff' }}>
                 {syncing ? 'Connexion…' : 'Connecter →'}
               </button>
             </div>
@@ -289,8 +289,8 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
                     {/* Checkbox */}
                     <div style={{
                       width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                      border: `1.5px solid ${isIncluded ? '#0E9594' : 'var(--border-active)'}`,
-                      background: isIncluded ? '#0E9594' : 'transparent',
+                      border: `1.5px solid ${isIncluded ? 'var(--azul)' : 'var(--border-active)'}`,
+                      background: isIncluded ? 'var(--azul)' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.12s',
                     }}>
@@ -305,7 +305,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
             </div>
 
             {result && (
-              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? '#0E9594' : '#F2542D' }}>
+              <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? 'var(--azul)' : 'var(--accent)' }}>
                 {result}
               </p>
             )}
@@ -316,7 +316,7 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
               </button>
               <button onClick={handleApplyFilter} disabled={syncing}
                 className="flex-1 py-2.5 rounded-[8px] text-sm font-semibold disabled:opacity-40"
-                style={{ background: '#F2542D', color: '#fff' }}>
+                style={{ background: 'var(--accent)', color: '#fff' }}>
                 {syncing ? 'Sync…' : `Appliquer (${calendars.length - excluded.length}/${calendars.length})`}
               </button>
             </div>
@@ -472,7 +472,7 @@ function EventModal({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <label className="text-[9px] uppercase tracking-widest block" style={{ color: 'var(--text-muted)' }}>Projet</label>
               <button type="button" onClick={() => setShowNewProj(v => !v)}
-                style={{ fontSize: 9, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                style={{ fontSize: 9, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Plus size={9} /> Nouveau
               </button>
             </div>
@@ -485,7 +485,7 @@ function EventModal({
                   placeholder="Nom du projet…"
                   style={{ flex: 1, background: 'var(--bg)', color: 'var(--wheat)', border: '1px solid rgba(242,84,45,0.4)', borderRadius: 7, padding: '6px 10px', fontSize: 12, outline: 'none' }} />
                 <button onClick={handleCreateProject} disabled={creatingProj || !newProjName.trim()}
-                  style={{ padding: '6px 12px', borderRadius: 7, background: '#F2542D', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', opacity: creatingProj ? 0.5 : 1 }}>
+                  style={{ padding: '6px 12px', borderRadius: 7, background: 'var(--accent)', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', opacity: creatingProj ? 0.5 : 1 }}>
                   {creatingProj ? '…' : 'OK'}
                 </button>
               </div>
@@ -526,7 +526,7 @@ function EventModal({
           </button>
           <button onClick={submit} disabled={saving || !form.title.trim()}
             className="px-4 py-2 rounded-[8px] text-xs font-semibold disabled:opacity-40"
-            style={{ background: '#F2542D', color: '#fff' }}>
+            style={{ background: 'var(--accent)', color: '#fff' }}>
             {saving ? '…' : isEdit ? 'Modifier' : 'Créer'}
           </button>
         </div>
@@ -832,19 +832,19 @@ function CalendrierContent() {
 
       {/* Hero title — col-span-2, 300px */}
       <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '10px 0 20px 0', height: 300 }}>
-        <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#F2542D', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
+        <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
           Calendrier
         </p>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 1, color: 'var(--wheat)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
           Votre journée.<br />Votre plan.
         </h1>
-        <p style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 500, color: '#0E9594', marginTop: 12, textTransform: 'capitalize' }}>
+        <p style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 500, color: 'var(--azul)', marginTop: 12, textTransform: 'capitalize' }}>
           {fmtShortDate(today)}
         </p>
       </div>
 
       {/* À VENIR — col-span-2, teal, 300px, liste verticale */}
-      <div className="col-span-2" style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden' }}>
+      <div className="col-span-2" style={{ ...card({ background: 'var(--azul)', border: '1px solid var(--azul)' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{upcoming.length}</span>
@@ -882,7 +882,7 @@ function CalendrierContent() {
             const active = calView === v
             return (
               <button key={v} onClick={() => setCalView(v)}
-                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? '#F2542D' : 'transparent', color: active ? '#fff' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? 'var(--accent)' : 'transparent', color: active ? '#fff' : 'var(--text-muted)', transition: 'all 0.15s' }}>
                 {label}
               </button>
             )
@@ -907,7 +907,7 @@ function CalendrierContent() {
 
         {/* + Événement */}
         <button onClick={() => setModalDate((calView === 'day' ? dayStart : today).toISOString().slice(0, 10))}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: '#F2542D', color: '#fff', cursor: 'pointer', border: 'none', letterSpacing: '0.04em' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', border: 'none', letterSpacing: '0.04em' }}>
           <Plus size={13} /> ÉVÉNEMENT
         </button>
       </div>
@@ -945,7 +945,7 @@ function CalendrierContent() {
                   }}
                   onMouseEnter={e => { if (!isToday) (e.currentTarget as HTMLElement).style.background = 'var(--bg-card-hover)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isToday ? 'rgba(242,84,45,0.04)' : 'transparent' }}>
-                  <div style={{ width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isToday ? '#F2542D' : 'transparent', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', color: isToday ? '#fff' : 'var(--wheat)', marginBottom: 3 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isToday ? 'var(--accent)' : 'transparent', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', color: isToday ? '#fff' : 'var(--wheat)', marginBottom: 3 }}>
                     {day.getDate()}
                   </div>
                   {filtered.slice(0, 2).map(ev => {
@@ -983,7 +983,7 @@ function CalendrierContent() {
                 <div style={{
                   width: 26, height: 26, borderRadius: '50%', margin: '0 auto',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isToday ? '#F2542D' : 'transparent',
+                  background: isToday ? 'var(--accent)' : 'transparent',
                   fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-display)',
                   color: isToday ? '#fff' : 'var(--wheat)',
                 }}>
@@ -1040,8 +1040,8 @@ function CalendrierContent() {
             {/* Now line */}
             {todayInWeek && nowMins >= 0 && nowMins <= TOTAL_HOURS * 60 && (
               <div style={{ position: 'absolute', top: nowPx, left: TIME_COL, right: 0, display: 'flex', alignItems: 'center', zIndex: 20, pointerEvents: 'none' }}>
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#F2542D', marginLeft: -3.5 }} />
-                <div style={{ flex: 1, height: 1, background: '#F2542D', opacity: 0.85 }} />
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', marginLeft: -3.5 }} />
+                <div style={{ flex: 1, height: 1, background: 'var(--accent)', opacity: 0.85 }} />
               </div>
             )}
 
@@ -1188,11 +1188,11 @@ function CalendrierContent() {
               {selected.description && <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>{selected.description}</p>}
               <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
                 <button onClick={() => setEditingEvent(selected)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#0E9594', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--azul)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   <Pencil size={11} /> Modifier
                 </button>
                 <button onClick={() => handleDelete(selected.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   <Trash2 size={11} /> Supprimer
                 </button>
               </div>
@@ -1213,8 +1213,8 @@ function CalendrierContent() {
             ) : weekTasks.slice(0, 6).map(t => (
               <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderBottom: '1px solid var(--border)' }}>
                 {t.status === 'done'
-                  ? <CheckCircle2 size={12} style={{ color: '#0E9594', flexShrink: 0 }} />
-                  : <Circle size={12} style={{ color: t.priority === 'urgent' ? '#F2542D' : 'var(--text-muted)', flexShrink: 0 }} />}
+                  ? <CheckCircle2 size={12} style={{ color: 'var(--azul)', flexShrink: 0 }} />
+                  : <Circle size={12} style={{ color: t.priority === 'urgent' ? 'var(--accent)' : 'var(--text-muted)', flexShrink: 0 }} />}
                 <div style={{ minWidth: 0 }}>
                   <p style={{ fontSize: 11, color: t.status === 'done' ? 'var(--text-muted)' : 'var(--wheat)', textDecoration: t.status === 'done' ? 'line-through' : 'none', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{t.title}</p>
                 </div>
@@ -1228,7 +1228,7 @@ function CalendrierContent() {
           <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <p style={labelStyle}>Filtrer</p>
             {activeCategories.length > 0 && (
-              <button onClick={() => setActiveCategories([])} style={{ fontSize: 9, color: '#F2542D', background: 'none', border: 'none', cursor: 'pointer' }}>Réinitialiser</button>
+              <button onClick={() => setActiveCategories([])} style={{ fontSize: 9, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>Réinitialiser</button>
             )}
           </div>
           <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', maxHeight: 200 }}>
@@ -1259,7 +1259,7 @@ function CalendrierContent() {
       <div className="col-span-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, paddingBottom: 10 }}>
 
         {/* VUE D'ENSEMBLE — teal */}
-        <div style={{ ...card({ background: '#0E9594', border: '1px solid #0E9594' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12 }}>
+        <div style={{ ...card({ background: 'var(--azul)', border: '1px solid var(--azul)' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12 }}>
           <div>
             <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue d'ensemble</p>
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>{fmtShortDate(weekStart)} – {fmtShortDate(addDays(weekStart, 6))}</p>
@@ -1284,7 +1284,7 @@ function CalendrierContent() {
         </div>
 
         {/* RAPPELS — orange */}
-        <div style={{ ...card({ background: '#F2542D', border: '1px solid #F2542D' }), display: 'flex', flexDirection: 'column' }}>
+        <div style={{ ...card({ background: 'var(--accent)', border: '1px solid var(--accent)' }), display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Bell size={11} color="rgba(255,255,255,0.9)" />
             <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Rappels</p>
@@ -1321,18 +1321,18 @@ function CalendrierContent() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: appleConnected ? 'rgba(14,149,148,0.08)' : 'var(--bg-card-hover)', border: `1px solid ${appleConnected ? 'rgba(14,149,148,0.25)' : 'var(--border)'}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 7, background: appleConnected ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Apple size={14} style={{ color: appleConnected ? '#0E9594' : 'var(--wheat)' }} />
+                  <Apple size={14} style={{ color: appleConnected ? 'var(--azul)' : 'var(--wheat)' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--wheat)' }}>Apple Calendar</p>
-                  <p style={{ fontSize: 9, color: appleConnected ? '#0E9594' : 'var(--text-muted)' }}>
+                  <p style={{ fontSize: 9, color: appleConnected ? 'var(--azul)' : 'var(--text-muted)' }}>
                     {appleConnected ? (syncing ? 'Sync…' : lastSync ? `Sync ${lastSync.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}` : 'Connecté') : 'CalDAV'}
                   </p>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {appleConnected && <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#0E9594' }} />}
-                <button onClick={() => setAppleOpen(true)} style={{ fontSize: 10, fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: appleConnected ? '#0E9594' : 'var(--text-muted)', padding: 0 }}>
+                {appleConnected && <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--azul)' }} />}
+                <button onClick={() => setAppleOpen(true)} style={{ fontSize: 10, fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: appleConnected ? 'var(--azul)' : 'var(--text-muted)', padding: 0 }}>
                   {appleConnected ? 'Reconnecter' : 'Connecter'}
                 </button>
               </div>

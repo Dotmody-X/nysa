@@ -4,8 +4,8 @@ export const THEME_KEY        = 'nysa-theme'
 export const ACCENT_KEY       = 'nysa-accent'
 export const ACCENT2_KEY      = 'nysa-accent2'
 
-export const DEFAULT_ACCENT   = '#F2542D'
-export const DEFAULT_ACCENT2  = '#F5DFBB'
+export const DEFAULT_ACCENT   = 'var(--accent)'
+export const DEFAULT_ACCENT2  = 'var(--text)'
 
 export function applyTheme(mode: ThemeMode, accent = DEFAULT_ACCENT, accent2 = DEFAULT_ACCENT2) {
   const root = document.documentElement

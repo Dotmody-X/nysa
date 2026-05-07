@@ -5,7 +5,7 @@ import { ArrowLeft, Check, X, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = '#0E9594', ORANGE = '#F2542D', WHEAT = '#F5DFBB'
+const TEAL = 'var(--azul)', ORANGE = 'var(--accent)', WHEAT = 'var(--text)'
 const inp: React.CSSProperties = {
   background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8,
   padding: '9px 12px', color: 'var(--text)', fontSize: 12, outline: 'none', width: '100%',

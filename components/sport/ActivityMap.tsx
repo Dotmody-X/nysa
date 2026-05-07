@@ -72,7 +72,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
 
         // Route orange NYSA
         L.polyline(latlngs, {
-          color:    '#F2542D',
+          color:    'var(--accent)',
           weight:   3.5,
           opacity:  0.92,
           lineCap:  'round',
@@ -82,7 +82,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         // Marqueur départ — teal
         L.marker(latlngs[0], {
           icon: L.divIcon({
-            html: '<div style="width:12px;height:12px;border-radius:50%;background:#0E9594;border:2px solid #F5DFBB;box-shadow:0 0 8px rgba(14,149,148,0.6)"></div>',
+            html: '<div style="width:12px;height:12px;border-radius:50%;background:var(--azul);border:2px solid var(--text);box-shadow:0 0 8px rgba(14,149,148,0.6)"></div>',
             className: '', iconAnchor: [6, 6],
           }),
         }).addTo(map)
@@ -90,7 +90,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         // Marqueur arrivée — orange
         L.marker(latlngs[latlngs.length - 1], {
           icon: L.divIcon({
-            html: '<div style="width:12px;height:12px;border-radius:50%;background:#F2542D;border:2px solid #F5DFBB;box-shadow:0 0 8px rgba(242,84,45,0.6)"></div>',
+            html: '<div style="width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--text);box-shadow:0 0 8px rgba(242,84,45,0.6)"></div>',
             className: '', iconAnchor: [6, 6],
           }),
         }).addTo(map)
@@ -102,7 +102,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         const style = document.createElement('style')
         style.textContent = `
           .leaflet-container { background: #0C0C0C !important; }
-          .leaflet-control-zoom a { background: #161616 !important; color: #F5DFBB !important; border-color: rgba(245,223,187,0.12) !important; }
+          .leaflet-control-zoom a { background: #161616 !important; color: var(--text) !important; border-color: rgba(245,223,187,0.12) !important; }
           .leaflet-control-zoom a:hover { background: #1E1E1E !important; }
           .leaflet-control-attribution { display: none !important; }
         `

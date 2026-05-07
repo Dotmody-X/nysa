@@ -77,12 +77,12 @@ function ElevationProfile({ points, elevationMin, elevationMax }: { points: GpxP
     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: '100%', height: '100%', display: 'block' }}>
       <defs>
         <linearGradient id="eleGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#F2542D" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#F2542D" stopOpacity="0.02" />
+          <stop offset="0%"   stopColor="var(--accent)" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.02" />
         </linearGradient>
       </defs>
       <polygon points={firstPt} fill="url(#eleGrad)" />
-      <polyline points={pts} fill="none" stroke="#F2542D" strokeWidth="1.5" />
+      <polyline points={pts} fill="none" stroke="var(--accent)" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -108,7 +108,7 @@ function PaceChart({ splits }: { splits: GpxKmSplit[] }) {
           return (
             <g key={i}>
               <rect x={x} y={y} width={barW} height={h} rx={2}
-                fill={isGood ? '#0E9594' : '#F2542D'} opacity={0.85} />
+                fill={isGood ? 'var(--azul)' : 'var(--accent)'} opacity={0.85} />
               <text x={x + barW / 2} y={H + 16} textAnchor="middle"
                 style={{ fontSize: 8, fill: 'rgba(245,223,187,0.4)', fontFamily: 'var(--font-display)' }}>
                 {s.km}
@@ -204,7 +204,7 @@ export default function ActivityDetailPage() {
               </span>
             )}
             {!isFromStrava && hasGpx && (
-              <span style={{ marginLeft: 8, fontSize: 9, padding: '2px 7px', borderRadius: 4, background: 'rgba(242,84,45,0.15)', color: '#F2542D', ...DF, fontWeight: 700 }}>
+              <span style={{ marginLeft: 8, fontSize: 9, padding: '2px 7px', borderRadius: 4, background: 'rgba(242,84,45,0.15)', color: 'var(--accent)', ...DF, fontWeight: 700 }}>
                 GPX
               </span>
             )}
@@ -215,9 +215,9 @@ export default function ActivityDetailPage() {
       {/* ── KPIs principaux ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px]">
         {[
-          { label: 'Distance',  value: `${activity.distance_km?.toFixed(2)} km`,        color: '#F2542D', icon: <Wind size={14} /> },
+          { label: 'Distance',  value: `${activity.distance_km?.toFixed(2)} km`,        color: 'var(--accent)', icon: <Wind size={14} /> },
           { label: 'Durée',     value: activity.duration_seconds ? fmtDur(activity.duration_seconds) : '—', color: 'var(--text)', icon: <Clock size={14} /> },
-          { label: 'Allure',    value: pace ? `${fmtPace(pace)}/km` : '—',               color: '#0E9594', icon: <Zap size={14} /> },
+          { label: 'Allure',    value: pace ? `${fmtPace(pace)}/km` : '—',               color: 'var(--azul)', icon: <Zap size={14} /> },
           { label: 'Vitesse',   value: speed ? `${speed.toFixed(1)} km/h` : '—',         color: 'var(--text-muted)', icon: <TrendingUp size={14} /> },
         ].map(stat => (
           <div key={stat.label} style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
@@ -261,11 +261,11 @@ export default function ActivityDetailPage() {
           )}
           {activity.heart_rate_avg && (
             <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
-              <div className="flex items-center gap-1.5 mb-2" style={{ color: '#F2542D' }}>
+              <div className="flex items-center gap-1.5 mb-2" style={{ color: 'var(--accent)' }}>
                 <Flame size={14} />
                 <span style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>FC moy.</span>
               </div>
-              <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: '#F2542D' }}>{activity.heart_rate_avg} bpm</p>
+              <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--accent)' }}>{activity.heart_rate_avg} bpm</p>
             </div>
           )}
         </div>
@@ -285,7 +285,7 @@ export default function ActivityDetailPage() {
           {gpxData && (
             <div className="flex flex-col gap-[10px]">
               {/* Profil d'élévation */}
-              <div style={{ background: '#11686A', borderRadius: 12, padding: 16, flex: 1 }}>
+              <div style={{ background: 'var(--azul)', borderRadius: 12, padding: 16, flex: 1 }}>
                 <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                   Profil d'élévation
                 </p>
@@ -305,7 +305,7 @@ export default function ActivityDetailPage() {
               {/* Allure par km */}
               {gpxData.kmSplits.length > 0 && (
                 <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
-                  <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F2542D', textTransform: 'uppercase', marginBottom: 8 }}>
+                  <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 8 }}>
                     Allure par km
                   </p>
                   <PaceChart splits={gpxData.kmSplits} />
@@ -320,7 +320,7 @@ export default function ActivityDetailPage() {
           {/* Détails Strava km-par-km (depuis activity_segments) */}
           {segments && segments.length > 0 && !segmentsLoading && (
             <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16, marginTop: 16 }}>
-              <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F2542D', textTransform: 'uppercase', marginBottom: 16 }}>
+              <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16 }}>
                 ⚡ Détails Strava (km-par-km)
               </p>
               <SegmentDetails segments={segments} />
@@ -340,7 +340,7 @@ export default function ActivityDetailPage() {
       {gpxData && gpxData.kmSplits.length > 0 && (
         <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)' }}>
           <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#0E9594', textTransform: 'uppercase' }}>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--azul)', textTransform: 'uppercase' }}>
               Splits détaillés
             </p>
           </div>
@@ -363,7 +363,7 @@ export default function ActivityDetailPage() {
                         <span style={{ ...DF, fontWeight: 700, fontSize: 13, color: 'var(--wheat)' }}>km {s.km}</span>
                       </td>
                       <td style={{ padding: '12px 20px', textAlign: 'right' }}>
-                        <span style={{ ...DF, fontWeight: 700, fontSize: 13, color: isFast ? '#0E9594' : '#F2542D' }}>
+                        <span style={{ ...DF, fontWeight: 700, fontSize: 13, color: isFast ? 'var(--azul)' : 'var(--accent)' }}>
                           {fmtPace(s.paceSecPerKm)}/km
                         </span>
                       </td>

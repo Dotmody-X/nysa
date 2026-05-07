@@ -39,7 +39,7 @@ export default function LoginPage() {
           className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
           style={{ background: 'rgba(242,84,45,0.15)', border: '1px solid rgba(242,84,45,0.3)' }}
         >
-          <Star size={24} fill="#F2542D" style={{ color: '#F2542D' }} />
+          <Star size={24} fill="var(--accent)" style={{ color: 'var(--accent)' }} />
         </div>
         <h1 className="text-2xl font-bold tracking-widest uppercase" style={{ color: 'var(--wheat)' }}>
           NYSA
@@ -94,7 +94,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="text-xs px-3 py-2 rounded-[6px]" style={{ color: '#F2542D', background: 'rgba(242,84,45,0.1)', border: '1px solid rgba(242,84,45,0.2)' }}>
+          <p className="text-xs px-3 py-2 rounded-[6px]" style={{ color: 'var(--accent)', background: 'rgba(242,84,45,0.1)', border: '1px solid rgba(242,84,45,0.2)' }}>
             {error}
           </p>
         )}
@@ -103,7 +103,7 @@ export default function LoginPage() {
           type="submit"
           disabled={loading}
           className="w-full py-2.5 rounded-[8px] text-sm font-semibold tracking-wide transition-all duration-150 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: '#F2542D', color: 'var(--text)' }}
+          style={{ background: 'var(--accent)', color: 'var(--text)' }}
         >
           {loading ? 'Connexion…' : 'Se connecter'}
         </button>

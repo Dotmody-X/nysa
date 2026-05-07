@@ -13,8 +13,8 @@ const NAV_ITEMS = [
 ]
 
 const QUICK_LINKS = [
-  { href: '/todo',         label: 'Tâche',  color: '#F2542D' },
-  { href: '/time-tracker', label: 'Timer',  color: '#0E9594' },
+  { href: '/todo',         label: 'Tâche',  color: 'var(--accent)' },
+  { href: '/time-tracker', label: 'Timer',  color: 'var(--azul)' },
   { href: '/budget',       label: 'Budget', color: '#9B72CF' },
   { href: '/projets',      label: 'Projet', color: '#E8A838' },
 ]
@@ -68,8 +68,8 @@ export function MobileNav() {
           return (
             <Link key={href} href={href}
               style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, minWidth:52, textDecoration:'none', padding:'4px 0' }}>
-              <Icon size={21} style={{ color: active ? '#F2542D' : 'var(--text-muted)' }} />
-              <span style={{ fontSize:9, fontFamily:'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? '#F2542D' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+              <Icon size={21} style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }} />
+              <span style={{ fontSize:9, fontFamily:'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? 'var(--accent)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 {label}
               </span>
             </Link>
@@ -79,7 +79,7 @@ export function MobileNav() {
         {/* Centre : bouton + */}
         <button onClick={() => setOpen(o => !o)}
           style={{
-            width:54, height:54, borderRadius:99, background:'#F2542D', border:'none',
+            width:54, height:54, borderRadius:99, background:'var(--accent)', border:'none',
             cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
             boxShadow:'0 4px 18px rgba(242,84,45,0.45)', flexShrink:0,
             transform: open ? 'rotate(45deg)' : 'none',
@@ -93,8 +93,8 @@ export function MobileNav() {
           return (
             <Link key={href} href={href}
               style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, minWidth:52, textDecoration:'none', padding:'4px 0' }}>
-              <Icon size={21} style={{ color: active ? '#F2542D' : 'var(--text-muted)' }} />
-              <span style={{ fontSize:9, fontFamily:'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? '#F2542D' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+              <Icon size={21} style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }} />
+              <span style={{ fontSize:9, fontFamily:'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? 'var(--accent)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 {label}
               </span>
             </Link>
