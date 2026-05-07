@@ -1,33 +1,51 @@
 @import "tailwindcss";
 
 /* ============================================================
-   NYSA Design System v2.0 — Palette Nathan
+   NYSA Design System v3.0 — Earthy Palette
    
-   6 couleurs exclusives + système accessible dark/light
+   Palette: 12 couleurs warm, earthy & elegant
    
-   Palette:
-     Cloud         #cdd0db  (gris-bleu clair 83%)
-     Azul          #9197aa  (bleu-gris moyen 62%)
-     Mimosa        #f7b557  (jaune-orange 65%)
-     Orange        #e27921  (orange moyen 51%)
-     Aperol        #c1521e  (orange-rouge foncé 44%)
-     Green Leaves  #60693a  (vert-gris très foncé 32%)
+   Générales:
+     Creamy Ivory   #f5f1ed  (245,241,237)  Light, subtle
+     Camel          #c9b8a3  (201,184,163)  Secondary, warm
+     Chocolate      #5c4a42  (92,74,66)     Primary, grounded
+   
+   Catégories:
+     Budget → Burnt Orange #d97e35
+     Courses → Mustard Yellow #d4a24f
+     Recettes → Warm Blush #d9a79e
+     Time-Tracker → Deep Teal #1e4d5c
+     Sport → Sage Green #7a8a7e
+     Health → Olive Green #6b7a51
+     Rapports → Aubergine #4d3942
+     Projets → Terracota #a85c3f
+     Calendrier → Rosewood #8b5a54
+     Todo → Mustard Yellow #d4a24f
+     Agent → Chocolate Brown #5c4a42
    
    ♿ WCAG AA/AAA Accessible
-   🔍 Colorblind-friendly design
-   🌓 Smart dark/light mode system
+   🌓 Smart dark/light mode
+   📱 Responsive & scalable
    
    ============================================================ */
 
-/* ── Couleurs brand (constantes) ─────────────────────────── */
+/* ── Couleurs de base ─────────────────────────────────────── */
 :root {
-  /* Palette exclusive (6 couleurs) */
-  --cloud:        #cdd0db;
-  --azul:         #9197aa;
-  --mimosa:       #f7b557;
-  --orange-ny:    #e27921;
-  --aperol:       #c1521e;
-  --green-leaves: #60693a;
+  /* Générales */
+  --creamy-ivory: #f5f1ed;
+  --camel: #c9b8a3;
+  --chocolate: #5c4a42;
+
+  /* Catégories */
+  --burnt-orange: #d97e35;
+  --mustard-yellow: #d4a24f;
+  --warm-blush: #d9a79e;
+  --deep-teal: #1e4d5c;
+  --sage-green: #7a8a7e;
+  --olive-green: #6b7a51;
+  --aubergine: #4d3942;
+  --terracota: #a85c3f;
+  --rosewood: #8b5a54;
 
   /* Sidebar */
   --sidebar-width: 220px;
@@ -44,31 +62,39 @@
   color-scheme: dark;
 
   /* Backgrounds */
-  --bg:             #0C0C0C;
-  --bg-card:        #161616;
-  --bg-card-hover:  #1E1E1E;
-  --bg-sidebar:     #111111;
-  --bg-input:       var(--text);
+  --bg:             #0a0805;
+  --bg-card:        #1a1510;
+  --bg-card-hover:  #24201a;
+  --bg-sidebar:     #0f0b08;
+  --bg-input:       #15120d;
 
-  /* Text (Cloud → Azul → Subtle) */
-  --text:           #cdd0db;        /* Cloud — texte principal (AAA) */
-  --text-muted:     #9197aa;        /* Azul — texte secondaire (AA) */
-  --text-subtle:    rgba(145, 151, 170, 0.60); /* Azul @ 60% */
-
-  /* Accents */
-  --accent:         #e27921;        /* Orange — primary interactive */
-  --accent-light:   #f7b557;        /* Mimosa — warning, highlights */
-  --accent-dark:    #c1521e;        /* Aperol — danger */
-
-  /* Status */
-  --success:        #60693a;        /* Green Leaves (limited contrast) */
-  --warning:        #f7b557;        /* Mimosa */
-  --danger:         #c1521e;        /* Aperol */
-  --info:           #9197aa;        /* Azul */
+  /* Text */
+  --text:           #f5f1ed;        /* Creamy Ivory — AAA */
+  --text-muted:     #c9b8a3;        /* Camel — AA */
+  --text-subtle:    rgba(201, 184, 163, 0.50);
 
   /* Borders */
-  --border:         rgba(205, 208, 219, 0.12);   /* Cloud @ 12% */
-  --border-active:  rgba(226, 121, 33, 0.40);    /* Orange @ 40% */
+  --border:         rgba(201, 184, 163, 0.12);
+  --border-active:  rgba(217, 126, 53, 0.40);
+
+  /* Status */
+  --success:        #7a8a7e;        /* Sage Green */
+  --warning:        #d4a24f;        /* Mustard Yellow */
+  --danger:         #d97e35;        /* Burnt Orange */
+  --info:           #1e4d5c;        /* Deep Teal */
+
+  /* Category Accents */
+  --accent-budget:     #d97e35;     /* Burnt Orange */
+  --accent-courses:    #d4a24f;     /* Mustard Yellow */
+  --accent-recettes:   #d9a79e;     /* Warm Blush */
+  --accent-time:       #1e4d5c;     /* Deep Teal */
+  --accent-sport:      #7a8a7e;     /* Sage Green */
+  --accent-health:     #6b7a51;     /* Olive Green */
+  --accent-rapports:   #4d3942;     /* Aubergine */
+  --accent-projets:    #a85c3f;     /* Terracota */
+  --accent-calendar:   #8b5a54;     /* Rosewood */
+  --accent-todo:       #d4a24f;     /* Mustard Yellow */
+  --accent-agent:      #5c4a42;     /* Chocolate Brown */
 }
 
 /* ── Thème clair ──────────────────────────────────────────── */
@@ -76,31 +102,39 @@
   color-scheme: light;
 
   /* Backgrounds */
-  --bg:             #F5F4F0;
-  --bg-card:        #FFFFFF;
-  --bg-card-hover:  #F0EFEB;
-  --bg-sidebar:     #ECEAE4;
-  --bg-input:       #F5F4F0;
+  --bg:             #f5f1ed;        /* Creamy Ivory */
+  --bg-card:        #ffffff;
+  --bg-card-hover:  #ede7e0;
+  --bg-sidebar:     #ede7e0;
+  --bg-input:       #f5f1ed;
 
-  /* Text (inversion pour contraste) */
-  --text:           #60693a;        /* Green Leaves — texte principal (AA) */
-  --text-muted:     #c1521e;        /* Aperol — texte secondaire (AA) */
-  --text-subtle:    rgba(193, 82, 30, 0.55);    /* Aperol @ 55% */
-
-  /* Accents */
-  --accent:         #c1521e;        /* Aperol — primary interactive */
-  --accent-light:   #e27921;        /* Orange — warning, highlights */
-  --accent-dark:    #60693a;        /* Green Leaves — danger, important */
-
-  /* Status */
-  --success:        #60693a;        /* Green Leaves */
-  --warning:        #e27921;        /* Orange */
-  --danger:         #c1521e;        /* Aperol */
-  --info:           #9197aa;        /* Azul */
+  /* Text (inverted for contrast) */
+  --text:           #5c4a42;        /* Chocolate Brown — AAA */
+  --text-muted:     #8b6f63;        /* Camel darker — AA */
+  --text-subtle:    rgba(92, 74, 66, 0.50);
 
   /* Borders */
-  --border:         rgba(96, 105, 58, 0.15);    /* Green Leaves @ 15% */
-  --border-active:  rgba(193, 82, 30, 0.50);    /* Aperol @ 50% */
+  --border:         rgba(92, 74, 66, 0.12);
+  --border-active:  rgba(217, 126, 53, 0.50);
+
+  /* Status */
+  --success:        #6b7a51;        /* Olive Green (darker) */
+  --warning:        #a85c3f;        /* Terracota (darker) */
+  --danger:         #8b5a54;        /* Rosewood (darker) */
+  --info:           #1e4d5c;        /* Deep Teal (same) */
+
+  /* Category Accents (darker versions for light bg) */
+  --accent-budget:     #b86b2a;
+  --accent-courses:    #b8942a;
+  --accent-recettes:   #c28b80;
+  --accent-time:       #1e4d5c;
+  --accent-sport:      #667168;
+  --accent-health:     #5a6844;
+  --accent-rapports:   #3d2f38;
+  --accent-projets:    #8f4a33;
+  --accent-calendar:   #6d4a43;
+  --accent-todo:       #b8942a;
+  --accent-agent:      #4d3f38;
 }
 
 /* ── Thème système (OS) ───────────────────────────────────── */
@@ -108,27 +142,35 @@
   [data-theme="system"] {
     color-scheme: light;
 
-    --bg:             #F5F4F0;
-    --bg-card:        #FFFFFF;
-    --bg-card-hover:  #F0EFEB;
-    --bg-sidebar:     #ECEAE4;
-    --bg-input:       #F5F4F0;
+    --bg:             #f5f1ed;
+    --bg-card:        #ffffff;
+    --bg-card-hover:  #ede7e0;
+    --bg-sidebar:     #ede7e0;
+    --bg-input:       #f5f1ed;
 
-    --text:           #60693a;
-    --text-muted:     #c1521e;
-    --text-subtle:    rgba(193, 82, 30, 0.55);
+    --text:           #5c4a42;
+    --text-muted:     #8b6f63;
+    --text-subtle:    rgba(92, 74, 66, 0.50);
 
-    --accent:         #c1521e;
-    --accent-light:   #e27921;
-    --accent-dark:    #60693a;
+    --border:         rgba(92, 74, 66, 0.12);
+    --border-active:  rgba(217, 126, 53, 0.50);
 
-    --success:        #60693a;
-    --warning:        #e27921;
-    --danger:         #c1521e;
-    --info:           #9197aa;
+    --success:        #6b7a51;
+    --warning:        #a85c3f;
+    --danger:         #8b5a54;
+    --info:           #1e4d5c;
 
-    --border:         rgba(96, 105, 58, 0.15);
-    --border-active:  rgba(193, 82, 30, 0.50);
+    --accent-budget:     #b86b2a;
+    --accent-courses:    #b8942a;
+    --accent-recettes:   #c28b80;
+    --accent-time:       #1e4d5c;
+    --accent-sport:      #667168;
+    --accent-health:     #5a6844;
+    --accent-rapports:   #3d2f38;
+    --accent-projets:    #8f4a33;
+    --accent-calendar:   #6d4a43;
+    --accent-todo:       #b8942a;
+    --accent-agent:      #4d3f38;
   }
 }
 
@@ -136,27 +178,35 @@
   [data-theme="system"] {
     color-scheme: dark;
 
-    --bg:             #0C0C0C;
-    --bg-card:        #161616;
-    --bg-card-hover:  #1E1E1E;
-    --bg-sidebar:     #111111;
-    --bg-input:       var(--text);
+    --bg:             #0a0805;
+    --bg-card:        #1a1510;
+    --bg-card-hover:  #24201a;
+    --bg-sidebar:     #0f0b08;
+    --bg-input:       #15120d;
 
-    --text:           #cdd0db;
-    --text-muted:     #9197aa;
-    --text-subtle:    rgba(145, 151, 170, 0.60);
+    --text:           #f5f1ed;
+    --text-muted:     #c9b8a3;
+    --text-subtle:    rgba(201, 184, 163, 0.50);
 
-    --accent:         #e27921;
-    --accent-light:   #f7b557;
-    --accent-dark:    #c1521e;
+    --border:         rgba(201, 184, 163, 0.12);
+    --border-active:  rgba(217, 126, 53, 0.40);
 
-    --success:        #60693a;
-    --warning:        #f7b557;
-    --danger:         #c1521e;
-    --info:           #9197aa;
+    --success:        #7a8a7e;
+    --warning:        #d4a24f;
+    --danger:         #d97e35;
+    --info:           #1e4d5c;
 
-    --border:         rgba(205, 208, 219, 0.12);
-    --border-active:  rgba(226, 121, 33, 0.40);
+    --accent-budget:     #d97e35;
+    --accent-courses:    #d4a24f;
+    --accent-recettes:   #d9a79e;
+    --accent-time:       #1e4d5c;
+    --accent-sport:      #7a8a7e;
+    --accent-health:     #6b7a51;
+    --accent-rapports:   #4d3942;
+    --accent-projets:    #a85c3f;
+    --accent-calendar:   #8b5a54;
+    --accent-todo:       #d4a24f;
+    --accent-agent:      #5c4a42;
   }
 }
 
@@ -172,12 +222,9 @@
   --color-border:         var(--border);
   --color-border-active:  var(--border-active);
 
-  --color-cloud:          var(--cloud);
-  --color-azul:           var(--azul);
-  --color-mimosa:         var(--mimosa);
-  --color-orange-ny:      var(--orange-ny);
-  --color-aperol:         var(--aperol);
-  --color-green-leaves:   var(--green-leaves);
+  --color-creamy-ivory:   var(--creamy-ivory);
+  --color-camel:          var(--camel);
+  --color-chocolate:      var(--chocolate);
 
   --color-text:           var(--text);
   --color-text-muted:     var(--text-muted);
@@ -187,9 +234,18 @@
   --color-warning:        var(--warning);
   --color-danger:         var(--danger);
   --color-info:           var(--info);
-  --color-accent:         var(--accent);
-  --color-accent-light:   var(--accent-light);
-  --color-accent-dark:    var(--accent-dark);
+
+  --color-accent-budget:     var(--accent-budget);
+  --color-accent-courses:    var(--accent-courses);
+  --color-accent-recettes:   var(--accent-recettes);
+  --color-accent-time:       var(--accent-time);
+  --color-accent-sport:      var(--accent-sport);
+  --color-accent-health:     var(--accent-health);
+  --color-accent-rapports:   var(--accent-rapports);
+  --color-accent-projets:    var(--accent-projets);
+  --color-accent-calendar:   var(--accent-calendar);
+  --color-accent-todo:       var(--accent-todo);
+  --color-accent-agent:      var(--accent-agent);
 
   --font-sans:            var(--font-sora), 'Sora', system-ui, -apple-system, sans-serif;
   --font-display:         var(--font-saira), 'Saira', system-ui, -apple-system, sans-serif;
@@ -244,7 +300,7 @@ h1, h2, h3, h4, h5, h6 {
    Sélection texte
    ============================================================ */
 ::selection {
-  background: var(--accent);
+  background: var(--accent-budget);
   color: var(--bg);
 }
 
@@ -252,7 +308,7 @@ h1, h2, h3, h4, h5, h6 {
    Focus visible global
    ============================================================ */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-budget);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -261,27 +317,26 @@ h1, h2, h3, h4, h5, h6 {
    Utilitaires Tailwind pour Couleurs
    ============================================================ */
 
-/* Classes de couleurs — bg-* */
-.bg-cloud        { @apply bg-[color:var(--cloud)] }
-.bg-azul         { @apply bg-[color:var(--azul)] }
-.bg-mimosa       { @apply bg-[color:var(--mimosa)] }
-.bg-orange-ny    { @apply bg-[color:var(--orange-ny)] }
-.bg-aperol       { @apply bg-[color:var(--aperol)] }
-.bg-green-leaves { @apply bg-[color:var(--green-leaves)] }
+/* Générales */
+.text-primary   { @apply text-[color:var(--text)] }
+.text-muted     { @apply text-[color:var(--text-muted)] }
+.text-subtle    { @apply text-[color:var(--text-subtle)] }
 
-/* Classes de texte — text-* */
-.text-cloud        { @apply text-[color:var(--cloud)] }
-.text-azul         { @apply text-[color:var(--azul)] }
-.text-mimosa       { @apply text-[color:var(--mimosa)] }
-.text-orange-ny    { @apply text-[color:var(--orange-ny)] }
-.text-aperol       { @apply text-[color:var(--aperol)] }
-.text-green-leaves { @apply text-[color:var(--green-leaves)] }
-.text-muted        { @apply text-[color:var(--text-muted)] }
-.text-subtle       { @apply text-[color:var(--text-subtle)] }
+/* Catégories */
+.accent-budget     { @apply text-[color:var(--accent-budget)] }
+.accent-courses    { @apply text-[color:var(--accent-courses)] }
+.accent-recettes   { @apply text-[color:var(--accent-recettes)] }
+.accent-time       { @apply text-[color:var(--accent-time)] }
+.accent-sport      { @apply text-[color:var(--accent-sport)] }
+.accent-health     { @apply text-[color:var(--accent-health)] }
+.accent-rapports   { @apply text-[color:var(--accent-rapports)] }
+.accent-projets    { @apply text-[color:var(--accent-projets)] }
+.accent-calendar   { @apply text-[color:var(--accent-calendar)] }
+.accent-todo       { @apply text-[color:var(--accent-todo)] }
+.accent-agent      { @apply text-[color:var(--accent-agent)] }
 
-/* Classes de border */
+/* Borders */
 .border-border   { @apply border-[color:var(--border)] }
-.border-accent   { @apply border-[color:var(--accent)] }
 
 /* Font display */
 .font-display    { @apply [font-family:var(--font-display)] }
@@ -292,15 +347,10 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Gradient de titre hero */
 .nysa-gradient-text {
-  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent-budget) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-/* Lueur accent */
-.nysa-glow-accent {
-  box-shadow: 0 0 20px rgba(226, 121, 33, 0.25);
 }
 
 /* Card standard */
@@ -315,12 +365,6 @@ h1, h2, h3, h4, h5, h6 {
 .nysa-transition {
   transition: all 0.15s ease;
 }
-
-/* Badge/Tag colors */
-.tag-accent      { background: rgba(226, 121, 33, 0.15); color: var(--accent); border: 1px solid rgba(226, 121, 33, 0.25); }
-.tag-success     { background: rgba(96, 105, 58, 0.15); color: var(--success); border: 1px solid rgba(96, 105, 58, 0.25); }
-.tag-warning     { background: rgba(247, 181, 87, 0.15); color: var(--warning); border: 1px solid rgba(247, 181, 87, 0.25); }
-.tag-danger      { background: rgba(193, 82, 30, 0.15); color: var(--danger); border: 1px solid rgba(193, 82, 30, 0.25); }
 
 /* ============================================================
    RESPONSIVE — Mobile-first utilities
