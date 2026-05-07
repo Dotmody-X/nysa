@@ -1027,7 +1027,7 @@ export default function TimeTrackerPage() {
       {/* Évolution du temps — stacked bars */}
       <div className="col-span-2" style={{ background: '#11686A', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F0E4CC', textTransform: 'uppercase' }}>Évolution du temps</p>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Évolution du temps</p>
           <Dropdown<Period>
             value={period}
             options={['this_week','last_7','this_month','last_month']}

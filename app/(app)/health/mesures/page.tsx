@@ -6,7 +6,7 @@ import { ArrowLeft, Plus, TrendingDown, TrendingUp, Pencil, Trash2, Check, X, Al
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL   = '#0E9594'
 const ORANGE = '#F2542D'
-const WHEAT  = '#F0E4CC'
+const WHEAT   = 'var(--text)'
 
 function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
   return (

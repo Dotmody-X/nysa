@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = '#0E9594'
 const ORANGE = '#F2542D'
-const WHEAT = '#F0E4CC'
+const WHEAT   = 'var(--text)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,

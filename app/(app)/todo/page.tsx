@@ -235,7 +235,7 @@ export default function TodoPage() {
   // ── Priorités : grouped by priority ──────────────────────────────────
   const priorityGroups: { key: 'urgent'|'high'|'medium'|'low'; label: string; color: string }[] = [
     { key: 'urgent', label: 'Urgent',  color: '#F2542D' },
-    { key: 'high',   label: 'Haute',   color: '#F5DFBB' },
+    { key: 'high',   label: 'Haute',   color: 'var(--text)' },
     { key: 'medium', label: 'Moyenne', color: '#0E9594' },
     { key: 'low',    label: 'Basse',   color: '#888'    },
   ]

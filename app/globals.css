@@ -19,6 +19,7 @@
   /* Accent principal — peut être overridé par le thème custom */
   --accent:         #F2542D;
   --accent-alt:     #F5DFBB;
+  --accent-light:   #F0E4CC;  /* Couleur claire pour graphiques */
 
   /* Sidebar */
   --sidebar-width:  220px;
@@ -52,6 +53,7 @@
   --success:        #0E9594;
   --warning:        #F5DFBB;
   --danger:         #F2542D;
+  --accent-light:   #F0E4CC;  /* Light accent for dark mode */
 }
 
 /* ── Thème clair ──────────────────────────────────────────── */
@@ -76,6 +78,7 @@
   --success:        #0A7A79;
   --warning:        #C47D00;
   --danger:         #D94020;
+  --accent-light:   #D94020;  /* Dark accent for light mode */
 }
 
 /* ── Thème système (OS) ───────────────────────────────────── */

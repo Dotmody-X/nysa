@@ -216,9 +216,9 @@ export default function ActivityDetailPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px]">
         {[
           { label: 'Distance',  value: `${activity.distance_km?.toFixed(2)} km`,        color: '#F2542D', icon: <Wind size={14} /> },
-          { label: 'Durée',     value: activity.duration_seconds ? fmtDur(activity.duration_seconds) : '—', color: '#F5DFBB', icon: <Clock size={14} /> },
+          { label: 'Durée',     value: activity.duration_seconds ? fmtDur(activity.duration_seconds) : '—', color: 'var(--text)', icon: <Clock size={14} /> },
           { label: 'Allure',    value: pace ? `${fmtPace(pace)}/km` : '—',               color: '#0E9594', icon: <Zap size={14} /> },
-          { label: 'Vitesse',   value: speed ? `${speed.toFixed(1)} km/h` : '—',         color: '#F0E4CC', icon: <TrendingUp size={14} /> },
+          { label: 'Vitesse',   value: speed ? `${speed.toFixed(1)} km/h` : '—',         color: 'var(--text-muted)', icon: <TrendingUp size={14} /> },
         ].map(stat => (
           <div key={stat.label} style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
             <div className="flex items-center gap-1.5 mb-2" style={{ color: stat.color }}>
@@ -286,7 +286,7 @@ export default function ActivityDetailPage() {
             <div className="flex flex-col gap-[10px]">
               {/* Profil d'élévation */}
               <div style={{ background: '#11686A', borderRadius: 12, padding: 16, flex: 1 }}>
-                <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#F0E4CC', textTransform: 'uppercase', marginBottom: 8 }}>
+                <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                   Profil d'élévation
                 </p>
                 <div style={{ height: 100, borderRadius: 8, overflow: 'hidden', marginBottom: 4 }}>

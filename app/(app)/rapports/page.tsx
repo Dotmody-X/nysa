@@ -17,7 +17,7 @@ import type { MonthSummary } from '@/hooks/useBudget'
 // ── Constants ──────────────────────────────────────────────────────────────
 const ORANGE  = '#F2542D'
 const TEAL    = '#0E9594'
-const WHEAT   = '#F0E4CC'
+const WHEAT   = 'var(--text)'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

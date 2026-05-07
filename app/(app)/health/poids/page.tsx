@@ -8,7 +8,7 @@ const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL    = '#0E9594'
 const TEAL_BG = '#11686A'
 const ORANGE  = '#F2542D'
-const WHEAT   = '#F0E4CC'
+const WHEAT   = 'var(--text)'
 
 function fmtDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'long', year: 'numeric' })
