@@ -66,12 +66,12 @@
   --bg-card-hover:  #F0EFEB;
   --bg-sidebar:     #ECEAE4;
   --bg-input:       #F5F4F0;
-  --border:         rgba(0, 0, 0, 0.1);
-  --border-active:  rgba(242, 84, 45, 0.5);
+  --border:         rgba(0, 0, 0, 0.15);
+  --border-active:  rgba(242, 84, 45, 0.6);
 
   --text:           #1A1A1A;
-  --text-muted:     rgba(26, 26, 26, 0.55);
-  --text-subtle:    rgba(26, 26, 26, 0.3);
+  --text-muted:     #5A5A5A;            /* Contraste amélioré (était rgba(26,26,26,0.55)) */
+  --text-subtle:    #8A8A8A;            /* Contraste amélioré (était rgba(26,26,26,0.3)) */
 
   --success:        #0A7A79;
   --warning:        #C47D00;
@@ -91,12 +91,12 @@
     --bg-card-hover:  #F0EFEB;
     --bg-sidebar:     #ECEAE4;
     --bg-input:       #F5F4F0;
-    --border:         rgba(0, 0, 0, 0.1);
-    --border-active:  rgba(242, 84, 45, 0.5);
+    --border:         rgba(0, 0, 0, 0.15);
+    --border-active:  rgba(242, 84, 45, 0.6);
 
     --text:           #1A1A1A;
-    --text-muted:     rgba(26, 26, 26, 0.55);
-    --text-subtle:    rgba(26, 26, 26, 0.3);
+    --text-muted:     #5A5A5A;            /* Contraste amélioré */
+    --text-subtle:    #8A8A8A;            /* Contraste amélioré */
 
     --success:        #0A7A79;
     --warning:        #C47D00;
