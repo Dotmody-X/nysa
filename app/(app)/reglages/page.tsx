@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { User, Palette, Bell, Database, Keyboard, Info, Puzzle } from 'lucide-react'
+import { User, Palette, Bell, Database, Keyboard, Info, Puzzle, RotateCcw } from 'lucide-react'
 import { saveTheme, loadTheme, type ThemeMode } from '@/lib/theme'
+import { isDemoModeEnabled, toggleDemoMode } from '@/lib/demo-mode'
 import { PageTitle } from '@/components/ui/PageTitle'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -170,13 +171,62 @@ function NotifsTab() {
 }
 
 function DonneesTab() {
+  const [demoEnabled, setDemoEnabled] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    setDemoEnabled(isDemoModeEnabled())
+    setHydrated(true)
+  }, [])
+
+  function handleToggleDemo() {
+    toggleDemoMode()
+    setDemoEnabled(!demoEnabled)
+  }
+
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Données & Sauvegardes</p>
+      
+      {/* Demo Mode Toggle */}
+      {hydrated && (
+        <div className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)', marginBottom:20 }}>
+          <div>
+            <p style={{ fontSize:13, color:'var(--text)' }}>Mode démo</p>
+            <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{demoEnabled ? 'Données d\'exemple visibles' : 'Pages vides'}</p>
+          </div>
+          <button
+            onClick={handleToggleDemo}
+            style={{
+              width:50,
+              height:28,
+              borderRadius:14,
+              border:'1px solid var(--border)',
+              background: demoEnabled ? 'var(--accent-budget)' : 'var(--bg-input)',
+              cursor:'pointer',
+              display:'flex',
+              alignItems:'center',
+              padding:demoEnabled ? '2px 2px 2px 24px' : '2px 24px 2px 2px',
+              transition:'all 0.2s ease',
+            }}
+            title="Toggle demo mode"
+          >
+            <div style={{
+              width:24,
+              height:24,
+              borderRadius:12,
+              background:'white',
+              transition:'all 0.2s ease',
+            }} />
+          </button>
+        </div>
+      )}
+
+      {/* Export actions */}
       {[
-        { label:'Exporter toutes les données', desc:'Export JSON complet', color:'var(--azul)' },
-        { label:'Exporter les tâches',         desc:'Format CSV',          color:'var(--azul)' },
-        { label:'Exporter les finances',       desc:'Format Excel/CSV',    color:'var(--azul)' },
+        { label:'Exporter toutes les données', desc:'Export JSON complet', color:'var(--accent-time)' },
+        { label:'Exporter les tâches',         desc:'Format CSV',          color:'var(--accent-time)' },
+        { label:'Exporter les finances',       desc:'Format Excel/CSV',    color:'var(--accent-time)' },
         { label:'Supprimer toutes les données', desc:'Action irréversible', color:'var(--accent-budget)' },
       ].map(a => (
         <div key={a.label} className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)' }}>
