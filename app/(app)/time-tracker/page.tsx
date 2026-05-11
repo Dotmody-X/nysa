@@ -603,18 +603,16 @@ export default function TimeTrackerPage() {
   const visibleEntries  = showAllRecent ? filteredEntries : filteredEntries.slice(0, 6)
 
   /* ── Render ──────────────────────────────────────────────────────────────── */
-  // Empty state for demo mode
-  const noDemoMode = isDemoModeDisabled()
-  const hasData = filteredEntries.length > 0
-  if (noDemoMode && !hasData) {
-    return (
-      <PageEmpty
-        icon="⏱️"
-        title="Time Tracker vide"
-        description="Commencez à tracker votre temps de travail"
-      />
-    )
-  }
+  // Log pour débogage
+  useEffect(() => {
+    console.log('[TIME_TRACKER] State:', {
+      loading,
+      entriesCount: entries.length,
+      filteredCount: filteredEntries.length,
+      noDemoMode: isDemoModeDisabled(),
+      runningEntry: running?.id,
+    })
+  }, [loading, entries, filteredEntries])
 
   return (
     <>

@@ -20,15 +20,28 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
 
   const fetch = useCallback(async () => {
     setLoading(true)
-    let query = supabase
-      .from('time_entries')
-      .select('*, projects(name, color)')
-      .gte('started_at', effectiveFrom)
-      .order('started_at', { ascending: false })
-    if (toDate) query = query.lte('started_at', toDate)
-    const { data } = await query
-    setEntries(data ?? [])
-    setLoading(false)
+    try {
+      let query = supabase
+        .from('time_entries')
+        .select('*, projects(name, color)')
+        .gte('started_at', effectiveFrom)
+        .order('started_at', { ascending: false })
+      if (toDate) query = query.lte('started_at', toDate)
+      const { data, error } = await query
+      
+      if (error) {
+        console.error('[useTimeEntries] Supabase error:', error)
+        setEntries([])
+      } else {
+        console.log('[useTimeEntries] Fetched entries:', data?.length ?? 0)
+        setEntries(data ?? [])
+      }
+    } catch (err) {
+      console.error('[useTimeEntries] Catch error:', err)
+      setEntries([])
+    } finally {
+      setLoading(false)
+    }
   }, [effectiveFrom, toDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch() }, [fetch])
