@@ -102,7 +102,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         const style = document.createElement('style')
         style.textContent = `
           .leaflet-container { background: #0C0C0C !important; }
-          .leaflet-control-zoom a { background: #161616 !important; color: var(--text) !important; border-color: rgba(245,223,187,0.12) !important; }
+          .leaflet-control-zoom a { background: #161616 !important; color: var(--text) !important; border-color: rgba(var(--text-rgb),0.12) !important; }
           .leaflet-control-zoom a:hover { background: #1E1E1E !important; }
           .leaflet-control-attribution { display: none !important; }
         `
@@ -128,9 +128,9 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
 
   if (error) {
     return (
-      <div style={{ height, width: '100%', borderRadius, background: '#161616', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8 }}>
+      <div style={{ height, width: '100%', borderRadius, background: '#161616', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
         <span style={{ fontSize: 24 }}>🗺️</span>
-        <p style={{ fontSize: 12, color: 'rgba(245,223,187,0.4)', fontFamily: 'var(--font-display)' }}>{error}</p>
+        <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)', fontFamily: 'var(--font-display)' }}>{error}</p>
       </div>
     )
   }
@@ -145,7 +145,10 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         overflow: 'hidden',
         background: '#0C0C0C',
         position: 'relative',
-      }}
+        '--text-rgb': '245, 241, 237',
+        '--text': '#f5f1ed',
+        '--text-muted': 'rgba(245, 241, 237, 0.72)',
+      } as React.CSSProperties}
     />
   )
 }

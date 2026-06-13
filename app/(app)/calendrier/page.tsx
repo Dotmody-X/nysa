@@ -859,29 +859,29 @@ function CalendrierContent() {
       </div>
 
       {/* À VENIR — col-span-2, teal, 300px, liste verticale */}
-      <div className="col-span-2" style={{ ...card({ background: 'var(--azul)', border: '1px solid var(--azul)' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+      <div className="col-span-2" style={{ ...card({ background: 'var(--azul)', border: '1px solid var(--azul)' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{upcoming.length}</span>
+          <span style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', fontWeight: 600 }}>{upcoming.length}</span>
         </div>
         <div style={{ overflowY: 'auto', flex: 1 }}>
           {upcoming.length === 0 ? (
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', padding: '14px 20px' }}>Aucun événement à venir.</p>
+            <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.6)', padding: '14px 20px' }}>Aucun événement à venir.</p>
           ) : upcoming.map(ev => (
             <div key={ev.id} onClick={() => setSelected(ev)}
-              style={{ padding: '10px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+              style={{ padding: '10px 20px', borderBottom: '1px solid rgba(var(--text-rgb),0.1)', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(var(--text-rgb),0.08)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
               {/* Dot couleur catégorie */}
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.6)', flexShrink: 0 }} />
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.6)', flexShrink: 0 }} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ fontSize: 12, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</p>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
+                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginTop: 2 }}>
                   {fmtShortDate(new Date(ev.start_at))} · {fmtTime(ev.start_at)}
                 </p>
               </div>
               {ev.category && (
-                <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 6, background: 'rgba(255,255,255,0.2)', color: '#fff', flexShrink: 0 }}>{ev.category}</span>
+                <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 6, background: 'rgba(var(--text-rgb),0.2)', color: '#fff', flexShrink: 0 }}>{ev.category}</span>
               )}
             </div>
           ))}
@@ -1274,20 +1274,20 @@ function CalendrierContent() {
       <div className="col-span-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, paddingBottom: 10 }}>
 
         {/* VUE D'ENSEMBLE — teal */}
-        <div style={{ ...card({ background: 'var(--azul)', border: '1px solid var(--azul)' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12 }}>
+        <div style={{ ...card({ background: 'var(--azul)', border: '1px solid var(--azul)' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
           <div>
-            <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue d'ensemble</p>
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>{fmtShortDate(weekStart)} – {fmtShortDate(addDays(weekStart, 6))}</p>
+            <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'rgba(var(--text-rgb),0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue d'ensemble</p>
+            <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', marginTop: 3 }}>{fmtShortDate(weekStart)} – {fmtShortDate(addDays(weekStart, 6))}</p>
           </div>
           <div style={{ display: 'flex', gap: 16 }}>
             <div>
               <p style={{ fontSize: 28, fontWeight: 900, fontFamily: 'var(--font-display)', color: '#fff', lineHeight: 1 }}>{events.length}</p>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>Événements</p>
+              <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', marginTop: 2 }}>Événements</p>
             </div>
             {Object.entries(categoryCount).slice(0, 2).map(([cat, count]) => (
               <div key={cat}>
                 <p style={{ fontSize: 28, fontWeight: 900, fontFamily: 'var(--font-display)', color: '#fff', lineHeight: 1 }}>{count}</p>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>{cat}</p>
+                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', marginTop: 2 }}>{cat}</p>
               </div>
             ))}
           </div>
@@ -1299,25 +1299,25 @@ function CalendrierContent() {
         </div>
 
         {/* RAPPELS — orange */}
-        <div style={{ ...card({ background: 'var(--accent-budget)', border: '1px solid var(--accent-budget)' }), display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Bell size={11} color="rgba(255,255,255,0.9)" />
+        <div style={{ ...card({ background: 'var(--accent-budget)', border: '1px solid var(--accent-budget)' }), display: 'flex', flexDirection: 'column', '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+          <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Bell size={11} color="rgba(var(--text-rgb),0.9)" />
             <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Rappels</p>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {reminders.length === 0 ? (
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', padding: '12px 16px' }}>Rien dans les 24 prochaines heures.</p>
+              <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.6)', padding: '12px 16px' }}>Rien dans les 24 prochaines heures.</p>
             ) : (showAllReminders ? reminders : reminders.slice(0, 4)).map(ev => (
-              <div key={ev.id} style={{ padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.7)', flexShrink: 0 }} />
+              <div key={ev.id} style={{ padding: '8px 16px', borderBottom: '1px solid rgba(var(--text-rgb),0.12)', display: 'flex', gap: 10, alignItems: 'center' }}>
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.7)', flexShrink: 0 }} />
                 <div>
                   <p style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>{ev.title}</p>
-                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 1 }}>{fmtTime(ev.start_at)}</p>
+                  <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)', marginTop: 1 }}>{fmtTime(ev.start_at)}</p>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+          <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(var(--text-rgb),0.2)' }}>
             <button onClick={() => setShowAllReminders(v => !v)}
               style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, display: 'flex', alignItems: 'center', gap: 6 }}>
               {showAllReminders ? 'Réduire' : `Voir tous les rappels (${reminders.length})`} <ChevronRight size={12} style={{ transform: showAllReminders ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />

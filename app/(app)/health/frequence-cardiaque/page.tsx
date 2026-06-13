@@ -144,8 +144,8 @@ export default function FrequenceCardiaqueePage() {
             <HrChart data={hrData} />
           ) : (
             <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8 }}>
-              <Heart size={24} style={{ color: 'rgba(255,255,255,0.2)' }} />
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Pas assez de données</p>
+              <Heart size={24} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
+              <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.3)' }}>Pas assez de données</p>
             </div>
           )}
         </div>

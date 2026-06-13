@@ -331,7 +331,7 @@ export default function ObjectifsPage() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                       <span style={{ padding: '2px 8px', borderRadius: 4, background: CATEGORY_COLORS[obj.category] || 'var(--border)',
-                        color: WHEAT, fontSize: 8, ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        color: 'var(--creamy-ivory)', fontSize: 8, ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         {obj.category}
                       </span>
                       <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{PERIOD_LABELS[obj.period]}</span>

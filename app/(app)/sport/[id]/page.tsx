@@ -12,7 +12,7 @@ import { SegmentDetails } from '@/components/sport/SegmentDetails'
 // Import Leaflet uniquement côté client
 const ActivityMap = dynamic(
   () => import('@/components/sport/ActivityMap').then(m => m.ActivityMap),
-  { ssr: false, loading: () => <div style={{ height: 360, background: '#0C0C0C', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'rgba(245,223,187,0.3)', fontSize: 12 }}>Chargement de la carte…</span></div> }
+  { ssr: false, loading: () => <div style={{ height: 360, background: '#0C0C0C', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Chargement de la carte…</span></div> }
 )
 
 // Error boundary léger pour éviter le crash total de la page
@@ -22,9 +22,9 @@ class SafeMap extends Component<{ children: ReactNode }, { hasError: boolean }> 
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ height: 360, background: '#161616', borderRadius: 12, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8 }}>
+        <div style={{ height: 360, background: '#161616', borderRadius: 12, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
           <span style={{ fontSize: 28 }}>🗺️</span>
-          <p style={{ fontSize: 12, color: 'rgba(245,223,187,0.4)', fontFamily: 'var(--font-display)' }}>Carte non disponible</p>
+          <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)', fontFamily: 'var(--font-display)' }}>Carte non disponible</p>
         </div>
       )
     }
@@ -110,7 +110,7 @@ function PaceChart({ splits }: { splits: GpxKmSplit[] }) {
               <rect x={x} y={y} width={barW} height={h} rx={2}
                 fill={isGood ? 'var(--azul)' : 'var(--accent-budget)'} opacity={0.85} />
               <text x={x + barW / 2} y={H + 16} textAnchor="middle"
-                style={{ fontSize: 8, fill: 'rgba(245,223,187,0.4)', fontFamily: 'var(--font-display)' }}>
+                style={{ fontSize: 8, fill: 'rgba(var(--text-rgb),0.4)', fontFamily: 'var(--font-display)' }}>
                 {s.km}
               </text>
             </g>
@@ -285,7 +285,7 @@ export default function ActivityDetailPage() {
           {gpxData && (
             <div className="flex flex-col gap-[10px]">
               {/* Profil d'élévation */}
-              <div style={{ background: 'var(--azul)', borderRadius: 12, padding: 16, flex: 1 }}>
+              <div style={{ background: 'var(--azul)', borderRadius: 12, padding: 16, flex: 1, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
                 <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                   Profil d'élévation
                 </p>
@@ -297,8 +297,8 @@ export default function ActivityDetailPage() {
                   />
                 </div>
                 <div className="flex justify-between mt-2">
-                  <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)' }}>min {Math.round(gpxData.elevationMin)}m</span>
-                  <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)' }}>max {Math.round(gpxData.elevationMax)}m</span>
+                  <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.6)' }}>min {Math.round(gpxData.elevationMin)}m</span>
+                  <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.6)' }}>max {Math.round(gpxData.elevationMax)}m</span>
                 </div>
               </div>
 

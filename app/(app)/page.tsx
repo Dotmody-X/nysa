@@ -67,12 +67,12 @@ export default function DashboardPage() {
       <div className="col-span-2 flex flex-col justify-between p-5 md:p-6 rounded-lg md:rounded-xl" style={{ background: 'var(--accent-budget)' }}>
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={14} style={{ color: 'var(--bg)' }} />
-            <p className="font-display text-xs font-black tracking-widest uppercase" style={{ color: 'var(--bg)' }}>
+            <Sparkles size={14} style={{ color: 'var(--creamy-ivory)' }} />
+            <p className="font-display text-xs font-black tracking-widest uppercase" style={{ color: 'var(--creamy-ivory)' }}>
               Agent IA
             </p>
           </div>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--bg)', opacity: 0.9 }}>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--creamy-ivory)', opacity: 0.9 }}>
             Bonjour !<br />
             {totalTasks > 0
               ? `Tu as ${totalTasks} tâche${totalTasks > 1 ? 's' : ''} aujourd'hui.`
@@ -80,7 +80,7 @@ export default function DashboardPage() {
             Veux-tu que je t'aide à planifier ?
           </p>
         </div>
-        <Link href="/agent" className="flex items-center justify-between px-4 py-2.5 rounded-md mt-4 transition-opacity hover:opacity-80" style={{ background: 'rgba(0,0,0,0.15)', color: 'var(--bg)' }}>
+        <Link href="/agent" className="flex items-center justify-between px-4 py-2.5 rounded-md mt-4 transition-opacity hover:opacity-80" style={{ background: 'rgba(0,0,0,0.15)', color: 'var(--creamy-ivory)' }}>
           <span className="font-display text-xs font-semibold">Discuter</span>
           <ArrowRight size={14} />
         </Link>
@@ -88,17 +88,17 @@ export default function DashboardPage() {
 
       {/* ═══════════════════════════════════════════════════════════ ROW 2 — 4 nav cards */}
 
-      {/* Calendrier */}
-      <NavCard href="/calendrier" bg="var(--creamy-ivory)" logoColor="var(--accent-budget)" label="CALENDRIER" value={loading ? '…' : `${data?.todayEvents.length ?? 0} événement${(data?.todayEvents.length ?? 0) !== 1 ? 's' : ''}`} sub="aujourd'hui" textColor="var(--bg)" />
+      {/* Calendrier — accent rosewood → texte clair */}
+      <NavCard href="/calendrier" bg="var(--accent-calendar)" logoColor="var(--creamy-ivory)" label="CALENDRIER" value={loading ? '…' : `${data?.todayEvents.length ?? 0} événement${(data?.todayEvents.length ?? 0) !== 1 ? 's' : ''}`} sub="aujourd'hui" textColor="var(--creamy-ivory)" />
 
-      {/* Time Trackers */}
-      <NavCard href="/time-tracker" bg="var(--accent-time)" logoColor="var(--text)" label="TIME TRACKERS" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub="aujourd'hui" textColor="var(--text)" />
+      {/* Time Trackers — fond teal foncé → texte clair */}
+      <NavCard href="/time-tracker" bg="var(--accent-time)" logoColor="var(--creamy-ivory)" label="TIME TRACKERS" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub="aujourd'hui" textColor="var(--creamy-ivory)" />
 
-      {/* Projets */}
-      <NavCard href="/projets" bg="var(--accent-time)" logoColor="var(--bg)" label="PROJETS" value={loading ? '…' : `${data?.activeProjects.length ?? 0} actif${(data?.activeProjects.length ?? 0) !== 1 ? 's' : ''}`} sub="en cours" textColor="var(--bg)" />
+      {/* Projets — fond teal foncé → texte clair */}
+      <NavCard href="/projets" bg="var(--accent-time)" logoColor="var(--creamy-ivory)" label="PROJETS" value={loading ? '…' : `${data?.activeProjects.length ?? 0} actif${(data?.activeProjects.length ?? 0) !== 1 ? 's' : ''}`} sub="en cours" textColor="var(--creamy-ivory)" />
 
-      {/* To Do List */}
-      <NavCard href="/todo" bg="var(--accent-budget)" logoColor="var(--bg)" label="TO DO LIST" value={loading ? '…' : `${totalTasks} tâche${totalTasks !== 1 ? 's' : ''}`} sub={`${doneTasks} terminée${doneTasks !== 1 ? 's' : ''}`} textColor="var(--bg)" />
+      {/* To Do List — fond orange → texte clair */}
+      <NavCard href="/todo" bg="var(--accent-budget)" logoColor="var(--creamy-ivory)" label="TO DO LIST" value={loading ? '…' : `${totalTasks} tâche${totalTasks !== 1 ? 's' : ''}`} sub={`${doneTasks} terminée${doneTasks !== 1 ? 's' : ''}`} textColor="var(--creamy-ivory)" />
 
       {/* ═══════════════════════════════════════════════════════════ CONTENT — Simplified for brevity */}
       {/* TODO: Implement remaining cards with same refactoring pattern */}
@@ -111,7 +111,7 @@ export default function DashboardPage() {
 
 function NavCard({ href, bg, logoColor, label, value, sub, textColor }: { href: string; bg: string; logoColor: string; label: string; value: string; sub: string; textColor: string }) {
   return (
-    <Link href={href} className="flex flex-col justify-between p-5 rounded-lg md:rounded-xl transition-opacity hover:opacity-80" style={{ background: bg, minHeight: 260 }}>
+    <Link href={href} className="flex flex-col justify-between p-5 rounded-lg md:rounded-xl transition-opacity hover:opacity-80" style={{ background: bg, minHeight: 260, border: '1px solid var(--border)' }}>
       <div className="flex items-start justify-between">
         <NysaLogo size={56} color={logoColor} />
         <ArrowRight size={16} style={{ color: textColor, opacity: 0.5 }} />

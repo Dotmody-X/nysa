@@ -29,7 +29,7 @@ function SimpleBarChart({ data, labels, color = ORANGE }: { data: number[]; labe
   return (
     <svg viewBox={`0 0 ${W} ${H + 20}`} style={{ width: '100%', height: '100%' }}>
       {/* Grid */}
-      <line x1="0" y1={H * 0.5} x2={W} y2={H * 0.5} stroke="rgba(255,255,255,0.05)" strokeDasharray="2,2" />
+      <line x1="0" y1={H * 0.5} x2={W} y2={H * 0.5} stroke="rgba(var(--text-rgb),0.05)" strokeDasharray="2,2" />
       
       {/* Bars */}
       {data.map((v, i) => {
@@ -41,7 +41,7 @@ function SimpleBarChart({ data, labels, color = ORANGE }: { data: number[]; labe
         return (
           <g key={i}>
             <rect x={x} y={y} width={barW} height={bh} rx={3} fill={color} opacity="0.8" />
-            <text x={x + barW / 2} y={H + 14} textAnchor="middle" fontSize="8" fill="rgba(240,228,204,0.4)" fontFamily="var(--font-display)" fontWeight="600">
+            <text x={x + barW / 2} y={H + 14} textAnchor="middle" fontSize="8" fill="rgba(var(--text-rgb),0.4)" fontFamily="var(--font-display)" fontWeight="600">
               {labels[i]}
             </text>
           </g>
@@ -56,7 +56,7 @@ export function SegmentDetails({ segments }: { segments: ActivitySegment[] }) {
 
   if (segments.length === 0) {
     return (
-      <div style={{ padding: 20, textAlign: 'center', color: 'rgba(240,228,204,0.4)', fontSize: 12 }}>
+      <div style={{ padding: 20, textAlign: 'center', color: 'rgba(var(--text-rgb),0.4)', fontSize: 12 }}>
         Pas de données détaillées disponibles
       </div>
     )
@@ -171,7 +171,7 @@ export function SegmentDetails({ segments }: { segments: ActivitySegment[] }) {
                   key={i}
                   onClick={() => setSelectedKm(i)}
                   style={{
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    borderBottom: '1px solid rgba(var(--text-rgb),0.04)',
                     background: selectedKm === i ? 'rgba(242,84,45,0.15)' : i % 2 === 0 ? 'rgba(0,0,0,0.1)' : 'transparent',
                     cursor: 'pointer',
                     transition: 'background 0.15s',

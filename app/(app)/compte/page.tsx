@@ -318,7 +318,7 @@ export default function ComptePage() {
         </div>
 
         {/* NIVEAU card */}
-        <div style={{ ...card(ORANGE), padding:'14px 18px', minWidth:260, flexShrink:0 }}>
+        <div style={{ ...card(ORANGE), padding:'14px 18px', minWidth:260, flexShrink:0, '--text-rgb':'26, 10, 10', '--text':'#1a0a0a', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
             <p style={{ ...DF, fontSize:10, fontWeight:800, letterSpacing:'0.14em', color:'#1A0A0A', textTransform:'uppercase' }}>Niveau</p>
             <ChevronRight size={14} style={{ color:'rgba(26,10,10,0.5)' }} />
@@ -409,7 +409,7 @@ export default function ComptePage() {
         </div>
 
         {/* Stats globales */}
-        <div style={{ ...card(TEAL_BG), padding:22 }}>
+        <div style={{ ...card(TEAL_BG), padding:22, '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
           <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase', marginBottom:18 }}>Vos statistiques globales</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
             {[
@@ -424,8 +424,8 @@ export default function ComptePage() {
               return (
                 <div key={s.label}>
                   <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
-                    <Icon size={13} style={{ color:'rgba(240,228,204,0.6)' }} />
-                    <p style={{ fontSize:9, color:'rgba(240,228,204,0.6)', textTransform:'uppercase', letterSpacing:'0.1em' }}>{s.label}</p>
+                    <Icon size={13} style={{ color:'rgba(var(--text-rgb),0.6)' }} />
+                    <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.6)', textTransform:'uppercase', letterSpacing:'0.1em' }}>{s.label}</p>
                   </div>
                   <p style={{ ...DF, fontWeight:900, fontSize:22, color:WHEAT, lineHeight:1 }}>{s.value}</p>
                 </div>
@@ -433,7 +433,7 @@ export default function ComptePage() {
             })}
           </div>
           <button onClick={()=>router.push('/rapports')}
-            style={{ marginTop:20, display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', ...DF, fontWeight:700, fontSize:10, color:'rgba(240,228,204,0.7)', textTransform:'uppercase', letterSpacing:'0.1em', padding:0 }}>
+            style={{ marginTop:20, display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', ...DF, fontWeight:700, fontSize:10, color:'rgba(var(--text-rgb),0.7)', textTransform:'uppercase', letterSpacing:'0.1em', padding:0 }}>
             Voir tous les rapports <ChevronRight size={12} />
           </button>
         </div>
@@ -649,20 +649,20 @@ export default function ComptePage() {
 
         {/* Abonnement + Export + Supprimer */}
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-          <div style={{ ...card(TEAL_BG), padding:20, flex:1 }}>
+          <div style={{ ...card(TEAL_BG), padding:20, flex:1, '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Abonnement</p>
               <span style={{ padding:'3px 8px', borderRadius:99, background:'rgba(14,149,148,0.3)', color:WHEAT, fontSize:9, ...DF, fontWeight:700 }}>Actif</span>
             </div>
             <p style={{ ...DF, fontWeight:900, fontSize:18, color:WHEAT, marginBottom:4 }}>Plan Personnel</p>
-            <p style={{ fontSize:10, color:'rgba(240,228,204,0.6)', marginBottom:12 }}>Prochain renouvellement — 12 juin 2025</p>
+            <p style={{ fontSize:10, color:'rgba(var(--text-rgb),0.6)', marginBottom:12 }}>Prochain renouvellement — 12 juin 2025</p>
             {['Toutes les fonctionnalités incluses','Accès à l\'agent IA','Intégrations illimitées'].map(f => (
               <div key={f} style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
                 <Check size={11} style={{ color:WHEAT, flexShrink:0 }} />
-                <p style={{ fontSize:11, color:'rgba(240,228,204,0.8)' }}>{f}</p>
+                <p style={{ fontSize:11, color:'rgba(var(--text-rgb),0.8)' }}>{f}</p>
               </div>
             ))}
-            <button style={{ marginTop:12, width:'100%', background:'rgba(240,228,204,0.15)', color:WHEAT, borderRadius:8, padding:'8px 0', ...DF, fontWeight:700, fontSize:10, border:'none', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+            <button style={{ marginTop:12, width:'100%', background:'rgba(var(--text-rgb),0.15)', color:WHEAT, borderRadius:8, padding:'8px 0', ...DF, fontWeight:700, fontSize:10, border:'none', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
               Gérer mon abonnement <ChevronRight size={10} style={{ display:'inline' }}/>
             </button>
           </div>

@@ -71,14 +71,14 @@ function BarChart({ data, labels, color = ORANGE, highlight = -1 }:
         return (
           <g key={i}>
             <rect x={x} y={y} width={barW} height={bh}
-              rx={3} fill={v > 0 ? (isHL ? ORANGE : color) : 'rgba(255,255,255,0.08)'} />
+              rx={3} fill={v > 0 ? (isHL ? ORANGE : color) : 'rgba(var(--text-rgb),0.08)'} />
             <text x={x + barW / 2} y={H + 14} textAnchor="middle"
-              style={{ fontSize: 9, fill: isHL ? ORANGE : 'rgba(255,255,255,0.45)', fontFamily: 'var(--font-display)', fontWeight: isHL ? 800 : 600 }}>
+              style={{ fontSize: 9, fill: isHL ? ORANGE : 'rgba(var(--text-rgb),0.45)', fontFamily: 'var(--font-display)', fontWeight: isHL ? 800 : 600 }}>
               {labels[i]}
             </text>
             {v > 0 && (
               <text x={x + barW / 2} y={y - 3} textAnchor="middle"
-                style={{ fontSize: 8, fill: isHL ? ORANGE : 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-display)', fontWeight: 700 }}>
+                style={{ fontSize: 8, fill: isHL ? ORANGE : 'rgba(var(--text-rgb),0.6)', fontFamily: 'var(--font-display)', fontWeight: 700 }}>
                 {v.toFixed(1)}
               </text>
             )}
@@ -122,7 +122,7 @@ function Donut({ pct, color, size = 60, stroke = 8, label }:
   const dash = (Math.min(pct, 100) / 100) * circ
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={stroke} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(var(--text-rgb),0.1)" strokeWidth={stroke} />
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={stroke}
         strokeDasharray={`${dash} ${circ - dash}`} strokeLinecap="round"
         transform={`rotate(-90 ${cx} ${cy})`} />
@@ -385,11 +385,15 @@ function SportPageInner() {
     overflow: 'hidden', ...extra,
   })
   const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: 'var(--azul)', borderRadius: 12, overflow: 'hidden', ...extra,
-  })
+    background: 'var(--azul)', borderRadius: 12, overflow: 'hidden',
+    '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)',
+    ...extra,
+  } as React.CSSProperties)
   const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
-  })
+    background: ORANGE, borderRadius: 12, overflow: 'hidden',
+    '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)',
+    ...extra,
+  } as React.CSSProperties)
   const label = (color = ORANGE): React.CSSProperties => ({
     ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em',
     textTransform: 'uppercase' as const, color,
@@ -474,11 +478,11 @@ function SportPageInner() {
         {/* ── R1C1-2 : HERO ──────────────────────────────── */}
         <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 28, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', color: 'rgba(240,228,204,0.5)', textTransform: 'uppercase', marginBottom: 6 }}>Running</p>
+            <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.5)', textTransform: 'uppercase', marginBottom: 6 }}>Running</p>
             <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: WHEAT, lineHeight: 1.05, marginBottom: 4 }}>
               {loading ? '…' : `${kmWeek.toFixed(1)} km`}
             </p>
-            <p style={{ fontSize: 12, color: 'rgba(240,228,204,0.55)', marginBottom: 20 }}>
+            <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.55)', marginBottom: 20 }}>
               cette semaine · {seancesWeek} sortie{seancesWeek > 1 ? 's' : ''}
             </p>
 
@@ -493,13 +497,13 @@ function SportPageInner() {
                 Strava
               </a>
               <button onClick={handleStravaSync} disabled={syncing}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(240,228,204,0.2)',
-                  background: 'rgba(240,228,204,0.08)', color: syncing ? 'rgba(240,228,204,0.4)' : WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(var(--text-rgb),0.2)',
+                  background: 'rgba(var(--text-rgb),0.08)', color: syncing ? 'rgba(var(--text-rgb),0.4)' : WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
                 <RefreshCw size={11} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
                 {syncing ? 'Sync…' : 'Synchroniser'}
               </button>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(240,228,204,0.2)',
-                background: 'rgba(240,228,204,0.08)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(var(--text-rgb),0.2)',
+                background: 'rgba(var(--text-rgb),0.08)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
                 <input ref={fileRef} type="file" accept=".gpx" style={{ display: 'none' }} onChange={handleGpxFile} />
                 <Upload size={11} /> {importing ? 'Import…' : 'GPX'}
               </label>
@@ -512,14 +516,14 @@ function SportPageInner() {
           </div>
 
           {/* Bottom stats row */}
-          <div style={{ display: 'flex', gap: 24, paddingTop: 16, borderTop: '1px solid rgba(240,228,204,0.12)' }}>
+          <div style={{ display: 'flex', gap: 24, paddingTop: 16, borderTop: '1px solid rgba(var(--text-rgb),0.12)' }}>
             {[
               { l: 'Temps',      v: fmtDurLong(secWeek) },
               { l: 'Dénivelé',   v: elevWeek > 0 ? `+${elevWeek}m` : '—' },
               { l: 'Allure moy', v: kmWeek > 0 && secWeek > 0 ? fmtPace(secWeek / kmWeek) : '—' },
             ].map(s => (
               <div key={s.l}>
-                <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{s.l}</p>
+                <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{s.l}</p>
                 <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: WHEAT }}>{s.v}</p>
               </div>
             ))}
@@ -575,9 +579,12 @@ function SportPageInner() {
           <div key={i} style={{
             background: kpi.color, borderRadius: 12, padding: '22px 22px 18px',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden',
-          }}>
+            ...(kpi.dark
+              ? { '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' }
+              : { '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' }),
+          } as React.CSSProperties}>
             <div>
-              <p style={{ fontSize: 9, color: kpi.dark ? 'rgba(240,228,204,0.5)' : 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>{kpi.l}</p>
+              <p style={{ fontSize: 9, color: kpi.dark ? 'rgba(var(--text-rgb),0.5)' : 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>{kpi.l}</p>
               <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: kpi.dark ? WHEAT : '#1A0A0A', lineHeight: 1 }}>
                 {kpi.v}
                 {kpi.unit && <span style={{ fontSize: 14, marginLeft: 3 }}>{kpi.unit}</span>}
@@ -585,11 +592,11 @@ function SportPageInner() {
             </div>
             <div>
               {kpi.pct !== undefined && (
-                <div style={{ height: 4, borderRadius: 99, background: kpi.dark ? 'rgba(240,228,204,0.15)' : 'rgba(26,10,10,0.15)', overflow: 'hidden', marginBottom: 6 }}>
+                <div style={{ height: 4, borderRadius: 99, background: kpi.dark ? 'rgba(var(--text-rgb),0.15)' : 'rgba(26,10,10,0.15)', overflow: 'hidden', marginBottom: 6 }}>
                   <div style={{ height: '100%', borderRadius: 99, background: kpi.dark ? WHEAT : '#1A0A0A', width: `${kpi.pct}%` }} />
                 </div>
               )}
-              <p style={{ fontSize: 10, color: kpi.dark ? 'rgba(240,228,204,0.45)' : 'rgba(26,10,10,0.45)' }}>{kpi.sub}</p>
+              <p style={{ fontSize: 10, color: kpi.dark ? 'rgba(var(--text-rgb),0.45)' : 'rgba(26,10,10,0.45)' }}>{kpi.sub}</p>
             </div>
           </div>
         ))}
@@ -597,11 +604,11 @@ function SportPageInner() {
         {/* ── R3C1-2 : APERÇU SEMAINE ───────────────────── */}
         <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <p style={{ ...label('rgba(240,228,204,0.55)') }}>Aperçu de la semaine</p>
-            <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.4)' }}>{kmWeek.toFixed(1)} km · {fmtDur(secWeek)}</span>
+            <p style={{ ...label('rgba(var(--text-rgb),0.55)') }}>Aperçu de la semaine</p>
+            <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.4)' }}>{kmWeek.toFixed(1)} km · {fmtDur(secWeek)}</span>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
-            <BarChart data={dayData} labels={dayLabels} color="rgba(240,228,204,0.35)" highlight={todayIdx} />
+            <BarChart data={dayData} labels={dayLabels} color="rgba(var(--text-rgb),0.35)" highlight={todayIdx} />
           </div>
           {/* Détail jours */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginTop: 8 }}>
@@ -693,7 +700,7 @@ function SportPageInner() {
               /* ── Affiché depuis le Calendrier (label Running) ── */
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 10, background: TEAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Calendar size={22} style={{ color: WHEAT }} />
+                  <Calendar size={22} style={{ color: 'var(--creamy-ivory)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>
@@ -725,7 +732,7 @@ function SportPageInner() {
             ) : nextRun ? (
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 10, background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Activity size={22} style={{ color: WHEAT }} />
+                  <Activity size={22} style={{ color: 'var(--creamy-ivory)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>
@@ -797,7 +804,7 @@ function SportPageInner() {
             ) : activities.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 40, gap: 10 }}>
                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Activity size={20} style={{ color: WHEAT }} />
+                  <Activity size={20} style={{ color: 'var(--creamy-ivory)' }} />
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune sortie enregistrée</p>
               </div>
@@ -808,7 +815,7 @@ function SportPageInner() {
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
                     borderBottom: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
                   <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {hasGpx ? <Zap size={16} style={{ color: ORANGE }} /> : <Activity size={16} style={{ color: WHEAT }} />}
+                    {hasGpx ? <Zap size={16} style={{ color: ORANGE }} /> : <Activity size={16} style={{ color: 'var(--creamy-ivory)' }} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>
@@ -871,7 +878,7 @@ function SportPageInner() {
 
         {/* ── R5C1-2 : PLAN D'ENTRAÎNEMENT ─────────────── */}
         <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column' }}>
-          <p style={{ ...label('rgba(240,228,204,0.55)'), marginBottom: 18 }}>Plan d&apos;entraînement</p>
+          <p style={{ ...label('rgba(var(--text-rgb),0.55)'), marginBottom: 18 }}>Plan d&apos;entraînement</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, flex: 1 }}>
             {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, i) => {
               const d = new Date(weekStart); d.setDate(weekStart.getDate() + i)
@@ -882,23 +889,23 @@ function SportPageInner() {
               return (
                 <div key={day} style={{
                   borderRadius: 8, padding: '10px 6px', textAlign: 'center',
-                  background: isToday ? 'rgba(242,84,45,0.25)' : km > 0 ? 'rgba(240,228,204,0.1)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${isToday ? 'rgba(242,84,45,0.5)' : 'rgba(240,228,204,0.1)'}`,
+                  background: isToday ? 'rgba(242,84,45,0.25)' : km > 0 ? 'rgba(var(--text-rgb),0.1)' : 'rgba(var(--text-rgb),0.04)',
+                  border: `1px solid ${isToday ? 'rgba(242,84,45,0.5)' : 'rgba(var(--text-rgb),0.1)'}`,
                   opacity: isPast && km === 0 ? 0.5 : 1,
                 }}>
-                  <p style={{ fontSize: 9, color: isToday ? ORANGE : 'rgba(240,228,204,0.45)', ...DF, fontWeight: 800, marginBottom: 6, textTransform: 'uppercase' }}>{day}</p>
+                  <p style={{ fontSize: 9, color: isToday ? ORANGE : 'rgba(var(--text-rgb),0.45)', ...DF, fontWeight: 800, marginBottom: 6, textTransform: 'uppercase' }}>{day}</p>
                   {km > 0 ? (
                     <>
                       <div style={{ width: 28, height: 28, borderRadius: '50%', background: ORANGE, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 5px' }}>
                         <Activity size={13} style={{ color: '#fff' }} />
                       </div>
                       <p style={{ ...DF, fontSize: 12, fontWeight: 900, color: WHEAT }}>{km.toFixed(1)}</p>
-                      <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)' }}>km</p>
+                      <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)' }}>km</p>
                     </>
                   ) : (
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(240,228,204,0.06)',
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.06)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(240,228,204,0.2)' }} />
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.2)' }} />
                     </div>
                   )}
                 </div>
@@ -906,9 +913,9 @@ function SportPageInner() {
             })}
           </div>
           {/* Prochains objectifs */}
-          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(240,228,204,0.12)', display: 'flex', gap: 16 }}>
-            <div style={{ flex: 1, background: 'rgba(240,228,204,0.07)', borderRadius: 8, padding: '10px 14px' }}>
-              <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Objectif semaine</p>
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(var(--text-rgb),0.12)', display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1, background: 'rgba(var(--text-rgb),0.07)', borderRadius: 8, padding: '10px 14px' }}>
+              <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Objectif semaine</p>
               <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT }}>{Math.ceil(OBJ_KM_DYNAMIC)} km · {Math.ceil(OBJ_SEANCES_DYNAMIC)} sorties</p>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

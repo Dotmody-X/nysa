@@ -49,7 +49,7 @@ export function SectionCard({ children, title, titleColor = 'var(--accent-budget
   return (
     <div style={{ background: bg, borderRadius: 12, border: bg === 'var(--bg-card)' ? '1px solid var(--border)' : 'none', overflow: 'hidden', ...style }}>
       {title && (
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(var(--text-rgb),0.07)' }}>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', color: titleColor, textTransform: 'uppercase' }}>{title}</p>
           {action}
         </div>

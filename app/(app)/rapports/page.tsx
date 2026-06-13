@@ -81,7 +81,7 @@ function FooterLink({ label, onClick, href }: { label: string; onClick?: () => v
   )
   return (
     <button onClick={onClick} style={base}
-      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(240,228,204,0.04)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--text-rgb),0.04)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
     >
       <span style={{ ...LBL, color: 'var(--text-muted)' }}>{label}</span>
@@ -123,7 +123,7 @@ function Drawer({ title, open, onClose, children, width = 480 }: {
 
 // ── ActivityChart ──────────────────────────────────────────────────────────
 function ActivityChart({ data }: { data: DayStat[] }) {
-  if (!data.length) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'rgba(240,228,204,0.3)', fontSize: 12 }}>Aucune donnée</span></div>
+  if (!data.length) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Aucune donnée</span></div>
   const W = 540, H = 160
   const pL = 8, pR = 8, pT = 10, pB = 22
   const cW = W - pL - pR, cH = H - pT - pB
@@ -146,14 +146,14 @@ function ActivityChart({ data }: { data: DayStat[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H }} preserveAspectRatio="none">
       {[0.25, 0.5, 0.75].map(p => (
         <line key={p} x1={pL} x2={W - pR} y1={pT + cH * (1 - p)} y2={pT + cH * (1 - p)}
-          stroke="rgba(240,228,204,0.07)" strokeWidth="1" />
+          stroke="rgba(var(--text-rgb),0.07)" strokeWidth="1" />
       ))}
       <path d={toD(tPts)} fill="none" stroke={TEAL}   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <path d={toD(aPts)} fill="none" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {tPts.map((p, i) => data[i].seconds > 0    && <circle key={`t${i}`} cx={p.x} cy={p.y} r="3" fill={TEAL}   />)}
       {aPts.map((p, i) => data[i].tasks_done > 0 && <circle key={`a${i}`} cx={p.x} cy={p.y} r="3" fill={ORANGE} />)}
       {data.map((d, i) => showLbl(i) && d.label && (
-        <text key={i} x={pL + i * xStep} y={H - 4} textAnchor="middle" fontSize="8" fill="rgba(240,228,204,0.45)">{d.label}</text>
+        <text key={i} x={pL + i * xStep} y={H - 4} textAnchor="middle" fontSize="8" fill="rgba(var(--text-rgb),0.45)">{d.label}</text>
       ))}
     </svg>
   )
@@ -181,17 +181,17 @@ function DonutChart({ segments, total, size = 160 }: {
   }
   return (
     <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
-      {slices.length === 0 && <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(240,228,204,0.1)" strokeWidth={R - r} />}
+      {slices.length === 0 && <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(var(--text-rgb),0.1)" strokeWidth={R - r} />}
       {slices.map((s, i) => <path key={i} d={arc(s.start, s.start + s.pct)} fill={s.color} />)}
       <text x={cx} y={cy - 7} textAnchor="middle" fontSize="12" fill={WHEAT} fontFamily="var(--font-display)" fontWeight="900">{fmtSec(total)}</text>
-      <text x={cx} y={cy + 8} textAnchor="middle" fontSize="8" fill="rgba(240,228,204,0.5)">Total</text>
+      <text x={cx} y={cy + 8} textAnchor="middle" fontSize="8" fill="rgba(var(--text-rgb),0.5)">Total</text>
     </svg>
   )
 }
 
 // ── ProgressionChart ───────────────────────────────────────────────────────
 function ProgressionChart({ months }: { months: MonthSummary[] }) {
-  if (months.length < 2) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'rgba(240,228,204,0.3)', fontSize: 12 }}>Données insuffisantes</span></div>
+  if (months.length < 2) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Données insuffisantes</span></div>
   const W = 460, H = 140
   const pL = 10, pR = 10, pT = 10, pB = 22
   const cW = W - pL - pR, cH = H - pT - pB
@@ -203,14 +203,14 @@ function ProgressionChart({ months }: { months: MonthSummary[] }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H }}>
       {[0.33, 0.66].map(p => (
-        <line key={p} x1={pL} x2={W - pR} y1={pT + cH * (1 - p)} y2={pT + cH * (1 - p)} stroke="rgba(240,228,204,0.07)" strokeWidth="1" />
+        <line key={p} x1={pL} x2={W - pR} y1={pT + cH * (1 - p)} y2={pT + cH * (1 - p)} stroke="rgba(var(--text-rgb),0.07)" strokeWidth="1" />
       ))}
       <path d={toD(iPts)} fill="none" stroke={TEAL}   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <path d={toD(ePts)} fill="none" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {iPts.map((p, i) => <circle key={`i${i}`} cx={p.x} cy={p.y} r="3" fill={TEAL}   />)}
       {ePts.map((p, i) => <circle key={`e${i}`} cx={p.x} cy={p.y} r="3" fill={ORANGE} />)}
       {months.map((m, i) => (
-        <text key={i} x={pL + i * xStep} y={H - 4} textAnchor="middle" fontSize="8" fill="rgba(240,228,204,0.45)">{m.label}</text>
+        <text key={i} x={pL + i * xStep} y={H - 4} textAnchor="middle" fontSize="8" fill="rgba(var(--text-rgb),0.45)">{m.label}</text>
       ))}
     </svg>
   )
@@ -219,7 +219,7 @@ function ProgressionChart({ months }: { months: MonthSummary[] }) {
 // ── ScoreBar ───────────────────────────────────────────────────────────────
 function ScoreBar({ value, color = TEAL }: { value: number; color?: string }) {
   return (
-    <div style={{ height: 3, borderRadius: 99, background: 'rgba(240,228,204,0.12)', overflow: 'hidden', marginTop: 6 }}>
+    <div style={{ height: 3, borderRadius: 99, background: 'rgba(var(--text-rgb),0.12)', overflow: 'hidden', marginTop: 6 }}>
       <div style={{ height: '100%', width: `${Math.min(100, value)}%`, borderRadius: 99, background: color, transition: 'width 0.6s ease' }} />
     </div>
   )
@@ -345,7 +345,7 @@ export default function RapportsPage() {
                   <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: WHEAT }}>{pc}%</span>
                 </div>
               </div>
-              <div style={{ height: 3, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
+              <div style={{ height: 3, borderRadius: 99, background: 'rgba(var(--text-rgb),0.1)', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${pc}%`, borderRadius: 99, background: p.color !== '#888' ? p.color : TEAL }} />
               </div>
             </div>
@@ -489,7 +489,7 @@ export default function RapportsPage() {
           ))}
         </div>
         {multiMonth.map((m, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 1fr', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 1fr', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(var(--text-rgb),0.04)' }}>
             <span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{m.label}</span>
             <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: TEAL }}>{fmtEur(m.income)}</span>
             <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: ORANGE }}>{fmtEur(m.expense)}</span>
@@ -652,10 +652,10 @@ export default function RapportsPage() {
         </div>
 
         {/* ── R1 C3-4 : VUE D'ENSEMBLE ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '3/5', gridRow: '1/2', background: ORANGE, border: 'none' }}>
-          <div style={{ ...HDR, borderBottom: '1px solid rgba(255,255,255,0.2)', padding: '16px 22px 12px' }}>
-            <span style={{ ...LBL, color: 'rgba(255,255,255,0.9)' }}>Vue d'ensemble</span>
-            <TrendingUp size={14} style={{ color: 'rgba(255,255,255,0.7)' }} />
+        <div style={{ ...CARD, gridColumn: '3/5', gridRow: '1/2', background: ORANGE, border: 'none', '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+          <div style={{ ...HDR, borderBottom: '1px solid rgba(var(--text-rgb),0.2)', padding: '16px 22px 12px' }}>
+            <span style={{ ...LBL, color: 'rgba(var(--text-rgb),0.9)' }}>Vue d'ensemble</span>
+            <TrendingUp size={14} style={{ color: 'rgba(var(--text-rgb),0.7)' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1 }}>
             {[
@@ -664,11 +664,11 @@ export default function RapportsPage() {
               { icon: <DollarSign size={16} />,   label: 'Finances',     value: scoreFinances    },
               { icon: <BarChart2 size={16} />,    label: 'Équilibre',    value: scoreEquilibre   },
             ].map((s, i) => (
-              <div key={i} style={{ padding: '18px 22px', borderRight: i % 2 === 0 ? '1px solid rgba(255,255,255,0.2)' : 'none', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.2)' : 'none' }}>
-                <div style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>{s.icon}</div>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</p>
+              <div key={i} style={{ padding: '18px 22px', borderRight: i % 2 === 0 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none', borderBottom: i < 2 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none' }}>
+                <div style={{ color: 'rgba(var(--text-rgb),0.7)', marginBottom: 6 }}>{s.icon}</div>
+                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.75)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</p>
                 <p style={{ ...DF, fontSize: 30, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{loading ? '—' : `${s.value}%`}</p>
-                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', marginTop: 3 }}>vs objectif</p>
+                <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginTop: 3 }}>vs objectif</p>
               </div>
             ))}
           </div>
@@ -715,14 +715,14 @@ export default function RapportsPage() {
         ))}
 
         {/* ── R3 C1-2 : Aperçu activité ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: 'none' }}>
+        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: 'none', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
           <CH label="Aperçu de l'activité" color={WHEAT}
             right={
               <div style={{ display: 'flex', gap: 12 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(240,228,204,0.7)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>
                   <span style={{ width: 8, height: 8, borderRadius: 99, background: TEAL, display: 'inline-block' }} /> Temps
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(240,228,204,0.7)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>
                   <span style={{ width: 8, height: 8, borderRadius: 99, background: ORANGE, display: 'inline-block' }} /> Tâches
                 </span>
               </div>
@@ -730,7 +730,7 @@ export default function RapportsPage() {
           />
           <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             {loading
-              ? <p style={{ color: 'rgba(240,228,204,0.4)', fontSize: 12 }}>Chargement…</p>
+              ? <p style={{ color: 'rgba(var(--text-rgb),0.4)', fontSize: 12 }}>Chargement…</p>
               : <ActivityChart data={chartData} />
             }
           </div>
@@ -754,7 +754,7 @@ export default function RapportsPage() {
                       <span style={{ fontSize: 11, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>{p.project_name}</span>
                       <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: WHEAT, flexShrink: 0, marginLeft: 6 }}>{pc}%</span>
                     </div>
-                    <div style={{ height: 3, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
+                    <div style={{ height: 3, borderRadius: 99, background: 'rgba(var(--text-rgb),0.1)', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${pc}%`, borderRadius: 99, background: p.color !== '#888' ? p.color : TEAL }} />
                     </div>
                   </div>
@@ -947,7 +947,7 @@ export default function RapportsPage() {
         </div>
 
         {/* ── R6 : Insight IA ─────────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '1px solid rgba(14,149,148,0.3)' }}>
+        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '1px solid rgba(14,149,148,0.3)', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
           <div style={{ flex: 1.2, padding: '20px 28px', borderRight: '1px solid rgba(14,149,148,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(14,149,148,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

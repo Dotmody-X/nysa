@@ -85,10 +85,10 @@ function WeekBars({ data, labels, color = ORANGE, max: maxProp }:
         const h = v > 0 ? Math.max(6, (v / max) * 62) : 4
         return (
           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            {v > 0 && <span style={{ fontSize: 8, color: 'rgba(240,228,204,0.6)', ...DF, fontWeight: 700 }}>{v.toFixed(1)}</span>}
+            {v > 0 && <span style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.6)', ...DF, fontWeight: 700 }}>{v.toFixed(1)}</span>}
             <div style={{ width: '100%', height: h, borderRadius: '3px 3px 0 0',
-              background: v > 0 ? color : 'rgba(240,228,204,0.1)' }} />
-            <span style={{ fontSize: 8, color: 'rgba(240,228,204,0.5)', ...DF, fontWeight: 600 }}>{labels[i]}</span>
+              background: v > 0 ? color : 'rgba(var(--text-rgb),0.1)' }} />
+            <span style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.5)', ...DF, fontWeight: 600 }}>{labels[i]}</span>
           </div>
         )
       })}
@@ -101,11 +101,17 @@ const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, borderRadius: 12, overflow: 'hidden', ...extra,
-})
+  background: TEAL_BG, borderRadius: 12, overflow: 'hidden',
+  // Fond foncé fixe → encre claire dans les deux thèmes
+  '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)',
+  ...extra,
+} as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
-})
+  background: ORANGE, borderRadius: 12, overflow: 'hidden',
+  // Fond orange (clair-moyen) → encre foncée dans les deux thèmes
+  '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)',
+  ...extra,
+} as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg)', borderRadius: 12, overflow: 'hidden', ...extra,
 })
@@ -250,7 +256,7 @@ export default function HealthPage() {
           <input type="date" value={wForm.date} onChange={e => setWForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
           <input type="number" step="0.1" value={wForm.weight} onChange={e => setWForm(f => ({ ...f, weight: e.target.value }))}
             placeholder="Poids (kg)" autoFocus style={{ ...inputStyle, flex: 1 }} />
-          <button type="submit" style={{ background: TEAL_BG, color: WHEAT, borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+          <button type="submit" style={{ background: TEAL_BG, color: 'var(--creamy-ivory)', borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
             Enregistrer
           </button>
           <button type="button" onClick={() => setShowWForm(false)} style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
@@ -296,7 +302,7 @@ export default function HealthPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="health-btn" onClick={() => setShowWForm(v => !v)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                  background: TEAL_BG, color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
                 <Scale size={11} /> + Poids
               </button>
               <button className="health-btn" onClick={() => setShowRForm(v => !v)}
@@ -397,32 +403,32 @@ export default function HealthPage() {
         <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 4 }}>Course à pied</p>
-              <p style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)' }}>Cette semaine</p>
+              <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 4 }}>Course à pied</p>
+              <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)' }}>Cette semaine</p>
             </div>
-            <Activity size={18} style={{ color: 'rgba(240,228,204,0.35)' }} />
+            <Activity size={18} style={{ color: 'rgba(var(--text-rgb),0.35)' }} />
           </div>
           <div>
             <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: WHEAT, lineHeight: 1, marginBottom: 3 }}>
               {kmWeek.toFixed(1)} <span style={{ fontSize: 16, fontWeight: 500 }}>km</span>
             </p>
-            <p style={{ fontSize: 10, color: 'rgba(240,228,204,0.5)' }}>{thisWeek.length} session{thisWeek.length !== 1 ? 's' : ''}</p>
+            <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.5)' }}>{thisWeek.length} session{thisWeek.length !== 1 ? 's' : ''}</p>
           </div>
           <WeekBars data={dayKm} labels={dayLabels} color={ORANGE} />
           <button onClick={() => router.push('/sport')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 6 }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.6)' }}>VOIR LE PROGRAMME</span>
-            <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.6)' }} />
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.6)' }}>VOIR LE PROGRAMME</span>
+            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.6)' }} />
           </button>
         </div>
 
         {/* ── R2 C2 : POIDS ───────────────────────────────── */}
         <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Poids</p>
-            <Scale size={18} style={{ color: 'rgba(240,228,204,0.35)' }} />
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Poids</p>
+            <Scale size={18} style={{ color: 'rgba(var(--text-rgb),0.35)' }} />
           </div>
           <div>
-            <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Aujourd&apos;hui</p>
+            <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Aujourd&apos;hui</p>
             <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: WHEAT, lineHeight: 1, marginBottom: 4 }}>
               {latestWeight ? <>{latestWeight} <span style={{ fontSize: 14, fontWeight: 500 }}>kg</span></> : '—'}
             </p>
@@ -431,7 +437,7 @@ export default function HealthPage() {
                 {weightTrend < 0
                   ? <TrendingDown size={13} style={{ color: TEAL }} />
                   : <TrendingUp size={13} style={{ color: ORANGE }} />}
-                <span style={{ fontSize: 11, color: weightTrend < 0 ? 'rgba(240,228,204,0.8)' : ORANGE }}>
+                <span style={{ fontSize: 11, color: weightTrend < 0 ? 'rgba(var(--text-rgb),0.8)' : ORANGE }}>
                   {weightTrend > 0 ? '+' : ''}{weightTrend.toFixed(1)} kg vs hier
                 </span>
               </div>
@@ -441,8 +447,8 @@ export default function HealthPage() {
             <WeightSparkLine data={weightHistory} />
           </div>
           <button onClick={() => router.push('/health/poids')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.6)' }}>VOIR L&apos;ÉVOLUTION</span>
-            <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.6)' }} />
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.6)' }}>VOIR L&apos;ÉVOLUTION</span>
+            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.6)' }} />
           </button>
         </div>
 
@@ -453,11 +459,11 @@ export default function HealthPage() {
             <Moon size={18} style={{ color: 'rgba(160,130,220,0.5)' }} />
           </div>
           <div>
-            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Dernière nuit</p>
-            <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: '#fff', lineHeight: 1, marginBottom: 6 }}>
+            <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Dernière nuit</p>
+            <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: 'var(--text)', lineHeight: 1, marginBottom: 6 }}>
               — <span style={{ fontSize: 16, fontWeight: 500 }}>h</span>
             </p>
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>Qualité · —</p>
+            <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.35)' }}>Qualité · —</p>
           </div>
           {/* Placeholder sleep bars */}
           <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 40 }}>
@@ -497,9 +503,9 @@ export default function HealthPage() {
         {/* ── R3 C1-2 : PROGRAMME COURSE ──────────────────── */}
         <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <p style={{ ...lbl('rgba(255,255,255,0.5)') }}>Programme Course à Pied</p>
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.5)') }}>Programme Course à Pied</p>
             <button onClick={() => router.push('/sport')}
-              style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)', background: 'none', border: 'none', cursor: 'pointer' }}>
+              style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.35)', background: 'none', border: 'none', cursor: 'pointer' }}>
               Plan actuel ▾
             </button>
           </div>
@@ -508,8 +514,8 @@ export default function HealthPage() {
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
             {activities.length === 0 && !loading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 8 }}>
-                <Activity size={24} style={{ color: 'rgba(255,255,255,0.2)' }} />
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Aucune session enregistrée</p>
+                <Activity size={24} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
+                <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.3)' }}>Aucune session enregistrée</p>
                 <button onClick={() => setShowRForm(true)}
                   style={{ ...DF, fontSize: 11, fontWeight: 700, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
                   + Ajouter un run
@@ -520,25 +526,25 @@ export default function HealthPage() {
               return (
                 <div key={a.id} className="health-row" onClick={() => router.push(`/sport/${a.id}`)}
                   style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10,
-                    background: isToday ? `rgba(242,84,45,0.15)` : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${isToday ? 'rgba(242,84,45,0.3)' : 'rgba(255,255,255,0.06)'}`,
+                    background: isToday ? `rgba(242,84,45,0.15)` : 'rgba(var(--text-rgb),0.04)',
+                    border: `1px solid ${isToday ? 'rgba(242,84,45,0.3)' : 'rgba(var(--text-rgb),0.06)'}`,
                     cursor: 'pointer' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 8, background: isToday ? ORANGE : 'rgba(255,255,255,0.08)',
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: isToday ? ORANGE : 'rgba(var(--text-rgb),0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Activity size={16} style={{ color: isToday ? '#fff' : 'rgba(255,255,255,0.4)' }} />
+                    <Activity size={16} style={{ color: isToday ? '#fff' : 'rgba(var(--text-rgb),0.4)' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: '#fff' }}>
+                    <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>
                       {(a as any).title ?? `Sortie ${i + 1} — ${a.distance_km?.toFixed(1)} km`}
                     </p>
-                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
+                    <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.35)', marginTop: 2 }}>
                       {a.duration_seconds ? fmtDur(a.duration_seconds) + ' · ' : ''}
                       {a.distance_km ? `${a.distance_km.toFixed(1)} km` : ''}
                       {a.elevation_m ? ` · +${a.elevation_m}m` : ''}
                     </p>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{fmtDate(a.date)}</p>
+                    <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.35)' }}>{fmtDate(a.date)}</p>
                     {a.pace_sec_per_km && (
                       <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: TEAL, marginTop: 2 }}>{fmtPace(a.pace_sec_per_km)}</p>
                     )}
@@ -554,17 +560,17 @@ export default function HealthPage() {
           </div>
 
           <button onClick={() => router.push('/sport')}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)' }}>VOIR TOUT LE PROGRAMME</span>
-            <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.35)' }} />
+            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 6, borderTop: '1px solid rgba(var(--text-rgb),0.07)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.35)' }}>VOIR TOUT LE PROGRAMME</span>
+            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.35)' }} />
           </button>
         </div>
 
         {/* ── R3 C3-4 : ACTIVITÉ HEBDOMADAIRE ─────────────── */}
         <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Activité hebdomadaire</p>
-            <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.35)' }}>Cette semaine</span>
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Activité hebdomadaire</p>
+            <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.35)' }}>Cette semaine</span>
           </div>
           {/* Stats row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
@@ -573,8 +579,8 @@ export default function HealthPage() {
               { l: 'Distance',     v: `${kmWeek.toFixed(1)} km` },
               { l: 'Dénivelé',     v: elevWeek > 0 ? `+${elevWeek}m` : '—' },
             ].map(s => (
-              <div key={s.l} style={{ background: 'rgba(240,228,204,0.08)', borderRadius: 8, padding: '10px 12px' }}>
-                <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.l}</p>
+              <div key={s.l} style={{ background: 'rgba(var(--text-rgb),0.08)', borderRadius: 8, padding: '10px 12px' }}>
+                <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.l}</p>
                 <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{s.v}</p>
               </div>
             ))}
@@ -588,22 +594,22 @@ export default function HealthPage() {
               const isToday = i === todayIdx
               return (
                 <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  {km > 0 && <span style={{ ...DF, fontSize: 9, fontWeight: 800, color: isToday ? ORANGE : 'rgba(240,228,204,0.55)' }}>{km.toFixed(1)}</span>}
+                  {km > 0 && <span style={{ ...DF, fontSize: 9, fontWeight: 800, color: isToday ? WHEAT : 'rgba(var(--text-rgb),0.55)' }}>{km.toFixed(1)}</span>}
                   <div style={{
                     width: '100%', height: h, borderRadius: '4px 4px 0 0',
-                    background: km > 0 ? (isToday ? ORANGE : 'rgba(240,228,204,0.35)') : 'rgba(240,228,204,0.08)',
+                    background: km > 0 ? (isToday ? ORANGE : 'rgba(var(--text-rgb),0.35)') : 'rgba(var(--text-rgb),0.08)',
                   }} />
-                  <span style={{ ...DF, fontSize: 9, fontWeight: isToday ? 800 : 600, color: isToday ? ORANGE : 'rgba(240,228,204,0.45)', textTransform: 'uppercase' }}>{day}</span>
+                  <span style={{ ...DF, fontSize: 9, fontWeight: isToday ? 800 : 600, color: isToday ? WHEAT : 'rgba(var(--text-rgb),0.45)', textTransform: 'uppercase' }}>{day}</span>
                 </div>
               )
             })}
           </div>
           {/* Legend */}
-          <div style={{ display: 'flex', gap: 14, marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(240,228,204,0.1)' }}>
-            {[{ c: TEAL, l: 'Course' }, { c: ORANGE, l: 'Aujourd\'hui' }, { c: 'rgba(240,228,204,0.35)', l: 'Autre' }].map(s => (
+          <div style={{ display: 'flex', gap: 14, marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(var(--text-rgb),0.1)' }}>
+            {[{ c: TEAL, l: 'Course' }, { c: ORANGE, l: 'Aujourd\'hui' }, { c: 'rgba(var(--text-rgb),0.35)', l: 'Autre' }].map(s => (
               <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ width: 8, height: 8, borderRadius: 2, background: s.c }} />
-                <span style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)' }}>{s.l}</span>
+                <span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.45)' }}>{s.l}</span>
               </div>
             ))}
           </div>
@@ -616,8 +622,8 @@ export default function HealthPage() {
             <Heart size={16} style={{ color: 'rgba(255,80,80,0.5)' }} />
           </div>
           <div>
-            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Repos (moy.)</p>
-            <p style={{ ...DF, fontSize: 40, fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+            <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Repos (moy.)</p>
+            <p style={{ ...DF, fontSize: 40, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
               {avgHr ?? '—'} <span style={{ fontSize: 14, fontWeight: 500 }}>bpm</span>
             </p>
           </div>
@@ -626,56 +632,56 @@ export default function HealthPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {activities.slice(0, 2).map(a => a.heart_rate_avg && (
-              <div key={a.id} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.05)' }}>
-                <p style={{ fontSize: 8, color: 'rgba(255,255,255,0.3)' }}>{fmtDate(a.date)}</p>
+              <div key={a.id} style={{ padding: '8px 10px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.05)' }}>
+                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.3)' }}>{fmtDate(a.date)}</p>
                 <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: '#ff5050', marginTop: 2 }}>{a.heart_rate_avg} <span style={{ fontSize: 10 }}>bpm</span></p>
               </div>
             ))}
           </div>
           <button onClick={() => router.push('/health/frequence-cardiaque')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.2)' }}>VOIR PLUS</span>
-            <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.2)' }} />
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.2)' }}>VOIR PLUS</span>
+            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
           </button>
         </div>
 
         {/* ── R4 C2 : NUTRITION ───────────────────────────── */}
         <div style={{ ...darkCard(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <p style={{ ...lbl('rgba(255,255,255,0.4)') }}>Nutrition</p>
-            <Utensils size={16} style={{ color: 'rgba(255,255,255,0.2)' }} />
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.4)') }}>Nutrition</p>
+            <Utensils size={16} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
           </div>
           <div>
-            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Calories aujourd&apos;hui</p>
-            <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: '#fff', lineHeight: 1 }}>
-              {nutrition.cal.toLocaleString()} <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>/ {nutrition.calTarget.toLocaleString()} kcal</span>
+            <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Calories aujourd&apos;hui</p>
+            <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
+              {nutrition.cal.toLocaleString()} <span style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.3)' }}>/ {nutrition.calTarget.toLocaleString()} kcal</span>
             </p>
           </div>
-          <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+          <div style={{ height: 6, borderRadius: 99, background: 'rgba(var(--text-rgb),0.08)', overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${(nutrition.cal / nutrition.calTarget) * 100}%`, borderRadius: 99, background: TEAL }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
               { l: 'Protéines', v: nutrition.prot, t: nutrition.protTarget, c: TEAL },
               { l: 'Glucides',  v: nutrition.gluc, t: nutrition.glucTarget, c: ORANGE },
-              { l: 'Lipides',   v: nutrition.lip,  t: nutrition.lipTarget,  c: 'rgba(255,255,255,0.4)' },
+              { l: 'Lipides',   v: nutrition.lip,  t: nutrition.lipTarget,  c: 'rgba(var(--text-rgb),0.4)' },
             ].map(m => (
               <div key={m.l}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <div style={{ width: 8, height: 8, borderRadius: 2, background: m.c }} />
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{m.l}</span>
+                    <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.5)' }}>{m.l}</span>
                   </div>
-                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: '#fff' }}>{m.v}g <span style={{ color: 'rgba(255,255,255,0.3)' }}>/ {m.t}g</span></span>
+                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text)' }}>{m.v}g <span style={{ color: 'rgba(var(--text-rgb),0.3)' }}>/ {m.t}g</span></span>
                 </div>
-                <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{ height: 4, borderRadius: 99, background: 'rgba(var(--text-rgb),0.06)', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${(m.v / m.t) * 100}%`, borderRadius: 99, background: m.c }} />
                 </div>
               </div>
             ))}
           </div>
           <button onClick={() => router.push('/recettes')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.2)' }}>VOIR LES RECETTES</span>
-            <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.2)' }} />
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.2)' }}>VOIR LES RECETTES</span>
+            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
           </button>
         </div>
 
@@ -782,7 +788,7 @@ export default function HealthPage() {
 
         {/* ── R5 C3-4 : DÉFIS & OBJECTIFS ─────────────────── */}
         <div style={{ ...tealCard(), gridColumn: 'span 2', padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Défis &amp; Objectifs</p>
+          <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Défis &amp; Objectifs</p>
 
           {/* Objectif principal — dynamique depuis localStorage */}
           {(() => {
@@ -791,14 +797,14 @@ export default function HealthPage() {
             const current = (mainObj as any).currentOverride != null ? (mainObj as any).currentOverride : autoVal
             const pct = Math.min(100, (current / mainObj.target) * 100)
             return (
-              <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(240,228,204,0.08)', border: '1px solid rgba(240,228,204,0.12)' }}>
-                <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Objectif actuel</p>
+              <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.08)', border: '1px solid rgba(var(--text-rgb),0.12)' }}>
+                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Objectif actuel</p>
                 <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT, marginBottom: 8, lineHeight: 1.1 }}>{mainObj.label}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                  <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: mainObj.color }}>{Math.round(pct)}%</span>
-                  <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)' }}>{Number.isInteger(current) ? current : current.toFixed(1)} / {mainObj.target} {mainObj.unit}</span>
+                  <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT }}>{Math.round(pct)}%</span>
+                  <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)' }}>{Number.isInteger(current) ? current : current.toFixed(1)} / {mainObj.target} {mainObj.unit}</span>
                 </div>
-                <div style={{ height: 5, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
+                <div style={{ height: 5, borderRadius: 99, background: 'rgba(var(--text-rgb),0.1)', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: mainObj.color, transition: 'width .5s ease' }} />
                 </div>
               </div>
@@ -806,7 +812,7 @@ export default function HealthPage() {
           })()}
 
           {/* Défis actifs */}
-          <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Défis actifs</p>
+          <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Défis actifs</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {(lsObjectifs.length > 0 ? lsObjectifs.slice(1, 5) : [
               { id: '1', label: '30 km / semaine',    target: 30,  unit: 'km',      color: ORANGE,    currentOverride: undefined },
@@ -822,22 +828,22 @@ export default function HealthPage() {
                 <div key={d.l} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.6)' }}>{d.l}</span>
+                      <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.6)' }}>{d.l}</span>
                       <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: WHEAT }}>{d.v} / {d.t} {d.unit}</span>
                     </div>
-                    <div style={{ height: 5, borderRadius: 99, background: 'rgba(240,228,204,0.1)', overflow: 'hidden' }}>
+                    <div style={{ height: 5, borderRadius: 99, background: 'rgba(var(--text-rgb),0.1)', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: d.color, transition: 'width .5s ease' }} />
                     </div>
                   </div>
-                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: d.color, minWidth: 34, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
+                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT, minWidth: 34, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
                 </div>
               )
             })}
           </div>
 
-          <button onClick={() => router.push('/health/objectifs')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(240,228,204,0.1)' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(240,228,204,0.35)' }}>VOIR TOUS LES OBJECTIFS</span>
-            <ChevronRight size={11} style={{ color: 'rgba(240,228,204,0.35)' }} />
+          <button onClick={() => router.push('/health/objectifs')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(var(--text-rgb),0.1)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.35)' }}>VOIR TOUS LES OBJECTIFS</span>
+            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.35)' }} />
           </button>
         </div>
 

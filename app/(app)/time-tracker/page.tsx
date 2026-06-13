@@ -109,7 +109,7 @@ function MiniBarChart({ values, color }: { values: number[]; color: string }) {
         <div key={i} style={{
           flex: 1, borderRadius: 2,
           height: `${Math.max(6, (v / max) * 100)}%`,
-          background: v > 0 ? color : 'rgba(255,255,255,0.08)',
+          background: v > 0 ? color : 'rgba(var(--text-rgb),0.08)',
           opacity: i === values.length - 1 ? 1 : 0.55,
           transition: 'height 0.4s ease',
         }} />
@@ -164,10 +164,10 @@ function StackedBar({ days }: {
                 {day.segments.map((seg, si) => (
                   <div key={si} style={{ width: '100%', flex: seg.value, background: seg.color, minHeight: 2 }} />
                 ))}
-                {day.segments.length === 0 && barH > 0 && <div style={{ flex: 1, background: 'rgba(255,255,255,0.15)' }} />}
+                {day.segments.length === 0 && barH > 0 && <div style={{ flex: 1, background: 'rgba(var(--text-rgb),0.15)' }} />}
               </div>
             </div>
-            <span style={{ fontSize: 9, color: 'rgba(240,228,204,0.45)', ...DF, fontWeight: 600 }}>{day.label}</span>
+            <span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.45)', ...DF, fontWeight: 600 }}>{day.label}</span>
           </div>
         )
       })}
@@ -194,12 +194,12 @@ function Dropdown<T extends string>({
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const bg     = dark ? 'rgba(255,255,255,0.1)'  : 'var(--bg-input)'
-  const border = dark ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--border)'
+  const bg     = dark ? 'rgba(var(--text-rgb),0.1)'  : 'var(--bg-input)'
+  const border = dark ? '1px solid rgba(var(--text-rgb),0.12)' : '1px solid var(--border)'
   const txtC   = dark ? 'var(--text-muted)' : 'var(--text)'
-  const muted  = dark ? 'rgba(240,228,204,0.55)' : 'var(--text-muted)'
+  const muted  = dark ? 'rgba(var(--text-rgb),0.55)' : 'var(--text-muted)'
   const menuBg = dark ? '#0d4a4b' : 'var(--bg-card)'
-  const menuBorder = dark ? '1px solid rgba(255,255,255,0.12)' : '1px solid var(--border)'
+  const menuBorder = dark ? '1px solid rgba(var(--text-rgb),0.12)' : '1px solid var(--border)'
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -213,7 +213,7 @@ function Dropdown<T extends string>({
           {options.map(opt => (
             <div key={opt} onClick={() => { onChange(opt); setOpen(false) }}
               style={{ padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: opt === value ? 'var(--accent-budget)' : txtC, fontWeight: opt === value ? 700 : 400, background: opt === value ? 'rgba(242,84,45,0.08)' : 'transparent' }}
-              onMouseEnter={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = dark ? 'rgba(255,255,255,0.07)' : 'var(--bg-card-hover)' }}
+              onMouseEnter={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = dark ? 'rgba(var(--text-rgb),0.07)' : 'var(--bg-card-hover)' }}
               onMouseLeave={e => { if (opt !== value) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
               {labels[opt]}
             </div>
@@ -273,12 +273,12 @@ function LabelPickerDropdown({ labels, selected, onSelect, onClose }: {
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
   return (
-    <div ref={ref} style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 200, background: '#0d1a1a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10, minWidth: 150, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-      <p style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', padding: '6px 10px 4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Calendrier cible</p>
+    <div ref={ref} style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 200, background: '#0d1a1a', border: '1px solid rgba(var(--text-rgb),0.15)', borderRadius: 10, minWidth: 150, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+      <p style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', padding: '6px 10px 4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Calendrier cible</p>
       {labels.map(l => (
         <button key={l} onClick={() => onSelect(l)}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 7, background: l === selected ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', cursor: 'pointer', color: l === selected ? '#fff' : 'rgba(240,228,204,0.7)', fontSize: 11, fontWeight: l === selected ? 700 : 400, textAlign: 'left' }}
-          onMouseEnter={e => { if (l !== selected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)' }}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 7, background: l === selected ? 'rgba(var(--text-rgb),0.1)' : 'transparent', border: 'none', cursor: 'pointer', color: l === selected ? '#fff' : 'rgba(var(--text-rgb),0.7)', fontSize: 11, fontWeight: l === selected ? 700 : 400, textAlign: 'left' }}
+          onMouseEnter={e => { if (l !== selected) (e.currentTarget as HTMLElement).style.background = 'rgba(var(--text-rgb),0.06)' }}
           onMouseLeave={e => { if (l !== selected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[l] ?? '#888', flexShrink: 0 }} />
           {l}
@@ -603,16 +603,18 @@ export default function TimeTrackerPage() {
   const visibleEntries  = showAllRecent ? filteredEntries : filteredEntries.slice(0, 6)
 
   /* ── Render ──────────────────────────────────────────────────────────────── */
-  // Log pour débogage
-  useEffect(() => {
-    console.log('[TIME_TRACKER] State:', {
-      loading,
-      entriesCount: entries.length,
-      filteredCount: filteredEntries.length,
-      noDemoMode: isDemoModeDisabled(),
-      runningEntry: running?.id,
-    })
-  }, [loading, entries, filteredEntries])
+  // Empty state for demo mode
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = filteredEntries.length > 0
+  if (noDemoMode && !hasData) {
+    return (
+      <PageEmpty
+        icon="⏱️"
+        title="Time Tracker vide"
+        description="Commencez à tracker votre temps de travail"
+      />
+    )
+  }
 
   return (
     <>
@@ -639,17 +641,18 @@ export default function TimeTrackerPage() {
         background: running ? 'var(--accent-budget)' : 'var(--bg-card)',
         border: running ? 'none' : '1px solid var(--border)',
         display: 'flex', flexDirection: 'column', padding: 22,
-      }}>
+        ...(running ? { '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } : {}),
+      } as React.CSSProperties}>
         {running ? (
           <>
-            <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: -70, right: 60, width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.06)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -70, right: 60, width: 260, height: 260, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.04)', pointerEvents: 'none' }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#fff', animation: 'pulse 1.2s infinite' }} />
-                <span style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Session en cours</span>
+                <span style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(var(--text-rgb),0.85)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Session en cours</span>
               </div>
-              <button style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button style={{ color: 'rgba(var(--text-rgb),0.7)', background: 'none', border: 'none', cursor: 'pointer' }}>
                 <MoreVertical size={14} />
               </button>
             </div>
@@ -661,7 +664,7 @@ export default function TimeTrackerPage() {
                 <p style={{ ...DF, fontSize: 17, fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {running.description || 'Session de travail'}
                 </p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', marginBottom: 10 }}>
+                <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', marginBottom: 10 }}>
                   {runningProj?.name ?? 'Sans projet'}{running.category ? ` • ${running.category}` : ''}
                 </p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 34, color: '#fff', letterSpacing: '0.06em', lineHeight: 1 }}>
@@ -669,20 +672,20 @@ export default function TimeTrackerPage() {
                 </p>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>Aujourd'hui</p>
+                <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>Aujourd'hui</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 26, color: '#fff', lineHeight: 1 }}>{fmtDur(todaySec + elapsed)}</p>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 16, alignItems: 'center', flexWrap: 'wrap' }}>
               <button onClick={() => setAddToCalendar(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: addToCalendar ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: addToCalendar ? 'rgba(var(--text-rgb),0.18)' : 'rgba(var(--text-rgb),0.07)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
                 <CalendarPlus size={10} /> {addToCalendar ? 'Agenda ✓' : 'Agenda'}
               </button>
               {addToCalendar && (
                 <div style={{ position: 'relative' }}>
                   <button
                     onClick={() => setShowLabelPicker(v => !v)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.2)', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
                     <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[calendarLabel] ?? '#fff', flexShrink: 0 }} />
                     {calendarLabel}
                     <ChevronDown size={9} style={{ opacity: 0.7, transform: showLabelPicker ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
@@ -698,7 +701,7 @@ export default function TimeTrackerPage() {
                 </div>
               )}
               <button onClick={() => setManualOpen(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.8)', fontSize: 10, fontWeight: 600, ...DF }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.07)', border: 'none', cursor: 'pointer', color: 'rgba(var(--text-rgb),0.8)', fontSize: 10, fontWeight: 600, ...DF }}>
                 <PenLine size={10} /> Entrée manuelle
               </button>
             </div>
@@ -772,7 +775,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 2 — Moyenne / jour (wheat bg) */}
-      <div style={{ background: 'var(--text)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: 'var(--creamy-ivory)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(26,10,10,0.55)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Moyenne / jour</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: '#1A0A0A', lineHeight: 1, marginBottom: 6 }}>{fmtDur(avgSec)}</p>
         <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>{workingDays} jour{workingDays > 1 ? 's' : ''} travaillé{workingDays > 1 ? 's' : ''}</p>
@@ -780,20 +783,20 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 3 — Projets actifs (orange) */}
-      <div style={{ background: 'var(--accent-budget)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
-        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Projets actifs</span>
+      <div style={{ background: 'var(--accent-budget)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+        <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.07)', pointerEvents: 'none' }} />
+        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Projets actifs</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{activeProjs}</p>
-        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)' }}>{PERIOD_LABELS[period]}</p>
-        <MiniBarChart values={secPerDay} color="rgba(255,255,255,0.65)" />
+        <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)' }}>{PERIOD_LABELS[period]}</p>
+        <MiniBarChart values={secPerDay} color="rgba(var(--text-rgb),0.65)" />
       </div>
 
       {/* KPI 4 — Productivité (teal) */}
-      <div style={{ background: 'var(--azul)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Taux facturable</span>
+      <div style={{ background: 'var(--azul)', borderRadius: 12, padding: 20, height: 280, display: 'flex', flexDirection: 'column', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Taux facturable</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: '#fff', lineHeight: 1, marginBottom: 6 }}>{prodPct}%</p>
-        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginBottom: 'auto' }}>{fmtDur(billableSec)} facturables</p>
-        <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+        <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginBottom: 'auto' }}>{fmtDur(billableSec)} facturables</p>
+        <div style={{ height: 6, borderRadius: 99, background: 'rgba(var(--text-rgb),0.2)', overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 99, background: '#fff', width: `${prodPct}%`, transition: 'width 0.5s ease' }} />
         </div>
       </div>
@@ -1038,7 +1041,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* Évolution du temps — stacked bars */}
-      <div className="col-span-2" style={{ background: 'var(--azul)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380 }}>
+      <div className="col-span-2" style={{ background: 'var(--azul)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Évolution du temps</p>
           <Dropdown<Period>
@@ -1057,15 +1060,15 @@ export default function TimeTrackerPage() {
             {donutSegs.slice(0, 6).map((s, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
-                <span style={{ fontSize: 9, color: 'rgba(240,228,204,0.65)' }}>{s.label}</span>
+                <span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)' }}>{s.label}</span>
               </div>
             ))}
           </div>
         )}
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12, marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-          <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.55)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voir plus d'analyses</span>
-          <ArrowRight size={11} style={{ color: 'rgba(240,228,204,0.55)' }} />
+        <div style={{ borderTop: '1px solid rgba(var(--text-rgb),0.1)', paddingTop: 12, marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+          <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.55)', ...DF, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Voir plus d'analyses</span>
+          <ArrowRight size={11} style={{ color: 'rgba(var(--text-rgb),0.55)' }} />
         </div>
       </div>
 

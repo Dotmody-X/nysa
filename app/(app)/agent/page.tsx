@@ -108,12 +108,15 @@ export default function AgentPage() {
                     <Sparkles size={12} style={{ color:'#fff' }} />
                   </div>
                 )}
-                <div style={{
-                  maxWidth:'75%', padding:'10px 14px', borderRadius: msg.role==='user' ? '14px 14px 4px 14px' : '4px 14px 14px 14px',
-                  background: msg.role==='user' ? 'var(--accent-budget)' : 'var(--bg-input)',
-                  border: msg.role==='user' ? 'none' : '1px solid var(--border)',
-                }}>
-                  <p style={{ fontSize:13, color: msg.role==='user' ? '#fff' : 'var(--text)', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{msg.content}</p>
+                <div style={(msg.role==='user' ? {
+                  maxWidth:'75%', padding:'10px 14px', borderRadius:'14px 14px 4px 14px',
+                  background:'var(--accent-budget)', border:'none',
+                  '--text-rgb':'26, 10, 10', '--text':'#1a0a0a', '--text-muted':'rgba(26, 10, 10, 0.65)',
+                } : {
+                  maxWidth:'75%', padding:'10px 14px', borderRadius:'4px 14px 14px 14px',
+                  background:'var(--bg-input)', border:'1px solid var(--border)',
+                }) as React.CSSProperties}>
+                  <p style={{ fontSize:13, color:'var(--text)', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{msg.content}</p>
                 </div>
               </div>
             ))}
@@ -156,7 +159,7 @@ export default function AgentPage() {
 
         {/* Right — suggestions */}
         <div className="flex flex-col gap-[10px]">
-          <div style={{ background:'var(--accent-budget)', borderRadius:12, padding:20 }}>
+          <div style={{ background:'var(--accent-budget)', borderRadius:12, padding:20, '--text-rgb':'26, 10, 10', '--text':'#1a0a0a', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'#1A0A0A', textTransform:'uppercase', marginBottom:12 }}>Suggestions</p>
             <div className="flex flex-col gap-2">
               {SUGGESTIONS.map(s => (

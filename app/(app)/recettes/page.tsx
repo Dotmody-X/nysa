@@ -19,11 +19,11 @@ const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, borderRadius: 12, overflow: 'hidden', ...extra,
-})
+  background: TEAL_BG, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)', borderRadius: 12, overflow: 'hidden', ...extra,
+} as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
-})
+  background: ORANGE, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', borderRadius: 12, overflow: 'hidden', ...extra,
+} as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg)', borderRadius: 12, overflow: 'hidden', ...extra,
 })
@@ -62,7 +62,7 @@ function DonutChart({ slices, size = 110 }: { slices: { pct: number; color: stri
   let offset = 0
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(240,228,204,0.06)" strokeWidth={14} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(var(--text-rgb),0.06)" strokeWidth={14} />
       {slices.map((s, i) => {
         const dash = (s.pct / 100) * circumference
         const gap  = circumference - dash
@@ -199,7 +199,7 @@ export default function RecettesPage() {
       <style>{`
         .rec-card:hover  { opacity: .92; transform: translateY(-1px); transition: .15s; }
         .rec-filter:hover{ opacity: .8; }
-        .rec-row:hover   { background: rgba(240,228,204,0.06) !important; }
+        .rec-row:hover   { background: rgba(var(--text-rgb),0.06) !important; }
         .rec-btn:hover   { opacity: .85; }
       `}</style>
 
@@ -230,7 +230,7 @@ export default function RecettesPage() {
               </button>
               <button className="rec-btn"
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                  background: TEAL_BG, color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
                 <Zap size={11} /> Générer un repas
               </button>
             </div>
@@ -342,9 +342,9 @@ export default function RecettesPage() {
         {/* ── R3 C1-2 : PLANIFICATION DES REPAS ───────────── */}
         <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <p style={{ ...lbl('rgba(255,255,255,0.5)') }}>Planification des repas</p>
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.5)') }}>Planification des repas</p>
             <span style={{ fontSize: 9, padding: '3px 10px', borderRadius: 6,
-              background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)', ...DF, fontWeight: 700 }}>
+              background: 'rgba(var(--text-rgb),0.06)', color: 'rgba(var(--text-rgb),0.3)', ...DF, fontWeight: 700 }}>
               Semaine en cours
             </span>
           </div>
@@ -353,11 +353,11 @@ export default function RecettesPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
               <thead>
                 <tr>
-                  <th style={{ padding: '6px 8px', fontSize: 8, color: 'rgba(255,255,255,0.25)', ...DF, fontWeight: 700, textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.06)', width: 70 }}>
+                  <th style={{ padding: '6px 8px', fontSize: 8, color: 'rgba(var(--text-rgb),0.25)', ...DF, fontWeight: 700, textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid rgba(var(--text-rgb),0.06)', width: 70 }}>
                     Repas
                   </th>
                   {DAYS.map(d => (
-                    <th key={d} style={{ padding: '6px 4px', fontSize: 8, color: 'rgba(255,255,255,0.3)', ...DF, fontWeight: 700, textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
+                    <th key={d} style={{ padding: '6px 4px', fontSize: 8, color: 'rgba(var(--text-rgb),0.3)', ...DF, fontWeight: 700, textTransform: 'uppercase', borderBottom: '1px solid rgba(var(--text-rgb),0.06)', textAlign: 'center' }}>
                       {d}
                     </th>
                   ))}
@@ -366,14 +366,14 @@ export default function RecettesPage() {
               <tbody>
                 {MEALS.map(meal => (
                   <tr key={meal}>
-                    <td style={{ padding: '8px 8px', fontSize: 9, color: 'rgba(255,255,255,0.35)', borderBottom: '1px solid rgba(255,255,255,0.04)', ...DF, fontWeight: 700 }}>
+                    <td style={{ padding: '8px 8px', fontSize: 9, color: 'rgba(var(--text-rgb),0.35)', borderBottom: '1px solid rgba(var(--text-rgb),0.04)', ...DF, fontWeight: 700 }}>
                       {meal}
                     </td>
                     {DAYS.map(day => {
                       const key = `${day}-${meal}`
                       const entry = mealPlan[key]
                       return (
-                        <td key={day} style={{ padding: '4px 3px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
+                        <td key={day} style={{ padding: '4px 3px', borderBottom: '1px solid rgba(var(--text-rgb),0.04)', textAlign: 'center' }}>
                           {entry ? (
                             <button onClick={() => setSelectedMealSlot({day, meal})} style={{ background: 'rgba(14,149,148,0.15)', borderRadius: 5,
                               padding: '4px 3px', fontSize: 8, color: 'var(--azul)', ...DF, fontWeight: 700,
@@ -381,7 +381,7 @@ export default function RecettesPage() {
                               {entry}
                             </button>
                           ) : (
-                            <button onClick={() => setSelectedMealSlot({day, meal})} style={{ fontSize: 14, color: 'rgba(255,255,255,0.12)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>+</button>
+                            <button onClick={() => setSelectedMealSlot({day, meal})} style={{ fontSize: 14, color: 'rgba(var(--text-rgb),0.12)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>+</button>
                           )}
                         </td>
                       )
@@ -392,9 +392,9 @@ export default function RecettesPage() {
             </table>
           </div>
 
-          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0 0', marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.25)' }}>GÉNÉRER UN PLAN AUTO</span>
-            <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.25)' }} />
+          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0 0', marginTop: 6, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.25)' }}>GÉNÉRER UN PLAN AUTO</span>
+            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.25)' }} />
           </button>
         </div>
 
@@ -402,29 +402,29 @@ export default function RecettesPage() {
         <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Catégories */}
           <div>
-            <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 12 }}>Catégories</p>
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 12 }}>Catégories</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {CATEGORIES.map(cat => (
                 <div key={cat.name} style={{ position: 'relative' }}>
                   <button className="rec-row"
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '9px 12px', borderRadius: 8, background: 'rgba(240,228,204,0.05)',
+                      padding: '9px 12px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.05)',
                       border: 'none', cursor: 'pointer', width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 8, height: 8, borderRadius: 2, background: cat.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: 11, color: 'rgba(240,228,204,0.8)' }}>{cat.name}</span>
+                      <span style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.8)' }}>{cat.name}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>{cat.count} recettes</span>
                       <button onClick={(e) => { e.stopPropagation(); setCatMenu(catMenu === cat.name ? null : cat.name) }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'rgba(240,228,204,0.5)' }}>
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'rgba(var(--text-rgb),0.5)' }}>
                         <MoreVertical size={12} />
                       </button>
                     </div>
                   </button>
                   {catMenu === cat.name && (
-                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'var(--bg)', border: '1px solid rgba(240,228,204,0.1)', borderRadius: 8, zIndex: 10 }}>
-                      <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'rgba(240,228,204,0.7)', fontSize: 11, borderBottom: '1px solid rgba(240,228,204,0.06)' }}>
+                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'var(--bg)', border: '1px solid rgba(var(--text-rgb),0.1)', borderRadius: 8, zIndex: 10 }}>
+                      <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'rgba(var(--text-rgb),0.7)', fontSize: 11, borderBottom: '1px solid rgba(var(--text-rgb),0.06)' }}>
                         ✏️ Éditer
                       </button>
                       <button style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--accent-budget)', fontSize: 11 }}>
@@ -439,13 +439,13 @@ export default function RecettesPage() {
 
           {/* Actions rapides */}
           <div style={{ marginTop: 'auto' }}>
-            <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 10 }}>Actions rapides</p>
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 10 }}>Actions rapides</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {[
                 { l: '+ Recette', bg: ORANGE, color: '#fff' },
-                { l: 'Importer', bg: 'rgba(240,228,204,0.1)', color: WHEAT },
-                { l: 'Favoris', bg: 'rgba(240,228,204,0.1)', color: WHEAT },
-                { l: 'Exporter', bg: 'rgba(240,228,204,0.1)', color: WHEAT },
+                { l: 'Importer', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
+                { l: 'Favoris', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
+                { l: 'Exporter', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
               ].map(a => (
                 <button key={a.l} className="rec-btn"
                   style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer',
@@ -459,19 +459,19 @@ export default function RecettesPage() {
 
         {/* ── R4 C1 : INGRÉDIENTS À UTILISER ─────────────── */}
         <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column' }}>
-          <p style={{ ...lbl('rgba(240,228,204,0.55)'), marginBottom: 14 }}>Ingrédients à utiliser</p>
+          <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 14 }}>Ingrédients à utiliser</p>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
             {INGREDIENTS.map(ing => (
               <div key={ing.name} style={{ display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 12px', borderRadius: 10, background: 'rgba(240,228,204,0.06)' }}>
+                padding: '10px 12px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)' }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: ing.color, flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 12, color: 'rgba(240,228,204,0.85)' }}>{ing.name}</span>
-                <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'rgba(240,228,204,0.5)' }}>{ing.qty}</span>
+                <span style={{ flex: 1, fontSize: 12, color: 'rgba(var(--text-rgb),0.85)' }}>{ing.name}</span>
+                <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'rgba(var(--text-rgb),0.5)' }}>{ing.qty}</span>
               </div>
             ))}
           </div>
           <button className="rec-btn" style={{ marginTop: 14, padding: '9px', borderRadius: 9, border: 'none', cursor: 'pointer',
-            background: 'rgba(240,228,204,0.1)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 10 }}>
+            background: 'rgba(var(--text-rgb),0.1)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 10 }}>
             + Ajouter un ingrédient
           </button>
         </div>
@@ -535,7 +535,7 @@ export default function RecettesPage() {
         {/* ── R4 C3-4 : MES RECETTES ───────────────────────── */}
         <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <p style={{ ...lbl('rgba(255,255,255,0.4)') }}>Mes recettes</p>
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.4)') }}>Mes recettes</p>
             <button onClick={() => router.push('/recettes/toutes')} style={{ ...DF, fontSize: 9, fontWeight: 800, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
               VOIR TOUT
             </button>
@@ -545,14 +545,14 @@ export default function RecettesPage() {
             {SAMPLE_RECIPES.map(r => (
               <div key={r.id} className="rec-row"
                 style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10,
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}>
+                  background: 'rgba(var(--text-rgb),0.04)', border: '1px solid rgba(var(--text-rgb),0.06)', cursor: 'pointer' }}>
                 <span style={{ fontSize: 26, flexShrink: 0 }}>{r.emoji}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>{r.name}</p>
+                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>{r.name}</p>
                   <div style={{ display: 'flex', gap: 8, marginTop: 3 }}>
                     <span style={{ fontSize: 9, color: ORANGE }}>{r.cal} kcal</span>
                     <span style={{ fontSize: 9, color: TEAL }}>P {r.prot}g</span>
-                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)' }}>{r.time}min</span>
+                    <span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)' }}>{r.time}min</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
@@ -576,8 +576,8 @@ export default function RecettesPage() {
                 { l: 'Objectif',  v: '94% atteint' },
               ].map(s => (
                 <div key={s.l}>
-                  <p style={{ fontSize: 8, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.l}</p>
-                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: '#fff' }}>{s.v}</p>
+                  <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.25)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.l}</p>
+                  <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--text)' }}>{s.v}</p>
                 </div>
               ))}
             </div>
@@ -587,13 +587,13 @@ export default function RecettesPage() {
         {/* ── R5 FULL WIDTH : RÉPARTITION NUTRITIONNELLE ───── */}
         <div style={{ ...tealCard(), gridColumn: 'span 4', padding: '24px 30px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Répartition nutritionnelle</p>
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Répartition nutritionnelle</p>
             <div style={{ display: 'flex', gap: 8 }}>
               {['Aujourd\'hui', 'Semaine', 'Mois'].map((p, i) => (
                 <button key={p} className="rec-filter"
                   style={{ padding: '4px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 700,
-                    background: i === 0 ? 'rgba(240,228,204,0.2)' : 'rgba(240,228,204,0.06)',
-                    color: i === 0 ? WHEAT : 'rgba(240,228,204,0.4)' }}>
+                    background: i === 0 ? 'rgba(var(--text-rgb),0.2)' : 'rgba(var(--text-rgb),0.06)',
+                    color: i === 0 ? WHEAT : 'rgba(var(--text-rgb),0.4)' }}>
                   {p}
                 </button>
               ))}
@@ -606,7 +606,7 @@ export default function RecettesPage() {
               <DonutChart slices={donutSlices} size={120} />
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center' }}>
                 <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{totalMacrosG}</p>
-                <p style={{ fontSize: 7, color: 'rgba(240,228,204,0.4)', letterSpacing: '0.1em' }}>GRAMMES</p>
+                <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.4)', letterSpacing: '0.1em' }}>GRAMMES</p>
               </div>
             </div>
 
@@ -621,15 +621,15 @@ export default function RecettesPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 8, height: 8, borderRadius: 2, background: m.color }} />
-                      <span style={{ fontSize: 11, color: 'rgba(240,228,204,0.7)' }}>{m.l}</span>
+                      <span style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)' }}>{m.l}</span>
                     </div>
                     <div style={{ display: 'flex', gap: 12 }}>
                       <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>{m.v}{m.unit}</span>
-                      <span style={{ fontSize: 10, color: 'rgba(240,228,204,0.35)' }}>/ {m.t}{m.unit}</span>
-                      <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: m.color, minWidth: 32, textAlign: 'right' }}>{m.pct}%</span>
+                      <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.35)' }}>/ {m.t}{m.unit}</span>
+                      <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: WHEAT, minWidth: 32, textAlign: 'right' }}>{m.pct}%</span>
                     </div>
                   </div>
-                  <div style={{ height: 6, borderRadius: 99, background: 'rgba(240,228,204,0.08)', overflow: 'hidden' }}>
+                  <div style={{ height: 6, borderRadius: 99, background: 'rgba(var(--text-rgb),0.08)', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${Math.min(100, m.v / m.t * 100)}%`, borderRadius: 99, background: m.color, transition: 'width .5s ease' }} />
                   </div>
                 </div>
@@ -638,7 +638,7 @@ export default function RecettesPage() {
 
             {/* Weekly breakdown bars */}
             <div style={{ flexShrink: 0, width: 280 }}>
-              <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Calories / jour (semaine)</p>
+              <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Calories / jour (semaine)</p>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 80 }}>
                 {[
                   { d: 'L', cal: 1920 }, { d: 'M', cal: 2100 }, { d: 'M', cal: 1750 },
@@ -650,13 +650,13 @@ export default function RecettesPage() {
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                       {day.cal > 0 && (
-                        <span style={{ fontSize: 7, color: isToday ? ORANGE : 'rgba(240,228,204,0.5)', ...DF, fontWeight: 700 }}>
+                        <span style={{ fontSize: 7, color: isToday ? WHEAT : 'rgba(var(--text-rgb),0.5)', ...DF, fontWeight: 700 }}>
                           {Math.round(day.cal / 100) * 100}
                         </span>
                       )}
                       <div style={{ width: '100%', height: h, borderRadius: '3px 3px 0 0',
-                        background: day.cal > 0 ? (isToday ? ORANGE : 'rgba(240,228,204,0.3)') : 'rgba(240,228,204,0.06)' }} />
-                      <span style={{ fontSize: 8, color: isToday ? ORANGE : 'rgba(240,228,204,0.4)', ...DF, fontWeight: isToday ? 800 : 600 }}>{day.d}</span>
+                        background: day.cal > 0 ? (isToday ? ORANGE : 'rgba(var(--text-rgb),0.3)') : 'rgba(var(--text-rgb),0.06)' }} />
+                      <span style={{ fontSize: 8, color: isToday ? WHEAT : 'rgba(var(--text-rgb),0.4)', ...DF, fontWeight: isToday ? 800 : 600 }}>{day.d}</span>
                     </div>
                   )
                 })}
@@ -670,9 +670,9 @@ export default function RecettesPage() {
                 { l: 'Balance',         v: '+150 kcal', color: ORANGE },
                 { l: 'Hydratation',     v: '1.75 L',  color: '#3B82F6' },
               ].map(kpi => (
-                <div key={kpi.l} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(240,228,204,0.06)', minWidth: 110 }}>
-                  <p style={{ fontSize: 8, color: 'rgba(240,228,204,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{kpi.l}</p>
-                  <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: kpi.color, lineHeight: 1 }}>{kpi.v}</p>
+                <div key={kpi.l} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
+                  <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{kpi.l}</p>
+                  <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{kpi.v}</p>
                 </div>
               ))}
             </div>
@@ -685,16 +685,16 @@ export default function RecettesPage() {
       {selectedMealSlot && (
         <div onClick={() => setSelectedMealSlot(null)}
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 16, padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '1px solid rgba(240,228,204,0.1)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 16, padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '1px solid rgba(var(--text-rgb),0.1)' }}>
             <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, marginBottom: 16 }}>{selectedMealSlot.day} - {selectedMealSlot.meal}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {filtered.map(r => (
                 <button key={r.id} onClick={() => {
                   setMealPlan(prev => ({ ...prev, [`${selectedMealSlot.day}-${selectedMealSlot.meal}`]: `${r.emoji} ${r.name.split(' ').slice(0,2).join(' ')}` }))
                   setSelectedMealSlot(null)
-                }} style={{ padding: '12px', textAlign: 'left', background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', borderRadius: 10, cursor: 'pointer', color: '#fff' }}>
+                }} style={{ padding: '12px', textAlign: 'left', background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', borderRadius: 10, cursor: 'pointer', color: 'var(--text)' }}>
                   <p style={{ fontSize: 12, fontWeight: 700 }}>{r.emoji} {r.name}</p>
-                  <p style={{ fontSize: 9, color: 'rgba(240,228,204,0.6)', marginTop: 4 }}>{r.cal} kcal • {r.time} min</p>
+                  <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginTop: 4 }}>{r.cal} kcal • {r.time} min</p>
                 </button>
               ))}
             </div>

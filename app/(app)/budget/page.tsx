@@ -42,7 +42,7 @@ function DonutChart({ segments, total, size = 150 }: {
   return (
     <svg width={size} height={size} style={{ transform:'rotate(-90deg)', flexShrink:0 }}>
       {total === 0
-        ? <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(240,228,204,0.08)" strokeWidth={sw}/>
+        ? <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(var(--text-rgb),0.08)" strokeWidth={sw}/>
         : segments.map((s,i) => {
             const dash = (s.value/total)*circ
             const offset = circ - cum
@@ -65,7 +65,7 @@ function FluxChart({ months }: { months: { label:string; income:number; expense:
     <svg width="100%" height={H+28} style={{ overflow:'visible' }}>
       {[0,.5,1].map(p => (
         <line key={p} x1="0" x2="100%" y1={H - p*H} y2={H - p*H}
-          stroke="rgba(240,228,204,0.07)" strokeWidth="1"/>
+          stroke="rgba(var(--text-rgb),0.07)" strokeWidth="1"/>
       ))}
       {months.map((m, i) => {
         const x    = (i/(months.length-1||1))*90+5
@@ -76,7 +76,7 @@ function FluxChart({ months }: { months: { label:string; income:number; expense:
           <g key={i}>
             <rect x={`${x-2}%`} y={H-iH} width={`${barW}%`} height={iH} fill={TEAL} opacity="0.85" rx="2"/>
             <rect x={`${x+1.5}%`} y={H-eH} width={`${barW}%`} height={eH} fill={ORANGE} opacity="0.85" rx="2"/>
-            <text x={`${x}%`} y={H+18} textAnchor="middle" fill="rgba(240,228,204,0.4)" fontSize="9">{m.label}</text>
+            <text x={`${x}%`} y={H+18} textAnchor="middle" fill="rgba(var(--text-rgb),0.4)" fontSize="9">{m.label}</text>
           </g>
         )
       })}
@@ -94,7 +94,7 @@ function FooterLink({ label, onClick }: { label:string; onClick?: () => void }) 
   return (
     <button onClick={onClick}
       style={{ padding:'12px 20px', borderLeft:0, borderRight:0, borderBottom:0, borderTop:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, marginTop:'auto', width:'100%', background:'transparent', cursor: onClick ? 'pointer' : 'default' }}
-      onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(240,228,204,0.04)' }}
+      onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--text-rgb),0.04)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
     >
       <span style={{ fontSize:10, fontWeight:700, color: onClick ? 'var(--text-muted)' : 'var(--text-muted)', letterSpacing:'0.1em', textTransform:'uppercase' }}>{label}</span>
@@ -258,7 +258,7 @@ export default function BudgetPage() {
             total={cur.totalExpense}/>
           <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', textAlign:'center' }}>
             <p style={{ ...DF, fontSize:16, fontWeight:900, color:WHEAT }}>{fmtEur(cur.totalExpense)}</p>
-            <p style={{ fontSize:9, color:'rgba(240,228,204,0.5)' }}>Total</p>
+            <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.5)' }}>Total</p>
           </div>
         </div>
       </div>
@@ -275,7 +275,7 @@ export default function BudgetPage() {
           const vsBud  = budget > 0 ? Math.round(cat.spent/budget*100) : null
           const over   = vsBud && vsBud > 100
           return (
-            <div key={cat.id} style={{ display:'grid', gridTemplateColumns:'1fr 80px 60px 60px', padding:'10px 12px', borderBottom:'1px solid var(--border)', alignItems:'center', background: i%2===0 ? 'transparent' : 'rgba(240,228,204,0.02)' }}>
+            <div key={cat.id} style={{ display:'grid', gridTemplateColumns:'1fr 80px 60px 60px', padding:'10px 12px', borderBottom:'1px solid var(--border)', alignItems:'center', background: i%2===0 ? 'transparent' : 'rgba(var(--text-rgb),0.02)' }}>
               <div style={{ display:'flex', alignItems:'center', gap:7 }}>
                 <div style={{ width:8, height:8, borderRadius:2, background:cat.color??PALETTE[i%PALETTE.length] }}/>
                 <span style={{ fontSize:11, color:'var(--text)' }}>{cat.name}</span>
@@ -534,7 +534,7 @@ export default function BudgetPage() {
         {filteredTx.length === 0
           ? <p style={{ padding:20, fontSize:12, color:'var(--text-muted)', textAlign:'center' }}>Aucune transaction</p>
           : filteredTx.map((tx, i) => (
-            <div key={tx.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 14px', borderBottom: i<filteredTx.length-1 ? '1px solid var(--border)' : 'none', background: i%2===0 ? 'var(--bg-card)' : 'rgba(240,228,204,0.02)' }}>
+            <div key={tx.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 14px', borderBottom: i<filteredTx.length-1 ? '1px solid var(--border)' : 'none', background: i%2===0 ? 'var(--bg-card)' : 'rgba(var(--text-rgb),0.02)' }}>
               <div style={{ width:28, height:28, borderRadius:'50%', background: tx.type==='income'?'rgba(14,149,148,0.15)':'rgba(242,84,45,0.12)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 {tx.type==='income' ? <TrendingUp size={11} style={{color:TEAL}}/> : <TrendingDown size={11} style={{color:ORANGE}}/>}
               </div>
@@ -714,7 +714,7 @@ export default function BudgetPage() {
           ))}
         </div>
         {multiMonth.map((m, i) => (
-          <div key={m.key} style={{ display:'grid', gridTemplateColumns:'1fr 80px 80px 80px', padding:'10px 14px', borderBottom: i<multiMonth.length-1 ? '1px solid var(--border)' : 'none', background: i%2===0 ? 'transparent' : 'rgba(240,228,204,0.02)' }}>
+          <div key={m.key} style={{ display:'grid', gridTemplateColumns:'1fr 80px 80px 80px', padding:'10px 14px', borderBottom: i<multiMonth.length-1 ? '1px solid var(--border)' : 'none', background: i%2===0 ? 'transparent' : 'rgba(var(--text-rgb),0.02)' }}>
             <span style={{ ...DF, fontSize:12, fontWeight:700, color:WHEAT, textTransform:'capitalize' }}>{m.label}</span>
             <span style={{ fontSize:11, color:TEAL }}>{fmtK(m.income)}</span>
             <span style={{ fontSize:11, color:ORANGE }}>{fmtK(m.expense)}</span>
@@ -736,11 +736,11 @@ export default function BudgetPage() {
   // ── Panel : Insight IA ──
   const PanelAI = (
     <div style={{ padding:'20px 24px', display:'flex', flexDirection:'column', gap:16 }}>
-      <div style={{ background:TEAL_BG, borderRadius:12, padding:'16px 18px', display:'flex', gap:12, alignItems:'flex-start' }}>
+      <div style={{ background:TEAL_BG, borderRadius:12, padding:'16px 18px', display:'flex', gap:12, alignItems:'flex-start', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
         <Zap size={20} style={{ color:WHEAT, flexShrink:0, marginTop:2 }}/>
         <div>
           <p style={{ ...LBL, color:WHEAT, opacity:0.7, marginBottom:6 }}>Analyse du mois</p>
-          <p style={{ fontSize:13, color:'rgba(240,228,204,0.92)', lineHeight:1.7 }}>
+          <p style={{ fontSize:13, color:'rgba(var(--text-rgb),0.92)', lineHeight:1.7 }}>
             {cur.loading ? 'Analyse en cours…'
              : cur.balance < 0
                ? `⚠ Déficit de ${fmtEur(Math.abs(cur.balance))} ce mois. Les dépenses dépassent les revenus de ${Math.abs(Math.round((cur.totalExpense/cur.totalIncome-1)*100))}%.`
@@ -826,13 +826,13 @@ export default function BudgetPage() {
           </p>
         </div>
         {/* Résumé du mois */}
-        <div style={{ background:ORANGE, borderRadius:16, padding:'14px 20px', display:'flex', gap:0, flexShrink:0, minWidth:500 }}>
+        <div style={{ background:ORANGE, borderRadius:16, padding:'14px 20px', display:'flex', gap:0, flexShrink:0, minWidth:500, '--text-rgb':'26, 10, 10', '--text':'#1a0a0a', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
           <div style={{ flex:1, paddingRight:20 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-              <span style={{ ...LBL, fontSize:9, color:'rgba(255,255,255,0.8)' }}>RÉSUMÉ DU MOIS</span>
+              <span style={{ ...LBL, fontSize:9, color:'rgba(var(--text-rgb),0.8)' }}>RÉSUMÉ DU MOIS</span>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:10, color:'rgba(255,255,255,0.7)', textTransform:'capitalize' }}>{monthName}</span>
-                <MoreVertical size={13} style={{ color:'rgba(255,255,255,0.6)' }}/>
+                <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.7)', textTransform:'capitalize' }}>{monthName}</span>
+                <MoreVertical size={13} style={{ color:'rgba(var(--text-rgb),0.6)' }}/>
               </div>
             </div>
             <div style={{ display:'flex', gap:0 }}>
@@ -841,18 +841,18 @@ export default function BudgetPage() {
                 { l:'Dépenses',      v:fmtEur(cur.totalExpense),       d:-deltaExpense, pos:deltaExpense<=0  },
                 { l:'Épargne / Inv.',v:fmtEur(totalSavingsInvest),     d:cur.totalSavings-prev.totalSavings, pos:true },
               ].map((kpi,i) => (
-                <div key={i} style={{ borderLeft:i>0?'1px solid rgba(255,255,255,0.22)':undefined, paddingLeft:i>0?18:undefined, paddingRight:18 }}>
-                  <p style={{ fontSize:9, color:'rgba(255,255,255,0.7)', marginBottom:3 }}>{kpi.l}</p>
+                <div key={i} style={{ borderLeft:i>0?'1px solid rgba(var(--text-rgb),0.22)':undefined, paddingLeft:i>0?18:undefined, paddingRight:18 }}>
+                  <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginBottom:3 }}>{kpi.l}</p>
                   <p style={{ ...DF, fontSize:22, fontWeight:900, color:'#fff', lineHeight:1 }}>{kpi.v}</p>
-                  {!cur.loading && <p style={{ fontSize:9, color:kpi.pos?'rgba(255,255,255,0.9)':'rgba(255,220,200,0.9)', marginTop:2 }}>{fmtEur(Math.abs(kpi.d),true)} vs préc.</p>}
+                  {!cur.loading && <p style={{ fontSize:9, color:kpi.pos?'rgba(var(--text-rgb),0.9)':'rgba(255,220,200,0.9)', marginTop:2 }}>{fmtEur(Math.abs(kpi.d),true)} vs préc.</p>}
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ borderLeft:'1px solid rgba(255,255,255,0.22)', paddingLeft:18, display:'flex', flexDirection:'column', justifyContent:'center', minWidth:110 }}>
-            <p style={{ fontSize:9, color:'rgba(255,255,255,0.7)', marginBottom:4 }}>Solde</p>
+          <div style={{ borderLeft:'1px solid rgba(var(--text-rgb),0.22)', paddingLeft:18, display:'flex', flexDirection:'column', justifyContent:'center', minWidth:110 }}>
+            <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginBottom:4 }}>Solde</p>
             <p style={{ ...DF, fontSize:28, fontWeight:900, color:'#fff', lineHeight:1 }}>{fmtEur(cur.balance)}</p>
-            <p style={{ fontSize:9, color:'rgba(255,255,255,0.7)', marginTop:3 }}>{cur.balance>=0?'✓ Excédent':'⚠ Déficit'}</p>
+            <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginTop:3 }}>{cur.balance>=0?'✓ Excédent':'⚠ Déficit'}</p>
           </div>
         </div>
       </div>
@@ -886,30 +886,30 @@ export default function BudgetPage() {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gridTemplateRows:'300px 300px 500px 400px 260px', gap:12, flex:1 }}>
 
         {/* B1 Aperçu dépenses */}
-        <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'none' }}>
-          <div style={{ ...HDR, borderBottom:'1px solid rgba(240,228,204,0.1)' }}>
+        <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'none', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+          <div style={{ ...HDR, borderBottom:'1px solid rgba(var(--text-rgb),0.1)' }}>
             <span style={{ ...LBL, color:WHEAT }}>Aperçu des dépenses</span>
-            <span style={{ fontSize:10, color:'rgba(240,228,204,0.45)' }}>{cur.byCategory.length} catégories</span>
+            <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.45)' }}>{cur.byCategory.length} catégories</span>
           </div>
           <div style={{ flex:1, padding:'14px 20px', display:'flex', gap:16, alignItems:'center', overflow:'hidden' }}>
             <div style={{ position:'relative', flexShrink:0 }}>
               <DonutChart size={140} segments={cur.byCategory.map((c,i)=>({value:c.spent,color:c.color??PALETTE[i%PALETTE.length]}))} total={cur.totalExpense}/>
               <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', textAlign:'center', pointerEvents:'none' }}>
                 <p style={{ ...DF, fontSize:13, fontWeight:900, color:WHEAT, lineHeight:1 }}>{fmtEur(cur.totalExpense)}</p>
-                <p style={{ fontSize:8, color:'rgba(240,228,204,0.5)', marginTop:1 }}>Total</p>
+                <p style={{ fontSize:8, color:'rgba(var(--text-rgb),0.5)', marginTop:1 }}>Total</p>
               </div>
             </div>
             <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column', gap:6 }}>
               {cur.byCategory.length===0
-                ? <p style={{ fontSize:12, color:'rgba(240,228,204,0.4)' }}>Aucune dépense</p>
+                ? <p style={{ fontSize:12, color:'rgba(var(--text-rgb),0.4)' }}>Aucune dépense</p>
                 : cur.byCategory.slice(0,8).map((cat,i)=>{
                     const pct = cur.totalExpense>0 ? Math.round(cat.spent/cur.totalExpense*100) : 0
                     return (
                       <div key={cat.id} style={{ display:'flex', alignItems:'center', gap:7 }}>
                         <div style={{ width:7, height:7, borderRadius:2, background:cat.color??PALETTE[i%PALETTE.length], flexShrink:0 }}/>
-                        <span style={{ fontSize:10, color:'rgba(240,228,204,0.8)', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{cat.name}</span>
+                        <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.8)', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{cat.name}</span>
                         <span style={{ ...DF, fontSize:10, fontWeight:700, color:WHEAT, flexShrink:0 }}>{fmtEur(cat.spent)}</span>
-                        <span style={{ fontSize:9, color:'rgba(240,228,204,0.45)', width:26, textAlign:'right', flexShrink:0 }}>{pct}%</span>
+                        <span style={{ fontSize:9, color:'rgba(var(--text-rgb),0.45)', width:26, textAlign:'right', flexShrink:0 }}>{pct}%</span>
                       </div>
                     )
                   })
@@ -1022,7 +1022,7 @@ export default function BudgetPage() {
                 <p style={{ fontSize:8, color:ORANGE, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:2 }}>Dépenses totales</p>
                 <p style={{ ...DF, fontSize:17, fontWeight:900, color:ORANGE }}>{fmtK(multiMonth.reduce((s,m)=>s+m.expense,0))}</p>
               </div>
-              <div style={{ padding:'10px 14px', borderRadius:10, background:TEAL_BG }}>
+              <div style={{ padding:'10px 14px', borderRadius:10, background:TEAL_BG, '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
                 <p style={{ fontSize:8, color:WHEAT, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:2, opacity:0.7 }}>Solde</p>
                 <p style={{ ...DF, fontSize:17, fontWeight:900, color:WHEAT }}>{fmtK(multiMonth.reduce((s,m)=>s+m.balance,0))}</p>
               </div>
@@ -1186,13 +1186,13 @@ export default function BudgetPage() {
         </div>
 
         {/* B9 Agent IA */}
-        <div style={{ gridColumn:'1/5', gridRow:'5/6', background:TEAL_BG, borderRadius:16, display:'flex', alignItems:'center', padding:'0 36px', gap:24, overflow:'hidden' }}>
-          <div style={{ width:48, height:48, borderRadius:'50%', background:'rgba(240,228,204,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+        <div style={{ gridColumn:'1/5', gridRow:'5/6', background:TEAL_BG, borderRadius:16, display:'flex', alignItems:'center', padding:'0 36px', gap:24, overflow:'hidden', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+          <div style={{ width:48, height:48, borderRadius:'50%', background:'rgba(var(--text-rgb),0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
             <Zap size={22} style={{ color:WHEAT }}/>
           </div>
           <div style={{ flex:1 }}>
             <p style={{ ...LBL, color:WHEAT, opacity:0.7, marginBottom:6 }}>Insight de l'Agent IA</p>
-            <p style={{ fontSize:14, color:'rgba(240,228,204,0.93)', lineHeight:1.6 }}>
+            <p style={{ fontSize:14, color:'rgba(var(--text-rgb),0.93)', lineHeight:1.6 }}>
               {cur.loading ? 'Analyse en cours…'
                : cur.balance<0
                  ? `⚠ Vos dépenses (${fmtEur(cur.totalExpense)}) dépassent vos revenus (${fmtEur(cur.totalIncome)}) ce mois.`
@@ -1202,7 +1202,7 @@ export default function BudgetPage() {
             </p>
           </div>
           <button onClick={()=>panel('ai')}
-            style={{ padding:'11px 20px', borderRadius:11, background:'rgba(240,228,204,0.15)', border:'1px solid rgba(240,228,204,0.25)', color:WHEAT, ...DF, fontWeight:700, fontSize:11, flexShrink:0, display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
+            style={{ padding:'11px 20px', borderRadius:11, background:'rgba(var(--text-rgb),0.15)', border:'1px solid rgba(var(--text-rgb),0.25)', color:WHEAT, ...DF, fontWeight:700, fontSize:11, flexShrink:0, display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
             <BarChart2 size={13}/> Voir l'analyse détaillée
           </button>
         </div>

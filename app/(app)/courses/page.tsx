@@ -29,11 +29,13 @@ const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, borderRadius: 12, overflow: 'hidden', ...extra,
-})
+  background: TEAL_BG, borderRadius: 12, overflow: 'hidden',
+  '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)', ...extra,
+} as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, borderRadius: 12, overflow: 'hidden', ...extra,
-})
+  background: ORANGE, borderRadius: 12, overflow: 'hidden',
+  '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', ...extra,
+} as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: DARK, borderRadius: 12, overflow: 'hidden', ...extra,
 })
@@ -113,10 +115,10 @@ function WeekBars({ data }: { data: typeof WEEK_SPEND }) {
         const h = d.v > 0 ? Math.max(6, (d.v / max) * 80) : 4
         return (
           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            {d.v > 0 && <span style={{ fontSize: 8, color: d.today ? ORANGE : 'rgba(240,228,204,0.5)', ...DF, fontWeight: 700 }}>{d.today ? fmtEur(d.v) : `${d.v}€`}</span>}
+            {d.v > 0 && <span style={{ fontSize: 8, color: d.today ? ORANGE : 'rgba(var(--text-rgb),0.5)', ...DF, fontWeight: 700 }}>{d.today ? fmtEur(d.v) : `${d.v}€`}</span>}
             <div style={{ width: '100%', height: h, borderRadius: '3px 3px 0 0',
-              background: d.v > 0 ? (d.today ? ORANGE : 'rgba(240,228,204,0.25)') : 'rgba(240,228,204,0.06)' }} />
-            <span style={{ fontSize: 8, ...DF, fontWeight: d.today ? 800 : 600, color: d.today ? ORANGE : 'rgba(240,228,204,0.4)' }}>{d.d}</span>
+              background: d.v > 0 ? (d.today ? ORANGE : 'rgba(var(--text-rgb),0.25)') : 'rgba(var(--text-rgb),0.06)' }} />
+            <span style={{ fontSize: 8, ...DF, fontWeight: d.today ? 800 : 600, color: d.today ? ORANGE : 'rgba(var(--text-rgb),0.4)' }}>{d.d}</span>
           </div>
         )
       })}
@@ -222,7 +224,7 @@ function StoreSelectorModal({
                   placeholder={`Ville ou commune (ex: Ixelles, Bruxelles…)`}
                   style={{ ...inp, flex: 1 }} />
                 <button onClick={handleSearch} disabled={searching || !city.trim()}
-                  style={{ padding: '8px 14px', borderRadius: 8, background: TEAL_BG, color: WHEAT, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: !city.trim() ? 0.5 : 1 }}>
+                  style={{ padding: '8px 14px', borderRadius: 8, background: TEAL_BG, color: 'var(--creamy-ivory)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: !city.trim() ? 0.5 : 1 }}>
                   {searching ? <Loader2 size={12} className="animate-spin" /> : <Navigation size={12} />}
                   <span style={{ ...DF2, fontSize: 11, fontWeight: 700 }}>Chercher</span>
                 </button>
@@ -460,7 +462,7 @@ export default function CoursesPage() {
 
       <style>{`
         .crs-btn:hover   { opacity: .85; }
-        .crs-row:hover   { background: rgba(255,255,255,0.04) !important; }
+        .crs-row:hover   { background: rgba(var(--text-rgb),0.04) !important; }
         .crs-item:hover  { background: var(--bg-card-hover) !important; }
         .crs-promo:hover { opacity: .9; transform: scale(1.01); transition: .12s; }
       `}</style>
@@ -489,7 +491,7 @@ export default function CoursesPage() {
             </button>
             <button className="crs-btn" onClick={() => setShowSearch(v => !v)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                background: TEAL_BG, color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+                background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
               <Search size={11} /> Rechercher
             </button>
             <button className="crs-btn"
@@ -529,13 +531,13 @@ export default function CoursesPage() {
         {/* Économies prévues */}
         <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <p style={{ ...lbl('rgba(240,228,204,0.55)') }}>Économies prévues</p>
-            <Tag size={18} style={{ color: 'rgba(240,228,204,0.3)' }} />
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Économies prévues</p>
+            <Tag size={18} style={{ color: 'rgba(var(--text-rgb),0.3)' }} />
           </div>
           <div>
-            <p style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)', marginBottom: 2 }}>Cette semaine</p>
+            <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginBottom: 2 }}>Cette semaine</p>
             <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{fmtEur(savings)}</p>
-            <p style={{ fontSize: 10, color: 'rgba(240,228,204,0.45)', marginTop: 4 }}>vs. dépenses moyennes</p>
+            <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginTop: 4 }}>vs. dépenses moyennes</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
               <TrendingDown size={12} style={{ color: WHEAT }} />
               <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>+14%</span>
@@ -585,7 +587,7 @@ export default function CoursesPage() {
                 <input value={barcode} onChange={e => setBarcode(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()}
                   placeholder="5449000000996" style={{ ...inp, flex: 1 }} />
-                <button onClick={handleBarcodeSearch} style={{ padding: '7px 12px', borderRadius: 8, background: TEAL_BG, color: WHEAT, border: 'none', cursor: 'pointer' }}>
+                <button onClick={handleBarcodeSearch} style={{ padding: '7px 12px', borderRadius: 8, background: TEAL_BG, color: 'var(--creamy-ivory)', border: 'none', cursor: 'pointer' }}>
                   <Search size={12} />
                 </button>
               </>
@@ -670,7 +672,7 @@ export default function CoursesPage() {
               </button>
               {activeListId && items.length > 0 && checkedCount === items.length && (
                 <button onClick={() => { completeList(activeListId); setActiveListId(null) }} className="crs-btn"
-                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, background: TEAL_BG, border: 'none', color: WHEAT, fontSize: 10, cursor: 'pointer', ...DF, fontWeight: 700 }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, background: TEAL_BG, border: 'none', color: 'var(--creamy-ivory)', fontSize: 10, cursor: 'pointer', ...DF, fontWeight: 700 }}>
                   <Check size={10} /> Terminer
                 </button>
               )}
@@ -811,7 +813,7 @@ export default function CoursesPage() {
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.4, marginBottom: 8 }}>Articles manquants ajoutés à votre liste</p>
-                <button className="crs-btn" style={{ width: '100%', padding: '7px', borderRadius: 8, background: TEAL_BG, border: 'none', cursor: 'pointer', color: WHEAT, ...DF, fontSize: 10, fontWeight: 700 }}>
+                <button className="crs-btn" style={{ width: '100%', padding: '7px', borderRadius: 8, background: TEAL_BG, border: 'none', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontSize: 10, fontWeight: 700 }}>
                   Générer à nouveau
                 </button>
               </div>
@@ -824,7 +826,7 @@ export default function CoursesPage() {
           {/* Inventaire maison */}
           <div style={{ ...card() }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-              <p style={{ ...lbl('rgba(255,255,255,0.5)') }}>Inventaire maison</p>
+              <p style={{ ...lbl('rgba(var(--text-rgb),0.5)') }}>Inventaire maison</p>
               <button style={{ fontSize: 9, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Gérer</button>
             </div>
             {INVENTAIRE.map(i => (
@@ -929,7 +931,7 @@ export default function CoursesPage() {
             {(parcours ?? [
               { num: 1, rayon: 'Fruits & Légumes', count: 8, color: '#5B9F3A' },
               { num: 2, rayon: 'Produits frais',   count: 5, color: ORANGE    },
-              { num: 3, rayon: 'Épicerie salée',   count: 6, color: WHEAT     },
+              { num: 3, rayon: 'Épicerie salée',   count: 6, color: 'var(--azul)' },
               { num: 4, rayon: 'Épicerie sucrée',  count: 2, color: '#F59E0B' },
               { num: 5, rayon: 'Boissons',         count: 2, color: '#3B82F6' },
             ]).map((r, _, arr) => (
@@ -954,22 +956,22 @@ export default function CoursesPage() {
         {/* Évolution des dépenses */}
         <div style={{ ...darkCard(), padding: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <p style={{ ...lbl('rgba(255,255,255,0.4)') }}>Évolution des dépenses</p>
-            <select style={{ fontSize: 9, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 5, color: 'rgba(255,255,255,0.4)', padding: '2px 6px', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+            <p style={{ ...lbl('rgba(var(--text-rgb),0.4)') }}>Évolution des dépenses</p>
+            <select style={{ fontSize: 9, background: 'rgba(var(--text-rgb),0.06)', border: '1px solid rgba(var(--text-rgb),0.1)', borderRadius: 5, color: 'rgba(var(--text-rgb),0.4)', padding: '2px 6px', cursor: 'pointer', ...DF, fontWeight: 700 }}>
               <option>Cette semaine</option>
               <option>Ce mois</option>
             </select>
           </div>
-          <p style={{ fontSize: 8, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Courses</p>
+          <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.2)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Courses</p>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 14 }}>
-            <p style={{ ...DF, fontSize: 32, fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+            <p style={{ ...DF, fontSize: 32, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
               {totalEstimated > 0 ? fmtEur(totalEstimated) : '86,45 €'}
             </p>
             <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: '#5B9F3A' }}>-12,40 €</span>
           </div>
-          <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>vs. semaine dernière</p>
+          <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.25)', marginBottom: 14 }}>vs. semaine dernière</p>
           <WeekBars data={WEEK_SPEND} />
-          <button style={{ width: '100%', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'rgba(255,255,255,0.25)', ...DF, fontWeight: 700, marginTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          <button style={{ width: '100%', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'rgba(var(--text-rgb),0.25)', ...DF, fontWeight: 700, marginTop: 10, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}
             onClick={() => router.push('/budget')}>
             Voir le rapport complet →
           </button>
@@ -980,10 +982,10 @@ export default function CoursesPage() {
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Zap size={16} style={{ color: WHEAT, flexShrink: 0, marginTop: 2 }} />
             <div>
-              <p style={{ ...lbl('rgba(240,228,204,0.6)'), marginBottom: 4 }}>Agent IA courses</p>
-              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(240,228,204,0.1)' }}>
+              <p style={{ ...lbl('rgba(var(--text-rgb),0.6)'), marginBottom: 4 }}>Agent IA courses</p>
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.1)' }}>
                 <p style={{ fontSize: 11, color: WHEAT, fontWeight: 600 }}>Bonne nouvelle !</p>
-                <p style={{ fontSize: 10, color: 'rgba(240,228,204,0.7)', marginTop: 2 }}>
+                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', marginTop: 2 }}>
                   Vous pouvez économiser <span style={{ ...DF, fontWeight: 900, color: WHEAT }}>{fmtEur(savings)}</span> sur cette liste.
                 </p>
               </div>
@@ -995,14 +997,14 @@ export default function CoursesPage() {
               { l: 'Marque distributeur disponible', save: '-5,20 €' },
               { l: 'Promo sur Tomates cerises',      save: '-2,10 €' },
             ].map(tip => (
-              <div key={tip.l} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(240,228,204,0.06)' }}>
-                <Check size={11} style={{ color: TEAL, flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 10, color: 'rgba(240,228,204,0.7)' }}>{tip.l}</span>
-                <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: '#5B9F3A' }}>{tip.save}</span>
+              <div key={tip.l} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.06)' }}>
+                <Check size={11} style={{ color: WHEAT, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>{tip.l}</span>
+                <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: WHEAT }}>{tip.save}</span>
               </div>
             ))}
           </div>
-          <button className="crs-btn" style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'rgba(240,228,204,0.15)', color: WHEAT, ...DF, fontWeight: 800, fontSize: 11, marginTop: 'auto' }}>
+          <button className="crs-btn" style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'rgba(var(--text-rgb),0.15)', color: WHEAT, ...DF, fontWeight: 800, fontSize: 11, marginTop: 'auto' }}>
             Appliquer les optimisations
           </button>
         </div>
@@ -1070,7 +1072,7 @@ export default function CoursesPage() {
             <ShoppingCart size={18} style={{ color: '#fff' }} />
           </div>
           <button className="crs-btn" onClick={() => activeListId && completeList(activeListId)}
-            style={{ padding: '14px 28px', borderRadius: 10, background: TEAL_BG, border: 'none', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
+            style={{ padding: '14px 28px', borderRadius: 10, background: TEAL_BG, border: 'none', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
             Valider ma liste
           </button>
         </div>

@@ -560,10 +560,10 @@ export default function ProjetsPage() {
       </div>
 
       {/* VUE GLOBALE — 4 marques avec temps semaine */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--accent-budget)', border: '1px solid var(--accent-budget)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--accent-budget)', border: '1px solid var(--accent-budget)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{totalSec > 0 ? fmtHours(totalSec) : '—'} cette semaine</span>
+          <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', fontWeight: 600 }}>{totalSec > 0 ? fmtHours(totalSec) : '—'} cette semaine</span>
         </div>
         {/* 4 cellules : Mixologue / E-Smoker / Aeterna / Interne */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', flex: 1 }}>
@@ -573,19 +573,19 @@ export default function ProjetsPage() {
             return (
               <div key={g.value} style={{
                 padding: '16px 20px',
-                borderRight:  i % 2 === 0 ? '1px solid rgba(255,255,255,0.2)' : 'none',
-                borderBottom: i < 2       ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                borderRight:  i % 2 === 0 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none',
+                borderBottom: i < 2       ? '1px solid rgba(var(--text-rgb),0.2)' : 'none',
                 display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.8)', flexShrink: 0 }} />
-                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{g.value}</span>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.8)', flexShrink: 0 }} />
+                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.85)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{g.value}</span>
                 </div>
                 <div>
                   <p style={{ ...DF, fontWeight: 900, fontSize: 24, color: '#fff', lineHeight: 1 }}>
                     {sec > 0 ? fmtHours(sec) : '—'}
                   </p>
-                  <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 3 }}>
+                  <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)', marginTop: 3 }}>
                     {projCount} projet{projCount !== 1 ? 's' : ''} actif{projCount !== 1 ? 's' : ''}
                   </p>
                 </div>
@@ -724,13 +724,13 @@ export default function ProjetsPage() {
           {/* Header coloré avec badge marque */}
           <div style={{ background: selectedProject.color, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <p style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              <p style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(var(--text-rgb),0.7)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                 Projet sélectionné
               </p>
-              <ChevronRight size={10} style={{ color: 'rgba(255,255,255,0.5)' }} />
+              <ChevronRight size={10} style={{ color: 'rgba(var(--text-rgb),0.5)' }} />
               <p style={{ ...DF, fontWeight: 800, fontSize: 14, color: '#fff' }}>{selectedProject.name}</p>
               {selectedProject.groupe && (
-                <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(255,255,255,0.25)', color: '#fff', ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(var(--text-rgb),0.25)', color: '#fff', ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   {selectedProject.groupe}
                 </span>
               )}
@@ -982,14 +982,14 @@ export default function ProjetsPage() {
       {/* ── ROW 6 : RÉPARTITION PAR MARQUE (teal, col-span-2) + ACTIVITÉ + LIENS */}
 
       {/* RÉPARTITION PAR MARQUE */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '1px solid var(--azul)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(255,255,255,0.2)', flexShrink: 0 }}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '1px solid var(--azul)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition par marque</p>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>
+          <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>
         </div>
         <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {groupeRows.length === 0 ? (
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', paddingTop: 20, textAlign: 'center' }}>
+            <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.6)', paddingTop: 20, textAlign: 'center' }}>
               Aucun temps enregistré cette semaine.
             </p>
           ) : groupeRows.map(([name, { sec }]) => {
@@ -998,15 +998,15 @@ export default function ProjetsPage() {
               <div key={name}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.85)', flexShrink: 0 }} />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.85)', flexShrink: 0 }} />
                     <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{name}</span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span style={{ fontSize: 12, color: '#fff', fontWeight: 700 }}>{fmtHours(sec)}</span>
-                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', marginLeft: 6 }}>{totalSec > 0 ? Math.round(sec / totalSec * 100) : 0}%</span>
+                    <span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginLeft: 6 }}>{totalSec > 0 ? Math.round(sec / totalSec * 100) : 0}%</span>
                   </div>
                 </div>
-                <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+                <div style={{ height: 6, borderRadius: 99, background: 'rgba(var(--text-rgb),0.2)', overflow: 'hidden' }}>
                   <div style={{ height: '100%', borderRadius: 99, background: '#fff', width: `${pct2}%`, opacity: 0.85, transition: 'width 0.5s' }} />
                 </div>
               </div>
@@ -1014,9 +1014,9 @@ export default function ProjetsPage() {
           })}
           {/* Total */}
           {groupeRows.length > 0 && (
-            <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+            <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(var(--text-rgb),0.2)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', ...DF, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total semaine</span>
+                <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', ...DF, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total semaine</span>
                 <span style={{ ...DF, fontWeight: 900, fontSize: 18, color: '#fff' }}>{fmtHours(totalSec)}</span>
               </div>
             </div>

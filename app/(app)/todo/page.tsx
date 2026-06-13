@@ -14,7 +14,7 @@ const PRIORITY_COLOR: Record<string, string> = {
   urgent: 'var(--accent-budget)', high: 'var(--text)', medium: 'var(--azul)', low: '#888',
 }
 const PRIORITY_BG: Record<string, string> = {
-  urgent: 'rgba(242,84,45,0.15)', high: 'rgba(245,223,187,0.1)', medium: 'rgba(14,149,148,0.12)', low: 'rgba(136,136,136,0.12)',
+  urgent: 'rgba(242,84,45,0.15)', high: 'rgba(var(--text-rgb),0.1)', medium: 'rgba(14,149,148,0.12)', low: 'rgba(136,136,136,0.12)',
 }
 const PRIORITY_LABELS: Record<string, string> = {
   urgent: 'Urgent', high: 'Haute', medium: 'Moyenne', low: 'Basse',
@@ -493,7 +493,7 @@ export default function TodoPage() {
           </div>
 
           {/* Filtres rapides */}
-          <div style={{ background: 'var(--accent-budget)', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--accent-budget)', borderRadius: 12, padding: 16, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#1A0A0A', textTransform: 'uppercase', marginBottom: 10 }}>Filtres rapides</p>
             {[
               { label: 'Sans projet', count: tasks.filter(t => !t.project_id && t.status !== 'done').length },

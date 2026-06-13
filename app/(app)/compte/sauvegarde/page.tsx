@@ -153,7 +153,7 @@ export default function SauvegardePage() {
       {/* Import */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(245,223,187,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(var(--text-rgb),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Upload size={16} style={{ color: WHEAT }} />
           </div>
           <div>

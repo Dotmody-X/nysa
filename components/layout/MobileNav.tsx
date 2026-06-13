@@ -47,7 +47,7 @@ export function MobileNav() {
                   display:'flex', flexDirection:'column', gap:2, textDecoration:'none',
                 }}>
                 <span style={{ fontFamily:'var(--font-display)', fontSize:12, fontWeight:800, color:'#fff', letterSpacing:'0.06em' }}>{l.label}</span>
-                <span style={{ fontSize:10, color:'rgba(255,255,255,0.75)' }}>Ouvrir →</span>
+                <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.75)' }}>Ouvrir →</span>
               </Link>
             ))}
           </div>

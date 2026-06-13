@@ -28,6 +28,11 @@
   --terracota: #a85c3f;
   --rosewood: #8b5a54;
 
+  /* Accent teal/cyan partagé (ex "azul" — utilisé comme texte ET comme fond).
+     Valeur indépendante du thème : lisible sur fond clair comme foncé,
+     et supporte du texte clair quand utilisé comme arrière-plan. */
+  --azul: #1f7a85;
+
   /* Spacing */
   --sidebar-width: 220px;
   --radius-sm: 6px;
@@ -50,6 +55,7 @@
   --text:           #f5f1ed;              /* Creamy Ivory — Primary text (AAA) */
   --text-muted:     #c9b8a3;              /* Camel — Secondary text (AA) */
   --text-subtle:    rgba(201, 184, 163, 0.50); /* Camel @ 50% */
+  --text-rgb:       245, 241, 237;        /* Ink RGB (creamy ivory) — pour rgba(var(--text-rgb), a) */
 
   --border:         rgba(201, 184, 163, 0.15);
   --border-active:  rgba(201, 184, 163, 0.40);
@@ -88,6 +94,7 @@
   --text:           #5c4a42;              /* Chocolate Brown — Primary text (AAA) */
   --text-muted:     #8b6f63;              /* Darker camel — Secondary text (AA) */
   --text-subtle:    rgba(92, 74, 66, 0.50); /* Brown @ 50% */
+  --text-rgb:       92, 74, 66;           /* Ink RGB (chocolate) — pour rgba(var(--text-rgb), a) */
 
   --border:         rgba(92, 74, 66, 0.15);
   --border-active:  rgba(92, 74, 66, 0.40);
@@ -126,6 +133,7 @@
     --text:           #5c4a42;
     --text-muted:     #8b6f63;
     --text-subtle:    rgba(92, 74, 66, 0.50);
+    --text-rgb:       92, 74, 66;
 
     --border:         rgba(92, 74, 66, 0.15);
     --border-active:  rgba(92, 74, 66, 0.40);
@@ -162,6 +170,7 @@
     --text:           #f5f1ed;
     --text-muted:     #c9b8a3;
     --text-subtle:    rgba(201, 184, 163, 0.50);
+    --text-rgb:       245, 241, 237;
 
     --border:         rgba(201, 184, 163, 0.15);
     --border-active:  rgba(201, 184, 163, 0.40);
@@ -326,6 +335,21 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1rem;
+}
+
+/* ── Surfaces sombres fixes ────────────────────────────────────
+   À appliquer sur toute carte/conteneur dont le FOND est une
+   couleur d'accent FONCÉE et fixe (teal, azul, rosewood, aubergine,
+   terracota, chocolat…). Force l'encre claire dans les deux thèmes,
+   pour les descendants qui utilisent var(--text), var(--text-muted)
+   ou rgba(var(--text-rgb), a). */
+.on-dark {
+  --text-rgb:      245, 241, 237;
+  --text:          #f5f1ed;
+  --text-muted:    rgba(245, 241, 237, 0.72);
+  --text-subtle:   rgba(245, 241, 237, 0.50);
+  --border:        rgba(245, 241, 237, 0.18);
+  --border-active: rgba(245, 241, 237, 0.40);
 }
 
 .nysa-transition {

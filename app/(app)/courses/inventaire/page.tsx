@@ -361,7 +361,7 @@ export default function InventairePage() {
           </button>
         )}
         <button onClick={() => setEditItem('new')}
-          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, background: TEAL_BG, border: 'none', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 800, fontSize: 12 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, background: TEAL_BG, border: 'none', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 800, fontSize: 12 }}>
           <Plus size={13} /> Ajouter un article
         </button>
       </div>
@@ -419,7 +419,7 @@ export default function InventairePage() {
         ) : Object.entries(grouped).map(([cat, catItems]) => (
           <div key={cat} style={{ ...card() }}>
             {/* Category header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 18px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 18px', borderBottom: '1px solid var(--border)', background: 'rgba(var(--text-rgb),0.02)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 8, height: 8, borderRadius: 2, background: CAT_COLORS[cat] ?? 'var(--text-muted)' }} />
                 <p style={{ ...DF, fontSize: 10, fontWeight: 800, color: CAT_COLORS[cat] ?? 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{cat}</p>

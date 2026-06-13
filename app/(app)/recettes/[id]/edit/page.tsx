@@ -347,7 +347,7 @@ export default function RecipeEditPage() {
             {recipe.ingredients.map(ing => (
               <div key={ing.id} style={{
                 display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 10, alignItems: 'center',
-                padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, marginBottom: 8
+                padding: '12px', background: 'rgba(var(--text-rgb),0.02)', borderRadius: 8, marginBottom: 8
               }}>
                 <span style={{ color: WHEAT, fontSize: 12 }}>{ing.name}</span>
                 <span style={{ color: WHEAT, fontSize: 12 }}>{ing.quantity} {ing.unit}</span>
