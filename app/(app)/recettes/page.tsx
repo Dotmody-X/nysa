@@ -5,7 +5,7 @@ import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVer
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useRecipes, calcRecipeNutrition } from '@/hooks/useRecipes'
-import { useMealPlan } from '@/hooks/useMealPlan'
+import { useMealPlan, MEAL_TYPES, currentWeekDays, type MealType } from '@/hooks/useMealPlan'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { createClient } from '@/lib/supabase/client'
 
@@ -34,9 +34,6 @@ const lbl = (color = ORANGE): React.CSSProperties => ({
 })
 
 /* ─── Data ───────────────────────────────────────────────────── */
-const DAYS  = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-const MEALS = ['Petit-déj', 'Déjeuner', 'Dîner', 'Snack']
-
 // Cibles nutritionnelles : simples références d'objectif (pas de valeurs consommées codées en dur)
 const CAL_TARGET   = 2200
 const PROT_TARGET  = 160
@@ -45,8 +42,6 @@ const FAT_TARGET   = 70
 
 // Couleurs cycliques pour les catégories dérivées des tags
 const CAT_COLORS = [ORANGE, TEAL, '#5B6F3A', WHEAT, '#3B82F6', '#9333EA']
-
-const MEAL_PLAN: Record<string, string> = {}
 
 /* ─── Donut SVG ──────────────────────────────────────────────── */
 function DonutChart({ slices, size = 110 }: { slices: { pct: number; color: string }[]; size?: number }) {
@@ -80,7 +75,7 @@ export default function RecettesPage() {
   const router   = useRouter()
   const supabase = createClient()
   const { recipes, loading } = useRecipes()
-  const { todayRecipes, todayNutrition, weekCaloriesByDay } = useMealPlan()
+  const { plans, schedule, removeEntry, todayRecipes, todayNutrition, weekCaloriesByDay } = useMealPlan()
   const { lists, createList } = useShoppingLists()
   const [filter, setFilter]     = useState('Toutes')
   const [search, setSearch]     = useState('')
@@ -88,8 +83,9 @@ export default function RecettesPage() {
   const [newItem, setNewItem]   = useState('')
   const [showAddItem, setShowAddItem] = useState(false)
   const [catMenu, setCatMenu] = useState<string | null>(null) // For category 3-dot menus
-  const [mealPlan, setMealPlan] = useState(MEAL_PLAN)
-  const [selectedMealSlot, setSelectedMealSlot] = useState<{day: string; meal: string} | null>(null)
+  const [selectedMealSlot, setSelectedMealSlot] = useState<{ dayIso: string; dayLabel: string; mealType: MealType; mealLabel: string } | null>(null)
+
+  const weekDays = currentWeekDays()
 
   /* ── Liste de courses partagée (même source que /courses) ── */
   const activeList = lists.find(l => l.status === 'active') ?? lists[0] ?? null
@@ -114,28 +110,6 @@ export default function RecettesPage() {
 
   // Filtres dérivés des tags réels
   const ALL_FILTERS = ['Toutes', ...Array.from(new Set(allRecipes.flatMap(r => r.tags || [])))]
-
-  /* ── Load meal plans from Supabase ── */
-  useEffect(() => {
-    const loadMealPlan = async () => {
-      try {
-        const { data, error } = await supabase.from('meal_plans').select('*')
-        if (data && !error) {
-          const plan: Record<string, string> = {}
-          data.forEach((mp: any) => {
-            const recipe = allRecipes.find(r => r.id === mp.recipe_id)
-            if (recipe) {
-              plan[`${mp.day}-${mp.meal_type}`] = `${recipe.emoji} ${recipe.name}`
-            }
-          })
-          setMealPlan(plan)
-        }
-      } catch (e) {
-        console.error(e)
-      }
-    }
-    loadMealPlan()
-  }, [recipes])
 
   /* ── Hydratation (pour le gating d'état vide) ── */
   useEffect(() => { setHydrated(true) }, [])
@@ -397,32 +371,34 @@ export default function RecettesPage() {
                   <th style={{ padding: '6px 8px', fontSize: 8, color: 'rgba(var(--text-rgb),0.25)', ...DF, fontWeight: 700, textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid rgba(var(--text-rgb),0.06)', width: 70 }}>
                     Repas
                   </th>
-                  {DAYS.map(d => (
-                    <th key={d} style={{ padding: '6px 4px', fontSize: 8, color: 'rgba(var(--text-rgb),0.3)', ...DF, fontWeight: 700, textTransform: 'uppercase', borderBottom: '1px solid rgba(var(--text-rgb),0.06)', textAlign: 'center' }}>
-                      {d}
+                  {weekDays.map(d => (
+                    <th key={d.iso} style={{ padding: '6px 4px', fontSize: 8, color: 'rgba(var(--text-rgb),0.3)', ...DF, fontWeight: 700, textTransform: 'uppercase', borderBottom: '1px solid rgba(var(--text-rgb),0.06)', textAlign: 'center' }}>
+                      {d.label}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {MEALS.map(meal => (
-                  <tr key={meal}>
+                {MEAL_TYPES.map(meal => (
+                  <tr key={meal.key}>
                     <td style={{ padding: '8px 8px', fontSize: 9, color: 'rgba(var(--text-rgb),0.35)', borderBottom: '1px solid rgba(var(--text-rgb),0.04)', ...DF, fontWeight: 700 }}>
-                      {meal}
+                      {meal.label}
                     </td>
-                    {DAYS.map(day => {
-                      const key = `${day}-${meal}`
-                      const entry = mealPlan[key]
+                    {weekDays.map(day => {
+                      const entry = plans.find(p => p.date === day.iso && p.meal_type === meal.key)
                       return (
-                        <td key={day} style={{ padding: '4px 3px', borderBottom: '1px solid rgba(var(--text-rgb),0.04)', textAlign: 'center' }}>
+                        <td key={day.iso} style={{ padding: '4px 3px', borderBottom: '1px solid rgba(var(--text-rgb),0.04)', textAlign: 'center' }}>
                           {entry ? (
-                            <button onClick={() => setSelectedMealSlot({day, meal})} style={{ background: 'rgba(14,149,148,0.15)', borderRadius: 5,
+                            <button
+                              onClick={() => { if (confirm(`Retirer ${entry.recipes?.name ?? 'cette recette'} du planning ?`)) removeEntry(entry.id) }}
+                              title={entry.recipes?.name ?? ''}
+                              style={{ background: 'rgba(14,149,148,0.15)', borderRadius: 5,
                               padding: '4px 3px', fontSize: 8, color: 'var(--azul)', ...DF, fontWeight: 700,
                               lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', border: 'none', cursor: 'pointer' }}>
-                              {entry}
+                              {entry.recipes?.name ?? '—'}
                             </button>
                           ) : (
-                            <button onClick={() => setSelectedMealSlot({day, meal})} style={{ fontSize: 14, color: 'rgba(var(--text-rgb),0.12)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>+</button>
+                            <button onClick={() => setSelectedMealSlot({ dayIso: day.iso, dayLabel: day.label, mealType: meal.key, mealLabel: meal.label })} style={{ fontSize: 14, color: 'rgba(var(--text-rgb),0.12)', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>+</button>
                           )}
                         </td>
                       )
@@ -740,18 +716,29 @@ export default function RecettesPage() {
         <div onClick={() => setSelectedMealSlot(null)}
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 16, padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '1px solid rgba(var(--text-rgb),0.1)' }}>
-            <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, marginBottom: 16 }}>{selectedMealSlot.day} - {selectedMealSlot.meal}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {filtered.map(r => (
-                <button key={r.id} onClick={() => {
-                  setMealPlan(prev => ({ ...prev, [`${selectedMealSlot.day}-${selectedMealSlot.meal}`]: `${r.emoji} ${r.name.split(' ').slice(0,2).join(' ')}` }))
-                  setSelectedMealSlot(null)
-                }} style={{ padding: '12px', textAlign: 'left', background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', borderRadius: 10, cursor: 'pointer', color: 'var(--text)' }}>
-                  <p style={{ fontSize: 12, fontWeight: 700 }}>{r.emoji} {r.name}</p>
-                  <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginTop: 4 }}>{r.cal} kcal • {r.time} min</p>
+            <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, marginBottom: 16 }}>{selectedMealSlot.dayLabel} - {selectedMealSlot.mealLabel}</p>
+            {allRecipes.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'center', textAlign: 'center', padding: '12px 0' }}>
+                <p style={{ fontSize: 13, color: 'rgba(var(--text-rgb),0.7)' }}>Aucune recette — crée une recette d&apos;abord</p>
+                <button onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new') }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9,
+                    background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+                  <Plus size={12} /> Nouvelle recette
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {allRecipes.map(r => (
+                  <button key={r.id} onClick={async () => {
+                    await schedule(r.id, selectedMealSlot.dayIso, selectedMealSlot.mealType, 1)
+                    setSelectedMealSlot(null)
+                  }} style={{ padding: '12px', textAlign: 'left', background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', borderRadius: 10, cursor: 'pointer', color: 'var(--text)' }}>
+                    <p style={{ fontSize: 12, fontWeight: 700 }}>{r.emoji} {r.name}</p>
+                    <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginTop: 4 }}>{r.cal} kcal • {r.time} min</p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

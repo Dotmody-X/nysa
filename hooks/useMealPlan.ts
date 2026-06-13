@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcRecipeNutrition, type Recipe } from './useRecipes'
 
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+
 export type MealPlanEntry = {
   id: string
   user_id: string
   recipe_id: string
-  day: string            // date ISO "2026-06-13" OU nom de jour selon la saisie
-  meal_type: string      // "petit-dej" | "dejeuner" | "diner" | "snack" ...
+  date: string           // date ISO "2026-06-13" (colonne `date` de meal_plans)
+  meal_type: MealType    // enum DB: breakfast | lunch | dinner | snack
   servings: number | null
   recipes?: Recipe | null
 }
@@ -36,6 +38,25 @@ export function useMealPlan() {
 
   useEffect(() => { fetch() }, [fetch])
 
+  // Planifie une recette (insert) — aligné au schéma meal_plans (date + enum)
+  async function schedule(recipeId: string, date: string, mealType: MealType, servings = 1) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Not authenticated' }
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .insert({ user_id: user.id, recipe_id: recipeId, date, meal_type: mealType, servings })
+      .select('*, recipes(*)')
+      .single()
+    if (!error && data) setPlans(p => [...p, data as MealPlanEntry])
+    return { data: data as MealPlanEntry | null, error }
+  }
+
+  // Retire une entrée du planning (delete)
+  async function removeEntry(id: string) {
+    await supabase.from('meal_plans').delete().eq('id', id)
+    setPlans(p => p.filter(e => e.id !== id))
+  }
+
   // Nutrition agrégée sur un ensemble d'entrées
   function aggregate(entries: MealPlanEntry[]) {
     return entries.reduce(
@@ -53,7 +74,7 @@ export function useMealPlan() {
   }
 
   const day = todayISO()
-  const todayEntries = plans.filter(p => p.day === day)
+  const todayEntries = plans.filter(p => p.date === day)
   const todayNutrition = aggregate(todayEntries)
   const planNutrition = aggregate(plans)
 
@@ -66,7 +87,7 @@ export function useMealPlan() {
     const dt = new Date(monday)
     dt.setDate(monday.getDate() + i)
     const iso = dt.toISOString().slice(0, 10)
-    const cal = aggregate(plans.filter(p => p.day === iso)).calories
+    const cal = aggregate(plans.filter(p => p.date === iso)).calories
     return { d, iso, cal }
   })
 
@@ -78,6 +99,8 @@ export function useMealPlan() {
     plans,
     loading,
     refetch: fetch,
+    schedule,
+    removeEntry,
     todayEntries,
     todayRecipes,
     todayNutrition,
@@ -85,4 +108,24 @@ export function useMealPlan() {
     weekCaloriesByDay,
     hasPlan: plans.length > 0,
   }
+}
+
+// Helpers partagés pour la grille hebdomadaire (mêmes valeurs partout)
+export const MEAL_TYPES: { key: MealType; label: string }[] = [
+  { key: 'breakfast', label: 'Petit-déj' },
+  { key: 'lunch',     label: 'Déjeuner' },
+  { key: 'dinner',    label: 'Dîner' },
+  { key: 'snack',     label: 'Snack' },
+]
+
+// Dates ISO de la semaine courante (lundi → dimanche), avec libellé court
+export function currentWeekDays(): { label: string; iso: string }[] {
+  const now = new Date()
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+  return ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((label, i) => {
+    const dt = new Date(monday)
+    dt.setDate(monday.getDate() + i)
+    return { label, iso: dt.toISOString().slice(0, 10) }
+  })
 }

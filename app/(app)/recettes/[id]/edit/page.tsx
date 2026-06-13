@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ChevronLeft, Plus, X, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)'
@@ -181,6 +182,19 @@ export default function RecipeEditPage() {
     }
   }
 
+  // Sélection d'un aliment → remplit nom + macros (par gramme) automatiquement
+  const pickIngredient = (item: PickedItem) => {
+    setNewIngredient(prev => ({
+      ...prev,
+      name: item.name,
+      unit: item.macros100 ? 'g' : prev.unit,
+      calories_per_qty: item.macros100 ? +(item.macros100.kcal  / 100).toFixed(4) : prev.calories_per_qty,
+      protein_per_qty:  item.macros100 ? +(item.macros100.prot  / 100).toFixed(4) : prev.protein_per_qty,
+      carbs_per_qty:    item.macros100 ? +(item.macros100.carbs / 100).toFixed(4) : prev.carbs_per_qty,
+      fat_per_qty:      item.macros100 ? +(item.macros100.fat   / 100).toFixed(4) : prev.fat_per_qty,
+    }))
+  }
+
   const addIngredient = () => {
     if (!newIngredient.name.trim()) return
     const ingredId = Math.random().toString(36).slice(2)
@@ -351,7 +365,7 @@ export default function RecipeEditPage() {
               }}>
                 <span style={{ color: WHEAT, fontSize: 12 }}>{ing.name}</span>
                 <span style={{ color: WHEAT, fontSize: 12 }}>{ing.quantity} {ing.unit}</span>
-                <span style={{ color: TEAL, fontSize: 11, fontWeight: 600 }}>{ing.calories_per_qty ? Math.round(ing.calories_per_qty) : '—'} cal</span>
+                <span style={{ color: TEAL, fontSize: 11, fontWeight: 600 }}>{ing.calories_per_qty ? Math.round((ing.calories_per_qty || 0) * (ing.quantity || 0)) : '—'} cal</span>
                 <button onClick={() => removeIngredient(ing.id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, padding: 0 }}>
                   <X size={16} />
@@ -363,12 +377,12 @@ export default function RecipeEditPage() {
 
         <div style={{ background: 'rgba(242,84,45,0.05)', borderRadius: 8, padding: 16, border: `1px solid ${ORANGE}20` }}>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <input type="text" placeholder="Ingrédient" value={newIngredient.name} 
-              onChange={e => setNewIngredient(prev => ({ ...prev, name: e.target.value }))}
-              style={{
-                padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
-                border: '1px solid var(--border)', color: WHEAT
-              }} />
+            <CatalogPicker
+              query={newIngredient.name}
+              onQueryChange={q => setNewIngredient(prev => ({ ...prev, name: q }))}
+              onSelect={pickIngredient}
+              placeholder="Ingrédient (macros auto)"
+            />
             <input type="number" placeholder="Qty" step="0.1" value={newIngredient.quantity}
               onChange={e => setNewIngredient(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 0 }))}
               style={{

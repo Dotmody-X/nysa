@@ -15,6 +15,8 @@ import { createClient } from '@/lib/supabase/client'
 import { searchProducts, getProductByBarcode, guessCategory, OFFProduct } from '@/lib/openFoodFacts'
 import { getRecentDiscountedPrices, discountPct, type OpenPrice } from '@/lib/openPrices'
 import { STORE_CHAINS, getChainById, mapCategoryToDepartment, type StoreChain, type SavedStore } from '@/lib/storeData'
+import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
+import { CATALOG_CATEGORIES } from '@/lib/catalogue'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -259,6 +261,7 @@ export default function CoursesPage() {
   const [manualUnit,  setManualUnit]  = useState('')
   const [manualCat,   setManualCat]   = useState('')
   const [manualPrice, setManualPrice] = useState('')
+  const [manualBarcode, setManualBarcode] = useState('')
 
   /* ── OFF search ──────────────────────────────── */
   const [query,      setQuery]      = useState('')
@@ -383,6 +386,13 @@ export default function CoursesPage() {
     setQuery('')
   }
 
+  function handleManualPick(item: PickedItem) {
+    setManualName(item.name)
+    if (item.category) setManualCat(item.category)
+    if (item.unit) setManualUnit(item.unit)
+    if (item.barcode) setManualBarcode(item.barcode)
+  }
+
   async function handleManualAdd() {
     if (!manualName.trim() || !activeListId) return
     await addItem({
@@ -391,8 +401,10 @@ export default function CoursesPage() {
       unit: manualUnit || undefined,
       category: manualCat || undefined,
       price_estimated: manualPrice ? parseFloat(manualPrice) : undefined,
+      barcode: manualBarcode || undefined,
+      product_id: manualBarcode || undefined,
     })
-    setManualName(''); setManualQty('1'); setManualUnit(''); setManualCat(''); setManualPrice('')
+    setManualName(''); setManualQty('1'); setManualUnit(''); setManualCat(''); setManualPrice(''); setManualBarcode('')
     setShowManual(false)
   }
 
@@ -725,12 +737,25 @@ export default function CoursesPage() {
 
           {/* Manual add form */}
           {showManual && (
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(242,84,45,0.04)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-end' }}>
-              <input value={manualName} onChange={e => setManualName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleManualAdd()}
-                placeholder="Nom de l'article *" autoFocus style={{ ...inp, flex: 1, minWidth: 140 }} />
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(242,84,45,0.04)', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-end', position: 'relative', zIndex: 30, overflow: 'visible' }}>
+              <div style={{ flex: 1, minWidth: 140, position: 'relative', zIndex: 31 }}>
+                <CatalogPicker
+                  query={manualName}
+                  onQueryChange={setManualName}
+                  onSelect={handleManualPick}
+                  placeholder="Nom de l'article *"
+                  autoFocus
+                />
+              </div>
               <input type="number" value={manualQty} onChange={e => setManualQty(e.target.value)} placeholder="Qté" style={{ ...inp, width: 60 }} />
               <input value={manualUnit} onChange={e => setManualUnit(e.target.value)} placeholder="Unité" style={{ ...inp, width: 70 }} />
-              <input value={manualCat} onChange={e => setManualCat(e.target.value)} placeholder="Catégorie" style={{ ...inp, width: 110 }} />
+              <select value={manualCat} onChange={e => setManualCat(e.target.value)} style={{ ...inp, width: 130, cursor: 'pointer' }}>
+                <option value="">Catégorie</option>
+                {CATALOG_CATEGORIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                {manualCat && !CATALOG_CATEGORIES.some(c => c.name === manualCat) && (
+                  <option value={manualCat}>{manualCat}</option>
+                )}
+              </select>
               <input type="number" value={manualPrice} onChange={e => setManualPrice(e.target.value)} placeholder="Prix €" style={{ ...inp, width: 75 }} />
               <button onClick={handleManualAdd} style={{ padding: '7px 14px', borderRadius: 8, background: ORANGE, color: '#fff', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
                 Ajouter

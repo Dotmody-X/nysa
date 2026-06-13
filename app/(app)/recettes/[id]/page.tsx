@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ChevronLeft, Edit, Heart, Plus, Minus, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { MEAL_TYPES, currentWeekDays, type MealType } from '@/hooks/useMealPlan'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)'
@@ -36,10 +37,11 @@ export default function RecipeViewPage() {
   const [loading, setLoading] = useState(true)
   const [servings, setServings] = useState(0)
   const [showSchedule, setShowSchedule] = useState(false)
-  const [scheduleForm, setScheduleForm] = useState({ day: 'Lun', mealType: 'Déjeuner' })
-
-  const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-  const MEALS = ['Petit-déj', 'Déjeuner', 'Dîner', 'Snack']
+  const weekDays = currentWeekDays()
+  const [scheduleForm, setScheduleForm] = useState<{ dateISO: string; mealType: MealType }>({
+    dateISO: weekDays[0].iso,
+    mealType: 'lunch',
+  })
 
   useEffect(() => {
     loadRecipe()
@@ -82,13 +84,13 @@ export default function RecipeViewPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Create meal plan entry
+      // Create meal plan entry — schéma meal_plans : colonne `date` (DATE) + enum anglais
       await supabase.from('meal_plans').insert({
         user_id: user.id,
         recipe_id: id,
-        date: new Date().toISOString().split('T')[0],
-        day: scheduleForm.day,
-        meal_type: scheduleForm.mealType.toLowerCase(),
+        date: scheduleForm.dateISO,
+        meal_type: scheduleForm.mealType,
+        servings,
       })
 
       // Add ingredients to shopping list
@@ -300,23 +302,23 @@ export default function RecipeViewPage() {
             
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>Jour</label>
-              <select value={scheduleForm.day} onChange={e => setScheduleForm({ ...scheduleForm, day: e.target.value })}
+              <select value={scheduleForm.dateISO} onChange={e => setScheduleForm({ ...scheduleForm, dateISO: e.target.value })}
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 8, background: 'var(--bg-input)',
                   border: '1px solid var(--border)', color: WHEAT, marginTop: 8
                 }}>
-                {DAYS.map(day => <option key={day}>{day}</option>)}
+                {weekDays.map(day => <option key={day.iso} value={day.iso}>{day.label}</option>)}
               </select>
             </div>
 
             <div style={{ marginBottom: 20 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>Repas</label>
-              <select value={scheduleForm.mealType} onChange={e => setScheduleForm({ ...scheduleForm, mealType: e.target.value })}
+              <select value={scheduleForm.mealType} onChange={e => setScheduleForm({ ...scheduleForm, mealType: e.target.value as MealType })}
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 8, background: 'var(--bg-input)',
                   border: '1px solid var(--border)', color: WHEAT, marginTop: 8
                 }}>
-                {MEALS.map(meal => <option key={meal}>{meal}</option>)}
+                {MEAL_TYPES.map(meal => <option key={meal.key} value={meal.key}>{meal.label}</option>)}
               </select>
             </div>
 

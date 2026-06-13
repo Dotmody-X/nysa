@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Star } from 'lucide-react'
+import { NysaLogo } from '@/components/ui/NysaLogo'
 
 export default function LoginPage() {
   const router   = useRouter()
@@ -36,10 +36,10 @@ export default function LoginPage() {
       {/* Logo */}
       <div className="flex flex-col items-center mb-10">
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-          style={{ background: 'rgba(242,84,45,0.15)', border: '1px solid rgba(242,84,45,0.3)' }}
+          className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
+          style={{ background: 'var(--creamy-ivory)', border: '1px solid var(--border)' }}
         >
-          <Star size={24} fill="var(--accent-budget)" style={{ color: 'var(--accent-budget)' }} />
+          <NysaLogo size={30} color="#1a0708" />
         </div>
         <h1 className="text-2xl font-bold tracking-widest uppercase" style={{ color: 'var(--text)' }}>
           NYSA

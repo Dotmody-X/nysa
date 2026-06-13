@@ -8,6 +8,8 @@ import {
 import { AlertTriangle as AlertIcon } from 'lucide-react'
 import { useInventory } from '@/hooks/useInventory'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
+import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
+import { CATALOG_CATEGORIES } from '@/lib/catalogue'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -43,12 +45,19 @@ const STATUS: Record<Status, { label: string; color: string; bg: string }> = {
 }
 
 /* ─── Category config ────────────────────────────────────────── */
-const CATEGORIES = ['Épicerie', 'Produits frais', 'Fruits & Légumes', 'Boissons', 'Hygiène', 'Entretien', 'Congélateur', 'Autre']
+const CATEGORIES: string[] = CATALOG_CATEGORIES.map(c => c.name)
 
 const CAT_COLORS: Record<string, string> = {
   'Épicerie': WHEAT, 'Produits frais': ORANGE, 'Fruits & Légumes': '#5B9F3A',
   'Boissons': '#3B82F6', 'Hygiène': '#A78BFA', 'Entretien': '#F59E0B',
   'Congélateur': '#60A5FA', 'Autre': 'var(--text-muted)',
+}
+
+/** Couleur d'une catégorie : map historique, sinon couleur du catalogue, sinon fallback. */
+function catColor(name: string): string {
+  return CAT_COLORS[name]
+    ?? CATALOG_CATEGORIES.find(c => c.name === name)?.color
+    ?? 'var(--text-muted)'
 }
 
 /* ─── ConfirmModal ───────────────────────────────────────────── */
@@ -87,14 +96,14 @@ function ItemRow({
       className="inv-row">
       {/* Icon */}
       <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Package size={16} style={{ color: CAT_COLORS[item.category] ?? 'var(--text-muted)' }} />
+        <Package size={16} style={{ color: catColor(item.category) }} />
       </div>
       {/* Name + qty */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: WHEAT }}>{item.name}</p>
         <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{item.qty}</span>
-          <span style={{ fontSize: 10, color: CAT_COLORS[item.category] ?? 'var(--text-muted)', ...DF, fontWeight: 600 }}>{item.category}</span>
+          <span style={{ fontSize: 10, color: catColor(item.category), ...DF, fontWeight: 600 }}>{item.category}</span>
           {item.minQty && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Min : {item.minQty}</span>}
         </div>
       </div>
@@ -157,6 +166,15 @@ function EditPanel({
     onSave({ ...form, id: form.id || Date.now().toString() })
   }
 
+  function handlePick(item: PickedItem) {
+    setForm(f => ({
+      ...f,
+      name: item.name,
+      category: item.category ?? f.category,
+      qty: f.qty || item.unit || '',
+    }))
+  }
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', zIndex: 99, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ ...card(), padding: 28, width: 480, maxWidth: '95vw' }}>
@@ -169,11 +187,15 @@ function EditPanel({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Nom */}
-          <div>
+          <div style={{ position: 'relative', zIndex: 5 }}>
             <label style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>Nom *</label>
-            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              onKeyDown={e => e.key === 'Enter' && handleSave()}
-              placeholder="Riz basmati, Lait…" autoFocus style={inp} />
+            <CatalogPicker
+              query={form.name}
+              onQueryChange={name => setForm(f => ({ ...f, name }))}
+              onSelect={handlePick}
+              placeholder="Riz basmati, Lait…"
+              autoFocus
+            />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -196,6 +218,9 @@ function EditPanel({
             <label style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>Catégorie</label>
             <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} style={inp}>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {form.category && !CATEGORIES.includes(form.category) && (
+                <option value={form.category}>{form.category}</option>
+              )}
             </select>
           </div>
 
@@ -280,7 +305,10 @@ export default function InventairePage() {
   })
 
   const countByStatus = (s: Status) => items.filter(i => i.status === s).length
-  const grouped = CATEGORIES.reduce((acc, cat) => {
+  // Catégories du catalogue d'abord, puis toute catégorie héritée présente dans les items.
+  const allCats = [...CATEGORIES, ...filtered.map(i => i.category).filter(c => !CATEGORIES.includes(c))]
+  const grouped = allCats.reduce((acc, cat) => {
+    if (acc[cat]) return acc
     const catItems = filtered.filter(i => i.category === cat)
     if (catItems.length > 0) acc[cat] = catItems
     return acc
@@ -405,8 +433,8 @@ export default function InventairePage() {
             {/* Category header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 18px', borderBottom: '1px solid var(--border)', background: 'rgba(var(--text-rgb),0.02)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 8, height: 8, borderRadius: 2, background: CAT_COLORS[cat] ?? 'var(--text-muted)' }} />
-                <p style={{ ...DF, fontSize: 10, fontWeight: 800, color: CAT_COLORS[cat] ?? 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{cat}</p>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: catColor(cat) }} />
+                <p style={{ ...DF, fontSize: 10, fontWeight: 800, color: catColor(cat), letterSpacing: '0.1em', textTransform: 'uppercase' }}>{cat}</p>
               </div>
               <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{catItems.length} article{catItems.length > 1 ? 's' : ''}</span>
             </div>
