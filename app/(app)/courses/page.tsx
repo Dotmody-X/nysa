@@ -5,7 +5,7 @@ import {
   Plus, X, Trash2, Search, ShoppingCart, Check, Loader2, Barcode,
   ChevronRight, Zap, Tag, Bell, Truck, Users, Star, TrendingDown,
   Package, AlertTriangle, MapPin, Calendar, Store, Navigation,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
@@ -31,18 +31,18 @@ function fmtEur(n: number) { return n.toLocaleString('fr-BE', { style: 'currency
 
 /* ─── Card helpers ───────────────────────────────────────────── */
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, borderRadius: 12, overflow: 'hidden',
+  background: TEAL_BG, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
   '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)', ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, borderRadius: 12, overflow: 'hidden',
+  background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
   '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', ...extra,
 } as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: DARK, borderRadius: 12, overflow: 'hidden', ...extra,
+  background: DARK, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
@@ -145,7 +145,7 @@ function StoreSelectorModal({
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', width: 560, maxWidth: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', width: 560, maxWidth: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 22px', borderBottom: '1px solid var(--border)' }}>
           <div>
@@ -200,9 +200,9 @@ function StoreSelectorModal({
               {nearbyStores.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
                   {nearbyStores.map(store => (
-                    <button key={store.id} onClick={() => selectStore(store)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10,
-                        background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', textAlign: 'left' }}>
+                    <button key={store.id} onClick={() => selectStore(store)} className="nb-press"
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--radius-lg)',
+                        background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', textAlign: 'left' }}>
                       <MapPin size={14} style={{ color: selectedChain.color, flexShrink: 0 }} />
                       <div style={{ flex: 1 }}>
                         <p style={{ ...DF2, fontSize: 12, fontWeight: 700, color: WHEAT }}>{store.name || selectedChain.name}</p>
@@ -223,8 +223,8 @@ function StoreSelectorModal({
             <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF2, fontWeight: 700, fontSize: 12 }}>
               Annuler
             </button>
-            <button onClick={selectChainOnly}
-              style={{ flex: 2, padding: '10px', borderRadius: 9, background: selectedChain.color, border: 'none', color: '#fff', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
+            <button onClick={selectChainOnly} className="nb-press"
+              style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--chocolate)', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
               Utiliser {selectedChain.name} {city ? `— ${city}` : '(sans localisation)'}
             </button>
           </div>
@@ -484,7 +484,7 @@ export default function CoursesPage() {
   }
 
   return (
-    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
+    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 14, minHeight: '100%' }}>
       {/* ── Store Selector Modal ─────────────────── */}
       {showStoreSelector && (
         <StoreSelectorModal
@@ -504,7 +504,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           HEADER — Hero + Budget + Économies
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 260px) minmax(0, 220px)', gap: 10, minHeight: 180 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 260px) minmax(0, 220px)', gap: 14, minHeight: 180 }}>
 
         {/* Hero */}
         <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -518,19 +518,19 @@ export default function CoursesPage() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button className="crs-btn" onClick={() => setShowNewList(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+            <button className="crs-btn nb-press" onClick={() => setShowNewList(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               <Plus size={11} /> Nouvelle liste
             </button>
-            <button className="crs-btn" onClick={() => setShowSearch(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+            <button className="crs-btn nb-press" onClick={() => setShowSearch(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               <Search size={11} /> Rechercher
             </button>
-            <button className="crs-btn"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                background: 'var(--bg-card)', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', cursor: 'pointer' }}>
+            <button className="crs-btn nb-press"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                background: 'var(--bg-card)', color: 'var(--text)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               <Barcode size={11} /> Code-barres
             </button>
           </div>
@@ -598,8 +598,8 @@ export default function CoursesPage() {
             onKeyDown={e => e.key === 'Enter' && handleCreateList()}
             placeholder="Nom de la liste (ex: Semaine du 5 mai)…" autoFocus
             style={{ ...inp, flex: 1 }} />
-          <button onClick={handleCreateList} disabled={creatingList}
-            style={{ padding: '7px 16px', borderRadius: 8, background: ORANGE, color: '#fff', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={handleCreateList} disabled={creatingList} className="nb-press"
+            style={{ padding: '7px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
             {creatingList ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Créer
           </button>
           <button onClick={() => setShowNewList(false)}
@@ -656,8 +656,8 @@ export default function CoursesPage() {
                     </div>
                   </div>
                   <button onClick={() => handleAddProduct(product)} disabled={!activeListId || addingId === product.code}
-                    style={{ width: 24, height: 24, borderRadius: '50%', background: ORANGE, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: !activeListId ? 0.4 : 1 }}>
-                    {addingId === product.code ? <Loader2 size={9} className="animate-spin" style={{ color: '#fff' }} /> : <Plus size={9} style={{ color: '#fff' }} />}
+                    style={{ width: 24, height: 24, borderRadius: '50%', background: ORANGE, border: '2px solid var(--ink)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: !activeListId ? 0.4 : 1 }}>
+                    {addingId === product.code ? <Loader2 size={9} className="animate-spin" style={{ color: 'var(--chocolate)' }} /> : <Plus size={9} style={{ color: 'var(--chocolate)' }} />}
                   </button>
                 </div>
               ))}
@@ -690,7 +690,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           MAIN CONTENT — 3 colonnes
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 280px) minmax(0, 260px)', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 280px) minmax(0, 260px)', gap: 14 }}>
 
         {/* ── Col 1 : Liste de courses ─────────── */}
         <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
@@ -757,7 +757,7 @@ export default function CoursesPage() {
                 )}
               </select>
               <input type="number" value={manualPrice} onChange={e => setManualPrice(e.target.value)} placeholder="Prix €" style={{ ...inp, width: 75 }} />
-              <button onClick={handleManualAdd} style={{ padding: '7px 14px', borderRadius: 8, background: ORANGE, color: '#fff', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
+              <button onClick={handleManualAdd} className="nb-press" style={{ padding: '7px 14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
                 Ajouter
               </button>
             </div>
@@ -835,7 +835,7 @@ export default function CoursesPage() {
         </div>
 
         {/* ── Col 2 : Lié aux recettes ──────────── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ ...card() }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
               <p style={{ ...lbl(TEAL) }}>Lié aux recettes</p>
@@ -881,7 +881,7 @@ export default function CoursesPage() {
         </div>
 
         {/* ── Col 3 : Inventaire + Promotions ──── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Inventaire maison */}
           <div style={{ ...card() }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
@@ -962,7 +962,7 @@ export default function CoursesPage() {
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <p style={{ ...DF, fontSize: 14, fontWeight: 900, color: WHEAT }}>{p.price.toFixed(2)} €</p>
                     {pct != null && (
-                      <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: ORANGE, color: '#fff' }}>
+                      <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--ink)' }}>
                         {pct > 0 ? '+' : ''}{pct}%
                       </span>
                     )}
@@ -983,7 +983,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           SECONDARY — Parcours + Dépenses + IA
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
 
         {/* Parcours magasin */}
         <div style={{ ...card(), padding: 20 }}>
@@ -1136,7 +1136,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           FOOTER — Astuce IA + Total + Valider
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10, alignItems: 'stretch' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 14, alignItems: 'stretch' }}>
         {/* Astuce IA */}
         <div style={{ ...card({ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }) }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: TEAL_BG, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1161,17 +1161,17 @@ export default function CoursesPage() {
               {totalItems} article{totalItems > 1 ? 's' : ''} &nbsp;·&nbsp; {totalRayons} rayon{totalRayons > 1 ? 's' : ''}
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: ORANGE }}>
-            <ShoppingCart size={18} style={{ color: '#fff' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+            <ShoppingCart size={18} style={{ color: 'var(--chocolate)' }} />
           </div>
           {/* Interconnexion Courses → Budget */}
-          <button className="crs-btn" onClick={saveAsExpense} disabled={totalEstimated <= 0 || savingExpense || expenseSaved}
-            style={{ padding: '14px 18px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: totalEstimated <= 0 ? 'default' : 'pointer', color: ORANGE, ...DF, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, opacity: totalEstimated <= 0 ? 0.5 : 1 }}>
+          <button className="crs-btn nb-press" onClick={saveAsExpense} disabled={totalEstimated <= 0 || savingExpense || expenseSaved}
+            style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: totalEstimated <= 0 ? 'default' : 'pointer', color: ORANGE, ...DF, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, opacity: totalEstimated <= 0 ? 0.5 : 1 }}>
             {savingExpense ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
             {expenseSaved ? 'Dépense enregistrée' : 'Enregistrer comme dépense'}
           </button>
-          <button className="crs-btn" onClick={() => activeListId && completeList(activeListId)}
-            style={{ padding: '14px 28px', borderRadius: 10, background: TEAL_BG, border: 'none', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
+          <button className="crs-btn nb-press" onClick={() => activeListId && completeList(activeListId)}
+            style={{ padding: '14px 28px', borderRadius: 'var(--radius-lg)', background: TEAL_BG, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
             Valider ma liste
           </button>
         </div>

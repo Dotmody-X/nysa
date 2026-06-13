@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Plus, Search, CheckCircle2, Circle, Clock, ChevronDown, Pencil, Trash2, X } from 'lucide-react'
+import { Plus, Search, CheckCircle2, Circle, Clock, ChevronDown, Pencil, Trash2, X } from '@/components/ui/icons'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useTasks } from '@/hooks/useTasks'
@@ -281,8 +281,8 @@ export default function TodoPage() {
         sub="Organisées · Priorités · Automatiques"
         right={
           <button onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl"
-            style={{ background: 'var(--accent-budget)', color: '#fff', ...DF, fontWeight: 700, fontSize: 12 }}>
+            className="flex items-center gap-2 px-4 py-2 nb-press"
+            style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', ...DF, fontWeight: 700, fontSize: 12 }}>
             <Plus size={14} /> Ajouter une tâche
           </button>
         }
@@ -297,28 +297,27 @@ export default function TodoPage() {
       </KpiGrid>
 
       {/* Tabs + search */}
-      <div className="flex gap-1 flex-wrap">
+      <div className="flex gap-3 flex-wrap">
         {tabs.map(t => {
           const active = tab === t.key
           const col    = TAB_COLORS[t.key]
+          const darkTab = t.key === 'priorites' || t.key === 'projets'
           return (
             <button key={t.key} onClick={() => { setTab(t.key as typeof tab); if (t.key !== 'projets') setFilterProject(null) }}
+              className="nb-press"
               style={{
-                padding: '8px 18px', borderRadius: 9, cursor: 'pointer',
+                padding: '8px 18px', borderRadius: 'var(--radius-lg)', cursor: 'pointer',
                 background: active ? col : 'var(--bg-card)',
-                color:      active ? '#fff' : 'var(--text-muted)',
-                border:     active ? 'none' : `1px solid var(--border)`,
-                outline:    active ? `2px solid ${col}44` : 'none',
-                outlineOffset: 1,
+                color:      active ? (darkTab ? 'var(--creamy-ivory)' : 'var(--chocolate)') : 'var(--text-muted)',
+                border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
                 ...DF, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
-                transition: 'all 0.15s',
               }}>
               {t.label}
             </button>
           )
         })}
         <div className="flex-1" />
-        <div className="flex items-center gap-2 px-3 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center gap-2 px-3" style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)' }}>
           <Search size={12} style={{ color: 'var(--text-muted)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…"
             style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)', width: 160 }} />
@@ -327,8 +326,8 @@ export default function TodoPage() {
 
       {/* Create form */}
       {showForm && (
-        <form onSubmit={handleCreate} className="flex flex-wrap gap-2 p-4 rounded-xl"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-active)' }}>
+        <form onSubmit={handleCreate} className="flex flex-wrap gap-3 p-4"
+          style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)' }}>
           <input value={newTitle} onChange={e => setNewTitle(e.target.value)}
             placeholder="Titre de la tâche…" autoFocus
             style={{ flex: '1 1 200px', ...inp }} />
@@ -346,16 +345,16 @@ export default function TodoPage() {
             <option value="">Sans projet</option>
             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
-          <button type="submit"
-            style={{ background: 'var(--accent-budget)', color: '#fff', borderRadius: 8, padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press"
+            style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Créer
           </button>
         </form>
       )}
 
       {/* Lists + sidebar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
-        <div className="md:col-span-2 flex flex-col gap-[10px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-2 flex flex-col gap-4">
 
           {/* ── TOUTES ── */}
           {tab === 'toutes' && (
@@ -434,11 +433,11 @@ export default function TodoPage() {
 
         </div>
 
-        <div className="flex flex-col gap-[10px]">
+        <div className="flex flex-col gap-4">
           <MiniCalendar tasks={tasks} />
 
           {/* Répartition priorités */}
-          <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent-budget)', textTransform: 'uppercase', marginBottom: 12 }}>Répartition priorités</p>
             {(['urgent', 'high', 'medium', 'low'] as const).map(p => {
               const count = tasks.filter(t => t.priority === p && t.status !== 'done').length
@@ -457,7 +456,7 @@ export default function TodoPage() {
           </div>
 
           {/* Projets */}
-          <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--azul)', textTransform: 'uppercase', marginBottom: 10 }}>Projets</p>
             {projects.map(p => {
               const count   = tasks.filter(t => t.project_id === p.id && t.status !== 'done').length
@@ -493,8 +492,8 @@ export default function TodoPage() {
           </div>
 
           {/* Filtres rapides */}
-          <div style={{ background: 'var(--accent-budget)', borderRadius: 12, padding: 16, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: '#1A0A0A', textTransform: 'uppercase', marginBottom: 10 }}>Filtres rapides</p>
+          <div style={{ background: 'var(--accent-budget)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' } as React.CSSProperties}>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--chocolate)', textTransform: 'uppercase', marginBottom: 10 }}>Filtres rapides</p>
             {[
               { label: 'Sans projet', count: tasks.filter(t => !t.project_id && t.status !== 'done').length },
               { label: 'Avec date',   count: tasks.filter(t => t.due_date   && t.status !== 'done').length },
@@ -541,7 +540,7 @@ function TaskSection({
   const [open, setOpen] = useState(!collapsed)
 
   return (
-    <div style={{ background: bg ?? 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+    <div style={{ background: bg ?? 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden' }}>
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between px-5 py-3"
         style={{ borderBottom: open ? '1px solid var(--border)' : 'none' }}>
         <span style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color, textTransform: 'uppercase' }}>{title}</span>
@@ -632,7 +631,7 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
   const monthName = today.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
 
   return (
-    <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+    <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
       <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--azul)', textTransform: 'uppercase', marginBottom: 10 }}>Calendrier</p>
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'capitalize' }}>{monthName}</p>
       <div className="grid grid-cols-7 gap-0.5 text-center">
@@ -648,7 +647,7 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
             <span key={i} style={{
               fontSize: 10, padding: '3px 2px', borderRadius: 4,
               background: isToday ? 'var(--accent-budget)' : 'transparent',
-              color: isToday ? '#fff' : hasTasks ? 'var(--azul)' : 'var(--text-muted)',
+              color: isToday ? 'var(--chocolate)' : hasTasks ? 'var(--azul)' : 'var(--text-muted)',
               fontWeight: isToday || hasTasks ? 700 : 400,
             }}>{d}</span>
           )

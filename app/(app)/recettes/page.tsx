@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVertical } from 'lucide-react'
+import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVertical } from '@/components/ui/icons'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useRecipes, calcRecipeNutrition } from '@/hooks/useRecipes'
@@ -18,16 +18,16 @@ const TEAL_BG = 'var(--azul)'
 
 /* ─── Card helpers ───────────────────────────────────────────── */
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)', borderRadius: 12, overflow: 'hidden', ...extra,
+  background: TEAL_BG, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', borderRadius: 12, overflow: 'hidden', ...extra,
+  background: ORANGE, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg)', borderRadius: 12, overflow: 'hidden', ...extra,
+  background: 'var(--bg)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
@@ -201,7 +201,7 @@ export default function RecettesPage() {
   return (
     <div style={{ padding: 30, minHeight: '100%' }}>
       <style>{`
-        .rec-card:hover  { opacity: .92; transform: translateY(-1px); transition: .15s; }
+        .rec-card:hover  { opacity: .92; }
         .rec-filter:hover{ opacity: .8; }
         .rec-row:hover   { background: rgba(var(--text-rgb),0.06) !important; }
         .rec-btn:hover   { opacity: .85; }
@@ -214,7 +214,7 @@ export default function RecettesPage() {
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gridTemplateRows: '300px 300px 500px 400px 260px',
-        gap: 10,
+        gap: 14,
       }}>
 
         {/* ── R1 C1-2 : HERO ────────────────────────────── */}
@@ -227,20 +227,20 @@ export default function RecettesPage() {
             </p>
             {/* Action buttons */}
             <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-              <button className="rec-btn" onClick={() => router.push('/recettes/new')}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                  background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+              <button className="rec-btn nb-press" onClick={() => router.push('/recettes/new')}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Plus size={11} /> Nouvelle recette
               </button>
-              <button className="rec-btn"
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+              <button className="rec-btn nb-press"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Zap size={11} /> Générer un repas
               </button>
             </div>
             {/* Search */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 38,
-              borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 40,
+              borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', marginBottom: 12 }}>
               <Search size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Chercher une recette…"
@@ -315,7 +315,7 @@ export default function RecettesPage() {
             router.refresh()
           }
           return (
-          <div key={r.id} className="rec-card" onClick={() => router.push(`/recettes/${r.id}`)}
+          <div key={r.id} className="rec-card nb-press" onClick={() => router.push(`/recettes/${r.id}`)}
             style={{ ...card(), cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 20, position: 'relative' }}>
             {/* Fav + Delete */}
             <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8 }}>
@@ -464,7 +464,7 @@ export default function RecettesPage() {
             <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 10 }}>Actions rapides</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {[
-                { l: '+ Recette', bg: ORANGE, color: '#fff' },
+                { l: '+ Recette', bg: ORANGE, color: 'var(--chocolate)' },
                 { l: 'Importer', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
                 { l: 'Favoris', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
                 { l: 'Exporter', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
@@ -715,14 +715,14 @@ export default function RecettesPage() {
       {selectedMealSlot && (
         <div onClick={() => setSelectedMealSlot(null)}
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 16, padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '1px solid rgba(var(--text-rgb),0.1)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
             <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, marginBottom: 16 }}>{selectedMealSlot.dayLabel} - {selectedMealSlot.mealLabel}</p>
             {allRecipes.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'center', textAlign: 'center', padding: '12px 0' }}>
                 <p style={{ fontSize: 13, color: 'rgba(var(--text-rgb),0.7)' }}>Aucune recette — crée une recette d&apos;abord</p>
-                <button onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new') }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 9,
-                    background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new') }} className="nb-press"
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 'var(--radius-lg)',
+                    background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                   <Plus size={12} /> Nouvelle recette
                 </button>
               </div>

@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, TrendingDown, TrendingUp, Scale } from 'lucide-react'
+import { ArrowLeft, Plus, TrendingDown, TrendingUp, Scale } from '@/components/ui/icons'
 import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -9,6 +9,9 @@ const TEAL    = 'var(--azul)'
 const TEAL_BG = 'var(--azul)'
 const ORANGE  = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
+const STICKER: React.CSSProperties = {
+  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
+}
 
 function fmtDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'long', year: 'numeric' })
@@ -100,41 +103,41 @@ export default function PoidsPage() {
     <div style={{ padding: 30, minHeight: '100%', maxWidth: 1100, margin: '0 auto' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-        <button onClick={() => router.back()}
+        <button onClick={() => router.back()} className="nb-press"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36,
-            borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
         </button>
         <div>
           <p style={{ ...DF, fontSize: 24, fontWeight: 900, color: TEAL, lineHeight: 1 }}>Évolution du poids</p>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>Historique complet · {metrics.length} mesures</p>
         </div>
-        <button onClick={() => setShowForm(v => !v)}
+        <button onClick={() => setShowForm(v => !v)} className="nb-press"
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 10, background: TEAL_BG, color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <Plus size={12} /> Ajouter une mesure
         </button>
       </div>
 
       {/* Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: 16,
-          borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border-active)' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16, padding: 16,
+          background: 'var(--bg-card)', ...STICKER }}>
           <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
             style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }} />
           <input type="number" step="0.1" value={form.weight} onChange={e => setForm(f => ({ ...f, weight: e.target.value }))}
             placeholder="Poids en kg" autoFocus
             style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13 }} />
-          <button type="submit" style={{ background: TEAL_BG, color: WHEAT, borderRadius: 8, padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press" style={{ background: TEAL_BG, color: 'var(--creamy-ivory)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Enregistrer
           </button>
-          <button type="button" onClick={() => setShowForm(false)}
-            style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '8px 14px', fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>×</button>
+          <button type="button" onClick={() => setShowForm(false)} className="nb-press"
+            style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 14px', fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>×</button>
         </form>
       )}
 
       {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 16 }}>
         {[
           { l: 'Poids actuel', v: latestWeight ? `${latestWeight} kg` : '—', color: ORANGE,
             sub: weightTrend != null ? `${weightTrend > 0 ? '+' : ''}${weightTrend?.toFixed(1)} kg vs hier` : '' },
@@ -142,7 +145,7 @@ export default function PoidsPage() {
           { l: 'Maximum',   v: maxW ? `${maxW.toFixed(1)} kg` : '—', color: WHEAT, sub: '' },
           { l: 'Moyenne',   v: avgW ? `${avgW.toFixed(1)} kg` : '—', color: TEAL,  sub: `sur ${weightData.length} mesures` },
         ].map(s => (
-          <div key={s.l} style={{ padding: '18px 20px', borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div key={s.l} style={{ padding: '18px 20px', background: 'var(--bg-card)', ...STICKER }}>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>{s.l}</p>
             <p style={{ ...DF, fontSize: 24, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.v}</p>
             {s.sub && <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{s.sub}</p>}
@@ -151,7 +154,7 @@ export default function PoidsPage() {
       </div>
 
       {/* Chart */}
-      <div style={{ padding: 24, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', marginBottom: 16 }}>
+      <div style={{ padding: 24, background: 'var(--bg-card)', ...STICKER, marginBottom: 16 }}>
         <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: TEAL, textTransform: 'uppercase', marginBottom: 16 }}>
           Courbe de poids
         </p>
@@ -166,7 +169,7 @@ export default function PoidsPage() {
       </div>
 
       {/* History table */}
-      <div style={{ borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-card)', ...STICKER, overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: ORANGE, textTransform: 'uppercase' }}>Historique</p>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{metrics.length} entrées</span>

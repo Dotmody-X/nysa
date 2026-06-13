@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ChevronLeft, Plus, X, Trash2 } from 'lucide-react'
+import { ChevronLeft, Plus, X, Trash2 } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
 import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
 
@@ -11,7 +11,7 @@ const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 
 interface RecipeData {
@@ -327,8 +327,8 @@ export default function RecipeEditPage() {
             </select>
             <button onClick={() => setShowNewCategory(!showNewCategory)}
               style={{
-                padding: '8px 14px', borderRadius: 6, background: ORANGE, color: '#0C0C0C',
-                border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12
+                padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--chocolate)',
+                border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
               }}>
               <Plus size={14} />
             </button>
@@ -342,8 +342,8 @@ export default function RecipeEditPage() {
                 }} />
               <button onClick={addCategory}
                 style={{
-                  padding: '8px 14px', borderRadius: 6, background: ORANGE, color: '#0C0C0C',
-                  border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12
+                  padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--chocolate)',
+                  border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
                 }}>
                 Créer
               </button>
@@ -402,8 +402,8 @@ export default function RecipeEditPage() {
             </select>
             <button onClick={addIngredient}
               style={{
-                padding: '8px 14px', borderRadius: 6, background: ORANGE, color: '#0C0C0C',
-                border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12
+                padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--chocolate)',
+                border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
               }}>
               <Plus size={14} />
             </button>
@@ -426,18 +426,18 @@ export default function RecipeEditPage() {
 
       {/* Actions */}
       <div style={{ display: 'flex', gap: 12 }}>
-        <button onClick={handleSave} disabled={saving || !recipe.name.trim()}
+        <button onClick={handleSave} disabled={saving || !recipe.name.trim()} className="nb-press"
           style={{
-            flex: 1, padding: '12px', borderRadius: 8, background: ORANGE, color: '#0C0C0C',
-            border: 'none', cursor: saving ? 'default' : 'pointer', fontWeight: 700, opacity: saving || !recipe.name.trim() ? 0.5 : 1
+            flex: 1, padding: '12px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)',
+            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: saving ? 'default' : 'pointer', fontWeight: 700, opacity: saving || !recipe.name.trim() ? 0.5 : 1
           }}>
           {saving ? 'Sauvegarde...' : 'Sauvegarder'}
         </button>
         {!isNew && (
-          <button onClick={handleDelete}
+          <button onClick={handleDelete} className="nb-press"
             style={{
-              padding: '12px 20px', borderRadius: 8, background: 'transparent', color: ORANGE,
-              border: `1px solid ${ORANGE}`, cursor: 'pointer', fontWeight: 700
+              padding: '12px 20px', borderRadius: 'var(--radius-lg)', background: 'transparent', color: ORANGE,
+              border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
             }}>
             <Trash2 size={18} />
           </button>

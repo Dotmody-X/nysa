@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { TrendingUp, Zap, Activity } from 'lucide-react'
+import { TrendingUp, Zap, Activity } from '@/components/ui/icons'
 import type { ActivitySegment } from '@/hooks/useActivitySegments'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }

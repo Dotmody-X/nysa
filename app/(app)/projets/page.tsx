@@ -4,7 +4,7 @@ import {
   Plus, Search, MoreVertical, X, Pencil, Trash2,
   CheckSquare, ChevronRight, Link2, Users, Calendar,
   FileUp, Trash, Download, Edit2, Save,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useProjects }    from '@/hooks/useProjects'
@@ -510,8 +510,9 @@ export default function ProjetsPage() {
   // ── Styles ─────────────────────────────────────────────────────────────────
   const card: React.CSSProperties = {
     background: 'var(--bg-card)',
-    border: '1px solid var(--border)',
-    borderRadius: 12,
+    border: '2px solid var(--ink)',
+    boxShadow: '4px 4px 0 var(--ink)',
+    borderRadius: 'var(--radius-lg)',
   }
   const sectionLabel: React.CSSProperties = {
     fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase',
@@ -542,7 +543,7 @@ export default function ProjetsPage() {
   }
 
   return (
-    <div style={{ padding: 30, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, alignContent: 'start' }}>
+    <div style={{ padding: 30, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, alignContent: 'start' }}>
 
       {/* ── ROW 1 : Hero (2 cols) + VUE GLOBALE marques (2 cols) — 300px ──── */}
 
@@ -560,9 +561,9 @@ export default function ProjetsPage() {
       </div>
 
       {/* VUE GLOBALE — 4 marques avec temps semaine */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--accent-budget)', border: '1px solid var(--accent-budget)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--accent-budget)', border: '2px solid var(--ink)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' } as React.CSSProperties}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
           <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', fontWeight: 600 }}>{totalSec > 0 ? fmtHours(totalSec) : '—'} cette semaine</span>
         </div>
         {/* 4 cellules : Mixologue / E-Smoker / Aeterna / Interne */}
@@ -582,7 +583,7 @@ export default function ProjetsPage() {
                   <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.85)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{g.value}</span>
                 </div>
                 <div>
-                  <p style={{ ...DF, fontWeight: 900, fontSize: 24, color: '#fff', lineHeight: 1 }}>
+                  <p style={{ ...DF, fontWeight: 900, fontSize: 24, color: 'var(--chocolate)', lineHeight: 1 }}>
                     {sec > 0 ? fmtHours(sec) : '—'}
                   </p>
                   <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)', marginTop: 3 }}>
@@ -616,8 +617,8 @@ export default function ProjetsPage() {
           onChange={setStatusFilter}
         />
         <div style={{ flex: 1 }} />
-        <button onClick={() => setCreateModal(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: 'var(--accent-budget)', color: '#fff', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+        <button onClick={() => setCreateModal(true)} className="nb-press"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           <Plus size={13} /> NOUVEAU PROJET
         </button>
       </div>
@@ -656,7 +657,7 @@ export default function ProjetsPage() {
                     )}
                   </div>
                   {/* Cards horizontales */}
-                  <div style={{ display: 'flex', gap: 10, padding: '6px 20px 14px', overflowX: 'auto', scrollbarWidth: 'thin' }}>
+                  <div style={{ display: 'flex', gap: 14, padding: '8px 20px 16px', overflowX: 'auto', scrollbarWidth: 'thin' }}>
                     {gProjs.map(p => {
                       const pTasks   = tasks.filter(t => t.project_id === p.id)
                       const pDone    = pTasks.filter(t => t.status === 'done').length
@@ -665,11 +666,11 @@ export default function ProjetsPage() {
                       const isActive = selectedProject?.id === p.id
 
                       return (
-                        <div key={p.id} onClick={() => handleSelectProject(p.id)}
+                        <div key={p.id} onClick={() => handleSelectProject(p.id)} className="nb-press"
                           style={{
-                            flexShrink: 0, width: 210, padding: 14, borderRadius: 10, cursor: 'pointer',
+                            flexShrink: 0, width: 210, padding: 14, borderRadius: 'var(--radius-lg)', cursor: 'pointer',
                             background: isActive ? `${p.color}15` : 'var(--bg)',
-                            border: `1px solid ${isActive ? p.color : 'var(--border)'}`,
+                            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
                             display: 'flex', flexDirection: 'column', gap: 8, transition: 'all 0.15s',
                           }}>
                           {/* Badge + ⋮ */}
@@ -984,7 +985,7 @@ export default function ProjetsPage() {
       {/* ── ROW 6 : RÉPARTITION PAR MARQUE (teal, col-span-2) + ACTIVITÉ + LIENS */}
 
       {/* RÉPARTITION PAR MARQUE */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '1px solid var(--azul)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '2px solid var(--ink)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
         <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition par marque</p>
           <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>

@@ -1,6 +1,6 @@
 'use client'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Heart, Activity } from 'lucide-react'
+import { ArrowLeft, Heart, Activity } from '@/components/ui/icons'
 import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -8,6 +8,9 @@ const TEAL   = 'var(--azul)'
 const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 const RED    = '#ff5050'
+const STICKER: React.CSSProperties = {
+  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
+}
 
 function fmtDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -108,9 +111,9 @@ export default function FrequenceCardiaqueePage() {
     <div style={{ padding: 30, minHeight: '100%', maxWidth: 1100, margin: '0 auto' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-        <button onClick={() => router.back()}
+        <button onClick={() => router.back()} className="nb-press"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36,
-            borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
         </button>
         <div>
@@ -120,23 +123,23 @@ export default function FrequenceCardiaqueePage() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 16 }}>
         {[
           { l: 'FC Moyenne (repos moy.)', v: avgHr ? `${avgHr} bpm` : '—', color: RED },
           { l: 'FC Max enregistrée',      v: maxHr ? `${maxHr} bpm` : '—', color: ORANGE },
           { l: 'FC Repos estimée',        v: minHr ? `${minHr} bpm` : '—', color: TEAL },
           { l: 'Sorties analysées',       v: String(withHr.length),         color: WHEAT },
         ].map(s => (
-          <div key={s.l} style={{ padding: '18px 20px', borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div key={s.l} style={{ padding: '18px 20px', background: 'var(--bg-card)', ...STICKER }}>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>{s.l}</p>
             <p style={{ ...DF, fontSize: 24, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.v}</p>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14, marginBottom: 16 }}>
         {/* Chart */}
-        <div style={{ padding: 24, borderRadius: 12, background: 'var(--bg)', border: '1px solid rgba(255,80,80,0.15)' }}>
+        <div style={{ padding: 24, background: 'var(--bg)', ...STICKER }}>
           <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'rgba(255,80,80,0.7)', textTransform: 'uppercase', marginBottom: 16 }}>
             Tendance FC
           </p>
@@ -151,7 +154,7 @@ export default function FrequenceCardiaqueePage() {
         </div>
 
         {/* Zones */}
-        <div style={{ padding: 24, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div style={{ padding: 24, background: 'var(--bg-card)', ...STICKER }}>
           <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: ORANGE, textTransform: 'uppercase', marginBottom: 16 }}>
             Zones FC (estimation)
           </p>
@@ -161,7 +164,7 @@ export default function FrequenceCardiaqueePage() {
       </div>
 
       {/* Activity list with HR */}
-      <div style={{ borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-card)', ...STICKER, overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: RED, textTransform: 'uppercase' }}>
             Sorties avec FC

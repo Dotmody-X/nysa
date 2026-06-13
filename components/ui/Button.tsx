@@ -12,16 +12,16 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<Variant, string> = {
-  primary:   'bg-[var(--accent-budget)] text-[var(--text)] hover:bg-[#d94420] border border-transparent',
-  secondary: 'bg-transparent text-[var(--text)] border border-[rgba(var(--text-rgb),0.2)] hover:border-[rgba(var(--text-rgb),0.4)] hover:bg-[rgba(var(--text-rgb),0.05)]',
-  ghost:     'bg-transparent text-[rgba(var(--text-rgb),0.6)] border border-transparent hover:text-[var(--text)] hover:bg-[rgba(var(--text-rgb),0.06)]',
-  danger:    'bg-transparent text-[var(--accent-budget)] border border-[rgba(242,84,45,0.3)] hover:bg-[rgba(242,84,45,0.1)]',
+  primary:   'nb-press bg-[var(--accent-budget)] text-[var(--chocolate)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
+  secondary: 'nb-press bg-[var(--bg-card)] text-[var(--ink)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
+  ghost:     'bg-transparent text-[var(--ink)] border-2 border-transparent hover:bg-[rgba(var(--text-rgb),0.06)]',
+  danger:    'nb-press bg-[var(--danger)] text-[var(--creamy-ivory)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
 }
 
 const sizeStyles: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-xs rounded-[6px] gap-1.5',
-  md: 'px-4 py-2   text-sm rounded-[8px] gap-2',
-  lg: 'px-5 py-2.5 text-sm rounded-[10px] gap-2',
+  sm: 'px-3 py-1.5 text-xs rounded-[8px] gap-1.5',
+  md: 'px-4 py-2   text-sm rounded-[10px] gap-2',
+  lg: 'px-5 py-2.5 text-sm rounded-[12px] gap-2',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation'
 import {
   ChevronLeft, Plus, Package, Pencil, Trash2, Check, X,
   AlertTriangle, ShoppingCart, Search, Loader2,
-} from 'lucide-react'
-import { AlertTriangle as AlertIcon } from 'lucide-react'
+} from '@/components/ui/icons'
+import { AlertTriangle as AlertIcon } from '@/components/ui/icons'
 import { useInventory } from '@/hooks/useInventory'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
@@ -19,7 +19,7 @@ const WHEAT   = 'var(--text)'
 const TEAL_BG = 'var(--azul)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
@@ -72,7 +72,7 @@ function ConfirmModal({ name, onConfirm, onCancel }: { name: string; onConfirm: 
           <button onClick={onCancel} style={{ padding: '8px 20px', borderRadius: 8, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Annuler
           </button>
-          <button onClick={onConfirm} style={{ padding: '8px 20px', borderRadius: 8, background: ORANGE, border: 'none', color: '#fff', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
+          <button onClick={onConfirm} className="nb-press" style={{ padding: '8px 20px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--chocolate)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Supprimer
           </button>
         </div>
@@ -251,7 +251,7 @@ function EditPanel({
           <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Annuler
           </button>
-          <button onClick={handleSave} style={{ flex: 2, padding: '10px', borderRadius: 9, background: ORANGE, border: 'none', color: '#fff', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 12 }}>
+          <button onClick={handleSave} className="nb-press" style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--chocolate)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 12 }}>
             {isNew ? '+ Ajouter' : 'Enregistrer'}
           </button>
         </div>
@@ -356,8 +356,8 @@ export default function InventairePage() {
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
-        <button onClick={() => router.push('/courses')}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 9, padding: '7px 12px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 11 }}>
+        <button onClick={() => router.push('/courses')} className="nb-press"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '7px 12px', cursor: 'pointer', color: 'var(--text)', fontSize: 11 }}>
           <ChevronLeft size={13} /> Courses
         </button>
         <div style={{ flex: 1 }}>
@@ -367,26 +367,26 @@ export default function InventairePage() {
           </p>
         </div>
         {itemToBuy > 0 && (
-          <button onClick={addToCourses} disabled={pushingToCourses}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, background: ORANGE, border: 'none', cursor: 'pointer', color: '#fff', ...DF, fontWeight: 800, fontSize: 12, opacity: pushingToCourses ? 0.6 : 1 }}>
+          <button onClick={addToCourses} disabled={pushingToCourses} className="nb-press"
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--chocolate)', ...DF, fontWeight: 800, fontSize: 12, opacity: pushingToCourses ? 0.6 : 1 }}>
             {pushingToCourses ? <Loader2 size={13} className="animate-spin" /> : <ShoppingCart size={13} />} Ajouter {itemToBuy} article{itemToBuy > 1 ? 's' : ''} aux courses
           </button>
         )}
-        <button onClick={() => setEditItem('new')}
-          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, background: TEAL_BG, border: 'none', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 800, fontSize: 12 }}>
+        <button onClick={() => setEditItem('new')} className="nb-press"
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 'var(--radius-lg)', background: TEAL_BG, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 800, fontSize: 12 }}>
           <Plus size={13} /> Ajouter un article
         </button>
       </div>
 
       {/* ── KPIs ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 16 }}>
         {[
           { l: 'Total articles',    v: String(items.length),      color: WHEAT  },
           { l: 'Stock suffisant',   v: String(countByStatus('ok')),  color: '#5B9F3A' },
           { l: 'Stock faible',      v: String(countByStatus('low')), color: ORANGE },
           { l: 'À racheter',        v: String(countByStatus('buy')), color: '#EF4444' },
         ].map(k => (
-          <div key={k.l} style={{ padding: '14px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div key={k.l} style={{ padding: '14px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{k.l}</p>
             <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: k.color, lineHeight: 1 }}>{k.v}</p>
           </div>
@@ -396,7 +396,7 @@ export default function InventairePage() {
       {/* ── Filters ── */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
         {/* Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 200, padding: '0 12px', height: 36, borderRadius: 9, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 200, padding: '0 12px', height: 40, borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
           <Search size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Chercher un article…"
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)' }} />
@@ -415,7 +415,7 @@ export default function InventairePage() {
         </div>
         {/* Category filter */}
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 9, padding: '6px 12px', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer', outline: 'none' }}>
+          style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '6px 12px', color: 'var(--text)', fontSize: 11, cursor: 'pointer', outline: 'none' }}>
           <option>Toutes</option>
           {CATEGORIES.map(c => <option key={c}>{c}</option>)}
         </select>
@@ -454,7 +454,7 @@ export default function InventairePage() {
 
       {/* ── Alert banner: items à racheter ── */}
       {countByStatus('buy') > 0 && (
-        <div style={{ marginTop: 16, padding: '14px 20px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ marginTop: 16, padding: '14px 20px', borderRadius: 'var(--radius-lg)', background: 'rgba(239,68,68,0.08)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', display: 'flex', alignItems: 'center', gap: 12 }}>
           <AlertTriangle size={18} style={{ color: '#EF4444', flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
             <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: '#EF4444' }}>{countByStatus('buy')} article{countByStatus('buy') > 1 ? 's' : ''} à racheter</p>
@@ -462,8 +462,8 @@ export default function InventairePage() {
               {items.filter(i => i.status === 'buy').map(i => i.name).join(', ')}
             </p>
           </div>
-          <button onClick={addToCourses} disabled={pushingToCourses}
-            style={{ padding: '8px 16px', borderRadius: 9, background: ORANGE, border: 'none', cursor: 'pointer', color: '#fff', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', opacity: pushingToCourses ? 0.6 : 1 }}>
+          <button onClick={addToCourses} disabled={pushingToCourses} className="nb-press"
+            style={{ padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--chocolate)', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', opacity: pushingToCourses ? 0.6 : 1 }}>
             → Ajouter aux courses
           </button>
         </div>

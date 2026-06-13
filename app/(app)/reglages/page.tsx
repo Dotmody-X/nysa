@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { User, Palette, Bell, Database, Keyboard, Info, Puzzle, RotateCcw } from 'lucide-react'
+import { User, Palette, Bell, Database, Keyboard, Info, Puzzle, RotateCcw } from '@/components/ui/icons'
 import { saveTheme, loadTheme, type ThemeMode } from '@/lib/theme'
 import { isDemoModeEnabled, toggleDemoMode } from '@/lib/demo-mode'
 import { PageTitle } from '@/components/ui/PageTitle'
@@ -46,17 +46,17 @@ export default function ReglagesPage() {
     <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
       <PageTitle title="Réglages" sub="Personnalise · Intégrations · Données · Abonnement" />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-[10px]">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-[12px]">
         {/* Sidebar nav */}
-        <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:8, height:'fit-content' }}>
+        <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:8, height:'fit-content', display:'flex', flexDirection:'column', gap:6 }}>
           {TABS.map(t => {
             const Icon = t.icon
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
-                style={{ background: tab===t.key ? 'rgba(242,84,45,0.1)' : 'transparent', borderLeft: tab===t.key ? '2px solid var(--accent-budget)' : '2px solid transparent' }}>
-                <Icon size={14} style={{ color: tab===t.key ? 'var(--accent-budget)' : 'var(--text-muted)' }} />
-                <span style={{ ...DF, fontSize:11, fontWeight: tab===t.key ? 700 : 500, color: tab===t.key ? 'var(--text)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{t.label}</span>
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all nb-press"
+                style={{ background: tab===t.key ? 'var(--accent-budget)' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow: tab===t.key ? '3px 3px 0 var(--ink)' : 'none' }}>
+                <Icon size={14} style={{ color: tab===t.key ? 'var(--chocolate)' : 'var(--text-muted)' }} />
+                <span style={{ ...DF, fontSize:11, fontWeight: tab===t.key ? 800 : 500, color: tab===t.key ? 'var(--chocolate)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{t.label}</span>
               </button>
             )
           })}
@@ -78,7 +78,7 @@ export default function ReglagesPage() {
 
 function ProfilTab() {
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Profil</p>
       <div className="flex flex-col gap-4">
         {[
@@ -90,10 +90,10 @@ function ProfilTab() {
           <div key={f.label}>
             <p style={{ fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-display)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>{f.label}</p>
             <input type={f.type} placeholder={f.placeholder}
-              style={{ width:'100%', background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }} />
+              style={{ width:'100%', background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }} />
           </div>
         ))}
-        <button style={{ background:'var(--accent-budget)', color:'#fff', borderRadius:10, padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:700, fontSize:12, width:'fit-content', marginTop:8 }}>
+        <button className="nb-press" style={{ background:'var(--accent-budget)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, width:'fit-content', marginTop:8 }}>
           Sauvegarder
         </button>
       </div>
@@ -109,34 +109,34 @@ function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; acce
   ]
   return (
     <div className="flex flex-col gap-[10px]">
-      <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
+      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
         <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:16 }}>Thème</p>
         <div className="grid grid-cols-3 gap-3">
           {themes.map(t => (
             <button key={t.key} onClick={() => onTheme(t.key)}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all"
-              style={{ border:`2px solid ${theme===t.key ? 'var(--accent-budget)' : 'var(--border)'}`, background:'var(--bg-input)' }}>
-              <div style={{ width:48, height:32, borderRadius:6, background:t.bg, border:'1px solid var(--border)' }} />
-              <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? 'var(--accent-budget)' : 'var(--text-muted)' }}>{t.label}</span>
+              className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all nb-press"
+              style={{ border:'2px solid var(--ink)', boxShadow: theme===t.key ? '4px 4px 0 var(--ink)' : 'none', background: theme===t.key ? 'var(--accent-budget)' : 'var(--bg-input)' }}>
+              <div style={{ width:48, height:32, borderRadius:6, background:t.bg, border:'2px solid var(--ink)' }} />
+              <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? 'var(--chocolate)' : 'var(--text-muted)' }}>{t.label}</span>
             </button>
           ))}
         </div>
       </div>
-      <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
+      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
         <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--azul)', textTransform:'uppercase', marginBottom:16 }}>Couleur accent</p>
         <div className="grid grid-cols-4 gap-2 mb-4">
           {ACCENT_PRESETS.map(p => (
             <button key={p.color} onClick={() => onAccent(p.color)}
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl"
-              style={{ border:`2px solid ${accent===p.color ? p.color : 'var(--border)'}`, background:'var(--bg-input)' }}>
-              <div style={{ width:28, height:28, borderRadius:'50%', background:p.color }} />
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl nb-press"
+              style={{ border:'2px solid var(--ink)', boxShadow: accent===p.color ? '4px 4px 0 var(--ink)' : 'none', background:'var(--bg-input)' }}>
+              <div style={{ width:28, height:28, borderRadius:'50%', background:p.color, border:'2px solid var(--ink)' }} />
               <span style={{ fontFamily:'var(--font-display)', fontSize:9, fontWeight:700, color: accent===p.color ? p.color : 'var(--text-muted)', textTransform:'uppercase' }}>{p.label}</span>
             </button>
           ))}
         </div>
         <div className="flex items-center gap-3">
           <input type="color" value={accent} onChange={e => onAccent(e.target.value)}
-            style={{ width:40, height:40, borderRadius:8, border:'1px solid var(--border)', padding:3, cursor:'pointer', background:'var(--bg-input)' }} />
+            style={{ width:40, height:40, borderRadius:8, border:'2px solid var(--ink)', padding:3, cursor:'pointer', background:'var(--bg-input)' }} />
           <span style={{ fontSize:12, color:'var(--text-muted)' }}>Couleur personnalisée</span>
           <code style={{ fontSize:11, color:accent, fontWeight:700 }}>{accent}</code>
         </div>
@@ -147,7 +147,7 @@ function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; acce
 
 function NotifsTab() {
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Notifications</p>
       {[
         { label:'Rappels de tâches',     desc:'Notif avant deadline' },
@@ -161,8 +161,8 @@ function NotifsTab() {
             <p style={{ fontSize:13, color:'var(--text)' }}>{n.label}</p>
             <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{n.desc}</p>
           </div>
-          <div style={{ width:40, height:22, borderRadius:99, background:'rgba(14,149,148,0.3)', cursor:'pointer', position:'relative' }}>
-            <div style={{ width:18, height:18, borderRadius:'50%', background:'var(--azul)', position:'absolute', top:2, right:2, transition:'all 0.2s' }} />
+          <div className="nb-press" style={{ width:42, height:24, borderRadius:99, background:'var(--azul)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', cursor:'pointer', position:'relative' }}>
+            <div style={{ width:16, height:16, borderRadius:'50%', background:'var(--creamy-ivory)', position:'absolute', top:2, right:2, transition:'all 0.2s' }} />
           </div>
         </div>
       ))}
@@ -185,7 +185,7 @@ function DonneesTab() {
   }
 
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Données & Sauvegardes</p>
       
       {/* Demo Mode Toggle */}
@@ -197,25 +197,27 @@ function DonneesTab() {
           </div>
           <button
             onClick={handleToggleDemo}
+            className="nb-press"
             style={{
               width:50,
               height:28,
               borderRadius:14,
-              border:'1px solid var(--border)',
+              border:'2px solid var(--ink)',
+              boxShadow:'2px 2px 0 var(--ink)',
               background: demoEnabled ? 'var(--accent-budget)' : 'var(--bg-input)',
               cursor:'pointer',
               display:'flex',
               alignItems:'center',
-              padding:demoEnabled ? '2px 2px 2px 24px' : '2px 24px 2px 2px',
+              padding:demoEnabled ? '2px 2px 2px 22px' : '2px 22px 2px 2px',
               transition:'all 0.2s ease',
             }}
             title="Toggle demo mode"
           >
             <div style={{
-              width:24,
-              height:24,
-              borderRadius:12,
-              background:'white',
+              width:20,
+              height:20,
+              borderRadius:10,
+              background:'var(--ink)',
               transition:'all 0.2s ease',
             }} />
           </button>
@@ -234,7 +236,7 @@ function DonneesTab() {
             <p style={{ fontSize:13, color:'var(--text)' }}>{a.label}</p>
             <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{a.desc}</p>
           </div>
-          <button style={{ fontSize:11, color:a.color, fontFamily:'var(--font-display)', fontWeight:700, padding:'6px 14px', borderRadius:8, border:`1px solid ${a.color}`, background:'transparent' }}>
+          <button className="nb-press" style={{ fontSize:11, color:a.color, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)' }}>
             Exporter
           </button>
         </div>
@@ -255,13 +257,13 @@ function RaccourcisTab() {
     { keys:'G B', action:'Budget' },
   ]
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Raccourcis clavier</p>
       <div className="grid grid-cols-2 gap-2">
         {shortcuts.map(s => (
-          <div key={s.action} className="flex items-center justify-between px-4 py-3 rounded-lg" style={{ background:'var(--bg-input)', border:'1px solid var(--border)' }}>
+          <div key={s.action} className="flex items-center justify-between px-4 py-3 rounded-lg" style={{ background:'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)' }}>
             <span style={{ fontSize:12, color:'var(--text-muted)' }}>{s.action}</span>
-            <kbd style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, color:'var(--text)', background:'var(--bg-card)', padding:'2px 8px', borderRadius:4, border:'1px solid var(--border)' }}>{s.keys}</kbd>
+            <kbd style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, color:'var(--text)', background:'var(--bg-card)', padding:'2px 8px', borderRadius:4, border:'2px solid var(--ink)' }}>{s.keys}</kbd>
           </div>
         ))}
       </div>
@@ -271,7 +273,7 @@ function RaccourcisTab() {
 
 function AboutTab() {
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:12, border:'1px solid var(--border)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>À propos</p>
       <div className="flex flex-col gap-4">
         <div>

@@ -37,7 +37,7 @@ export default function LoginPage() {
       <div className="flex flex-col items-center mb-10">
         <div
           className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
-          style={{ background: 'var(--creamy-ivory)', border: '1px solid var(--border)' }}
+          style={{ background: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
         >
           <NysaLogo size={30} color="#1a0708" />
         </div>
@@ -50,7 +50,7 @@ export default function LoginPage() {
       </div>
 
       {/* Formulaire */}
-      <form onSubmit={handleLogin} className="flex flex-col gap-4">
+      <form onSubmit={handleLogin} className="nb-card flex flex-col gap-4 p-6">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--text-muted)' }}>
             Email
@@ -61,14 +61,14 @@ export default function LoginPage() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="nathan@exemple.com"
-            className="w-full px-3 py-2.5 rounded-[8px] text-sm outline-none transition-all duration-150"
+            className="w-full px-3 py-2.5 rounded-[10px] text-sm outline-none transition-all duration-150"
             style={{
               background:  'var(--bg-input)',
-              border:      '1px solid var(--border)',
+              border:      '2px solid var(--ink)',
               color:       'var(--text)',
             }}
-            onFocus={e => (e.currentTarget.style.borderColor = 'rgba(242,84,45,0.4)')}
-            onBlur={e  => (e.currentTarget.style.borderColor = 'var(--border)')}
+            onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-budget)')}
+            onBlur={e  => (e.currentTarget.style.borderColor = 'var(--ink)')}
           />
         </div>
 
@@ -94,7 +94,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="text-xs px-3 py-2 rounded-[6px]" style={{ color: 'var(--accent-budget)', background: 'rgba(242,84,45,0.1)', border: '1px solid rgba(242,84,45,0.2)' }}>
+          <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--chocolate)', background: 'var(--danger)', border: '2px solid var(--ink)' }}>
             {error}
           </p>
         )}
@@ -102,8 +102,8 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 rounded-[8px] text-sm font-semibold tracking-wide transition-all duration-150 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: 'var(--accent-budget)', color: 'var(--text)' }}
+          className="nb-press w-full py-2.5 rounded-[10px] text-sm font-semibold tracking-wide mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
         >
           {loading ? 'Connexion…' : 'Se connecter'}
         </button>

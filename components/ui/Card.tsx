@@ -16,12 +16,16 @@ export function Card({ padding = 'md', hover = false, className = '', children, 
   return (
     <div
       className={[
-        'rounded-[10px] border',
+        'rounded-[var(--radius-lg)] border-2',
         paddingMap[padding],
-        hover ? 'transition-colors duration-150 cursor-pointer hover:bg-[#1E1E1E]' : '',
+        hover ? 'nb-press cursor-pointer' : '',
         className,
       ].join(' ')}
-      style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}
+      style={{
+        background: 'var(--bg-card)',
+        borderColor: 'var(--ink)',
+        boxShadow: '4px 4px 0 var(--ink)',
+      }}
       {...props}
     >
       {children}

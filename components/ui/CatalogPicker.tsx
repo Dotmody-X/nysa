@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, Loader2 } from '@/components/ui/icons'
 import { searchCatalog, catalogNutrition, CATEGORY_EMOJI, type CatalogCategory } from '@/lib/catalogue'
 import { searchProducts, guessCategory as guessOffCategory } from '@/lib/openFoodFacts'
 

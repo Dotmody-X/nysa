@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus } from '@/components/ui/icons'
 import { NysaLogo } from './NysaLogo'
 
 interface EmptyStateProps {
@@ -44,8 +44,8 @@ export function EmptyState({
           {action.href ? (
             <Link
               href={action.href}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--accent-budget)', color: 'var(--creamy-ivory)' }}
+              className="nb-press inline-flex items-center gap-2 px-4 py-2 rounded-[10px] font-semibold"
+              style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
             >
               <Plus size={16} />
               {action.label}
@@ -53,8 +53,8 @@ export function EmptyState({
           ) : (
             <button
               onClick={action.onClick}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-opacity hover:opacity-80"
-              style={{ background: 'var(--accent-budget)', color: 'var(--creamy-ivory)' }}
+              className="nb-press inline-flex items-center gap-2 px-4 py-2 rounded-[10px] font-semibold"
+              style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
             >
               <Plus size={16} />
               {action.label}

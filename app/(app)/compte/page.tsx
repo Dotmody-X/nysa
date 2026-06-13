@@ -1,12 +1,12 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Settings, Bell, Palette, Lock, Keyboard, Download,
   ChevronRight, Flame, Star, TrendingUp, Activity,
   CheckSquare, Wallet, Clock, Utensils, Zap, Shield,
   ExternalLink, AlertTriangle, X, Check,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
 import { useHealth } from '@/hooks/useHealth'
 import { useDashboard } from '@/hooks/useDashboard'
@@ -21,7 +21,7 @@ function fmtH(sec: number) {
   return h > 0 ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}m`
 }
 function card(bg: string, extra?: React.CSSProperties): React.CSSProperties {
-  return { background: bg, borderRadius: 12, overflow: 'hidden', ...extra }
+  return { background: bg, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra }
 }
 
 // ─── XP / Level ──────────────────────────────────────────────────────────────
@@ -242,7 +242,7 @@ export default function ComptePage() {
       {showDelete && (
         <>
           <div onClick={()=>setShowDelete(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:200, backdropFilter:'blur(4px)' }} />
-          <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:16, padding:28, width:'calc(100% - 32px)', maxWidth:400, border:'1px solid rgba(242,84,45,0.3)' }}>
+          <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:'var(--radius-xl)', padding:28, width:'calc(100% - 32px)', maxWidth:400, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)' }}>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
               <AlertTriangle size={20} style={{ color: ORANGE }} />
               <p style={{ ...DF, fontWeight:800, fontSize:15, color:'var(--text)' }}>Supprimer mon compte</p>
@@ -252,9 +252,9 @@ export default function ComptePage() {
               Cette action est <strong style={{color:ORANGE}}>irréversible</strong>. Toutes vos données seront supprimées. Tapez <strong>SUPPRIMER</strong> pour confirmer.
             </p>
             <input value={deleteInput} onChange={e=>setDeleteInput(e.target.value)} placeholder="SUPPRIMER"
-              style={{ width:'100%', background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 12px', color:'var(--text)', fontSize:13, marginBottom:12 }} />
-            <button disabled={deleteInput !== 'SUPPRIMER'} onClick={deleteAccount}
-              style={{ width:'100%', background: deleteInput==='SUPPRIMER' ? ORANGE : 'var(--bg-input)', color: deleteInput==='SUPPRIMER' ? '#fff' : 'var(--text-muted)', borderRadius:8, padding:'10px 16px', ...DF, fontWeight:700, fontSize:12, border:'none', cursor: deleteInput==='SUPPRIMER' ? 'pointer' : 'not-allowed' }}>
+              style={{ width:'100%', background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'8px 12px', color:'var(--text)', fontSize:13, marginBottom:12 }} />
+            <button disabled={deleteInput !== 'SUPPRIMER'} onClick={deleteAccount} className="nb-press"
+              style={{ width:'100%', background: deleteInput==='SUPPRIMER' ? ORANGE : 'var(--bg-input)', color: deleteInput==='SUPPRIMER' ? 'var(--chocolate)' : 'var(--text-muted)', borderRadius:'var(--radius-lg)', padding:'10px 16px', ...DF, fontWeight:700, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor: deleteInput==='SUPPRIMER' ? 'pointer' : 'not-allowed' }}>
               Supprimer définitivement
             </button>
           </div>
@@ -275,7 +275,7 @@ export default function ComptePage() {
         return (
           <>
             <div onClick={()=>setActiveIntegration(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:200, backdropFilter:'blur(4px)' }} />
-            <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:16, padding:28, width:'calc(100% - 32px)', maxWidth:380, border:'1px solid var(--border)', boxShadow:'0 24px 60px rgba(0,0,0,0.4)' }}>
+            <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:'var(--radius-xl)', padding:28, width:'calc(100% - 32px)', maxWidth:380, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   <span style={{ fontSize:28 }}>{app.icon}</span>
@@ -291,17 +291,17 @@ export default function ComptePage() {
               </div>
               <p style={{ fontSize:12, color:'var(--text-muted)', lineHeight:1.7, marginBottom:20 }}>{info.desc}</p>
               {info.action === 'oauth' && !app.connected && (
-                <a href={info.href} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', background:ORANGE, color:'#fff', borderRadius:8, padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'none', cursor:'pointer', textDecoration:'none', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+                <a href={info.href} className="nb-press" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', background:ORANGE, color:'var(--chocolate)', borderRadius:'var(--radius-lg)', padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', textDecoration:'none', textTransform:'uppercase', letterSpacing:'0.08em' }}>
                   {info.actionLabel}
                 </a>
               )}
               {info.action === 'oauth' && app.connected && (
-                <button style={{ width:'100%', background:'transparent', color:ORANGE, borderRadius:8, padding:'10px 0', ...DF, fontWeight:700, fontSize:12, border:`1px solid ${ORANGE}`, cursor:'pointer' }}>
+                <button className="nb-press" style={{ width:'100%', background:'var(--bg-card)', color:ORANGE, borderRadius:'var(--radius-lg)', padding:'10px 0', ...DF, fontWeight:700, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer' }}>
                   Déconnecter
                 </button>
               )}
               {info.action === 'soon' && (
-                <div style={{ padding:'12px 16px', borderRadius:10, background:'rgba(14,149,148,0.08)', border:'1px solid rgba(14,149,148,0.2)', textAlign:'center' }}>
+                <div style={{ padding:'12px 16px', borderRadius:'var(--radius-lg)', background:'rgba(14,149,148,0.08)', border:'2px solid var(--ink)', textAlign:'center' }}>
                   <span style={{ fontSize:11, color: TEAL, ...DF, fontWeight:700 }}>Prochainement disponible</span>
                 </div>
               )}
@@ -344,28 +344,28 @@ export default function ComptePage() {
       <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap:10 }}>
 
         {/* Profil card */}
-        <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:22, display:'flex', flexDirection:'column', gap:14 }}>
+        <div style={{ ...card('var(--bg-card)'), padding:22, display:'flex', flexDirection:'column', gap:14 }}>
           <div style={{ display:'flex', alignItems:'flex-start', gap:16 }}>
-            <div style={{ width:80, height:80, borderRadius:'50%', background:`linear-gradient(135deg,${ORANGE},${TEAL})`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <span style={{ ...DF, fontWeight:900, fontSize:32, color:'#fff' }}>{displayName.charAt(0).toUpperCase()}</span>
+            <div style={{ width:80, height:80, borderRadius:'50%', background:`linear-gradient(135deg,${ORANGE},${TEAL})`, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <span style={{ ...DF, fontWeight:900, fontSize:32, color:'var(--creamy-ivory)' }}>{displayName.charAt(0).toUpperCase()}</span>
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               {editMode ? (
                 <input value={displayName} onChange={e=>setDisplayName(e.target.value)} autoFocus
-                  style={{ width:'100%', background:'var(--bg-input)', border:`1px solid ${ORANGE}`, borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:16, fontWeight:700, fontFamily:'var(--font-display)', marginBottom:4 }} />
+                  style={{ width:'100%', background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:16, fontWeight:700, fontFamily:'var(--font-display)', marginBottom:4 }} />
               ) : (
                 <p style={{ ...DF, fontWeight:900, fontSize:20, color:WHEAT, marginBottom:2 }}>{displayName}</p>
               )}
               <p style={{ fontSize:11, color:'var(--text-muted)' }}>{email}</p>
               {editMode ? (
                 <input value={quote} onChange={e=>setQuote(e.target.value)} placeholder='"Votre devise personnelle..."'
-                  style={{ width:'100%', background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:11, marginTop:6 }} />
+                  style={{ width:'100%', background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:11, marginTop:6 }} />
               ) : quote ? (
                 <p style={{ fontSize:11, color:'var(--text-muted)', fontStyle:'italic', marginTop:4 }}>"{quote}"</p>
               ) : null}
             </div>
-            <button onClick={()=>editMode ? saveProfile() : setEditMode(true)}
-              style={{ background: editMode ? TEAL : 'var(--bg-input)', color: editMode ? '#fff' : 'var(--text-muted)', borderRadius:8, padding:'6px 12px', ...DF, fontWeight:700, fontSize:10, border:`1px solid ${editMode ? TEAL : 'var(--border)'}`, cursor:'pointer', flexShrink:0 }}>
+            <button onClick={()=>editMode ? saveProfile() : setEditMode(true)} className="nb-press"
+              style={{ background: editMode ? TEAL : 'var(--bg-input)', color: editMode ? 'var(--creamy-ivory)' : 'var(--text)', borderRadius:'var(--radius-lg)', padding:'6px 12px', ...DF, fontWeight:700, fontSize:10, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer', flexShrink:0 }}>
               {editMode ? 'Enregistrer' : 'Modifier le profil'}
             </button>
           </div>
@@ -383,12 +383,12 @@ export default function ComptePage() {
                 <p style={{ fontSize:11, color:'var(--text-muted)', minWidth:110 }}>{r.label}</p>
                 {r.edit && r.options ? (
                   <select value={r.value} onChange={e=>r.onChange!(e.target.value)}
-                    style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:6, padding:'4px 8px', color:'var(--text)', fontSize:11 }}>
+                    style={{ background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:6, padding:'4px 8px', color:'var(--text)', fontSize:11 }}>
                     {r.options.map(o=><option key={o}>{o}</option>)}
                   </select>
                 ) : r.edit && r.onChange ? (
                   <input value={r.value} onChange={e=>r.onChange!(e.target.value)}
-                    style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:6, padding:'4px 8px', color:'var(--text)', fontSize:11, flex:1 }} />
+                    style={{ background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:6, padding:'4px 8px', color:'var(--text)', fontSize:11, flex:1 }} />
                 ) : (
                   <p style={{ fontSize:11, color:'var(--text)', fontWeight:600 }}>{r.value}</p>
                 )}
@@ -398,8 +398,8 @@ export default function ComptePage() {
             {!editMode && (
               <div style={{ display:'flex', gap:6, marginTop:4 }}>
                 {(['dark','light','system'] as ThemeMode[]).map(t => (
-                  <button key={t} onClick={()=>applyTheme(t)}
-                    style={{ flex:1, padding:'5px 0', borderRadius:7, border:`1px solid ${theme===t ? ORANGE : 'var(--border)'}`, background: theme===t ? 'rgba(242,84,45,0.1)' : 'var(--bg-input)', color: theme===t ? ORANGE : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:9, cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+                  <button key={t} onClick={()=>applyTheme(t)} className="nb-press"
+                    style={{ flex:1, padding:'5px 0', borderRadius:7, border:'2px solid var(--ink)', boxShadow: theme===t ? '3px 3px 0 var(--ink)' : 'none', background: theme===t ? ORANGE : 'var(--bg-input)', color: theme===t ? 'var(--chocolate)' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:9, cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                     {t === 'dark' ? 'Sombre' : t === 'light' ? 'Clair' : 'Système'}
                   </button>
                 ))}
@@ -443,15 +443,15 @@ export default function ComptePage() {
       <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap:10 }}>
 
         {/* Succès */}
-        <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:20 }}>
+        <div style={{ ...card('var(--bg-card)'), padding:20 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Vos succès</p>
             <button style={{ fontSize:10, color:TEAL, background:'none', border:'none', cursor:'pointer', ...DF, fontWeight:700 }}>Voir tous</button>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             {badges.map(b => (
-              <div key={b.label} style={{ padding:'14px 12px', borderRadius:10, background: b.unlocked ? b.color+'18' : 'var(--bg-input)', border:`1px solid ${b.unlocked ? b.color+'44' : 'var(--border)'}`, opacity: b.unlocked ? 1 : 0.4, display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
-                <div style={{ width:44, height:44, borderRadius:10, background: b.unlocked ? b.color : 'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>
+              <div key={b.label} style={{ padding:'14px 12px', borderRadius:10, background: b.unlocked ? b.color+'18' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow: b.unlocked ? '3px 3px 0 var(--ink)' : 'none', opacity: b.unlocked ? 1 : 0.4, display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
+                <div style={{ width:44, height:44, borderRadius:10, background: b.unlocked ? b.color : 'var(--border)', border:'2px solid var(--ink)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>
                   {b.icon}
                 </div>
                 <p style={{ ...DF, fontSize:10, fontWeight:800, color: b.unlocked ? b.color : 'var(--text-muted)', textAlign:'center' }}>{b.label}</p>
@@ -463,13 +463,13 @@ export default function ComptePage() {
         </div>
 
         {/* Résumé activité */}
-        <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:20, display:'flex', flexDirection:'column', gap:12 }}>
+        <div style={{ ...card('var(--bg-card)'), padding:20, display:'flex', flexDirection:'column', gap:12 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Résumé de votre activité</p>
             <div style={{ display:'flex', gap:4 }}>
               {(['week','month'] as const).map(p => (
-                <button key={p} onClick={()=>setPeriod(p)}
-                  style={{ padding:'4px 10px', borderRadius:6, border:`1px solid ${period===p ? ORANGE : 'var(--border)'}`, background: period===p ? 'rgba(242,84,45,0.1)' : 'transparent', color: period===p ? ORANGE : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:9, cursor:'pointer' }}>
+                <button key={p} onClick={()=>setPeriod(p)} className="nb-press"
+                  style={{ padding:'4px 10px', borderRadius:6, border:'2px solid var(--ink)', boxShadow: period===p ? '2px 2px 0 var(--ink)' : 'none', background: period===p ? ORANGE : 'var(--bg-input)', color: period===p ? 'var(--chocolate)' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:9, cursor:'pointer' }}>
                   {p==='week' ? 'Cette semaine' : 'Ce mois'}
                 </button>
               ))}
@@ -492,7 +492,7 @@ export default function ComptePage() {
             </div>
           ))}
           {scoreProductivite >= 70 && (
-            <div style={{ padding:'10px 14px', borderRadius:10, background:'rgba(14,149,148,0.1)', border:'1px solid rgba(14,149,148,0.25)', display:'flex', alignItems:'center', gap:10, marginTop:4 }}>
+            <div style={{ padding:'10px 14px', borderRadius:'var(--radius-lg)', background:'rgba(14,149,148,0.1)', border:'2px solid var(--ink)', display:'flex', alignItems:'center', gap:10, marginTop:4 }}>
               <Zap size={14} style={{ color: TEAL, flexShrink:0 }} />
               <p style={{ fontSize:11, color:WHEAT, lineHeight:1.4 }}>Vous êtes plus productif le matin — vos pics d'activité sont entre 9h et 11h.</p>
             </div>
@@ -508,7 +508,7 @@ export default function ComptePage() {
       <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap:10 }}>
 
         {/* Série actuelle */}
-        <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:20 }}>
+        <div style={{ ...card('var(--bg-card)'), padding:20 }}>
           <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase', marginBottom:14 }}>Série actuelle</p>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
             <span style={{ fontSize:28 }}>🔥</span>
@@ -519,8 +519,8 @@ export default function ComptePage() {
           </div>
           <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
             {streakDays.map((active, i) => (
-              <div key={i} style={{ width:20, height:20, borderRadius:5, background: active ? ORANGE : 'var(--bg-input)', border:`1px solid ${active ? ORANGE : 'var(--border)'}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                {active && <Check size={10} style={{ color:'#fff' }} />}
+              <div key={i} style={{ width:20, height:20, borderRadius:5, background: active ? ORANGE : 'var(--bg-input)', border:'2px solid var(--ink)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                {active && <Check size={10} style={{ color:'var(--chocolate)' }} />}
               </div>
             ))}
           </div>
@@ -531,8 +531,8 @@ export default function ComptePage() {
         </div>
 
         {/* Préférences */}
-        <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', overflow:'hidden' }}>
-          <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--border)' }}>
+        <div style={{ ...card('var(--bg-card)'), overflow:'hidden' }}>
+          <div style={{ padding:'14px 16px', borderBottom:'2px solid var(--ink)' }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Préférences</p>
           </div>
           {prefItems.map(({ icon: Icon, label, sub, href }) => (
@@ -540,7 +540,7 @@ export default function ComptePage() {
               style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'10px 16px', background:'none', border:'none', borderBottom:'1px solid var(--border)', cursor:'pointer', textAlign:'left' }}
               onMouseEnter={e=>(e.currentTarget.style.background='var(--bg-card-hover)')}
               onMouseLeave={e=>(e.currentTarget.style.background='none')}>
-              <div style={{ width:30, height:30, borderRadius:8, background:'var(--bg-input)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <div style={{ width:30, height:30, borderRadius:8, background:'var(--bg-input)', border:'2px solid var(--ink)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <Icon size={14} style={{ color:'var(--text-muted)' }} />
               </div>
               <div style={{ flex:1, minWidth:0 }}>
@@ -553,8 +553,8 @@ export default function ComptePage() {
         </div>
 
         {/* Applications connectées */}
-        <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', overflow:'hidden' }}>
-          <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--border)' }}>
+        <div style={{ ...card('var(--bg-card)'), overflow:'hidden' }}>
+          <div style={{ padding:'14px 16px', borderBottom:'2px solid var(--ink)' }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Applications connectées</p>
           </div>
           {integrations.map(app => (
@@ -578,8 +578,8 @@ export default function ComptePage() {
       </div>
 
       {/* ══ ROW 4 : Activité récente (full) ════════════════════════════════ */}
-      <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', overflow:'hidden' }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', borderBottom:'1px solid var(--border)' }}>
+      <div style={{ ...card('var(--bg-card)'), overflow:'hidden' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', borderBottom:'2px solid var(--ink)' }}>
           <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:ORANGE, textTransform:'uppercase' }}>Activité récente</p>
           <p style={{ fontSize:10, color:'var(--text-muted)', ...DF, fontWeight:600 }}>Voir tout</p>
         </div>
@@ -602,47 +602,47 @@ export default function ComptePage() {
       <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr]" style={{ gap:10 }}>
 
         {/* Paramètres du compte */}
-        <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:22 }}>
+        <div style={{ ...card('var(--bg-card)'), padding:22 }}>
           <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase', marginBottom:16 }}>Paramètres du compte</p>
           <div style={{ display:'grid', gridTemplateColumns:'100px 1fr', gap:'10px 16px', alignItems:'center' }}>
             {[
               { label:'Nom',         value:displayName, setter:setDisplayName, type:'text' },
               { label:'Email',       value:email,       setter:setEmail,       type:'email', readOnly:true },
             ].map(f => (
-              <>
-                <p key={f.label+'l'} style={{ fontSize:12, color:'var(--text-muted)' }}>{f.label}</p>
-                <input key={f.label+'i'} value={f.value} onChange={e=>!f.readOnly && f.setter(e.target.value)} readOnly={f.readOnly}
-                  style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'7px 12px', color: f.readOnly ? 'var(--text-muted)' : 'var(--text)', fontSize:12, cursor: f.readOnly ? 'not-allowed' : 'text' }} />
-              </>
+              <Fragment key={f.label}>
+                <p style={{ fontSize:12, color:'var(--text-muted)' }}>{f.label}</p>
+                <input value={f.value} onChange={e=>!f.readOnly && f.setter(e.target.value)} readOnly={f.readOnly}
+                  style={{ background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'7px 12px', color: f.readOnly ? 'var(--text-muted)' : 'var(--text)', fontSize:12, cursor: f.readOnly ? 'not-allowed' : 'text' }} />
+              </Fragment>
             ))}
             <p style={{ fontSize:12, color:'var(--text-muted)' }}>Mot de passe</p>
             <div style={{ display:'flex', gap:8, alignItems:'center' }}>
               {showPwd ? (
                 <>
                   <input type="password" value={newPwd} onChange={e=>setNewPwd(e.target.value)} placeholder="Nouveau mot de passe" autoFocus
-                    style={{ flex:1, background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'7px 12px', color:'var(--text)', fontSize:12 }} />
-                  <button onClick={changePassword} style={{ background:TEAL, color:'#fff', borderRadius:8, padding:'7px 12px', ...DF, fontWeight:700, fontSize:11, border:'none', cursor:'pointer' }}>OK</button>
-                  <button onClick={()=>{setShowPwd(false);setNewPwd('')}} style={{ background:'none', border:'1px solid var(--border)', borderRadius:8, padding:'7px 10px', color:'var(--text-muted)', cursor:'pointer' }}><X size={12}/></button>
+                    style={{ flex:1, background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'7px 12px', color:'var(--text)', fontSize:12 }} />
+                  <button onClick={changePassword} className="nb-press" style={{ background:TEAL, color:'var(--creamy-ivory)', borderRadius:'var(--radius-lg)', padding:'7px 12px', ...DF, fontWeight:700, fontSize:11, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer' }}>OK</button>
+                  <button onClick={()=>{setShowPwd(false);setNewPwd('')}} className="nb-press" style={{ background:'var(--bg-card)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', borderRadius:'var(--radius-lg)', padding:'7px 10px', color:'var(--text)', cursor:'pointer' }}><X size={12}/></button>
                 </>
               ) : (
                 <>
-                  <input type="password" value="••••••••••" readOnly style={{ flex:1, background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'7px 12px', color:'var(--text-muted)', fontSize:12, cursor:'not-allowed' }} />
-                  <button onClick={()=>setShowPwd(true)} style={{ background:'none', border:`1px solid ${ORANGE}`, borderRadius:8, padding:'7px 12px', color:ORANGE, ...DF, fontWeight:700, fontSize:10, cursor:'pointer' }}>Changer</button>
+                  <input type="password" value="••••••••••" readOnly style={{ flex:1, background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'7px 12px', color:'var(--text-muted)', fontSize:12, cursor:'not-allowed' }} />
+                  <button onClick={()=>setShowPwd(true)} className="nb-press" style={{ background:'var(--bg-card)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', borderRadius:'var(--radius-lg)', padding:'7px 12px', color:ORANGE, ...DF, fontWeight:800, fontSize:10, cursor:'pointer' }}>Changer</button>
                 </>
               )}
             </div>
             {pwdMsg && <><span/><p style={{ fontSize:11, color: pwdMsg.startsWith('✅') ? TEAL : ORANGE }}>{pwdMsg}</p></>}
             <p style={{ fontSize:12, color:'var(--text-muted)' }}>Fuseau horaire</p>
             <input value={timezone} onChange={e=>setTimezone(e.target.value)}
-              style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'7px 12px', color:'var(--text)', fontSize:12 }} />
+              style={{ background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'7px 12px', color:'var(--text)', fontSize:12 }} />
             <p style={{ fontSize:12, color:'var(--text-muted)' }}>Devise</p>
-            <select defaultValue="EUR" style={{ background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'7px 12px', color:'var(--text)', fontSize:12 }}>
+            <select defaultValue="EUR" style={{ background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'7px 12px', color:'var(--text)', fontSize:12 }}>
               <option value="EUR">Euro (€)</option>
               <option value="USD">Dollar ($)</option>
               <option value="GBP">Livre (£)</option>
             </select>
           </div>
-          <button onClick={saveProfile} style={{ marginTop:16, width:'100%', background:ORANGE, color:'#fff', borderRadius:8, padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'none', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+          <button onClick={saveProfile} className="nb-press" style={{ marginTop:16, width:'100%', background:ORANGE, color:'var(--chocolate)', borderRadius:'var(--radius-lg)', padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
             Enregistrer les modifications
           </button>
         </div>
@@ -662,23 +662,23 @@ export default function ComptePage() {
                 <p style={{ fontSize:11, color:'rgba(var(--text-rgb),0.8)' }}>{f}</p>
               </div>
             ))}
-            <button style={{ marginTop:12, width:'100%', background:'rgba(var(--text-rgb),0.15)', color:WHEAT, borderRadius:8, padding:'8px 0', ...DF, fontWeight:700, fontSize:10, border:'none', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+            <button className="nb-press" style={{ marginTop:12, width:'100%', background:'var(--creamy-ivory)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', padding:'8px 0', ...DF, fontWeight:800, fontSize:10, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
               Gérer mon abonnement <ChevronRight size={10} style={{ display:'inline' }}/>
             </button>
           </div>
 
-          <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:16 }}>
+          <div style={{ ...card('var(--bg-card)'), padding:16 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:WHEAT, textTransform:'uppercase', marginBottom:8 }}>Exporter mes données</p>
             <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:10, lineHeight:1.5 }}>Téléchargez une copie de toutes vos données au format JSON.</p>
-            <button onClick={exportData} style={{ width:'100%', background:'var(--bg-input)', color:'var(--text)', borderRadius:8, padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:'1px solid var(--border)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+            <button onClick={exportData} className="nb-press" style={{ width:'100%', background:'var(--bg-input)', color:'var(--text)', borderRadius:'var(--radius-lg)', padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
               <Download size={12} /> Exporter
             </button>
           </div>
 
-          <div style={{ ...card('var(--bg-card)'), border:'1px solid rgba(242,84,45,0.25)', padding:16 }}>
+          <div style={{ ...card('var(--bg-card)'), padding:16 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:ORANGE, textTransform:'uppercase', marginBottom:6 }}>Supprimer mon compte</p>
             <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:10, lineHeight:1.5 }}>Cette action est irréversible. Toutes vos données seront supprimées définitivement.</p>
-            <button onClick={()=>setShowDelete(true)} style={{ width:'100%', background:'transparent', color:ORANGE, borderRadius:8, padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:`1px solid ${ORANGE}`, cursor:'pointer' }}>
+            <button onClick={()=>setShowDelete(true)} className="nb-press" style={{ width:'100%', background:ORANGE, color:'var(--chocolate)', borderRadius:'var(--radius-lg)', padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer' }}>
               Supprimer mon compte
             </button>
           </div>

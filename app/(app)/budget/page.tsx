@@ -4,7 +4,7 @@ import {
   Plus, ChevronLeft, ChevronRight, TrendingUp, TrendingDown,
   Target, Zap, Calendar, MoreVertical, ExternalLink,
   Trash2, Edit2, X, Check, Save, BarChart2, RefreshCw,
-} from 'lucide-react'
+} from '@/components/ui/icons'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useBudget, useMultiMonthSummary, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
@@ -92,7 +92,7 @@ function FluxChart({ months }: { months: { label:string; income:number; expense:
 // ── FooterLink cliquable ────────────────────────────────────────────────────
 function FooterLink({ label, onClick }: { label:string; onClick?: () => void }) {
   return (
-    <button onClick={onClick}
+    <button onClick={onClick} className="nb-press"
       style={{ padding:'12px 20px', borderLeft:0, borderRight:0, borderBottom:0, borderTop:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, marginTop:'auto', width:'100%', background:'transparent', cursor: onClick ? 'pointer' : 'default' }}
       onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--text-rgb),0.04)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
@@ -249,7 +249,8 @@ export default function BudgetPage() {
 
   // ── Styles partagés ──
   const CARD: React.CSSProperties = {
-    background:'var(--bg-card)', borderRadius:16, border:'1px solid var(--border)',
+    background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)',
+    boxShadow:'4px 4px 0 var(--ink)',
     overflow:'hidden', display:'flex', flexDirection:'column',
   }
   const LBL: React.CSSProperties = { ...DF, fontSize:10, fontWeight:800, letterSpacing:'0.13em', textTransform:'uppercase' }
@@ -838,7 +839,7 @@ export default function BudgetPage() {
           </p>
         </div>
         {/* Résumé du mois */}
-        <div style={{ background:ORANGE, borderRadius:16, padding:'14px 20px', display:'flex', gap:0, flexShrink:0, flexWrap:'wrap', width:'100%', maxWidth:500, '--text-rgb':'26, 10, 10', '--text':'#1a0a0a', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+        <div style={{ background:ORANGE, borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'14px 20px', display:'flex', gap:0, flexShrink:0, flexWrap:'wrap', width:'100%', maxWidth:500, '--text-rgb':'26, 10, 10', '--text':'var(--chocolate)', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
           <div style={{ flex:1, paddingRight:20 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <span style={{ ...LBL, fontSize:9, color:'rgba(var(--text-rgb),0.8)' }}>RÉSUMÉ DU MOIS</span>
@@ -855,7 +856,7 @@ export default function BudgetPage() {
               ].map((kpi,i) => (
                 <div key={i} style={{ borderLeft:i>0?'1px solid rgba(var(--text-rgb),0.22)':undefined, paddingLeft:i>0?18:undefined, paddingRight:18 }}>
                   <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginBottom:3 }}>{kpi.l}</p>
-                  <p style={{ ...DF, fontSize:22, fontWeight:900, color:'#fff', lineHeight:1 }}>{kpi.v}</p>
+                  <p style={{ ...DF, fontSize:22, fontWeight:900, color:'var(--chocolate)', lineHeight:1 }}>{kpi.v}</p>
                   {!cur.loading && <p style={{ fontSize:9, color:kpi.pos?'rgba(var(--text-rgb),0.9)':'rgba(255,220,200,0.9)', marginTop:2 }}>{fmtEur(Math.abs(kpi.d),true)} vs préc.</p>}
                 </div>
               ))}
@@ -863,7 +864,7 @@ export default function BudgetPage() {
           </div>
           <div style={{ borderLeft:'1px solid rgba(var(--text-rgb),0.22)', paddingLeft:18, display:'flex', flexDirection:'column', justifyContent:'center', minWidth:110 }}>
             <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginBottom:4 }}>Solde</p>
-            <p style={{ ...DF, fontSize:28, fontWeight:900, color:'#fff', lineHeight:1 }}>{fmtEur(cur.balance)}</p>
+            <p style={{ ...DF, fontSize:28, fontWeight:900, color:'var(--chocolate)', lineHeight:1 }}>{fmtEur(cur.balance)}</p>
             <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginTop:3 }}>{cur.balance>=0?'✓ Excédent':'⚠ Déficit'}</p>
           </div>
         </div>
@@ -888,8 +889,8 @@ export default function BudgetPage() {
           {comptes.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
         </select>
         <div style={{ flex:1 }}/>
-        <button onClick={()=>setShowTxModal(true)}
-          style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 20px', borderRadius:10, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, fontSize:12, cursor:'pointer' }}>
+        <button onClick={()=>setShowTxModal(true)} className="nb-press"
+          style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 20px', borderRadius:10, background:ORANGE, color:'var(--chocolate)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer' }}>
           <Plus size={14}/> + TRANSACTION
         </button>
       </div>
@@ -898,7 +899,7 @@ export default function BudgetPage() {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gridTemplateRows:'300px 300px 500px 400px 260px', gap:12, flex:1 }}>
 
         {/* B1 Aperçu dépenses */}
-        <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'none', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
           <div style={{ ...HDR, borderBottom:'1px solid rgba(var(--text-rgb),0.1)' }}>
             <span style={{ ...LBL, color:WHEAT }}>Aperçu des dépenses</span>
             <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.45)' }}>{cur.byCategory.length} catégories</span>
@@ -1198,7 +1199,7 @@ export default function BudgetPage() {
         </div>
 
         {/* B9 Agent IA */}
-        <div style={{ gridColumn:'1/5', gridRow:'5/6', background:TEAL_BG, borderRadius:16, display:'flex', alignItems:'center', padding:'0 36px', gap:24, overflow:'hidden', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ gridColumn:'1/5', gridRow:'5/6', background:TEAL_BG, borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', display:'flex', alignItems:'center', padding:'0 36px', gap:24, overflow:'hidden', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
           <div style={{ width:48, height:48, borderRadius:'50%', background:'rgba(var(--text-rgb),0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
             <Zap size={22} style={{ color:WHEAT }}/>
           </div>
@@ -1213,7 +1214,7 @@ export default function BudgetPage() {
                    : 'Ajoutez vos premières transactions pour obtenir une analyse personnalisée.'}
             </p>
           </div>
-          <button onClick={()=>panel('ai')}
+          <button onClick={()=>panel('ai')} className="nb-press"
             style={{ padding:'11px 20px', borderRadius:11, background:'rgba(var(--text-rgb),0.15)', border:'1px solid rgba(var(--text-rgb),0.25)', color:WHEAT, ...DF, fontWeight:700, fontSize:11, flexShrink:0, display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
             <BarChart2 size={13}/> Voir l'analyse détaillée
           </button>

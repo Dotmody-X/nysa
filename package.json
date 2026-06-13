@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
     "@types/leaflet": "^1.9.21",
@@ -15,7 +16,6 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.513.0",
     "next": "16.2.4",
-
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^2.15.3"

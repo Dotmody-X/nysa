@@ -10,34 +10,38 @@
    
    ============================================================ */
 
-/* ── Couleurs de base (constantes) ─────────────────────────── */
+/* ============================================================
+   NYSA Design System v4 — Néo-brutalisme ludique
+   Papier + encre, accents vifs, contours + ombres dures.
+   ============================================================ */
+
+/* ── Constantes (indépendantes du thème) ───────────────────── */
 :root {
-  /* Générales */
-  --creamy-ivory: #f5f1ed;
-  --camel: #c9b8a3;
-  --chocolate: #5c4a42;
+  /* Encres fixes pour le texte sur fonds d'accent (sticker) */
+  --creamy-ivory: #f6efe0;   /* encre CLAIRE sur accent foncé */
+  --chocolate:    #18130e;   /* encre FONCÉE sur accent clair */
+  --camel:        #b7ac97;
 
-  /* Catégories */
-  --burnt-orange: #d97e35;
-  --mustard-yellow: #d4a24f;
-  --warm-blush: #d9a79e;
-  --deep-teal: #1e4d5c;
-  --sage-green: #7a8a7e;
-  --olive-green: #6b7a51;
-  --aubergine: #4d3942;
-  --terracota: #a85c3f;
-  --rosewood: #8b5a54;
+  /* Accents vifs — IDENTIQUES en clair et sombre (ça doit claquer) */
+  --accent-budget:   #ff5c35;   /* tangerine */
+  --accent-courses:  #ffc23d;   /* jaune soleil */
+  --accent-recettes: #ff4d8d;   /* rose vif */
+  --accent-time:     #2d5bff;   /* cobalt */
+  --accent-sport:    #18b26b;   /* vert gazon */
+  --accent-health:   #12b5a5;   /* turquoise */
+  --accent-rapports: #8b5cf6;   /* violet */
+  --accent-projets:  #6c5ce7;   /* indigo */
+  --accent-calendar: #36c5f0;   /* ciel */
+  --accent-todo:     #ffc23d;   /* jaune soleil */
+  --accent-agent:    #8b5cf6;   /* violet */
+  --azul:            #2d5bff;   /* alias cobalt (ex teal) */
 
-  /* Accent teal/cyan partagé (ex "azul" — utilisé comme texte ET comme fond).
-     Valeur indépendante du thème : lisible sur fond clair comme foncé,
-     et supporte du texte clair quand utilisé comme arrière-plan. */
-  --azul: #1f7a85;
-
-  /* Spacing */
+  /* Rayons chunky */
   --sidebar-width: 220px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
 }
 
 /* ── Thème sombre (défaut) ───────────────────────────────── */
@@ -45,152 +49,94 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* GENERAL — Backgrounds & Text */
-  --bg:             #0a0805;              /* Very dark brown */
-  --bg-card:        #1a1510;              /* Charcoal */
-  --bg-card-hover:  #24201a;              /* Slightly lighter */
-  --bg-sidebar:     #0f0b08;              /* Near black */
-  --bg-input:       #15120d;              /* Dark input */
+  --bg:             #141109;   /* encre chaude profonde */
+  --bg-card:        #1f1a12;
+  --bg-card-hover:  #2a241a;
+  --bg-sidebar:     #100d08;
+  --bg-input:       #1b160f;
 
-  --text:           #f5f1ed;              /* Creamy Ivory — Primary text (AAA) */
-  --text-muted:     #c9b8a3;              /* Camel — Secondary text (AA) */
-  --text-subtle:    rgba(201, 184, 163, 0.50); /* Camel @ 50% */
-  --text-rgb:       245, 241, 237;        /* Ink RGB (creamy ivory) — pour rgba(var(--text-rgb), a) */
+  --text:           #fbf3e4;   /* crème */
+  --text-muted:     #b7ac97;
+  --text-subtle:    rgba(251, 243, 228, 0.50);
+  --text-rgb:       251, 243, 228;
 
-  --border:         rgba(201, 184, 163, 0.15);
-  --border-active:  rgba(201, 184, 163, 0.40);
+  --border:         rgba(251, 243, 228, 0.22);
+  --border-active:  rgba(251, 243, 228, 0.55);
+  --ink:            #fbf3e4;   /* contour + ombre brutalistes (clair sur sombre) */
 
-  /* STATUS Colors */
-  --success:        #7a8a7e;              /* Sage Green */
-  --warning:        #d4a24f;              /* Mustard */
-  --danger:         #d97e35;              /* Burnt Orange */
-  --info:           #1e4d5c;              /* Deep Teal */
-
-  /* CATEGORY ACCENTS — Bright & saturated for dark bg */
-  --accent-budget:     #d97e35;           /* Burnt Orange — Financial */
-  --accent-courses:    #d4a24f;           /* Mustard Yellow — Shopping */
-  --accent-recettes:   #d9a79e;           /* Warm Blush — Culinary */
-  --accent-time:       #1e4d5c;           /* Deep Teal — Focus */
-  --accent-sport:      #7a8a7e;           /* Sage Green — Wellness */
-  --accent-health:     #6b7a51;           /* Olive Green — Growth */
-  --accent-rapports:   #4d3942;           /* Aubergine — Analysis */
-  --accent-projets:    #a85c3f;           /* Terracota — Creative */
-  --accent-calendar:   #8b5a54;           /* Rosewood — Time */
-  --accent-todo:       #d4a24f;           /* Mustard Yellow — Action */
-  --accent-agent:      #5c4a42;           /* Chocolate — Intelligent */
+  --success:        #18b26b;
+  --warning:        #ffc23d;
+  --danger:         #ff5c35;
+  --info:           #2d5bff;
 }
 
 /* ── Thème clair ──────────────────────────────────────────── */
 [data-theme="light"] {
   color-scheme: light;
 
-  /* GENERAL — Backgrounds & Text */
-  --bg:             #f5f1ed;              /* Creamy Ivory — Main background */
-  --bg-card:        #ffffff;              /* White cards */
-  --bg-card-hover:  #ede7e0;              /* Slight tan hover */
-  --bg-sidebar:     #ede7e0;              /* Light sidebar */
-  --bg-input:       #f5f1ed;              /* Light input */
+  --bg:             #faf3e3;   /* papier chaud */
+  --bg-card:        #ffffff;
+  --bg-card-hover:  #f2ead6;
+  --bg-sidebar:     #f4ecd9;
+  --bg-input:       #fffdf7;
 
-  --text:           #5c4a42;              /* Chocolate Brown — Primary text (AAA) */
-  --text-muted:     #8b6f63;              /* Darker camel — Secondary text (AA) */
-  --text-subtle:    rgba(92, 74, 66, 0.50); /* Brown @ 50% */
-  --text-rgb:       92, 74, 66;           /* Ink RGB (chocolate) — pour rgba(var(--text-rgb), a) */
+  --text:           #18130e;   /* encre */
+  --text-muted:     #6e6353;
+  --text-subtle:    rgba(24, 19, 14, 0.50);
+  --text-rgb:       24, 19, 14;
 
-  --border:         rgba(92, 74, 66, 0.15);
-  --border-active:  rgba(92, 74, 66, 0.40);
+  --border:         rgba(24, 19, 14, 0.18);
+  --border-active:  rgba(24, 19, 14, 0.45);
+  --ink:            #18130e;   /* contour + ombre brutalistes (encre) */
 
-  /* STATUS Colors */
-  --success:        #6b7a51;              /* Olive Green (darker) */
-  --warning:        #a85c3f;              /* Terracota (darker) */
-  --danger:         #8b5a54;              /* Rosewood (darker) */
-  --info:           #1e4d5c;              /* Deep Teal (same) */
-
-  /* CATEGORY ACCENTS — Darker for light bg */
-  --accent-budget:     #b86b2a;           /* Burnt Orange darker */
-  --accent-courses:    #b8942a;           /* Mustard darker */
-  --accent-recettes:   #c28b80;           /* Blush darker */
-  --accent-time:       #1e4d5c;           /* Deep Teal (same) */
-  --accent-sport:      #667168;           /* Sage darker */
-  --accent-health:     #5a6844;           /* Olive darker */
-  --accent-rapports:   #3d2f38;           /* Aubergine darker */
-  --accent-projets:    #8f4a33;           /* Terracota darker */
-  --accent-calendar:   #6d4a43;           /* Rosewood darker */
-  --accent-todo:       #b8942a;           /* Mustard darker */
-  --accent-agent:      #4d3f38;           /* Chocolate darker */
+  --success:        #0e9c5e;
+  --warning:        #e0a01f;
+  --danger:         #ff5c35;
+  --info:           #2d5bff;
 }
 
 /* ── Thème système (OS) ───────────────────────────────────── */
 @media (prefers-color-scheme: light) {
   [data-theme="system"] {
     color-scheme: light;
-
-    --bg:             #f5f1ed;
+    --bg:             #faf3e3;
     --bg-card:        #ffffff;
-    --bg-card-hover:  #ede7e0;
-    --bg-sidebar:     #ede7e0;
-    --bg-input:       #f5f1ed;
-
-    --text:           #5c4a42;
-    --text-muted:     #8b6f63;
-    --text-subtle:    rgba(92, 74, 66, 0.50);
-    --text-rgb:       92, 74, 66;
-
-    --border:         rgba(92, 74, 66, 0.15);
-    --border-active:  rgba(92, 74, 66, 0.40);
-
-    --success:        #6b7a51;
-    --warning:        #a85c3f;
-    --danger:         #8b5a54;
-    --info:           #1e4d5c;
-
-    --accent-budget:     #b86b2a;
-    --accent-courses:    #b8942a;
-    --accent-recettes:   #c28b80;
-    --accent-time:       #1e4d5c;
-    --accent-sport:      #667168;
-    --accent-health:     #5a6844;
-    --accent-rapports:   #3d2f38;
-    --accent-projets:    #8f4a33;
-    --accent-calendar:   #6d4a43;
-    --accent-todo:       #b8942a;
-    --accent-agent:      #4d3f38;
+    --bg-card-hover:  #f2ead6;
+    --bg-sidebar:     #f4ecd9;
+    --bg-input:       #fffdf7;
+    --text:           #18130e;
+    --text-muted:     #6e6353;
+    --text-subtle:    rgba(24, 19, 14, 0.50);
+    --text-rgb:       24, 19, 14;
+    --border:         rgba(24, 19, 14, 0.18);
+    --border-active:  rgba(24, 19, 14, 0.45);
+    --ink:            #18130e;
+    --success:        #0e9c5e;
+    --warning:        #e0a01f;
+    --danger:         #ff5c35;
+    --info:           #2d5bff;
   }
 }
 
 @media (prefers-color-scheme: dark) {
   [data-theme="system"] {
     color-scheme: dark;
-
-    --bg:             #0a0805;
-    --bg-card:        #1a1510;
-    --bg-card-hover:  #24201a;
-    --bg-sidebar:     #0f0b08;
-    --bg-input:       #15120d;
-
-    --text:           #f5f1ed;
-    --text-muted:     #c9b8a3;
-    --text-subtle:    rgba(201, 184, 163, 0.50);
-    --text-rgb:       245, 241, 237;
-
-    --border:         rgba(201, 184, 163, 0.15);
-    --border-active:  rgba(201, 184, 163, 0.40);
-
-    --success:        #7a8a7e;
-    --warning:        #d4a24f;
-    --danger:         #d97e35;
-    --info:           #1e4d5c;
-
-    --accent-budget:     #d97e35;
-    --accent-courses:    #d4a24f;
-    --accent-recettes:   #d9a79e;
-    --accent-time:       #1e4d5c;
-    --accent-sport:      #7a8a7e;
-    --accent-health:     #6b7a51;
-    --accent-rapports:   #4d3942;
-    --accent-projets:    #a85c3f;
-    --accent-calendar:   #8b5a54;
-    --accent-todo:       #d4a24f;
-    --accent-agent:      #5c4a42;
+    --bg:             #141109;
+    --bg-card:        #1f1a12;
+    --bg-card-hover:  #2a241a;
+    --bg-sidebar:     #100d08;
+    --bg-input:       #1b160f;
+    --text:           #fbf3e4;
+    --text-muted:     #b7ac97;
+    --text-subtle:    rgba(251, 243, 228, 0.50);
+    --text-rgb:       251, 243, 228;
+    --border:         rgba(251, 243, 228, 0.22);
+    --border-active:  rgba(251, 243, 228, 0.55);
+    --ink:            #fbf3e4;
+    --success:        #18b26b;
+    --warning:        #ffc23d;
+    --danger:         #ff5c35;
+    --info:           #2d5bff;
   }
 }
 
@@ -332,24 +278,41 @@ h1, h2, h3, h4, h5, h6 {
 
 .nysa-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 4px 4px 0 var(--ink);
   padding: 1rem;
 }
 
-/* ── Surfaces sombres fixes ────────────────────────────────────
-   À appliquer sur toute carte/conteneur dont le FOND est une
-   couleur d'accent FONCÉE et fixe (teal, azul, rosewood, aubergine,
-   terracota, chocolat…). Force l'encre claire dans les deux thèmes,
-   pour les descendants qui utilisent var(--text), var(--text-muted)
-   ou rgba(var(--text-rgb), a). */
+/* ── Néo-brutalisme : tuiles "sticker" ─────────────────────────
+   .nb-card  : surface neutre, contour + ombre dure.
+   .nb-tile  : variante pour fonds d'accent (contour + ombre encre).
+   .nb-press : effet d'appui au survol/clic. */
+.nb-card {
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.nb-tile {
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.nb-press {
+  transition: transform 0.12s cubic-bezier(0.4,0,0.2,1), box-shadow 0.12s cubic-bezier(0.4,0,0.2,1);
+}
+.nb-press:hover  { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+.nb-press:active { transform: translate(2px, 2px);   box-shadow: 0 0 0 var(--ink); }
+
+/* Surfaces d'accent FONCÉ → encre claire (texte/bordures) dans les 2 thèmes */
 .on-dark {
-  --text-rgb:      245, 241, 237;
-  --text:          #f5f1ed;
-  --text-muted:    rgba(245, 241, 237, 0.72);
-  --text-subtle:   rgba(245, 241, 237, 0.50);
-  --border:        rgba(245, 241, 237, 0.18);
-  --border-active: rgba(245, 241, 237, 0.40);
+  --text-rgb:      246, 239, 224;
+  --text:          #f6efe0;
+  --text-muted:    rgba(246, 239, 224, 0.72);
+  --text-subtle:   rgba(246, 239, 224, 0.50);
+  --border:        rgba(246, 239, 224, 0.22);
+  --border-active: rgba(246, 239, 224, 0.45);
 }
 
 .nysa-transition {

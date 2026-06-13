@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Download, Upload, Check, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Download, Upload, Check, AlertTriangle } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -100,18 +100,23 @@ export default function SauvegardePage() {
     reader.readAsText(file)
   }
 
-  const btnStyle = (status: ExportStatus, color: string): React.CSSProperties => ({
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-    width: '100%', background: status === 'done' ? TEAL : status === 'error' ? ORANGE : color,
-    color: '#fff', borderRadius: 8, padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12,
-    border: 'none', cursor: status === 'loading' ? 'not-allowed' : 'pointer', opacity: status === 'loading' ? 0.7 : 1,
-  })
+  const btnStyle = (status: ExportStatus, color: string): React.CSSProperties => {
+    const bg = status === 'done' ? TEAL : status === 'error' ? ORANGE : color
+    // cobalt/azul (TEAL) is a DARK accent → cream ink; tangerine ORANGE → dark ink
+    const ink = bg === TEAL ? 'var(--creamy-ivory)' : 'var(--chocolate)'
+    return {
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      width: '100%', background: bg,
+      color: ink, borderRadius: 'var(--radius-lg)', padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12,
+      border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: status === 'loading' ? 'not-allowed' : 'pointer', opacity: status === 'loading' ? 0.7 : 1,
+    }
+  }
 
   return (
     <div style={{ padding: '28px 32px', maxWidth: 600, margin: '0 auto' }}>
 
-      <button onClick={() => router.push('/compte')}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 11, marginBottom: 24, padding: 0 }}>
+      <button onClick={() => router.push('/compte')} className="nb-press"
+        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', cursor: 'pointer', color: 'var(--text)', fontSize: 11, marginBottom: 24, padding: '8px 14px', fontWeight: 700 }}>
         <ArrowLeft size={13} /> Retour au profil
       </button>
 
@@ -119,9 +124,9 @@ export default function SauvegardePage() {
       <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 28 }}>Exporter et importer vos données</p>
 
       {/* Export JSON */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20, marginBottom: 10 }}>
+      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(14,149,148,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(14,149,148,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--ink)' }}>
             <Download size={16} style={{ color: TEAL }} />
           </div>
           <div>
@@ -129,15 +134,15 @@ export default function SauvegardePage() {
             <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Toutes vos données — tâches, sessions, budget, santé, running</p>
           </div>
         </div>
-        <button onClick={exportJSON} disabled={jsonStatus === 'loading'} style={btnStyle(jsonStatus, TEAL)}>
+        <button onClick={exportJSON} disabled={jsonStatus === 'loading'} className="nb-press" style={btnStyle(jsonStatus, TEAL)}>
           {jsonStatus === 'loading' ? 'Préparation…' : jsonStatus === 'done' ? <><Check size={13} /> Téléchargé !</> : jsonStatus === 'error' ? '❌ Erreur' : <><Download size={13} /> Télécharger le backup JSON</>}
         </button>
       </div>
 
       {/* Export CSV */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20, marginBottom: 10 }}>
+      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(242,84,45,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(242,84,45,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--ink)' }}>
             <Download size={16} style={{ color: ORANGE }} />
           </div>
           <div>
@@ -145,15 +150,15 @@ export default function SauvegardePage() {
             <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Toutes vos sessions de travail au format tableur</p>
           </div>
         </div>
-        <button onClick={exportCSV} disabled={csvStatus === 'loading'} style={btnStyle(csvStatus, ORANGE)}>
+        <button onClick={exportCSV} disabled={csvStatus === 'loading'} className="nb-press" style={btnStyle(csvStatus, ORANGE)}>
           {csvStatus === 'loading' ? 'Préparation…' : csvStatus === 'done' ? <><Check size={13} /> Téléchargé !</> : csvStatus === 'error' ? '❌ Erreur' : <><Download size={13} /> Télécharger CSV sessions</>}
         </button>
       </div>
 
       {/* Import */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
+      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(var(--text-rgb),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(var(--text-rgb),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--ink)' }}>
             <Upload size={16} style={{ color: WHEAT }} />
           </div>
           <div>
@@ -161,13 +166,13 @@ export default function SauvegardePage() {
             <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Fichier JSON généré par NYSA</p>
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderRadius: 8, background: 'rgba(242,84,45,0.06)', border: '1px solid rgba(242,84,45,0.15)', display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
+        <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', background: 'rgba(242,84,45,0.06)', border: '2px solid var(--ink)', display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
           <AlertTriangle size={13} style={{ color: ORANGE, flexShrink: 0, marginTop: 1 }} />
           <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>L'importation remplace les données existantes. Assurez-vous d'avoir fait un export avant d'importer.</p>
         </div>
         <input ref={fileRef} type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
-        <button onClick={() => fileRef.current?.click()}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: 'var(--bg-input)', color: 'var(--text)', borderRadius: 8, padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+        <button onClick={() => fileRef.current?.click()} className="nb-press"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: 'var(--bg-input)', color: 'var(--text)', borderRadius: 'var(--radius-lg)', padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <Upload size={13} /> Sélectionner un fichier JSON
         </button>
         {importMsg && (

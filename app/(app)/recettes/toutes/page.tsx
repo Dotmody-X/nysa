@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, ChevronLeft, Trash2, Star } from 'lucide-react'
+import { Search, ChevronLeft, Trash2, Star } from '@/components/ui/icons'
 import { useRecipes } from '@/hooks/useRecipes'
 import { createClient } from '@/lib/supabase/client'
 
@@ -11,7 +11,7 @@ const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 
 export default function AllRecipesPage() {
@@ -50,8 +50,8 @@ export default function AllRecipesPage() {
 
       {/* Search + Filter */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 40,
-          borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 44,
+          borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
           <Search size={14} style={{ color: 'var(--text-muted)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Chercher une recette…"
@@ -86,10 +86,10 @@ export default function AllRecipesPage() {
           gap: 12
         }}>
           {filtered.map(r => (
-            <button key={r.id} onClick={() => router.push(`/recettes/${r.id}`)}
+            <button key={r.id} onClick={() => router.push(`/recettes/${r.id}`)} className="nb-press"
               style={{
                 ...card(), cursor: 'pointer', display: 'flex', flexDirection: 'column',
-                justifyContent: 'space-between', padding: 16, position: 'relative', border: 'none',
+                justifyContent: 'space-between', padding: 16, position: 'relative',
                 background: 'var(--bg-card)'
               }}>
               {r.is_favorite && (

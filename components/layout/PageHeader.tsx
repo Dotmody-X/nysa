@@ -11,10 +11,10 @@ export function PageHeader({ title, sub, actions }: PageHeaderProps) {
     <div className="flex items-start justify-between mb-6">
       <div>
         <h1
-          className="text-xl font-bold tracking-wider uppercase"
-          style={{ color: 'var(--text)' }}
+          className="text-xl tracking-wider uppercase"
+          style={{ color: 'var(--text)', fontFamily: 'var(--font-display)', fontWeight: 900, letterSpacing: '-0.01em' }}
         >
-          {title}
+          {title}<span style={{ color: 'var(--accent-budget)' }}>.</span>
         </h1>
         {sub && (
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>

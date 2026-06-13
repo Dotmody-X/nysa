@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Settings, Sun, Moon, Monitor, User } from 'lucide-react'
+import { Settings, Sun, Moon, Monitor, User } from '@/components/ui/icons'
 import { NysaLogo } from '@/components/ui/NysaLogo'
 import { useState, useEffect, useRef } from 'react'
 import { saveTheme, THEME_KEY } from '@/lib/theme'
@@ -120,12 +120,11 @@ export function Sidebar() {
               )}
               <Link
                 href={item.href}
-                className="flex items-center gap-3 px-2 py-2 rounded-[6px] group transition-all duration-100"
+                className="flex items-center gap-3 px-2 py-2 rounded-[10px] group transition-all duration-100"
                 style={{
-                  background: active
-                    ? item.accent ? 'rgba(242,84,45,0.12)' : 'rgba(242,84,45,0.1)'
-                    : item.accent ? 'rgba(242,84,45,0.04)' : 'transparent',
-                  borderLeft: active ? '2px solid var(--accent-budget)' : '2px solid transparent',
+                  background: active ? 'var(--accent-budget)' : 'transparent',
+                  border: active ? '2px solid var(--ink)' : '2px solid transparent',
+                  boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
                   marginTop: item.accent ? 2 : 0,
                 }}
               >
@@ -136,17 +135,17 @@ export function Sidebar() {
                     height: 7,
                     borderRadius: 1,
                     flexShrink: 0,
-                    background: active ? 'var(--accent-budget)' : item.color ?? 'var(--accent-time)',
+                    background: active ? 'var(--chocolate)' : item.color ?? 'var(--accent-time)',
                     opacity: active ? 1 : item.accent ? 0.85 : 0.6,
                   }}
                 />
                 <span
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontWeight: active ? 700 : item.accent ? 600 : 500,
+                    fontWeight: active ? 800 : item.accent ? 600 : 500,
                     fontSize: '11px',
                     letterSpacing: '0.08em',
-                    color: active ? 'var(--text)' : item.accent ? 'var(--accent-budget)' : 'var(--text-muted)',
+                    color: active ? 'var(--chocolate)' : item.accent ? 'var(--accent-budget)' : 'var(--text-muted)',
                     textTransform: 'uppercase',
                   }}
                 >
@@ -166,18 +165,22 @@ export function Sidebar() {
         {/* Profile */}
         <Link
           href="/compte"
-          className="flex items-center gap-2.5 px-2 py-2 rounded-[6px] transition-all"
-          style={{ background: isActive('/compte') ? 'rgba(242,84,45,0.08)' : 'transparent' }}
+          className="flex items-center gap-2.5 px-2 py-2 rounded-[10px] transition-all"
+          style={{
+            background: isActive('/compte') ? 'var(--accent-budget)' : 'var(--bg-card)',
+            border: '2px solid var(--ink)',
+            boxShadow: '2px 2px 0 var(--ink)',
+          }}
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'linear-gradient(135deg, var(--accent-budget), var(--accent-time))' }}
+            style={{ background: 'var(--accent-budget)', border: '2px solid var(--ink)' }}
           >
-            <User size={12} style={{ color: '#fff' }} />
+            <User size={12} style={{ color: 'var(--chocolate)' }} />
           </div>
           <div className="min-w-0">
-            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: 'var(--text)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
-            <p style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Voir profil</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: isActive('/compte') ? 'var(--chocolate)' : 'var(--text)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+            <p style={{ fontSize: '9px', color: isActive('/compte') ? 'var(--chocolate)' : 'var(--text-muted)', opacity: isActive('/compte') ? 0.7 : 1 }}>Voir profil</p>
           </div>
         </Link>
 
@@ -185,10 +188,12 @@ export function Sidebar() {
         <div className="flex gap-1 px-1">
           <Link
             href="/reglages"
-            className="flex-1 flex items-center justify-center py-2 rounded-[6px] transition-all"
+            className="flex-1 flex items-center justify-center py-2 rounded-[10px] transition-all"
             style={{
-              color: isActive('/reglages') ? 'var(--accent-budget)' : 'var(--text-muted)',
-              background: isActive('/reglages') ? 'rgba(242,84,45,0.08)' : 'transparent',
+              color: isActive('/reglages') ? 'var(--chocolate)' : 'var(--text-muted)',
+              background: isActive('/reglages') ? 'var(--accent-budget)' : 'var(--bg-card)',
+              border: '2px solid var(--ink)',
+              boxShadow: '2px 2px 0 var(--ink)',
             }}
           >
             <Settings size={13} />
@@ -198,10 +203,12 @@ export function Sidebar() {
           <div className="flex-1 relative" ref={popoverRef}>
             <button
               onClick={() => setThemeOpen(o => !o)}
-              className="w-full flex items-center justify-center py-2 rounded-[6px] transition-all"
+              className="w-full flex items-center justify-center py-2 rounded-[10px] transition-all"
               style={{
-                color: themeOpen ? 'var(--accent-budget)' : 'var(--text-muted)',
-                background: themeOpen ? 'rgba(242,84,45,0.08)' : 'transparent',
+                color: themeOpen ? 'var(--chocolate)' : 'var(--text-muted)',
+                background: themeOpen ? 'var(--accent-budget)' : 'var(--bg-card)',
+                border: '2px solid var(--ink)',
+                boxShadow: '2px 2px 0 var(--ink)',
               }}
             >
               <ActiveThemeIcon size={13} />
@@ -216,12 +223,12 @@ export function Sidebar() {
                   left: '50%',
                   transform: 'translateX(-50%)',
                   background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 12,
+                  border: '2px solid var(--ink)',
+                  borderRadius: 'var(--radius-md)',
                   padding: '8px',
                   display: 'flex',
                   gap: 6,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  boxShadow: '4px 4px 0 var(--ink)',
                   zIndex: 100,
                   whiteSpace: 'nowrap',
                 }}
@@ -239,16 +246,17 @@ export function Sidebar() {
                         alignItems: 'center',
                         gap: 4,
                         padding: '7px 8px',
-                        borderRadius: 8,
-                        border: active ? '1.5px solid var(--accent-budget)' : '1.5px solid var(--border)',
-                        background: active ? 'rgba(242,84,45,0.1)' : 'transparent',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '2px solid var(--ink)',
+                        background: active ? 'var(--accent-budget)' : 'var(--bg-input)',
+                        boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
                         cursor: 'pointer',
                         transition: 'all 0.12s',
                         minWidth: 42,
                       }}
                     >
-                      <Icon size={14} style={{ color: active ? 'var(--accent-budget)' : 'var(--text-muted)' }} />
-                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--text)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      <Icon size={14} style={{ color: active ? 'var(--chocolate)' : 'var(--text-muted)' }} />
+                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--chocolate)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
                         {label}
                       </span>
                     </button>

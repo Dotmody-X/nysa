@@ -1,19 +1,21 @@
 import type { Metadata } from 'next'
-import { Saira, Sora } from 'next/font/google'
+import { Bricolage_Grotesque, Hanken_Grotesk } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { Analytics } from '@vercel/analytics/next'
 
-const saira = Saira({
+// Display caractériel (néo-brutalisme) — exposé sous --font-saira pour
+// rester compatible avec le mapping --font-display de globals.css.
+const saira = Bricolage_Grotesque({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
+  weight: ['500', '600', '700', '800'],
   variable: '--font-saira',
   display: 'swap',
 })
 
-const sora = Sora({
+const sora = Hanken_Grotesk({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-sora',
   display: 'swap',
 })

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import {
   Plus, TrendingDown, TrendingUp, Activity, Moon, Heart, Droplets,
   ChevronRight, Check, Utensils, Apple as AppleIcon, Scale, Flame, Zap
-} from 'lucide-react'
+} from '@/components/ui/icons'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useHealth } from '@/hooks/useHealth'
@@ -98,23 +98,26 @@ function WeekBars({ data, labels, color = ORANGE, max: maxProp }:
 }
 
 /* ─── Card style shortcuts ──────────────────────────────────── */
+const STICKER: React.CSSProperties = {
+  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
+}
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', overflow: 'hidden', ...STICKER, ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, borderRadius: 12, overflow: 'hidden',
-  // Fond foncé fixe → encre claire dans les deux thèmes
-  '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)',
+  background: TEAL_BG, overflow: 'hidden', ...STICKER,
+  // Fond foncé fixe (cobalt) → encre claire dans les deux thèmes
+  '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)',
   ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, borderRadius: 12, overflow: 'hidden',
-  // Fond orange (clair-moyen) → encre foncée dans les deux thèmes
-  '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)',
+  background: ORANGE, overflow: 'hidden', ...STICKER,
+  // Fond tangerine (clair-moyen) → encre foncée dans les deux thèmes
+  '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)',
   ...extra,
 } as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg)', borderRadius: 12, overflow: 'hidden', ...extra,
+  background: 'var(--bg)', overflow: 'hidden', ...STICKER, ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
@@ -278,21 +281,21 @@ export default function HealthPage() {
 
       {/* ── Inline forms ──────────────────────────────────── */}
       {showWForm && (
-        <form onSubmit={handleWeight} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10, padding: 14,
-          borderRadius: 10, ...card() }}>
+        <form onSubmit={handleWeight} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14, padding: 16,
+          ...card() }}>
           <input type="date" value={wForm.date} onChange={e => setWForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
           <input type="number" step="0.1" value={wForm.weight} onChange={e => setWForm(f => ({ ...f, weight: e.target.value }))}
             placeholder="Poids (kg)" autoFocus style={{ ...inputStyle, flex: 1 }} />
-          <button type="submit" style={{ background: TEAL_BG, color: 'var(--creamy-ivory)', borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Enregistrer
           </button>
-          <button type="button" onClick={() => setShowWForm(false)} style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+          <button type="button" onClick={() => setShowWForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             ×
           </button>
         </form>
       )}
       {showRForm && (
-        <form onSubmit={handleRun} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10, padding: 14, borderRadius: 10, ...card() }}>
+        <form onSubmit={handleRun} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14, padding: 16, ...card() }}>
           <input type="date" value={rForm.date} onChange={e => setRForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
           <input type="number" step="0.01" value={rForm.distance} onChange={e => setRForm(f => ({ ...f, distance: e.target.value }))}
             placeholder="Distance (km)" autoFocus style={{ ...inputStyle, flex: 1, minWidth: 110 }} />
@@ -300,10 +303,10 @@ export default function HealthPage() {
             placeholder="Durée (h:mm)" style={{ ...inputStyle, width: 110 }} />
           <input type="text" value={rForm.notes} onChange={e => setRForm(f => ({ ...f, notes: e.target.value }))}
             placeholder="Notes…" style={{ ...inputStyle, flex: 2, minWidth: 140 }} />
-          <button type="submit" style={{ background: ORANGE, color: '#fff', borderRadius: 8, padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Ajouter
           </button>
-          <button type="button" onClick={() => setShowRForm(false)} style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+          <button type="button" onClick={() => setShowRForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             ×
           </button>
         </form>
@@ -316,7 +319,7 @@ export default function HealthPage() {
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gridTemplateRows: '300px 300px 500px 400px 380px',
-        gap: 10,
+        gap: 16,
       }}>
 
         {/* ── R1 C1-2 : HERO ──────────────────────────────── */}
@@ -327,14 +330,14 @@ export default function HealthPage() {
               Suivez. Progressez. Prenez soin de vous.
             </p>
             <div className="toolbar-scroll" style={{ display: 'flex', gap: 8 }}>
-              <button className="health-btn" onClick={() => setShowWForm(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+              <button className="nb-press" onClick={() => setShowWForm(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Scale size={11} /> + Poids
               </button>
-              <button className="health-btn" onClick={() => setShowRForm(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
-                  background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+              <button className="nb-press" onClick={() => setShowRForm(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Activity size={11} /> + Run
               </button>
             </div>
@@ -347,7 +350,7 @@ export default function HealthPage() {
               { l: 'Allure',    v: avgPace > 0 ? fmtPace(avgPace) : '—', sub: 'moy. semaine', color: WHEAT },
               { l: 'Poids',     v: latestWeight ? `${latestWeight}kg` : '—', sub: weightTrend != null ? `${weightTrend > 0 ? '+' : ''}${weightTrend?.toFixed(1)} kg` : 'Aucune donnée', color: TEAL },
             ].map(s => (
-              <div key={s.l} style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <div key={s.l} style={{ padding: '10px 12px', ...card() }}>
                 <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.l}</p>
                 <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.v}</p>
                 <p style={{ fontSize: 8, color: 'var(--text-muted)', marginTop: 3 }}>{s.sub}</p>
@@ -547,10 +550,10 @@ export default function HealthPage() {
             ) : activities.slice(0, 6).map((a, i) => {
               const isToday = a.date === today.toISOString().slice(0, 10)
               return (
-                <div key={a.id} className="health-row" onClick={() => router.push(`/sport/${a.id}`)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10,
+                <div key={a.id} className="health-row nb-press" onClick={() => router.push(`/sport/${a.id}`)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 'var(--radius-lg)',
                     background: isToday ? `rgba(242,84,45,0.15)` : 'rgba(var(--text-rgb),0.04)',
-                    border: `1px solid ${isToday ? 'rgba(242,84,45,0.3)' : 'rgba(var(--text-rgb),0.06)'}`,
+                    border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
                     cursor: 'pointer' }}>
                   <div style={{ width: 36, height: 36, borderRadius: 8, background: isToday ? ORANGE : 'rgba(var(--text-rgb),0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -761,8 +764,8 @@ export default function HealthPage() {
               { icon: <Activity size={18} />,  name: 'Strava',      desc: 'Activités course importées', status: 'active', color: '#FC4C02' },
               { icon: <Heart size={18} />,     name: 'Garmin',      desc: 'Montres & capteurs',         status: 'soon', color: '#007DC3' },
             ].map(s => (
-              <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 10,
-                background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
+              <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 'var(--radius-lg)',
+                background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
                 <div style={{ color: s.color, flexShrink: 0 }}>{s.icon}</div>
                 <div style={{ flex: 1 }}>
                   <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--text)' }}>{s.name}</p>
@@ -805,7 +808,7 @@ export default function HealthPage() {
                 { l: 'IMC',              v: mesures.imc        != null ? String(mesures.imc)        : '—', delta: mesures.imc != null && mesures.imc < 25 ? 'Normal' : mesures.imc != null ? 'Surpoids' : '', up: null, color: WHEAT  },
               ]
             })().map(s => (
-              <div key={s.l} style={{ padding: '16px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
+              <div key={s.l} style={{ padding: '16px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
                 <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{s.l}</p>
                 <p style={{ ...DF, fontSize: 22, fontWeight: 900, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.v}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -829,8 +832,8 @@ export default function HealthPage() {
           {lsObjectifs.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center' }}>
               <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.5)' }}>Aucun objectif défini</p>
-              <button onClick={() => router.push('/health/objectifs')}
-                style={{ ...DF, fontSize: 11, fontWeight: 700, color: WHEAT, background: 'rgba(var(--text-rgb),0.12)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }}>
+              <button onClick={() => router.push('/health/objectifs')} className="nb-press"
+                style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', cursor: 'pointer' }}>
                 + Ajoute un objectif
               </button>
             </div>

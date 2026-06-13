@@ -2,7 +2,7 @@
 import { Suspense } from 'react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Upload, Plus, RefreshCw, CheckCircle2, AlertCircle, ChevronRight, Activity, Zap, TrendingUp, Target, Award, Calendar } from 'lucide-react'
+import { Upload, Plus, RefreshCw, CheckCircle2, AlertCircle, ChevronRight, Activity, Zap, TrendingUp, Target, Award, Calendar } from '@/components/ui/icons'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useHealth } from '@/hooks/useHealth'
@@ -381,17 +381,19 @@ function SportPageInner() {
 
   /* ── Card style helpers ──────────────────────────────── */
   const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)',
-    overflow: 'hidden', ...extra,
+    background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
+    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
   })
   const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: 'var(--azul)', borderRadius: 12, overflow: 'hidden',
-    '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)',
+    background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
+    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
+    '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)',
     ...extra,
   } as React.CSSProperties)
   const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: ORANGE, borderRadius: 12, overflow: 'hidden',
-    '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)',
+    background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
+    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
+    '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)',
     ...extra,
   } as React.CSSProperties)
   const label = (color = ORANGE): React.CSSProperties => ({
@@ -441,9 +443,9 @@ function SportPageInner() {
       {/* ── Manual add form ──────────────────────────────── */}
       {showManual && (
         <form onSubmit={handleManual} style={{
-          display: 'flex', gap: 8, flexWrap: 'wrap', padding: 16,
-          borderRadius: 10, marginBottom: 10,
-          background: 'var(--bg-card)', border: '1px solid var(--border-active)',
+          display: 'flex', gap: 12, flexWrap: 'wrap', padding: 16,
+          borderRadius: 'var(--radius-lg)', marginBottom: 16,
+          background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
         }}>
           {[
             { type: 'date',   value: form.date,     key: 'date',     ph: '',                  w: 'auto' },
@@ -458,8 +460,8 @@ function SportPageInner() {
                 background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8,
                 padding: '8px 12px', color: 'var(--text)', fontSize: 12, minWidth: 100 }} />
           ))}
-          <button type="submit"
-            style={{ background: ORANGE, color: '#fff', borderRadius: 8, padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press"
+            style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Enregistrer
           </button>
         </form>
@@ -472,7 +474,7 @@ function SportPageInner() {
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gridTemplateRows: '300px 300px 500px 500px 400px 260px',
-        gap: 10,
+        gap: 16,
       }}>
 
         {/* ── R1C1-2 : HERO ──────────────────────────────── */}
@@ -488,28 +490,29 @@ function SportPageInner() {
 
             {/* Actions toolbar */}
             <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <a href={typeof window !== 'undefined' ? stravaAuthUrl() : '#'}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8,
+              <a href={typeof window !== 'undefined' ? stravaAuthUrl() : '#'} className="nb-press"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
                   background: STRAVA_ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, textDecoration: 'none' }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff">
                   <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0 4 13.828h4.17"/>
                 </svg>
                 Strava
               </a>
-              <button onClick={handleStravaSync} disabled={syncing}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(var(--text-rgb),0.2)',
+              <button onClick={handleStravaSync} disabled={syncing} className="nb-press"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
                   background: 'rgba(var(--text-rgb),0.08)', color: syncing ? 'rgba(var(--text-rgb),0.4)' : WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
                 <RefreshCw size={11} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
                 {syncing ? 'Sync…' : 'Synchroniser'}
               </button>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(var(--text-rgb),0.2)',
+              <label className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
                 background: 'rgba(var(--text-rgb),0.08)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
                 <input ref={fileRef} type="file" accept=".gpx" style={{ display: 'none' }} onChange={handleGpxFile} />
                 <Upload size={11} /> {importing ? 'Import…' : 'GPX'}
               </label>
-              <button onClick={() => setShowManual(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8,
-                  background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => setShowManual(v => !v)} className="nb-press"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
+                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Plus size={11} /> Ajouter
               </button>
             </div>
@@ -577,11 +580,12 @@ function SportPageInner() {
           { l: 'Dénivelé / semaine', v: `+${elevWeek}`, unit: 'm', sub: `obj. ${Math.ceil(OBJ_ELEV_DYNAMIC)}m`, pct: pctElev, color: '#5B6F3A', dark: true },
         ].map((kpi, i) => (
           <div key={i} style={{
-            background: kpi.color, borderRadius: 12, padding: '22px 22px 18px',
+            background: kpi.color, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
+            boxShadow: '4px 4px 0 var(--ink)', padding: '22px 22px 18px',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden',
             ...(kpi.dark
-              ? { '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' }
-              : { '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' }),
+              ? { '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' }
+              : { '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' }),
           } as React.CSSProperties}>
             <div>
               <p style={{ fontSize: 9, color: kpi.dark ? 'rgba(var(--text-rgb),0.5)' : 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>{kpi.l}</p>
@@ -630,16 +634,16 @@ function SportPageInner() {
         </div>
 
         {/* ── R3C3-4 : PROCHAINE COURSE + ALLURE ─────────── */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Prochaine course */}
           <div style={{ ...card(), padding: 22, flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <p style={{ ...label() }}>Prochaine course planifiée</p>
               {!showPlanForm && (
-                <button onClick={() => setShowPlanForm(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8,
-                    background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 10,
-                    border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => setShowPlanForm(true)} className="nb-press"
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 'var(--radius-lg)',
+                    background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 10,
+                    border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                   <Plus size={10} /> Planifier
                 </button>
               )}
@@ -683,15 +687,15 @@ function SportPageInner() {
                   <span style={{ fontSize: 10, color: TEAL }}>Sera ajouté automatiquement dans le calendrier (label Running)</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                  <button type="submit" disabled={planSaving || !planForm.distance}
-                    style={{ flex: 1, background: planForm.distance ? ORANGE : 'var(--border)', color: '#fff',
-                      borderRadius: 8, padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12,
-                      border: 'none', cursor: planForm.distance ? 'pointer' : 'default', transition: 'background .2s' }}>
+                  <button type="submit" disabled={planSaving || !planForm.distance} className="nb-press"
+                    style={{ flex: 1, background: planForm.distance ? ORANGE : 'var(--border)', color: planForm.distance ? 'var(--chocolate)' : 'var(--text-muted)',
+                      borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12,
+                      border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: planForm.distance ? 'pointer' : 'default', transition: 'background .2s' }}>
                     {planSaving ? 'Enregistrement…' : 'Planifier cette sortie'}
                   </button>
-                  <button type="button" onClick={() => setShowPlanForm(false)}
-                    style={{ padding: '9px 14px', borderRadius: 8, background: 'var(--bg-input)',
-                      border: '1px solid var(--border)', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                  <button type="button" onClick={() => setShowPlanForm(false)} className="nb-press"
+                    style={{ padding: '9px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)',
+                      border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
                     Annuler
                   </button>
                 </div>
@@ -850,7 +854,7 @@ function SportPageInner() {
         </div>
 
         {/* ── R4C3-4 : ZONES FC ─────────────────────────── */}
-        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ ...card(), flex: 1, padding: 24 }}>
             <p style={{ ...label(TEAL), marginBottom: 18 }}>Zones de fréquence cardiaque</p>
             <HrZonesBar zones={zones} />
@@ -957,8 +961,8 @@ function SportPageInner() {
           ].map(({ dist, run }) => (
             <div key={dist} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 14px', borderRadius: 8, background: 'var(--bg-input)',
-              border: '1px solid var(--border)',
+              padding: '12px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)',
+              border: '2px solid var(--ink)',
             }}>
               <div>
                 <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: 'var(--text-muted)' }}>{dist}</p>

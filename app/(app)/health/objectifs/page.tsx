@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, Target, Award, Droplets, Activity, Trash2, Check, Pencil, X, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Plus, Target, Award, Droplets, Activity, Trash2, Check, Pencil, X, AlertTriangle } from '@/components/ui/icons'
 import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -9,6 +9,9 @@ const TEAL    = 'var(--azul)'
 const TEAL_BG = 'var(--azul)'
 const ORANGE  = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
+const STICKER: React.CSSProperties = {
+  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
+}
 
 type Objectif = {
   id: string; label: string; target: number; unit: string; color: string
@@ -26,9 +29,9 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div onClick={onCancel} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
-      <div style={{ position: 'relative', width: 360, borderRadius: 16, background: 'var(--bg-card)',
-        border: '1px solid var(--border)', padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 20,
-        boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }}>
+      <div style={{ position: 'relative', width: 360, borderRadius: 'var(--radius-xl)', background: 'var(--bg-card)',
+        border: '2px solid var(--ink)', padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 20,
+        boxShadow: '6px 6px 0 var(--ink)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 12, background: `${ORANGE}18`,
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -40,13 +43,13 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onCancel}
-            style={{ padding: '9px 18px', borderRadius: 9, background: 'var(--bg-input)', color: 'var(--text-muted)',
-              border: '1px solid var(--border)', fontSize: 12, fontFamily: 'var(--font-display)', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={onCancel} className="nb-press"
+            style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', color: 'var(--text-muted)',
+              border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', fontSize: 12, fontFamily: 'var(--font-display)', fontWeight: 700, cursor: 'pointer' }}>
             Annuler
           </button>
-          <button onClick={onConfirm}
-            style={{ padding: '9px 18px', borderRadius: 9, background: ORANGE, color: '#fff', border: 'none',
+          <button onClick={onConfirm} className="nb-press"
+            style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
               fontSize: 12, fontFamily: 'var(--font-display)', fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6 }}>
             <Trash2 size={12} /> Supprimer
@@ -91,7 +94,7 @@ function FormPanel({
 }) {
   const inputStyle = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }
   return (
-    <form onSubmit={onSubmit} style={{ marginBottom: 16, padding: 20, borderRadius: 12, background: 'var(--bg-card)', border: `1px solid ${isEdit ? TEAL + '44' : 'var(--border-active)'}` }}>
+    <form onSubmit={onSubmit} style={{ marginBottom: 16, padding: 20, background: 'var(--bg-card)', ...STICKER }}>
       <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: isEdit ? TEAL : ORANGE, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>{title}</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 12 }}>
         <div>
@@ -146,12 +149,12 @@ function FormPanel({
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button type="submit"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, background: isEdit ? TEAL : ORANGE, color: '#fff', borderRadius: 8, padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer' }}>
+        <button type="submit" className="nb-press"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: isEdit ? TEAL : ORANGE, color: isEdit ? 'var(--creamy-ivory)' : 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           {isEdit ? <><Check size={12} /> Enregistrer</> : <><Plus size={12} /> Créer l&apos;objectif</>}
         </button>
-        <button type="button" onClick={onCancel}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 8, padding: '9px 14px', fontSize: 12, border: '1px solid var(--border)', cursor: 'pointer' }}>
+        <button type="button" onClick={onCancel} className="nb-press"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '9px 14px', fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <X size={12} /> Annuler
         </button>
       </div>
@@ -277,18 +280,18 @@ export default function ObjectifsPage() {
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-        <button onClick={() => router.back()}
+        <button onClick={() => router.back()} className="nb-press"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36,
-            borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
         </button>
         <div>
           <p style={{ ...DF, fontSize: 24, fontWeight: 900, color: ORANGE, lineHeight: 1 }}>Défis &amp; Objectifs</p>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{objectifs.length} objectifs actifs</p>
         </div>
-        <button onClick={() => { setShowForm(v => !v); setEditId(null); setForm(EMPTY_FORM) }}
+        <button onClick={() => { setShowForm(v => !v); setEditId(null); setForm(EMPTY_FORM) }} className="nb-press"
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 10, background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <Plus size={12} /> Ajouter un objectif
         </button>
       </div>
@@ -306,16 +309,15 @@ export default function ObjectifsPage() {
       )}
 
       {/* Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
         {objectifs.map(obj => {
           const current = getCurrentValue(obj)
           const pct     = Math.min(100, (current / obj.target) * 100)
           const done    = pct >= 100
           const isEditing = editId === obj.id
           return (
-            <div key={obj.id} style={{ padding: '20px 22px', borderRadius: 12,
-              background: isEditing ? `${TEAL}08` : done ? `${obj.color}0A` : 'var(--bg-card)',
-              border: `1px solid ${isEditing ? TEAL + '44' : done ? obj.color + '44' : 'var(--border)'}`,
+            <div key={obj.id} style={{ padding: '20px 22px', ...STICKER,
+              background: isEditing ? `${TEAL}14` : done ? `${obj.color}14` : 'var(--bg-card)',
               display: 'flex', gap: 16, alignItems: 'center' }}>
               <DonutProgress pct={pct} color={isEditing ? TEAL : obj.color} size={64} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -337,14 +339,14 @@ export default function ObjectifsPage() {
                         <Check size={12} style={{ color: '#fff' }} />
                       </div>
                     )}
-                    <button onClick={() => startEdit(obj)}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26,
-                        borderRadius: 7, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+                    <button onClick={() => startEdit(obj)} className="nb-press"
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28,
+                        borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                       <Pencil size={11} style={{ color: TEAL }} />
                     </button>
-                    <button onClick={() => removeObjectif(obj.id)}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26,
-                        borderRadius: 7, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+                    <button onClick={() => removeObjectif(obj.id)} className="nb-press"
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28,
+                        borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                       <Trash2 size={11} style={{ color: ORANGE }} />
                     </button>
                   </div>
@@ -370,8 +372,8 @@ export default function ObjectifsPage() {
           <Target size={36} style={{ color: 'var(--text-muted)' }} />
           <p style={{ ...DF, fontSize: 16, fontWeight: 700, color: 'var(--text-muted)' }}>Aucun objectif défini</p>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Crée ton premier objectif pour suivre ta progression.</p>
-          <button onClick={() => setShowForm(true)}
-            style={{ background: ORANGE, color: '#fff', borderRadius: 10, padding: '10px 24px', ...DF, fontWeight: 700, fontSize: 12, border: 'none', cursor: 'pointer', marginTop: 8 }}>
+          <button onClick={() => setShowForm(true)} className="nb-press"
+            style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '10px 24px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', marginTop: 8 }}>
             + Créer un objectif
           </button>
         </div>

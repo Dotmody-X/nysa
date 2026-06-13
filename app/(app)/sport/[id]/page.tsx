@@ -2,7 +2,7 @@
 import { useEffect, useState, Component, ReactNode } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, MapPin, Clock, Zap, TrendingUp, Flame, Wind } from 'lucide-react'
+import { ArrowLeft, MapPin, Clock, Zap, TrendingUp, Flame, Wind } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
 import type { RunningActivity } from '@/types'
 import type { GpxPoint, GpxKmSplit } from '@/lib/parseGpx'
@@ -22,7 +22,7 @@ class SafeMap extends Component<{ children: ReactNode }, { hasError: boolean }> 
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ height: 360, background: '#161616', borderRadius: 12, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ height: 360, background: '#161616', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
           <span style={{ fontSize: 28 }}>🗺️</span>
           <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)', fontFamily: 'var(--font-display)' }}>Carte non disponible</p>
         </div>
@@ -182,7 +182,7 @@ export default function ActivityDetailPage() {
     : null
 
   return (
-    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 10, minHeight: '100%' }}>
+    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 16, minHeight: '100%' }}>
 
       {/* ── Back + titre ── */}
       <div className="flex items-start justify-between gap-4">
@@ -213,14 +213,14 @@ export default function ActivityDetailPage() {
       </div>
 
       {/* ── KPIs principaux ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px]">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Distance',  value: `${activity.distance_km?.toFixed(2)} km`,        color: 'var(--accent-budget)', icon: <Wind size={14} /> },
           { label: 'Durée',     value: activity.duration_seconds ? fmtDur(activity.duration_seconds) : '—', color: 'var(--text)', icon: <Clock size={14} /> },
           { label: 'Allure',    value: pace ? `${fmtPace(pace)}/km` : '—',               color: 'var(--azul)', icon: <Zap size={14} /> },
           { label: 'Vitesse',   value: speed ? `${speed.toFixed(1)} km/h` : '—',         color: 'var(--text-muted)', icon: <TrendingUp size={14} /> },
         ].map(stat => (
-          <div key={stat.label} style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+          <div key={stat.label} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
             <div className="flex items-center gap-1.5 mb-2" style={{ color: stat.color }}>
               {stat.icon}
               <span style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{stat.label}</span>
@@ -232,35 +232,35 @@ export default function ActivityDetailPage() {
 
       {/* ── Stats secondaires ── */}
       {(gpxData || activity.elevation_m || activity.heart_rate_avg) && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {gpxData && (
             <>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
                 <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>D+</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>+{Math.round(gpxData.elevationGain)}m</p>
               </div>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
                 <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>D−</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>-{Math.round(gpxData.elevationLoss)}m</p>
               </div>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
                 <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Altitude max</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>{Math.round(gpxData.elevationMax)}m</p>
               </div>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
                 <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Splits</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>{gpxData.kmSplits.length} km</p>
               </div>
             </>
           )}
           {!gpxData && activity.elevation_m && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
               <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Dénivelé +</p>
               <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>+{activity.elevation_m}m</p>
             </div>
           )}
           {activity.heart_rate_avg && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
               <div className="flex items-center gap-1.5 mb-2" style={{ color: 'var(--accent-budget)' }}>
                 <Flame size={14} />
                 <span style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>FC moy.</span>
@@ -273,7 +273,7 @@ export default function ActivityDetailPage() {
 
       {/* ── Carte + Graphiques ── */}
       {hasGpx ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[10px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Carte — prend toute la largeur si pas de données GPX détaillées */}
           <div className={gpxData ? 'md:col-span-2' : 'md:col-span-3'}>
             <SafeMap>
@@ -283,9 +283,9 @@ export default function ActivityDetailPage() {
 
           {/* Colonne droite — uniquement si données GPX disponibles */}
           {gpxData && (
-            <div className="flex flex-col gap-[10px]">
+            <div className="flex flex-col gap-4">
               {/* Profil d'élévation */}
-              <div style={{ background: 'var(--azul)', borderRadius: 12, padding: 16, flex: 1, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+              <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, flex: 1, '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
                 <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                   Profil d'élévation
                 </p>
@@ -304,7 +304,7 @@ export default function ActivityDetailPage() {
 
               {/* Allure par km */}
               {gpxData.kmSplits.length > 0 && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
                   <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent-budget)', textTransform: 'uppercase', marginBottom: 8 }}>
                     Allure par km
                   </p>
@@ -319,7 +319,7 @@ export default function ActivityDetailPage() {
 
           {/* Détails Strava km-par-km (depuis activity_segments) */}
           {segments && segments.length > 0 && !segmentsLoading && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16, marginTop: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, marginTop: 16 }}>
               <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent-budget)', textTransform: 'uppercase', marginBottom: 16 }}>
                 ⚡ Détails Strava (km-par-km)
               </p>
@@ -329,7 +329,7 @@ export default function ActivityDetailPage() {
         </div>
       ) : (
         /* Saisie manuelle — pas de carte */
-        <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, textAlign: 'center' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 24, textAlign: 'center' }}>
           <MapPin size={28} style={{ color: 'var(--text-subtle)', margin: '0 auto 8px' }} />
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Saisie manuelle — pas de trace GPS</p>
           <p style={{ fontSize: 11, color: 'var(--text-subtle)', marginTop: 4 }}>Synchronise depuis Strava pour afficher la carte</p>
@@ -338,7 +338,7 @@ export default function ActivityDetailPage() {
 
       {/* ── Tableau des splits — GPX uniquement ── */}
       {gpxData && gpxData.kmSplits.length > 0 && (
-        <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
           <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--azul)', textTransform: 'uppercase' }}>
               Splits détaillés
@@ -384,7 +384,7 @@ export default function ActivityDetailPage() {
 
       {/* ── Notes ── */}
       {activity.notes && (
-        <div style={{ background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 16 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>Notes</p>
           <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{activity.notes}</p>
         </div>
