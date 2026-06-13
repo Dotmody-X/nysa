@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ChevronLeft, Plus, Package, Pencil, Trash2, Check, X,
-  AlertTriangle, ShoppingCart, Search,
+  AlertTriangle, ShoppingCart, Search, Loader2,
 } from 'lucide-react'
 import { AlertTriangle as AlertIcon } from 'lucide-react'
+import { useInventory } from '@/hooks/useInventory'
+import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -48,22 +50,6 @@ const CAT_COLORS: Record<string, string> = {
   'Boissons': '#3B82F6', 'Hygiène': '#A78BFA', 'Entretien': '#F59E0B',
   'Congélateur': '#60A5FA', 'Autre': 'var(--text-muted)',
 }
-
-/* ─── Seed data ──────────────────────────────────────────────── */
-const SEED: InventItem[] = [
-  { id: '1', name: 'Riz basmati',    qty: '1 kg',    category: 'Épicerie',          status: 'ok',  minQty: '500g'  },
-  { id: '2', name: 'Œufs',           qty: 'x6',      category: 'Produits frais',    status: 'ok',  minQty: 'x6'    },
-  { id: '3', name: "Huile d'olive",  qty: '500 ml',  category: 'Épicerie',          status: 'low', minQty: '250ml' },
-  { id: '4', name: 'Lait',           qty: '1 L',     category: 'Produits frais',    status: 'buy', minQty: '1L'    },
-  { id: '5', name: 'Beurre',         qty: '250 g',   category: 'Produits frais',    status: 'ok',  minQty: '125g'  },
-  { id: '6', name: 'Farine',         qty: '1 kg',    category: 'Épicerie',          status: 'ok',  minQty: '500g'  },
-  { id: '7', name: 'Sucre',          qty: '500 g',   category: 'Épicerie',          status: 'low', minQty: '250g'  },
-  { id: '8', name: 'Pâtes',          qty: '500 g',   category: 'Épicerie',          status: 'ok',  minQty: '250g'  },
-  { id: '9', name: 'Tomates (boîte)',qty: '2 boîtes',category: 'Épicerie',          status: 'ok'                   },
-  { id:'10', name: 'Yaourt nature',  qty: 'x4',      category: 'Produits frais',    status: 'buy'                  },
-  { id:'11', name: 'Bananes',        qty: '1 grappe',category: 'Fruits & Légumes',  status: 'low'                  },
-  { id:'12', name: 'Eau minérale',   qty: '6 L',     category: 'Boissons',          status: 'ok'                   },
-]
 
 /* ─── ConfirmModal ───────────────────────────────────────────── */
 function ConfirmModal({ name, onConfirm, onCancel }: { name: string; onConfirm: () => void; onCancel: () => void }) {
@@ -255,40 +241,34 @@ function EditPanel({
 export default function InventairePage() {
   const router = useRouter()
 
-  const [items,    setItems]    = useState<InventItem[]>(SEED)
-  const [hydrated, setHydrated] = useState(false)
+  /* ── Source de vérité partagée (localStorage, démarre vide) ── */
+  const { items, upsert, remove, setStatus } = useInventory()
+
+  /* ── Liste de courses active (Supabase) pour "→ ajouter aux courses" ── */
+  const { lists } = useShoppingLists()
+  const activeListId = lists.length > 0 ? lists[0].id : null
+  const { addItem } = useShoppingItems(activeListId)
+  const [pushingToCourses, setPushingToCourses] = useState(false)
+
   const [editItem, setEditItem] = useState<InventItem | null | 'new'>( null) // null=closed, 'new'=add, item=edit
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [search,   setSearch]   = useState('')
   const [filterStatus, setFilterStatus] = useState<Status | 'all'>('all')
   const [filterCat, setFilterCat] = useState('Toutes')
 
-  /* ── localStorage ── */
-  useEffect(() => {
-    try { const s = localStorage.getItem('nysa_inventaire'); if (s) setItems(JSON.parse(s)) } catch {}
-    setHydrated(true)
-  }, [])
-  useEffect(() => {
-    if (!hydrated) return
-    localStorage.setItem('nysa_inventaire', JSON.stringify(items))
-  }, [items, hydrated])
-
-  /* ── CRUD ── */
+  /* ── CRUD (via hook partagé) ── */
   function handleSave(item: InventItem) {
-    setItems(prev => {
-      const exists = prev.find(i => i.id === item.id)
-      return exists ? prev.map(i => i.id === item.id ? item : i) : [...prev, item]
-    })
+    upsert({ ...item, id: item.id || Date.now().toString() })
     setEditItem(null)
   }
 
   function handleDelete(id: string) {
-    setItems(prev => prev.filter(i => i.id !== id))
+    remove(id)
     setConfirmId(null)
   }
 
   function handleStatusChange(id: string, status: Status) {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, status } : i))
+    setStatus(id, status)
   }
 
   /* ── Filters ── */
@@ -306,17 +286,21 @@ export default function InventairePage() {
     return acc
   }, {} as Record<string, InventItem[]>)
 
-  /* ── "À racheter" shortcut — add to courses ── */
-  function addToCourses() {
+  /* ── "À racheter" shortcut — ajoute à la liste de courses active (Supabase) ── */
+  async function addToCourses() {
     const toBuy = items.filter(i => i.status === 'buy')
-    const existing = (() => { try { return JSON.parse(localStorage.getItem('nysa_courses') || '[]') } catch { return [] } })()
-    const newItems = toBuy.map(i => ({
-      id: `inv_${i.id}_${Date.now()}`,
-      item: i.name,
-      qty: i.minQty || i.qty,
-      done: false,
-    }))
-    localStorage.setItem('nysa_courses', JSON.stringify([...existing, ...newItems]))
+    if (toBuy.length === 0) return
+    if (!activeListId) { router.push('/courses'); return }
+    setPushingToCourses(true)
+    for (const i of toBuy) {
+      await addItem({
+        name: i.name,
+        quantity: 1,
+        unit: i.minQty || i.qty || undefined,
+        category: i.category || undefined,
+      })
+    }
+    setPushingToCourses(false)
     router.push('/courses')
   }
 
@@ -355,9 +339,9 @@ export default function InventairePage() {
           </p>
         </div>
         {itemToBuy > 0 && (
-          <button onClick={addToCourses}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, background: ORANGE, border: 'none', cursor: 'pointer', color: '#fff', ...DF, fontWeight: 800, fontSize: 12 }}>
-            <ShoppingCart size={13} /> Ajouter {itemToBuy} article{itemToBuy > 1 ? 's' : ''} aux courses
+          <button onClick={addToCourses} disabled={pushingToCourses}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 10, background: ORANGE, border: 'none', cursor: 'pointer', color: '#fff', ...DF, fontWeight: 800, fontSize: 12, opacity: pushingToCourses ? 0.6 : 1 }}>
+            {pushingToCourses ? <Loader2 size={13} className="animate-spin" /> : <ShoppingCart size={13} />} Ajouter {itemToBuy} article{itemToBuy > 1 ? 's' : ''} aux courses
           </button>
         )}
         <button onClick={() => setEditItem('new')}
@@ -450,8 +434,8 @@ export default function InventairePage() {
               {items.filter(i => i.status === 'buy').map(i => i.name).join(', ')}
             </p>
           </div>
-          <button onClick={addToCourses}
-            style={{ padding: '8px 16px', borderRadius: 9, background: ORANGE, border: 'none', cursor: 'pointer', color: '#fff', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>
+          <button onClick={addToCourses} disabled={pushingToCourses}
+            style={{ padding: '8px 16px', borderRadius: 9, background: ORANGE, border: 'none', cursor: 'pointer', color: '#fff', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', opacity: pushingToCourses ? 0.6 : 1 }}>
             → Ajouter aux courses
           </button>
         </div>

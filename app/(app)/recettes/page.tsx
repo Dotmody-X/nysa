@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation'
 import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVertical } from 'lucide-react'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
-import { useRecipes } from '@/hooks/useRecipes'
+import { useRecipes, calcRecipeNutrition } from '@/hooks/useRecipes'
+import { useMealPlan } from '@/hooks/useMealPlan'
+import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { createClient } from '@/lib/supabase/client'
 
 /* ─── Constants ──────────────────────────────────────────────── */
@@ -35,23 +37,14 @@ const lbl = (color = ORANGE): React.CSSProperties => ({
 const DAYS  = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const MEALS = ['Petit-déj', 'Déjeuner', 'Dîner', 'Snack']
 
-// Dynamic filters from recipes
-let ALL_FILTERS = ['Toutes']
+// Cibles nutritionnelles : simples références d'objectif (pas de valeurs consommées codées en dur)
+const CAL_TARGET   = 2200
+const PROT_TARGET  = 160
+const CARBS_TARGET = 220
+const FAT_TARGET   = 70
 
-const SAMPLE_RECIPES: any[] = []
-
-const CATEGORIES: any[] = []
-
-const INGREDIENTS = [
-  { name: 'Saumon', qty: '200g',  color: ORANGE },
-  { name: 'Quinoa', qty: '150g',  color: TEAL   },
-  { name: 'Épinards', qty: '100g',color: '#5B6F3A' },
-  { name: 'Avocat', qty: '1 pc',  color: '#5B6F3A' },
-  { name: 'Yaourt grec', qty: '200g', color: WHEAT },
-  { name: 'Riz jasmin', qty: '180g', color: WHEAT },
-]
-
-const SEED_COURSES: Array<{ id: string; item: string; qty: string; done: boolean }> = []
+// Couleurs cycliques pour les catégories dérivées des tags
+const CAT_COLORS = [ORANGE, TEAL, '#5B6F3A', WHEAT, '#3B82F6', '#9333EA']
 
 const MEAL_PLAN: Record<string, string> = {}
 
@@ -87,35 +80,40 @@ export default function RecettesPage() {
   const router   = useRouter()
   const supabase = createClient()
   const { recipes, loading } = useRecipes()
+  const { todayRecipes, todayNutrition, weekCaloriesByDay } = useMealPlan()
+  const { lists, createList } = useShoppingLists()
   const [filter, setFilter]     = useState('Toutes')
   const [search, setSearch]     = useState('')
-  const [courses, setCourses]   = useState(SEED_COURSES)
   const [hydrated, setHydrated] = useState(false)
   const [newItem, setNewItem]   = useState('')
   const [showAddItem, setShowAddItem] = useState(false)
-  const [tab, setTab] = useState('recent') // 'recent' or 'mes'
   const [catMenu, setCatMenu] = useState<string | null>(null) // For category 3-dot menus
   const [mealPlan, setMealPlan] = useState(MEAL_PLAN)
   const [selectedMealSlot, setSelectedMealSlot] = useState<{day: string; meal: string} | null>(null)
-  
-  // Combine sample recipes with DB recipes
-  const dbRecipes = recipes.map(r => ({
-    id: r.id,
-    name: r.name,
-    cal: r.ingredients ? 400 : 0,
-    prot: r.ingredients ? 35 : 0,
-    carbs: r.ingredients ? 45 : 0,
-    fat: r.ingredients ? 12 : 0,
-    time: r.prep_time || 0,
-    tags: r.tags || [],
-    emoji: '🍽️',
-    fav: r.is_favorite || false,
-  }))
-  
-  const allRecipes = [...SAMPLE_RECIPES, ...dbRecipes]
-  
-  // Update ALL_FILTERS dynamically
-  ALL_FILTERS = ['Toutes', ...Array.from(new Set(allRecipes.flatMap(r => r.tags || [])))]
+
+  /* ── Liste de courses partagée (même source que /courses) ── */
+  const activeList = lists.find(l => l.status === 'active') ?? lists[0] ?? null
+  const { items: courses, addItem, toggleItem, removeItem } = useShoppingItems(activeList?.id ?? null)
+
+  // Recettes réelles → modèle d'affichage, macros calculées depuis les ingrédients
+  const allRecipes = recipes.map(r => {
+    const n = calcRecipeNutrition(r, 1)
+    return {
+      id: r.id,
+      name: r.name,
+      cal: n.calories,
+      prot: n.protein,
+      carbs: n.carbs,
+      fat: n.fat,
+      time: r.prep_time || 0,
+      tags: r.tags || [],
+      emoji: '🍽️',
+      fav: r.is_favorite || false,
+    }
+  })
+
+  // Filtres dérivés des tags réels
+  const ALL_FILTERS = ['Toutes', ...Array.from(new Set(allRecipes.flatMap(r => r.tags || [])))]
 
   /* ── Load meal plans from Supabase ── */
   useEffect(() => {
@@ -139,32 +137,35 @@ export default function RecettesPage() {
     loadMealPlan()
   }, [recipes])
 
-  /* ── localStorage persistence for shopping list ── */
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('nysa_courses')
-      if (saved) setCourses(JSON.parse(saved))
-    } catch {}
-    setHydrated(true)
-  }, [])
-  useEffect(() => {
-    if (!hydrated) return
-    localStorage.setItem('nysa_courses', JSON.stringify(courses))
-  }, [courses, hydrated])
+  /* ── Hydratation (pour le gating d'état vide) ── */
+  useEffect(() => { setHydrated(true) }, [])
 
-  const toggleCourse = (id: string) => {
-    setCourses(prev => prev.map(c => c.id === id ? { ...c, done: !c.done } : c))
-  }
+  /* ── Liste de courses : interconnexion Supabase partagée avec /courses ── */
+  const toggleCourse = (id: string, checked: boolean) => { toggleItem(id, !checked) }
 
-  const addCourse = () => {
-    if (!newItem.trim()) return
-    const item = { id: Date.now().toString(), item: newItem.trim(), qty: '', done: false }
-    setCourses(prev => [...prev, item])
+  const addCourse = async () => {
+    const name = newItem.trim()
+    if (!name) return
+    if (activeList?.id) {
+      // Liste existante : passe par le hook (état local mis à jour)
+      await addItem({ name })
+    } else {
+      // Aucune liste : crée la liste du jour puis insère le premier article
+      const today = new Date().toISOString().slice(0, 10)
+      const created = await createList(`Courses - ${today}`)
+      if (!created?.id) return
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('shopping_items').insert({
+          name, shopping_list_id: created.id, user_id: user.id, is_checked: false,
+        })
+      }
+    }
     setNewItem('')
     setShowAddItem(false)
   }
 
-  const removeCourse = (id: string) => setCourses(prev => prev.filter(c => c.id !== id))
+  const removeCourse = (id: string) => removeItem(id)
 
   const filtered = allRecipes.filter(r => {
     const matchSearch = !search || r.name.toLowerCase().includes(search.toLowerCase())
@@ -172,14 +173,43 @@ export default function RecettesPage() {
     return matchSearch && matchFilter
   })
 
-  /* Nutrition data */
-  const nutrition = { cal: 1842, calTarget: 2200, prot: 138, protTarget: 160, carbs: 196, carbsTarget: 220, fat: 52, fatTarget: 70 }
+  /* Nutrition réelle — dérivée du planning du jour (useMealPlan) */
+  const nutrition = {
+    cal: todayNutrition.calories,
+    calTarget: CAL_TARGET,
+    prot: todayNutrition.protein,
+    protTarget: PROT_TARGET,
+    carbs: todayNutrition.carbs,
+    carbsTarget: CARBS_TARGET,
+    fat: todayNutrition.fat,
+    fatTarget: FAT_TARGET,
+  }
+  const hasNutrition = nutrition.cal > 0 || nutrition.prot > 0 || nutrition.carbs > 0 || nutrition.fat > 0
   const totalMacrosG = nutrition.prot + nutrition.carbs + nutrition.fat
-  const donutSlices = [
+  const donutSlices = totalMacrosG > 0 ? [
     { pct: Math.round((nutrition.prot  / totalMacrosG) * 100), color: TEAL   },
     { pct: Math.round((nutrition.carbs / totalMacrosG) * 100), color: ORANGE },
     { pct: Math.round((nutrition.fat   / totalMacrosG) * 100), color: WHEAT  },
-  ]
+  ] : [{ pct: 0, color: TEAL }, { pct: 0, color: ORANGE }, { pct: 0, color: WHEAT }]
+
+  /* Catégories dérivées des tags réels (avec nombre de recettes) */
+  const categories = Array.from(
+    allRecipes.reduce<Map<string, number>>((map, r) => {
+      ;(r.tags || []).forEach(t => map.set(t, (map.get(t) ?? 0) + 1))
+      return map
+    }, new Map())
+  ).map(([name, count], i) => ({ name, count, color: CAT_COLORS[i % CAT_COLORS.length] }))
+
+  /* Ingrédients à utiliser — issus des recettes planifiées aujourd'hui */
+  const planIngredients = todayRecipes.flatMap(r => r.ingredients || [])
+  const ingredientColors = [ORANGE, TEAL, '#5B6F3A', WHEAT, '#3B82F6']
+
+  /* Résumé "Mes recettes" — réel */
+  const recipeCount = allRecipes.length
+  const recipesWithMacros = allRecipes.filter(r => r.cal > 0)
+  const avgCal = recipesWithMacros.length > 0
+    ? Math.round(recipesWithMacros.reduce((s, r) => s + r.cal, 0) / recipesWithMacros.length)
+    : 0
 
   // Empty state for demo mode
   const noDemoMode = isDemoModeDisabled()
@@ -262,32 +292,43 @@ export default function RecettesPage() {
         <div style={{ ...orangeCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <p style={{ ...lbl('#1A0A0A') }}>Apports nutritionnels aujourd&apos;hui</p>
 
-          {/* Big calorie number */}
-          <div>
-            <p style={{ ...DF, fontSize: 52, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>{nutrition.cal}</p>
-            <p style={{ fontSize: 12, color: 'rgba(26,10,10,0.55)', marginBottom: 14 }}>/ {nutrition.calTarget} kcal objectif</p>
-            <div style={{ height: 6, borderRadius: 99, background: 'rgba(0,0,0,0.15)', overflow: 'hidden', marginBottom: 18 }}>
-              <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.55)', width: `${Math.min(100, nutrition.cal / nutrition.calTarget * 100)}%` }} />
-            </div>
-          </div>
-
-          {/* 3 macros */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {[
-              { l: 'Protéines', v: nutrition.prot,  t: nutrition.protTarget,  unit: 'g', color: 'rgba(26,10,10,0.75)' },
-              { l: 'Glucides',  v: nutrition.carbs,  t: nutrition.carbsTarget, unit: 'g', color: 'rgba(26,10,10,0.75)' },
-              { l: 'Lipides',   v: nutrition.fat,    t: nutrition.fatTarget,   unit: 'g', color: 'rgba(26,10,10,0.75)' },
-            ].map(m => (
-              <div key={m.l} style={{ background: 'rgba(26,10,10,0.12)', borderRadius: 10, padding: '12px 10px' }}>
-                <p style={{ fontSize: 8, color: 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{m.l}</p>
-                <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>{m.v}<span style={{ fontSize: 10 }}>{m.unit}</span></p>
-                <p style={{ fontSize: 9, color: 'rgba(26,10,10,0.45)', marginTop: 2 }}>/ {m.t}{m.unit}</p>
-                <div style={{ height: 3, borderRadius: 99, background: 'rgba(0,0,0,0.15)', overflow: 'hidden', marginTop: 6 }}>
-                  <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.45)', width: `${Math.min(100, m.v / m.t * 100)}%` }} />
+          {hasNutrition ? (
+            <>
+              {/* Big calorie number */}
+              <div>
+                <p style={{ ...DF, fontSize: 52, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>{nutrition.cal}</p>
+                <p style={{ fontSize: 12, color: 'rgba(26,10,10,0.55)', marginBottom: 14 }}>/ {nutrition.calTarget} kcal objectif</p>
+                <div style={{ height: 6, borderRadius: 99, background: 'rgba(0,0,0,0.15)', overflow: 'hidden', marginBottom: 18 }}>
+                  <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.55)', width: `${Math.min(100, nutrition.cal / nutrition.calTarget * 100)}%` }} />
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* 3 macros */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                {[
+                  { l: 'Protéines', v: nutrition.prot,  t: nutrition.protTarget,  unit: 'g', color: 'rgba(26,10,10,0.75)' },
+                  { l: 'Glucides',  v: nutrition.carbs,  t: nutrition.carbsTarget, unit: 'g', color: 'rgba(26,10,10,0.75)' },
+                  { l: 'Lipides',   v: nutrition.fat,    t: nutrition.fatTarget,   unit: 'g', color: 'rgba(26,10,10,0.75)' },
+                ].map(m => (
+                  <div key={m.l} style={{ background: 'rgba(26,10,10,0.12)', borderRadius: 10, padding: '12px 10px' }}>
+                    <p style={{ fontSize: 8, color: 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{m.l}</p>
+                    <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>{m.v}<span style={{ fontSize: 10 }}>{m.unit}</span></p>
+                    <p style={{ fontSize: 9, color: 'rgba(26,10,10,0.45)', marginTop: 2 }}>/ {m.t}{m.unit}</p>
+                    <div style={{ height: 3, borderRadius: 99, background: 'rgba(0,0,0,0.15)', overflow: 'hidden', marginTop: 6 }}>
+                      <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.45)', width: `${Math.min(100, m.v / m.t * 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', gap: 6 }}>
+              <p style={{ ...DF, fontSize: 32, fontWeight: 900, color: 'rgba(26,10,10,0.35)', lineHeight: 1 }}>—</p>
+              <p style={{ fontSize: 12, color: 'rgba(26,10,10,0.6)', maxWidth: 240 }}>
+                Planifie des repas pour voir tes apports
+              </p>
+            </div>
+          )}
         </div>
 
         {/* ── R2 C1-4 : RECETTES RÉCENTES ──────────────────── */}
@@ -404,7 +445,12 @@ export default function RecettesPage() {
           <div>
             <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 12 }}>Catégories</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {CATEGORIES.map(cat => (
+              {categories.length === 0 && (
+                <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.45)', padding: '6px 2px' }}>
+                  Aucune catégorie — ajoute des tags à tes recettes
+                </p>
+              )}
+              {categories.map(cat => (
                 <div key={cat.name} style={{ position: 'relative' }}>
                   <button className="rec-row"
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -461,14 +507,20 @@ export default function RecettesPage() {
         <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column' }}>
           <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 14 }}>Ingrédients à utiliser</p>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
-            {INGREDIENTS.map(ing => (
-              <div key={ing.name} style={{ display: 'flex', alignItems: 'center', gap: 10,
+            {planIngredients.length > 0 ? planIngredients.map((ing, i) => (
+              <div key={`${ing.id ?? ing.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10,
                 padding: '10px 12px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: ing.color, flexShrink: 0 }} />
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: ingredientColors[i % ingredientColors.length], flexShrink: 0 }} />
                 <span style={{ flex: 1, fontSize: 12, color: 'rgba(var(--text-rgb),0.85)' }}>{ing.name}</span>
-                <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'rgba(var(--text-rgb),0.5)' }}>{ing.qty}</span>
+                <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'rgba(var(--text-rgb),0.5)' }}>
+                  {ing.quantity ? `${ing.quantity}${ing.unit ? ` ${ing.unit}` : ''}` : ''}
+                </span>
               </div>
-            ))}
+            )) : (
+              <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.5)', textAlign: 'center', paddingTop: 20 }}>
+                Aucun ingrédient planifié
+              </p>
+            )}
           </div>
           <button className="rec-btn" style={{ marginTop: 14, padding: '9px', borderRadius: 9, border: 'none', cursor: 'pointer',
             background: 'rgba(var(--text-rgb),0.1)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 10 }}>
@@ -482,7 +534,7 @@ export default function RecettesPage() {
             <p style={{ ...lbl('#1A0A0A') }}>Liste de courses</p>
             <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 6,
               background: 'rgba(26,10,10,0.15)', color: '#1A0A0A' }}>
-              {courses.filter(c => c.done).length}/{courses.length}
+              {courses.filter(c => c.is_checked).length}/{courses.length}
             </span>
           </div>
 
@@ -490,15 +542,15 @@ export default function RecettesPage() {
             {courses.length > 0 ? courses.map(c => (
               <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8,
                 padding: '8px 10px', borderRadius: 8,
-                background: c.done ? 'rgba(26,10,10,0.08)' : 'rgba(26,10,10,0.12)' }}>
-                <button onClick={() => toggleCourse(c.id)}
+                background: c.is_checked ? 'rgba(26,10,10,0.08)' : 'rgba(26,10,10,0.12)' }}>
+                <button onClick={() => toggleCourse(c.id, c.is_checked)}
                   style={{ width: 18, height: 18, borderRadius: 4, border: 'none', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: c.done ? 'rgba(26,10,10,0.4)' : 'rgba(26,10,10,0.15)' }}>
-                  {c.done && <Check size={11} color="#1A0A0A" />}
+                    background: c.is_checked ? 'rgba(26,10,10,0.4)' : 'rgba(26,10,10,0.15)' }}>
+                  {c.is_checked && <Check size={11} color="#1A0A0A" />}
                 </button>
-                <span style={{ flex: 1, fontSize: 11, color: c.done ? 'rgba(26,10,10,0.45)' : '#1A0A0A',
-                  textDecoration: c.done ? 'line-through' : 'none' }}>{c.item}</span>
-                {c.qty && <span style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(26,10,10,0.5)' }}>{c.qty}</span>}
+                <span style={{ flex: 1, fontSize: 11, color: c.is_checked ? 'rgba(26,10,10,0.45)' : '#1A0A0A',
+                  textDecoration: c.is_checked ? 'line-through' : 'none' }}>{c.name}</span>
+                {c.quantity != null && <span style={{ ...DF, fontSize: 9, fontWeight: 700, color: 'rgba(26,10,10,0.5)' }}>{c.quantity}{c.unit ? ` ${c.unit}` : ''}</span>}
                 <button onClick={() => removeCourse(c.id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
                   <X size={10} color="rgba(26,10,10,0.35)" />
@@ -542,17 +594,17 @@ export default function RecettesPage() {
           </div>
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
-            {SAMPLE_RECIPES.map(r => (
-              <div key={r.id} className="rec-row"
+            {allRecipes.length > 0 ? allRecipes.map(r => (
+              <div key={r.id} className="rec-row" onClick={() => router.push(`/recettes/${r.id}`)}
                 style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10,
                   background: 'rgba(var(--text-rgb),0.04)', border: '1px solid rgba(var(--text-rgb),0.06)', cursor: 'pointer' }}>
                 <span style={{ fontSize: 26, flexShrink: 0 }}>{r.emoji}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>{r.name}</p>
                   <div style={{ display: 'flex', gap: 8, marginTop: 3 }}>
-                    <span style={{ fontSize: 9, color: ORANGE }}>{r.cal} kcal</span>
-                    <span style={{ fontSize: 9, color: TEAL }}>P {r.prot}g</span>
-                    <span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)' }}>{r.time}min</span>
+                    <span style={{ fontSize: 9, color: ORANGE }}>{r.cal > 0 ? `${r.cal} kcal` : '—'}</span>
+                    <span style={{ fontSize: 9, color: TEAL }}>{r.prot > 0 ? `P ${r.prot}g` : ''}</span>
+                    <span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)' }}>{r.time > 0 ? `${r.time}min` : ''}</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
@@ -563,7 +615,11 @@ export default function RecettesPage() {
                   {r.fav && <Star size={10} fill={ORANGE} color={ORANGE} />}
                 </div>
               </div>
-            ))}
+            )) : (
+              <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.4)', textAlign: 'center', paddingTop: 20 }}>
+                Aucune recette
+              </p>
+            )}
           </div>
 
           {/* Résumé nutritionnel */}
@@ -571,9 +627,9 @@ export default function RecettesPage() {
             <p style={{ fontSize: 9, color: TEAL, ...DF, fontWeight: 700, marginBottom: 5 }}>RÉSUMÉ SEMAINE</p>
             <div style={{ display: 'flex', gap: 16 }}>
               {[
-                { l: 'Moy. cal.', v: '1 842 kcal' },
-                { l: 'Recettes',  v: '4 utilisées' },
-                { l: 'Objectif',  v: '94% atteint' },
+                { l: 'Moy. cal.', v: avgCal > 0 ? `${avgCal} kcal` : '—' },
+                { l: 'Recettes',  v: recipeCount > 0 ? `${recipeCount}` : '—' },
+                { l: 'Objectif',  v: '—' },
               ].map(s => (
                 <div key={s.l}>
                   <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.25)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.l}</p>
@@ -605,7 +661,7 @@ export default function RecettesPage() {
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <DonutChart slices={donutSlices} size={120} />
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center' }}>
-                <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{totalMacrosG}</p>
+                <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{totalMacrosG > 0 ? Math.round(totalMacrosG) : '—'}</p>
                 <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.4)', letterSpacing: '0.1em' }}>GRAMMES</p>
               </div>
             </div>
@@ -640,13 +696,10 @@ export default function RecettesPage() {
             <div style={{ flexShrink: 0, width: 280 }}>
               <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Calories / jour (semaine)</p>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 80 }}>
-                {[
-                  { d: 'L', cal: 1920 }, { d: 'M', cal: 2100 }, { d: 'M', cal: 1750 },
-                  { d: 'J', cal: 2200 }, { d: 'V', cal: 1842 }, { d: 'S', cal: 0 }, { d: 'D', cal: 0 },
-                ].map((day, i) => {
-                  const maxCal = 2200
+                {weekCaloriesByDay.map((day, i) => {
+                  const maxCal = Math.max(CAL_TARGET, ...weekCaloriesByDay.map(d => d.cal))
                   const h = day.cal > 0 ? Math.max(6, (day.cal / maxCal) * 70) : 4
-                  const isToday = i === 4
+                  const isToday = day.iso === new Date().toISOString().slice(0, 10)
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                       {day.cal > 0 && (
@@ -666,13 +719,14 @@ export default function RecettesPage() {
             {/* KPIs rapides */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
-                { l: 'Indice qualité',  v: '84/100', color: TEAL   },
-                { l: 'Balance',         v: '+150 kcal', color: ORANGE },
-                { l: 'Hydratation',     v: '1.75 L',  color: '#3B82F6' },
+                { l: 'Indice qualité',  color: TEAL   },
+                { l: 'Balance',         color: ORANGE },
+                { l: 'Hydratation',     color: '#3B82F6' },
               ].map(kpi => (
                 <div key={kpi.l} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
                   <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{kpi.l}</p>
-                  <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{kpi.v}</p>
+                  <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>—</p>
+                  <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 2 }}>bientôt</p>
                 </div>
               ))}
             </div>

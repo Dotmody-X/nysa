@@ -142,25 +142,9 @@ export function useBudget(year: number, month: number) {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
-  // ── Seed les catégories Excel au premier lancement ─────────────────────
-  useEffect(() => {
-    async function seedIfEmpty() {
-      const supabase = getSupabase()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { count } = await supabase
-        .from('budget_categories')
-        .select('id', { count:'exact', head:true })
-        .eq('user_id', user.id)
-      if ((count ?? 0) > 0) return
-      // Créer les catégories Excel par défaut
-      const rows = EXCEL_CATEGORIES.map(c => ({ ...c, user_id: user.id }))
-      await supabase.from('budget_categories').insert(rows)
-      await fetchAll()
-    }
-    seedIfEmpty()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Pas de pré-remplissage : l'utilisateur crée ses propres catégories.
+  // (EXCEL_CATEGORIES reste exporté comme modèles optionnels à proposer dans
+  //  l'UI, mais rien n'est inséré automatiquement → "rien de déjà noté".)
 
   // ── CRUD transactions ──────────────────────────────────────────────────
   async function addTransaction(t: NewTransaction): Promise<Transaction | null> {

@@ -30,6 +30,31 @@ export interface Recipe {
   updated_at: string
 }
 
+// ── Nutrition pure utilitaire (réutilisable hors du hook) ───────────────────
+// Agrège les macros d'une recette depuis ses ingrédients, mise à l'échelle
+// selon le nombre de portions. Retourne des zéros si aucune donnée → état vide.
+export function calcRecipeNutrition(recipe: Recipe | undefined | null, servings = 1) {
+  if (!recipe?.ingredients || recipe.ingredients.length === 0) {
+    return { calories: 0, protein: 0, carbs: 0, fat: 0 }
+  }
+  const ratio = servings / (recipe.servings || 1)
+  const total = recipe.ingredients.reduce(
+    (sum, ing) => ({
+      calories: sum.calories + (ing.calories_per_qty ?? 0) * (ing.quantity ?? 0) * ratio,
+      protein:  sum.protein  + (ing.protein_per_qty  ?? 0) * (ing.quantity ?? 0) * ratio,
+      carbs:    sum.carbs    + (ing.carbs_per_qty    ?? 0) * (ing.quantity ?? 0) * ratio,
+      fat:      sum.fat       + (ing.fat_per_qty      ?? 0) * (ing.quantity ?? 0) * ratio,
+    }),
+    { calories: 0, protein: 0, carbs: 0, fat: 0 }
+  )
+  return {
+    calories: Math.round(total.calories),
+    protein:  Math.round(total.protein * 10) / 10,
+    carbs:    Math.round(total.carbs * 10) / 10,
+    fat:      Math.round(total.fat * 10) / 10,
+  }
+}
+
 export function useRecipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)

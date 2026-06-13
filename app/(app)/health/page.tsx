@@ -8,6 +8,7 @@ import {
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useHealth } from '@/hooks/useHealth'
+import { useMealPlan } from '@/hooks/useMealPlan'
 
 /* ─── Constants ─────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -125,6 +126,7 @@ const lbl = (color = ORANGE): React.CSSProperties => ({
 export default function HealthPage() {
   const router = useRouter()
   const { metrics, activities, loading, addWeight, addRun, latestWeight, weightTrend } = useHealth()
+  const { todayNutrition, hasPlan } = useMealPlan()
 
   /* ── Forms state ─────────────────── */
   const [showWForm, setShowWForm] = useState(false)
@@ -132,20 +134,21 @@ export default function HealthPage() {
   const [wForm, setWForm]         = useState({ date: new Date().toISOString().slice(0, 10), weight: '' })
   const [rForm, setRForm]         = useState({ date: new Date().toISOString().slice(0, 10), distance: '', duration: '', notes: '' })
 
-  /* ── Hydration local state ───────── */
+  /* ── Hydration local state — persisté localStorage par jour ── */
+  const todayKey = new Date().toISOString().slice(0, 10)
   const [glasses, setGlasses]     = useState(0)
   const GLASS_TARGET = 8
 
   /* ── Résumé du jour — éditable + persisté localStorage ── */
-  const [resume, setResume] = useState({ pas: 0, pasTarget: 10000, cal: 1842, calTarget: 2200 })
+  const [resume, setResume] = useState({ pas: 0, pasTarget: 10000, cal: 0, calTarget: 2200 })
   const [editResume, setEditResume] = useState(false)
   const [resumeForm, setResumeForm] = useState({ pas: '', cal: '', pasTarget: '', calTarget: '' })
 
-  /* ── Nutrition local state ───────── */
-  const [nutrition] = useState({ cal: 1842, calTarget: 2200, prot: 120, protTarget: 150, gluc: 180, glucTarget: 250, lip: 65, lipTarget: 80 })
+  /* ── Nutrition — cibles (références objectif) uniquement ── */
+  const NUTRITION_TARGETS = { calTarget: 2200, protTarget: 150, glucTarget: 250, lipTarget: 80 }
 
   /* ── Mesures corporelles — sync localStorage (useEffect pour éviter SSR) ── */
-  const [mesures, setMesures] = useState<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number; prev?: { taille?: number; massGrasse?: number; massMuscul?: number } }>({ taille: 81, massGrasse: 15.2, massMuscul: 56.3, imc: 22.1 })
+  const [mesures, setMesures] = useState<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number; prev?: { taille?: number; massGrasse?: number; massMuscul?: number } }>({})
 
   /* ── Objectifs — sync localStorage ── */
   const [lsObjectifs, setLsObjectifs] = useState<Array<{ id: string; label: string; target: number; unit: string; color: string; period: string; category: string; currentOverride?: number }>>([])
@@ -170,7 +173,18 @@ export default function HealthPage() {
       const savedR = localStorage.getItem('nysa_resume_jour')
       if (savedR) setResume(JSON.parse(savedR))
     } catch {}
-  }, [])
+
+    try {
+      const savedH = localStorage.getItem(`nysa_hydration_${todayKey}`)
+      if (savedH) setGlasses(parseInt(savedH) || 0)
+    } catch {}
+  }, [todayKey])
+
+  function updateGlasses(next: number) {
+    const v = Math.max(0, Math.min(GLASS_TARGET, next))
+    setGlasses(v)
+    try { localStorage.setItem(`nysa_hydration_${todayKey}`, String(v)) } catch {}
+  }
 
   /* ── Stats derivation ────────────── */
   const today     = new Date()
@@ -208,6 +222,19 @@ export default function HealthPage() {
     .filter(a => { const d = new Date(a.date + 'T12:00:00'); return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear() })
     .reduce((s, a) => s + (a.distance_km ?? 0), 0)
   const allKm   = activities.reduce((s, a) => s + (a.distance_km ?? 0), 0)
+
+  // Calories brûlées (estimation simple) : ~60 kcal / km de course cette semaine
+  const calBurnedWeek = Math.round(kmWeek * 60)
+
+  // Nutrition du jour — vient du planning de repas (interconnexion Recettes → Santé)
+  const nutrition = {
+    cal:  Math.round(todayNutrition.calories),
+    prot: Math.round(todayNutrition.protein),
+    gluc: Math.round(todayNutrition.carbs),
+    lip:  Math.round(todayNutrition.fat),
+    ...NUTRITION_TARGETS,
+  }
+  const hasNutrition = hasPlan && nutrition.cal > 0
 
   async function handleWeight(e: React.FormEvent) {
     e.preventDefault(); if (!wForm.weight) return
@@ -348,7 +375,7 @@ export default function HealthPage() {
               {[
                 { k: 'pas',       lbl: 'Pas aujourd\'hui', ph: '8000' },
                 { k: 'pasTarget', lbl: 'Objectif pas',     ph: '10000' },
-                { k: 'cal',       lbl: 'Calories',         ph: '1842' },
+                { k: 'cal',       lbl: 'Calories',         ph: '0' },
                 { k: 'calTarget', lbl: 'Objectif kcal',    ph: '2200' },
               ].map(f => (
                 <div key={f.k}>
@@ -465,17 +492,13 @@ export default function HealthPage() {
             </p>
             <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.35)' }}>Qualité · —</p>
           </div>
-          {/* Placeholder sleep bars */}
-          <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 40 }}>
-            {[3, 5, 8, 6, 7, 4, 8, 7, 6, 8, 5, 7, 6, 4, 8, 7, 5, 6].map((h, i) => (
-              <div key={i} style={{ flex: 1, height: h * 4, borderRadius: 2,
-                background: `rgba(160,130,220,${0.15 + (h / 8) * 0.35})` }} />
-            ))}
-            <span style={{ position: 'absolute' }} /> {/* spacer */}
+          {/* Pas de source de données sommeil → état "à venir" */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 40, borderRadius: 8, background: 'rgba(160,130,220,0.06)', border: '1px dashed rgba(160,130,220,0.2)' }}>
+            <span style={{ fontSize: 10, color: 'rgba(160,130,220,0.5)' }}>Aucune donnée de sommeil</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 8, background: 'rgba(160,130,220,0.08)', border: '1px solid rgba(160,130,220,0.15)', marginTop: 4 }}>
             <AppleIcon size={11} style={{ color: 'rgba(160,130,220,0.7)', flexShrink: 0 }} />
-            <span style={{ fontSize: 9, color: 'rgba(160,130,220,0.6)' }}>Apple Santé — synchronisation bientôt</span>
+            <span style={{ fontSize: 9, color: 'rgba(160,130,220,0.6)' }}>Sommeil — connexion Apple Santé à venir</span>
           </div>
         </div>
 
@@ -485,7 +508,7 @@ export default function HealthPage() {
           {[
             { l: 'Running / sem.',    v: `${kmWeek.toFixed(1)} km`, pct: Math.min(100, (kmWeek / 30) * 100),            color: TEAL_BG },
             { l: 'Sorties / sem.',    v: `${thisWeek.length} / 4`,  pct: Math.min(100, (thisWeek.length / 4) * 100),    color: ORANGE },
-            { l: 'Calories brûlées', v: '—',                        pct: 0,                                             color: '#5B6F3A' },
+            { l: 'Calories brûlées', v: calBurnedWeek > 0 ? `${calBurnedWeek} kcal` : '—', pct: Math.min(100, (calBurnedWeek / 2000) * 100), color: '#5B6F3A' },
             { l: 'Hydratation',      v: `${glasses} / ${GLASS_TARGET}`, pct: Math.min(100, (glasses / GLASS_TARGET) * 100), color: '#3B82F6' },
           ].map(s => (
             <div key={s.l}>
@@ -593,7 +616,7 @@ export default function HealthPage() {
               const h  = km > 0 ? Math.max(8, (km / maxKm) * 150) : 6
               const isToday = i === todayIdx
               return (
-                <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   {km > 0 && <span style={{ ...DF, fontSize: 9, fontWeight: 800, color: isToday ? WHEAT : 'rgba(var(--text-rgb),0.55)' }}>{km.toFixed(1)}</span>}
                   <div style={{
                     width: '100%', height: h, borderRadius: '4px 4px 0 0',
@@ -650,39 +673,52 @@ export default function HealthPage() {
             <p style={{ ...lbl('rgba(var(--text-rgb),0.4)') }}>Nutrition</p>
             <Utensils size={16} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
           </div>
-          <div>
-            <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Calories aujourd&apos;hui</p>
-            <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
-              {nutrition.cal.toLocaleString()} <span style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.3)' }}>/ {nutrition.calTarget.toLocaleString()} kcal</span>
-            </p>
-          </div>
-          <div style={{ height: 6, borderRadius: 99, background: 'rgba(var(--text-rgb),0.08)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${(nutrition.cal / nutrition.calTarget) * 100}%`, borderRadius: 99, background: TEAL }} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              { l: 'Protéines', v: nutrition.prot, t: nutrition.protTarget, c: TEAL },
-              { l: 'Glucides',  v: nutrition.gluc, t: nutrition.glucTarget, c: ORANGE },
-              { l: 'Lipides',   v: nutrition.lip,  t: nutrition.lipTarget,  c: 'rgba(var(--text-rgb),0.4)' },
-            ].map(m => (
-              <div key={m.l}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: 2, background: m.c }} />
-                    <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.5)' }}>{m.l}</span>
-                  </div>
-                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text)' }}>{m.v}g <span style={{ color: 'rgba(var(--text-rgb),0.3)' }}>/ {m.t}g</span></span>
-                </div>
-                <div style={{ height: 4, borderRadius: 99, background: 'rgba(var(--text-rgb),0.06)', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${(m.v / m.t) * 100}%`, borderRadius: 99, background: m.c }} />
-                </div>
+          {!hasNutrition ? (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center' }}>
+              <Utensils size={24} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
+              <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)' }}>Planifie tes repas dans Recettes</p>
+              <button onClick={() => router.push('/recettes')}
+                style={{ ...DF, fontSize: 11, fontWeight: 700, color: TEAL, background: 'none', border: 'none', cursor: 'pointer' }}>
+                Aller aux recettes →
+              </button>
+            </div>
+          ) : (
+            <>
+              <div>
+                <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Calories aujourd&apos;hui</p>
+                <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
+                  {nutrition.cal.toLocaleString()} <span style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.3)' }}>/ {nutrition.calTarget.toLocaleString()} kcal</span>
+                </p>
               </div>
-            ))}
-          </div>
-          <button onClick={() => router.push('/recettes')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.2)' }}>VOIR LES RECETTES</span>
-            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
-          </button>
+              <div style={{ height: 6, borderRadius: 99, background: 'rgba(var(--text-rgb),0.08)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.min(100, (nutrition.cal / nutrition.calTarget) * 100)}%`, borderRadius: 99, background: TEAL }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  { l: 'Protéines', v: nutrition.prot, t: nutrition.protTarget, c: TEAL },
+                  { l: 'Glucides',  v: nutrition.gluc, t: nutrition.glucTarget, c: ORANGE },
+                  { l: 'Lipides',   v: nutrition.lip,  t: nutrition.lipTarget,  c: 'rgba(var(--text-rgb),0.4)' },
+                ].map(m => (
+                  <div key={m.l}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <div style={{ width: 8, height: 8, borderRadius: 2, background: m.c }} />
+                        <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.5)' }}>{m.l}</span>
+                      </div>
+                      <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text)' }}>{m.v}g <span style={{ color: 'rgba(var(--text-rgb),0.3)' }}>/ {m.t}g</span></span>
+                    </div>
+                    <div style={{ height: 4, borderRadius: 99, background: 'rgba(var(--text-rgb),0.06)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${m.t > 0 ? Math.min(100, (m.v / m.t) * 100) : 0}%`, borderRadius: 99, background: m.c }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => router.push('/recettes')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
+                <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.2)' }}>VOIR LES RECETTES</span>
+                <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
+              </button>
+            </>
+          )}
         </div>
 
         {/* ── R4 C3 : HYDRATATION ─────────────────────────── */}
@@ -702,7 +738,7 @@ export default function HealthPage() {
           {/* Glasses grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
             {Array.from({ length: GLASS_TARGET }).map((_, i) => (
-              <button key={i} className="glass-btn" onClick={() => setGlasses(i < glasses ? i : i + 1)}
+              <button key={i} className="glass-btn" onClick={() => updateGlasses(i < glasses ? i : i + 1)}
                 style={{ aspectRatio: '1', borderRadius: 8, border: 'none', cursor: 'pointer',
                   background: i < glasses ? 'rgba(26,10,10,0.3)' : 'rgba(26,10,10,0.1)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -710,7 +746,7 @@ export default function HealthPage() {
               </button>
             ))}
           </div>
-          <button onClick={() => setGlasses(v => Math.min(GLASS_TARGET, v + 1))}
+          <button onClick={() => updateGlasses(glasses + 1)}
             style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(26,10,10,0.15)', border: 'none', borderRadius: 8, padding: '9px 0', cursor: 'pointer', justifyContent: 'center' }}>
             <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#1A0A0A' }}>+ AJOUTER UN VERRE</span>
           </button>
@@ -790,56 +826,67 @@ export default function HealthPage() {
         <div style={{ ...tealCard(), gridColumn: 'span 2', padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Défis &amp; Objectifs</p>
 
-          {/* Objectif principal — dynamique depuis localStorage */}
-          {(() => {
-            const mainObj = lsObjectifs[0] ?? { id: '4', label: 'Courir 100 km / mois', target: 100, unit: 'km', color: ORANGE }
-            const autoVal = mainObj.id === '1' ? kmWeek : mainObj.id === '2' ? thisWeek.length : mainObj.id === '3' ? allKm : mainObj.id === '4' ? monthKm : 0
-            const current = (mainObj as any).currentOverride != null ? (mainObj as any).currentOverride : autoVal
-            const pct = Math.min(100, (current / mainObj.target) * 100)
-            return (
-              <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.08)', border: '1px solid rgba(var(--text-rgb),0.12)' }}>
-                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Objectif actuel</p>
-                <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT, marginBottom: 8, lineHeight: 1.1 }}>{mainObj.label}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                  <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT }}>{Math.round(pct)}%</span>
-                  <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)' }}>{Number.isInteger(current) ? current : current.toFixed(1)} / {mainObj.target} {mainObj.unit}</span>
-                </div>
-                <div style={{ height: 5, borderRadius: 99, background: 'rgba(var(--text-rgb),0.1)', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: mainObj.color, transition: 'width .5s ease' }} />
-                </div>
-              </div>
-            )
-          })()}
-
-          {/* Défis actifs */}
-          <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Défis actifs</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {(lsObjectifs.length > 0 ? lsObjectifs.slice(1, 5) : [
-              { id: '1', label: '30 km / semaine',    target: 30,  unit: 'km',      color: ORANGE,    currentOverride: undefined },
-              { id: '2', label: '4 sorties / sem.',   target: 4,   unit: 'sorties', color: WHEAT,     currentOverride: undefined },
-              { id: '3', label: 'Total 500 km',       target: 500, unit: 'km',      color: TEAL,      currentOverride: undefined },
-              { id: '5', label: 'Boire 2,5 L / jour', target: 2.5, unit: 'L',       color: '#3B82F6', currentOverride: undefined },
-            ]).map(obj => {
-              const autoVal = obj.id === '1' ? kmWeek : obj.id === '2' ? thisWeek.length : obj.id === '3' ? allKm : obj.id === '4' ? monthKm : obj.id === '5' ? glasses * 0.25 : 0
-              const rawV = obj.currentOverride != null ? obj.currentOverride : autoVal
-              const d = { l: obj.label, v: Number.isInteger(rawV) ? String(rawV) : rawV.toFixed(1), t: obj.target, unit: obj.unit, color: obj.color }
-              const pct = Math.min(100, (parseFloat(d.v) / d.t) * 100)
-              return (
-                <div key={d.l} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.6)' }}>{d.l}</span>
-                      <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: WHEAT }}>{d.v} / {d.t} {d.unit}</span>
+          {lsObjectifs.length === 0 ? (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center' }}>
+              <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.5)' }}>Aucun objectif défini</p>
+              <button onClick={() => router.push('/health/objectifs')}
+                style={{ ...DF, fontSize: 11, fontWeight: 700, color: WHEAT, background: 'rgba(var(--text-rgb),0.12)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }}>
+                + Ajoute un objectif
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Objectif principal — premier objectif localStorage */}
+              {(() => {
+                const mainObj = lsObjectifs[0]
+                const autoVal = mainObj.id === '1' ? kmWeek : mainObj.id === '2' ? thisWeek.length : mainObj.id === '3' ? allKm : mainObj.id === '4' ? monthKm : 0
+                const current = mainObj.currentOverride != null ? mainObj.currentOverride : autoVal
+                const pct = mainObj.target > 0 ? Math.min(100, (current / mainObj.target) * 100) : 0
+                return (
+                  <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.08)', border: '1px solid rgba(var(--text-rgb),0.12)' }}>
+                    <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Objectif actuel</p>
+                    <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT, marginBottom: 8, lineHeight: 1.1 }}>{mainObj.label}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                      <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT }}>{Math.round(pct)}%</span>
+                      <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)' }}>{Number.isInteger(current) ? current : current.toFixed(1)} / {mainObj.target} {mainObj.unit}</span>
                     </div>
                     <div style={{ height: 5, borderRadius: 99, background: 'rgba(var(--text-rgb),0.1)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: d.color, transition: 'width .5s ease' }} />
+                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: mainObj.color, transition: 'width .5s ease' }} />
                     </div>
                   </div>
-                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT, minWidth: 34, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })()}
+
+              {/* Défis actifs */}
+              {lsObjectifs.length > 1 && (
+                <>
+                  <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Défis actifs</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {lsObjectifs.slice(1, 5).map(obj => {
+                      const autoVal = obj.id === '1' ? kmWeek : obj.id === '2' ? thisWeek.length : obj.id === '3' ? allKm : obj.id === '4' ? monthKm : obj.id === '5' ? glasses * 0.25 : 0
+                      const rawV = obj.currentOverride != null ? obj.currentOverride : autoVal
+                      const d = { l: obj.label, v: Number.isInteger(rawV) ? String(rawV) : rawV.toFixed(1), t: obj.target, unit: obj.unit, color: obj.color }
+                      const pct = d.t > 0 ? Math.min(100, (parseFloat(d.v) / d.t) * 100) : 0
+                      return (
+                        <div key={obj.id} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                              <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.6)' }}>{d.l}</span>
+                              <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: WHEAT }}>{d.v} / {d.t} {d.unit}</span>
+                            </div>
+                            <div style={{ height: 5, borderRadius: 99, background: 'rgba(var(--text-rgb),0.1)', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: d.color, transition: 'width .5s ease' }} />
+                            </div>
+                          </div>
+                          <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT, minWidth: 34, textAlign: 'right' }}>{pct.toFixed(0)}%</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+            </>
+          )}
 
           <button onClick={() => router.push('/health/objectifs')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(var(--text-rgb),0.1)' }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.35)' }}>VOIR TOUS LES OBJECTIFS</span>

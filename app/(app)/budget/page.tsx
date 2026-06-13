@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
-import { useBudget, useMultiMonthSummary, INITIAL_COMPTES, EXCEL_CATEGORIES, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
+import { useBudget, useMultiMonthSummary, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
 
 // ── Constantes ──────────────────────────────────────────────────────────────
 const ORANGE  = 'var(--accent-budget)'
@@ -191,8 +191,20 @@ export default function BudgetPage() {
   const [goals,    setGoals]    = useState<Goal[]>([])
   const [hydrated, setHydrated] = useState(false)
   useEffect(() => {
-    setComptes([])
-    setGoals([])
+    try {
+      const rawComptes = localStorage.getItem('nysa_comptes_v2')
+      if (rawComptes) {
+        const parsed = JSON.parse(rawComptes)
+        if (Array.isArray(parsed)) setComptes(parsed)
+      }
+    } catch { /* ignore corrupted storage */ }
+    try {
+      const rawGoals = localStorage.getItem('nysa_objectifs_v2')
+      if (rawGoals) {
+        const parsed = JSON.parse(rawGoals)
+        if (Array.isArray(parsed)) setGoals(parsed)
+      }
+    } catch { /* ignore corrupted storage */ }
     setHydrated(true)
   }, [])
   useEffect(() => { if (hydrated) localStorage.setItem('nysa_comptes_v2',   JSON.stringify(comptes))  }, [comptes,  hydrated])

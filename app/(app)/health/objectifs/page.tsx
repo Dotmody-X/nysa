@@ -163,15 +163,7 @@ export default function ObjectifsPage() {
   const router = useRouter()
   const { activities } = useHealth()
 
-  const SEED_OBJECTIFS: Objectif[] = [
-    { id: '1', label: 'Distance / semaine',     target: 30,  unit: 'km',      color: ORANGE,    category: 'course',      period: 'semaine', icon: 'activity' },
-    { id: '2', label: 'Sorties / semaine',       target: 4,   unit: 'sorties', color: WHEAT,     category: 'course',      period: 'semaine', icon: 'activity' },
-    { id: '3', label: 'Distance totale',         target: 500, unit: 'km',      color: TEAL,      category: 'course',      period: 'total',   icon: 'award' },
-    { id: '4', label: 'Courir 100 km / mois',    target: 100, unit: 'km',      color: ORANGE,    category: 'course',      period: 'mois',    icon: 'target' },
-    { id: '5', label: 'Hydratation journalière', target: 2.5, unit: 'L',       color: '#3B82F6', category: 'hydratation', period: 'jour',    icon: 'drops' },
-  ]
-
-  const [objectifs, setObjectifs] = useState<Objectif[]>(SEED_OBJECTIFS)
+  const [objectifs, setObjectifs] = useState<Objectif[]>([])
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {

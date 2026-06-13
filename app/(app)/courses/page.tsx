@@ -9,6 +9,9 @@ import {
 import { PageEmpty } from '@/components/ui/PageEmpty'
 import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
+import { useInventory } from '@/hooks/useInventory'
+import { useMealPlan } from '@/hooks/useMealPlan'
+import { createClient } from '@/lib/supabase/client'
 import { searchProducts, getProductByBarcode, guessCategory, OFFProduct } from '@/lib/openFoodFacts'
 import { getRecentDiscountedPrices, discountPct, type OpenPrice } from '@/lib/openPrices'
 import { STORE_CHAINS, getChainById, mapCategoryToDepartment, type StoreChain, type SavedStore } from '@/lib/storeData'
@@ -72,21 +75,7 @@ function NutriScore({ grade }: { grade: string | null }) {
   )
 }
 
-/* ─── Data: Recettes liées ───────────────────────────────────── */
-const LINKED_RECIPES = [
-  { id: '1', name: 'Poulet rôti aux légumes', when: "Aujourd'hui", missing: 3, emoji: '🍗', color: ORANGE },
-  { id: '2', name: 'Salade quinoa avocat',    when: 'Demain',       missing: 2, emoji: '🥗', color: TEAL   },
-  { id: '3', name: 'Pâtes au saumon épinards',when: 'Vendredi',     missing: 4, emoji: '🐟', color: WHEAT  },
-]
-
-/* ─── Data: Inventaire maison ────────────────────────────────── */
-const INVENTAIRE = [
-  { name: 'Riz basmati',  qty: '1 kg',   status: 'ok'     },
-  { name: 'Œufs',         qty: 'x6',     status: 'ok'     },
-  { name: 'Huile d\'olive',qty: '500 ml', status: 'low'    },
-  { name: 'Lait',         qty: '1 L',    status: 'buy'    },
-  { name: 'Beurre',       qty: '250 g',  status: 'ok'     },
-]
+/* ─── Inventaire : libellés de statut (données via useInventory) ── */
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   ok:  { label: 'Stock suffisant', color: '#5B9F3A' },
   low: { label: 'Stock faible',    color: ORANGE    },
@@ -99,32 +88,6 @@ const FALLBACK_PROMOS = [
   { product_name: 'Saumon frais',    price: 3.49, price_without_discount: 4.99, pct: -30, emoji: '🐟', currency: 'EUR' },
   { product_name: 'Café moulu',      price: 2.59, price_without_discount: 3.29, pct: -21, emoji: '☕', currency: 'EUR' },
 ]
-
-/* ─── Data: Dépenses semaine ─────────────────────────────────── */
-const WEEK_SPEND = [
-  { d: 'Lun', v: 28 }, { d: 'Mar', v: 45 }, { d: 'Mer', v: 32 },
-  { d: 'Jeu', v: 86.45, today: true }, { d: 'Ven', v: 0 }, { d: 'Sam', v: 0 }, { d: 'Dim', v: 0 },
-]
-
-/* ─── Bar chart SVG ──────────────────────────────────────────── */
-function WeekBars({ data }: { data: typeof WEEK_SPEND }) {
-  const max = Math.max(...data.map(d => d.v), 1)
-  return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 90, width: '100%' }}>
-      {data.map((d, i) => {
-        const h = d.v > 0 ? Math.max(6, (d.v / max) * 80) : 4
-        return (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            {d.v > 0 && <span style={{ fontSize: 8, color: d.today ? ORANGE : 'rgba(var(--text-rgb),0.5)', ...DF, fontWeight: 700 }}>{d.today ? fmtEur(d.v) : `${d.v}€`}</span>}
-            <div style={{ width: '100%', height: h, borderRadius: '3px 3px 0 0',
-              background: d.v > 0 ? (d.today ? ORANGE : 'rgba(var(--text-rgb),0.25)') : 'rgba(var(--text-rgb),0.06)' }} />
-            <span style={{ fontSize: 8, ...DF, fontWeight: d.today ? 800 : 600, color: d.today ? ORANGE : 'rgba(var(--text-rgb),0.4)' }}>{d.d}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
 
 /* ─── Store Selector Modal ───────────────────────────────────── */
 interface OSMStore { id: number; lat: number; lon: number; name: string; brand: string; address: string; city: string }
@@ -278,6 +241,10 @@ export default function CoursesPage() {
   const [activeListId, setActiveListId]   = useState<string | null>(null)
   const { items, loading: itemsLoading, addItem, toggleItem, removeItem, checkedCount, totalEstimated, byCategory } = useShoppingItems(activeListId)
 
+  /* ── Interconnexions : inventaire maison + recettes du jour ── */
+  const { items: inventory, toBuy, hydrated: inventoryHydrated } = useInventory()
+  const { todayRecipes } = useMealPlan()
+
   /* ── UI state ────────────────────────────────── */
   const [tab, setTab]               = useState<'liste' | 'rayon' | 'promos' | 'historique'>('liste')
   const [newListName, setNewListName] = useState('')
@@ -370,9 +337,8 @@ export default function CoursesPage() {
   }
 
   const parcours = buildParcours()
-  const savings = livePromos.length > 0
-    ? livePromos.reduce((s, p) => s + (p.price_without_discount ? p.price_without_discount - p.price : 0), 0)
-    : 18.30
+  // Économies réelles : somme des remises des promos live. 0 si aucune promo.
+  const savings = livePromos.reduce((s, p) => s + (p.price_without_discount ? p.price_without_discount - p.price : 0), 0)
 
   /* ── Auto-select first list ──────────────────── */
   useEffect(() => {
@@ -444,9 +410,65 @@ export default function CoursesPage() {
   const totalItems = items.length
   const totalRayons = Object.keys(byCategory).length
 
+  /* ── Gating démo : page vide tant qu'aucune liste n'existe ── */
+  const noDemoMode = isDemoModeDisabled()
+  const hasData = lists.length > 0
+
+  /* ── Interconnexion Inventaire → Courses ── */
+  const [pushingInventory, setPushingInventory] = useState(false)
+  async function addInventoryToBuy() {
+    if (!activeListId || toBuy.length === 0) return
+    setPushingInventory(true)
+    for (const i of toBuy) {
+      await addItem({
+        name: i.name,
+        quantity: 1,
+        unit: i.minQty || i.qty || undefined,
+        category: i.category || undefined,
+      })
+    }
+    setPushingInventory(false)
+  }
+
+  /* ── Interconnexion Courses → Budget ── */
+  const [savingExpense, setSavingExpense] = useState(false)
+  const [expenseSaved, setExpenseSaved] = useState(false)
+  async function saveAsExpense() {
+    if (totalEstimated <= 0 || !activeList) return
+    setSavingExpense(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('transactions').insert({
+        user_id: user.id,
+        amount: totalEstimated,
+        type: 'expense',
+        description: 'Courses — ' + activeList.name,
+        date: new Date().toISOString().slice(0, 10),
+      })
+      setExpenseSaved(true)
+    }
+    setSavingExpense(false)
+  }
+
   const inp: React.CSSProperties = {
     background: 'var(--bg-input)', border: '1px solid var(--border)',
     borderRadius: 8, padding: '7px 11px', color: 'var(--text)', fontSize: 12, outline: 'none',
+  }
+
+  /* ── État vide : aucune liste (après chargement) ── */
+  if (noDemoMode && !listsLoading && !hasData) {
+    return (
+      <div style={{ padding: 30, minHeight: '100%' }}>
+        <PageEmpty
+          icon="🛒"
+          title="Aucune liste de courses"
+          description="Crée ta première liste pour commencer."
+          actionLabel="Nouvelle liste"
+          actionOnClick={() => createList('Ma liste')}
+        />
+      </div>
+    )
   }
 
   return (
@@ -511,18 +533,18 @@ export default function CoursesPage() {
           <div>
             <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.55)', marginBottom: 2 }}>Total estimé</p>
             <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>
-              {totalEstimated > 0 ? fmtEur(totalEstimated) : '86,45 €'}
+              {fmtEur(totalEstimated)}
             </p>
             <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.55)', marginTop: 2, marginBottom: 10 }}>
               Budget : {BUDGET_TARGET},00 €
             </p>
             <div style={{ height: 6, borderRadius: 99, background: 'rgba(0,0,0,0.2)', overflow: 'hidden', marginBottom: 6 }}>
-              <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.65)', width: `${totalEstimated > 0 ? budgetPct : 86}%`, transition: 'width .5s' }} />
+              <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.65)', width: `${budgetPct}%`, transition: 'width .5s' }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)' }}>{totalEstimated > 0 ? `${budgetPct.toFixed(0)}%` : '86%'}</span>
+              <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)' }}>{budgetPct.toFixed(0)}%</span>
               <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)' }}>
-                Reste : {totalEstimated > 0 ? fmtEur(Math.max(0, BUDGET_TARGET - totalEstimated)) : '13,55 €'}
+                Reste : {fmtEur(Math.max(0, BUDGET_TARGET - totalEstimated))}
               </span>
             </div>
           </div>
@@ -536,12 +558,21 @@ export default function CoursesPage() {
           </div>
           <div>
             <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginBottom: 2 }}>Cette semaine</p>
-            <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{fmtEur(savings)}</p>
-            <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginTop: 4 }}>vs. dépenses moyennes</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
-              <TrendingDown size={12} style={{ color: WHEAT }} />
-              <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>+14%</span>
-            </div>
+            {savings > 0 ? (
+              <>
+                <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{fmtEur(savings)}</p>
+                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginTop: 4 }}>via les promotions du jour</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                  <TrendingDown size={12} style={{ color: WHEAT }} />
+                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>{livePromos.length} promo{livePromos.length > 1 ? 's' : ''}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>—</p>
+                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginTop: 4 }}>Aucune donnée pour le moment</p>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -787,37 +818,40 @@ export default function CoursesPage() {
                 Voir toutes
               </button>
             </div>
-            {LINKED_RECIPES.map(r => (
-              <div key={r.id} style={{ display: 'flex', gap: 10, padding: '12px 14px', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-                  {r.emoji}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: WHEAT, lineHeight: 1.2 }}>{r.name}</p>
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{r.when}</p>
-                </div>
-                <div style={{ flexShrink: 0 }}>
-                  <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 7px', borderRadius: 5,
-                    background: `rgba(242,84,45,0.12)`, color: ORANGE }}>
-                    {r.missing} manquants
-                  </span>
-                </div>
-              </div>
-            ))}
-            {/* Articles manquants */}
-            <div style={{ padding: '14px 16px', background: 'rgba(14,149,148,0.05)', display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                <Star size={14} fill={ORANGE} color={ORANGE} />
-                <p style={{ ...DF, fontSize: 24, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>9</p>
-                <p style={{ fontSize: 8, color: 'var(--text-muted)' }}>manquants ajoutés</p>
-              </div>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.4, marginBottom: 8 }}>Articles manquants ajoutés à votre liste</p>
-                <button className="crs-btn" style={{ width: '100%', padding: '7px', borderRadius: 8, background: TEAL_BG, border: 'none', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontSize: 10, fontWeight: 700 }}>
-                  Générer à nouveau
+            {todayRecipes.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '28px 16px', textAlign: 'center' }}>
+                <Star size={20} style={{ color: 'var(--text-muted)' }} />
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>Aucune recette planifiée aujourd'hui</p>
+                <button onClick={() => router.push('/recettes')} style={{ ...DF, fontSize: 10, fontWeight: 700, color: TEAL, background: 'none', border: 'none', cursor: 'pointer' }}>
+                  Planifier des repas →
                 </button>
               </div>
-            </div>
+            ) : (
+              todayRecipes.map(r => (
+                <div key={r.id} style={{ display: 'flex', gap: 10, padding: '12px 14px', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                    {r.image_url
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={r.image_url} alt={r.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <ShoppingCart size={18} style={{ color: 'var(--text-muted)' }} />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: WHEAT, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</p>
+                    <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
+                      {r.servings} portion{r.servings > 1 ? 's' : ''}{r.prep_time ? ` · ${r.prep_time} min` : ''}
+                    </p>
+                  </div>
+                  {r.ingredients && r.ingredients.length > 0 && (
+                    <div style={{ flexShrink: 0 }}>
+                      <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 7px', borderRadius: 5,
+                        background: `rgba(242,84,45,0.12)`, color: ORANGE }}>
+                        {r.ingredients.length} ingréd.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -827,21 +861,41 @@ export default function CoursesPage() {
           <div style={{ ...card() }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
               <p style={{ ...lbl('rgba(var(--text-rgb),0.5)') }}>Inventaire maison</p>
-              <button style={{ fontSize: 9, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Gérer</button>
+              <button onClick={() => router.push('/courses/inventaire')} style={{ fontSize: 9, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Gérer</button>
             </div>
-            {INVENTAIRE.map(i => (
-              <div key={i.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderBottom: '1px solid var(--border)' }}>
-                <Package size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 11, color: WHEAT }}>{i.name}</p>
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>{i.qty}</p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: STATUS_LABEL[i.status].color }} />
-                  <span style={{ fontSize: 9, color: STATUS_LABEL[i.status].color }}>{STATUS_LABEL[i.status].label}</span>
-                </div>
+            {!inventoryHydrated ? null : inventory.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '28px 16px', textAlign: 'center' }}>
+                <Package size={20} style={{ color: 'var(--text-muted)' }} />
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>Inventaire vide</p>
+                <button onClick={() => router.push('/courses/inventaire')} style={{ ...DF, fontSize: 10, fontWeight: 700, color: TEAL, background: 'none', border: 'none', cursor: 'pointer' }}>
+                  Ajouter des produits →
+                </button>
               </div>
-            ))}
+            ) : (
+              <>
+                {inventory.slice(0, 5).map(i => (
+                  <div key={i.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderBottom: '1px solid var(--border)' }}>
+                    <Package size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 11, color: WHEAT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.name}</p>
+                      <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>{i.qty}</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: STATUS_LABEL[i.status].color }} />
+                      <span style={{ fontSize: 9, color: STATUS_LABEL[i.status].color }}>{STATUS_LABEL[i.status].label}</span>
+                    </div>
+                  </div>
+                ))}
+                {/* Interconnexion Inventaire → Courses */}
+                {toBuy.length > 0 && (
+                  <button className="crs-btn" onClick={addInventoryToBuy} disabled={!activeListId || pushingInventory}
+                    style={{ width: '100%', padding: '9px', background: 'rgba(242,84,45,0.1)', border: 'none', cursor: !activeListId ? 'default' : 'pointer', fontSize: 10, color: ORANGE, ...DF, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: !activeListId ? 0.5 : 1, borderBottom: '1px solid var(--border)' }}>
+                    {pushingInventory ? <Loader2 size={11} className="animate-spin" /> : <ShoppingCart size={11} />}
+                    Ajouter {toBuy.length} à racheter aux courses
+                  </button>
+                )}
+              </>
+            )}
             <button className="crs-btn" onClick={() => router.push('/courses/inventaire')}
               style={{ width: '100%', padding: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: TEAL, ...DF, fontWeight: 700 }}>
               Voir tout l'inventaire →
@@ -862,17 +916,19 @@ export default function CoursesPage() {
               </div>
               <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>via Open Prices</span>
             </div>
-            {(livePromos.length > 0 ? livePromos.slice(0, 4) : FALLBACK_PROMOS).map((p, i) => {
-              const pct = livePromos.length > 0
+            {/* En chargement : placeholders FALLBACK ; sinon promos réelles ; sinon état vide */}
+            {(loadingPromos ? FALLBACK_PROMOS : livePromos.slice(0, 4)).map((p, i) => {
+              const isLive = !loadingPromos
+              const pct = isLive
                 ? discountPct(p as OpenPrice)
                 : (p as typeof FALLBACK_PROMOS[0]).pct
-              const oldPrice = livePromos.length > 0
+              const oldPrice = isLive
                 ? (p as OpenPrice).price_without_discount
                 : (p as typeof FALLBACK_PROMOS[0]).price_without_discount
               const name = (p as OpenPrice).product_name ?? (p as typeof FALLBACK_PROMOS[0]).product_name ?? '—'
               return (
                 <div key={i} className="crs-promo"
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer', opacity: loadingPromos ? 0.5 : 1 }}>
                   <span style={{ fontSize: 20, flexShrink: 0 }}>🏷️</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 11, fontWeight: 700, color: WHEAT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</p>
@@ -889,10 +945,11 @@ export default function CoursesPage() {
                 </div>
               )
             })}
-            {livePromos.length === 0 && !loadingPromos && (
-              <p style={{ fontSize: 9, color: 'var(--text-muted)', padding: '8px 14px', textAlign: 'center' }}>
-                Données en cours de chargement depuis Open Prices…
-              </p>
+            {!loadingPromos && livePromos.length === 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '24px 16px', textAlign: 'center' }}>
+                <Tag size={18} style={{ color: 'var(--text-muted)' }} />
+                <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Aucune promotion disponible</p>
+              </div>
             )}
           </div>
         </div>
@@ -928,29 +985,32 @@ export default function CoursesPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {(parcours ?? [
-              { num: 1, rayon: 'Fruits & Légumes', count: 8, color: '#5B9F3A' },
-              { num: 2, rayon: 'Produits frais',   count: 5, color: ORANGE    },
-              { num: 3, rayon: 'Épicerie salée',   count: 6, color: 'var(--azul)' },
-              { num: 4, rayon: 'Épicerie sucrée',  count: 2, color: '#F59E0B' },
-              { num: 5, rayon: 'Boissons',         count: 2, color: '#3B82F6' },
-            ]).map((r, _, arr) => (
-              <div key={r.num} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: r.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ ...DF, fontSize: 9, fontWeight: 900, color: '#fff' }}>{r.num}</span>
-                </div>
-                <span style={{ flex: 1, fontSize: 12, color: WHEAT }}>{r.rayon}</span>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{r.count} article{r.count > 1 ? 's' : ''}</span>
+            {!parcours || parcours.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '24px 12px', textAlign: 'center' }}>
+                <Navigation size={18} style={{ color: 'var(--text-muted)' }} />
+                <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.4 }}>Ajoute des articles pour générer le parcours</p>
               </div>
-            ))}
+            ) : (
+              parcours.map(r => (
+                <div key={r.num} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: r.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ ...DF, fontSize: 9, fontWeight: 900, color: '#fff' }}>{r.num}</span>
+                  </div>
+                  <span style={{ flex: 1, fontSize: 12, color: WHEAT }}>{r.rayon}</span>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{r.count} article{r.count > 1 ? 's' : ''}</span>
+                </div>
+              ))
+            )}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Calendar size={11} style={{ color: 'var(--text-muted)' }} />
-              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Estimation : ~{((parcours?.reduce((s, r) => s + r.count, 0) ?? 23) * 1.2).toFixed(0)} min</span>
+          {parcours && parcours.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Calendar size={11} style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Estimation : ~{(parcours.reduce((s, r) => s + r.count, 0) * 1.2).toFixed(0)} min</span>
+              </div>
+              <button onClick={() => setShowStoreSelector(true)} style={{ fontSize: 10, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Voir le plan</button>
             </div>
-            <button onClick={() => setShowStoreSelector(true)} style={{ fontSize: 10, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Voir le plan</button>
-          </div>
+          )}
         </div>
 
         {/* Évolution des dépenses */}
@@ -963,14 +1023,11 @@ export default function CoursesPage() {
             </select>
           </div>
           <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.2)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Courses</p>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 14 }}>
-            <p style={{ ...DF, fontSize: 32, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
-              {totalEstimated > 0 ? fmtEur(totalEstimated) : '86,45 €'}
-            </p>
-            <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: '#5B9F3A' }}>-12,40 €</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '36px 12px', textAlign: 'center' }}>
+            <TrendingDown size={20} style={{ color: 'rgba(var(--text-rgb),0.25)' }} />
+            <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'rgba(var(--text-rgb),0.4)' }}>À venir</p>
+            <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.25)', lineHeight: 1.4 }}>L'historique des dépenses sera disponible après quelques courses validées.</p>
           </div>
-          <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.25)', marginBottom: 14 }}>vs. semaine dernière</p>
-          <WeekBars data={WEEK_SPEND} />
           <button style={{ width: '100%', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'rgba(var(--text-rgb),0.25)', ...DF, fontWeight: 700, marginTop: 10, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}
             onClick={() => router.push('/budget')}>
             Voir le rapport complet →
@@ -984,29 +1041,25 @@ export default function CoursesPage() {
             <div>
               <p style={{ ...lbl('rgba(var(--text-rgb),0.6)'), marginBottom: 4 }}>Agent IA courses</p>
               <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.1)' }}>
-                <p style={{ fontSize: 11, color: WHEAT, fontWeight: 600 }}>Bonne nouvelle !</p>
-                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', marginTop: 2 }}>
-                  Vous pouvez économiser <span style={{ ...DF, fontWeight: 900, color: WHEAT }}>{fmtEur(savings)}</span> sur cette liste.
-                </p>
+                {savings > 0 ? (
+                  <>
+                    <p style={{ fontSize: 11, color: WHEAT, fontWeight: 600 }}>Bonne nouvelle !</p>
+                    <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', marginTop: 2 }}>
+                      Les promotions du jour permettent d'économiser <span style={{ ...DF, fontWeight: 900, color: WHEAT }}>{fmtEur(savings)}</span>.
+                    </p>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>
+                    Les recommandations d'économies arriveront avec tes données. À venir.
+                  </p>
+                )}
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[
-              { l: 'Remplacer Saumon par Maquereau', save: '-6,80 €' },
-              { l: 'Marque distributeur disponible', save: '-5,20 €' },
-              { l: 'Promo sur Tomates cerises',      save: '-2,10 €' },
-            ].map(tip => (
-              <div key={tip.l} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.06)' }}>
-                <Check size={11} style={{ color: WHEAT, flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>{tip.l}</span>
-                <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: WHEAT }}>{tip.save}</span>
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '16px 10px', textAlign: 'center', flex: 1, justifyContent: 'center' }}>
+            <Zap size={16} style={{ color: 'rgba(var(--text-rgb),0.4)' }} />
+            <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.6)', lineHeight: 1.4 }}>Suggestions d'optimisation à venir</p>
           </div>
-          <button className="crs-btn" style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', background: 'rgba(var(--text-rgb),0.15)', color: WHEAT, ...DF, fontWeight: 800, fontSize: 11, marginTop: 'auto' }}>
-            Appliquer les optimisations
-          </button>
         </div>
       </div>
 
@@ -1019,19 +1072,37 @@ export default function CoursesPage() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0 }}>
           {[
-            { icon: <Zap size={18} style={{ color: TEAL }} />, title: 'Meal Prep', desc: '3 recettes planifiées cette semaine', btn: 'Voir mes repas', onClick: () => router.push('/recettes') },
-            { icon: <Users size={18} style={{ color: ORANGE }} />, title: 'Liste partagée', desc: 'Partagé avec 2 personnes', btn: 'Ouvrir la liste', onClick: () => {} },
-            { icon: <Bell size={18} style={{ color: WHEAT }} />, title: 'Rappels', desc: '2 articles à racheter cette semaine', btn: 'Voir rappels', onClick: () => {} },
-            { icon: <Truck size={18} style={{ color: '#3B82F6' }} />, title: 'Livraison', desc: 'Prochaine livraison Vendredi 18 mai - 18h', btn: 'Modifier', onClick: () => {} },
+            {
+              icon: <Zap size={18} style={{ color: TEAL }} />,
+              title: 'Meal Prep',
+              desc: todayRecipes.length > 0
+                ? `${todayRecipes.length} recette${todayRecipes.length > 1 ? 's' : ''} planifiée${todayRecipes.length > 1 ? 's' : ''} aujourd'hui`
+                : 'Aucune recette planifiée',
+              btn: 'Voir mes repas',
+              onClick: () => router.push('/recettes'),
+            },
+            {
+              icon: <Bell size={18} style={{ color: WHEAT }} />,
+              title: 'Rappels',
+              desc: toBuy.length > 0
+                ? `${toBuy.length} article${toBuy.length > 1 ? 's' : ''} à racheter`
+                : 'Aucun rappel',
+              btn: "Voir l'inventaire",
+              onClick: () => router.push('/courses/inventaire'),
+            },
+            { icon: <Users size={18} style={{ color: 'var(--text-muted)' }} />, title: 'Liste partagée', desc: 'À venir', btn: null, onClick: () => {} },
+            { icon: <Truck size={18} style={{ color: 'var(--text-muted)' }} />, title: 'Livraison', desc: 'À venir', btn: null, onClick: () => {} },
           ].map((s, i) => (
             <div key={s.title} style={{ padding: '18px 20px', borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}>
               <div style={{ marginBottom: 10 }}>{s.icon}</div>
               <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT, marginBottom: 4 }}>{s.title}</p>
               <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>{s.desc}</p>
-              <button onClick={s.onClick} className="crs-btn"
-                style={{ fontSize: 10, color: TEAL, background: 'none', border: `1px solid var(--border)`, borderRadius: 7, padding: '6px 12px', cursor: 'pointer', ...DF, fontWeight: 700 }}>
-                {s.btn}
-              </button>
+              {s.btn && (
+                <button onClick={s.onClick} className="crs-btn"
+                  style={{ fontSize: 10, color: TEAL, background: 'none', border: `1px solid var(--border)`, borderRadius: 7, padding: '6px 12px', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+                  {s.btn}
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -1049,12 +1120,9 @@ export default function CoursesPage() {
           <div style={{ flex: 1 }}>
             <p style={{ ...DF, fontSize: 10, fontWeight: 800, color: TEAL, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>Astuce de l'agent IA</p>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Achetez les produits frais en début de semaine pour éviter le gaspillage. Vos habitudes montrent que vous jetez 12% de produits frais par semaine.
+              Les astuces personnalisées sur tes habitudes d'achat seront disponibles prochainement. À venir.
             </p>
           </div>
-          <button style={{ fontSize: 10, color: TEAL, background: 'none', border: '1px solid rgba(14,149,148,0.3)', borderRadius: 7, padding: '6px 12px', cursor: 'pointer', ...DF, fontWeight: 700, whiteSpace: 'nowrap' }}>
-            Voir mes habitudes
-          </button>
         </div>
 
         {/* Total estimé + Valider */}
@@ -1062,15 +1130,21 @@ export default function CoursesPage() {
           <div>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Total estimé</p>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>
-              {totalEstimated > 0 ? fmtEur(totalEstimated) : '86,45 €'}
+              {fmtEur(totalEstimated)}
             </p>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 3 }}>
-              {totalItems > 0 ? totalItems : 23} articles &nbsp;·&nbsp; {totalRayons > 0 ? totalRayons : 5} rayons
+              {totalItems} article{totalItems > 1 ? 's' : ''} &nbsp;·&nbsp; {totalRayons} rayon{totalRayons > 1 ? 's' : ''}
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: ORANGE }}>
             <ShoppingCart size={18} style={{ color: '#fff' }} />
           </div>
+          {/* Interconnexion Courses → Budget */}
+          <button className="crs-btn" onClick={saveAsExpense} disabled={totalEstimated <= 0 || savingExpense || expenseSaved}
+            style={{ padding: '14px 18px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: totalEstimated <= 0 ? 'default' : 'pointer', color: ORANGE, ...DF, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, opacity: totalEstimated <= 0 ? 0.5 : 1 }}>
+            {savingExpense ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+            {expenseSaved ? 'Dépense enregistrée' : 'Enregistrer comme dépense'}
+          </button>
           <button className="crs-btn" onClick={() => activeListId && completeList(activeListId)}
             style={{ padding: '14px 28px', borderRadius: 10, background: TEAL_BG, border: 'none', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
             Valider ma liste
