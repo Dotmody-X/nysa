@@ -278,7 +278,7 @@ export default function HealthPage() {
 
       {/* ── Inline forms ──────────────────────────────────── */}
       {showWForm && (
-        <form onSubmit={handleWeight} style={{ display: 'flex', gap: 8, marginBottom: 10, padding: 14,
+        <form onSubmit={handleWeight} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10, padding: 14,
           borderRadius: 10, ...card() }}>
           <input type="date" value={wForm.date} onChange={e => setWForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
           <input type="number" step="0.1" value={wForm.weight} onChange={e => setWForm(f => ({ ...f, weight: e.target.value }))}
@@ -326,7 +326,7 @@ export default function HealthPage() {
             <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>
               Suivez. Progressez. Prenez soin de vous.
             </p>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="toolbar-scroll" style={{ display: 'flex', gap: 8 }}>
               <button className="health-btn" onClick={() => setShowWForm(v => !v)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
                   background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>

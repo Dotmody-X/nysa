@@ -102,7 +102,7 @@ function Drawer({ title, open, onClose, children, width = 480 }: {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 49, backdropFilter: 'blur(2px)' }} />
       )}
       <div style={{
-        position: 'fixed', top: 0, right: 0, height: '100%', width,
+        position: 'fixed', top: 0, right: 0, height: '100%', width: '100%', maxWidth: width,
         background: 'var(--bg-card)', borderLeft: '1px solid var(--border)',
         zIndex: 50, display: 'flex', flexDirection: 'column',
         transform: open ? 'translateX(0)' : 'translateX(100%)',

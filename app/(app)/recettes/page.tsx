@@ -226,7 +226,7 @@ export default function RecettesPage() {
               Suivi · Planification · Mes recettes · Découverte
             </p>
             {/* Action buttons */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+            <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
               <button className="rec-btn" onClick={() => router.push('/recettes/new')}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9,
                   background: ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, border: 'none', cursor: 'pointer' }}>
@@ -365,7 +365,7 @@ export default function RecettesPage() {
           </div>
 
           <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+            <table style={{ width: '100%', minWidth: 440, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
               <thead>
                 <tr>
                   <th style={{ padding: '6px 8px', fontSize: 8, color: 'rgba(var(--text-rgb),0.25)', ...DF, fontWeight: 700, textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid rgba(var(--text-rgb),0.06)', width: 70 }}>
@@ -632,7 +632,7 @@ export default function RecettesPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 30, alignItems: 'center', flex: 1 }}>
+          <div style={{ display: 'flex', gap: 30, alignItems: 'center', flex: 1, flexWrap: 'wrap' }}>
             {/* Donut */}
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <DonutChart slices={donutSlices} size={120} />
@@ -669,7 +669,7 @@ export default function RecettesPage() {
             </div>
 
             {/* Weekly breakdown bars */}
-            <div style={{ flexShrink: 0, width: 280 }}>
+            <div style={{ flexShrink: 0, width: '100%', maxWidth: 280 }}>
               <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Calories / jour (semaine)</p>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 80 }}>
                 {weekCaloriesByDay.map((day, i) => {

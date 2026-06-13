@@ -733,7 +733,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* ─── ROW 2 : Filter bar ───────────────────────────────────────────── */}
-      <div className="col-span-4" style={{ ...card(), padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+      <div className="col-span-4 toolbar-scroll" style={{ ...card(), padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
         {/* Période */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span style={tableLabelStyle}>Période</span>

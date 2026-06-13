@@ -412,6 +412,52 @@ h1, h2, h3, h4, h5, h6 {
     height: 85vh !important;
     border-radius: 20px 20px 0 0 !important;
   }
+
+  /* ── Mobile : grilles multi-colonnes → une colonne ───────────
+     Cible les grilles de cartes (repeat(3..12)). On préserve
+     volontairement repeat(7) (semaine calendrier) et repeat(2)
+     (paires de stats), qui restent lisibles en petit. */
+  main [style*="repeat(3"],
+  main [style*="repeat(4"],
+  main [style*="repeat(6"],
+  main [style*="repeat(8"],
+  main [style*="repeat(12"],
+  main [style*="grid-cols-4"],
+  main [style*="grid-cols-3"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  main [style*="repeat(3"] > *,
+  main [style*="repeat(4"] > *,
+  main [style*="repeat(6"] > *,
+  main [style*="repeat(8"] > *,
+  main [style*="repeat(12"] > * {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    min-height: auto !important;
+  }
+  /* Racine de page : réduit les gros paddings horizontaux */
+  main > div { max-width: 100vw; padding-left: 14px !important; padding-right: 14px !important; }
+
+  /* Espace pour la barre de navigation mobile fixe */
+  main {
+    padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Barres d'outils / filtres : défilement horizontal plutôt que débordement */
+  .toolbar-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+  }
+  .toolbar-scroll::-webkit-scrollbar { display: none; }
+  .toolbar-scroll > * { flex-shrink: 0; }
+}
+@media (min-width: 768px) {
+  main { padding-bottom: 0; }
+  /* La barre de nav mobile a un display:flex inline → on force le masquage desktop */
+  .bottom-nav { display: none !important; }
 }
 
 @supports (padding-bottom: env(safe-area-inset-bottom)) {

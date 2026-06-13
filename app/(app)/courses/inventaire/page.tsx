@@ -92,7 +92,7 @@ function ItemRow({
 }) {
   const s = STATUS[item.status]
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px', borderBottom: '1px solid var(--border)', transition: 'background .1s' }}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px', borderBottom: '1px solid var(--border)', transition: 'background .1s', flexWrap: 'wrap' }}
       className="inv-row">
       {/* Icon */}
       <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -355,7 +355,7 @@ export default function InventairePage() {
       )}
 
       {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
         <button onClick={() => router.push('/courses')}
           style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 9, padding: '7px 12px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 11 }}>
           <ChevronLeft size={13} /> Courses
@@ -402,7 +402,7 @@ export default function InventairePage() {
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)' }} />
         </div>
         {/* Status filter */}
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className="toolbar-scroll" style={{ display: 'flex', gap: 6 }}>
           {([['all', 'Tous'], ['ok', 'Suffisant'], ['low', 'Faible'], ['buy', 'À racheter']] as const).map(([k, l]) => (
             <button key={k} onClick={() => setFilterStatus(k as Status | 'all')}
               style={{ padding: '6px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', ...DF, fontSize: 10, fontWeight: 700,

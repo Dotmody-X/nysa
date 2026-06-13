@@ -243,7 +243,7 @@ export default function RecipeEditPage() {
         </h1>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 30 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 20, marginBottom: 30 }}>
         {/* Infos basiques */}
         <div style={{ ...card(), padding: 20 }}>
           <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>
@@ -264,7 +264,7 @@ export default function RecipeEditPage() {
               border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', minHeight: 80, marginBottom: 16
             }} />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
             <div>
               <label style={{ fontSize: 9, fontWeight: 700, color: TEAL, textTransform: 'uppercase' }}>Portions</label>
               <input type="number" min="1" value={recipe.servings} onChange={e => setRecipe(prev => ({ ...prev, servings: parseInt(e.target.value) || 1 }))}
@@ -353,14 +353,14 @@ export default function RecipeEditPage() {
       </div>
 
       {/* Ingrédients */}
-      <div style={{ ...card(), padding: 20, marginBottom: 20 }}>
+      <div style={{ ...card(), padding: 20, marginBottom: 20, overflow: 'visible' }}>
         <h2 style={{ ...DF, fontSize: 14, fontWeight: 900, color: WHEAT, marginBottom: 16 }}>Ingrédients</h2>
         
         {recipe.ingredients.length > 0 && (
           <div style={{ marginBottom: 16, maxHeight: 300, overflowY: 'auto' }}>
             {recipe.ingredients.map(ing => (
               <div key={ing.id} style={{
-                display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 10, alignItems: 'center',
+                display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto', gap: 10, alignItems: 'center',
                 padding: '12px', background: 'rgba(var(--text-rgb),0.02)', borderRadius: 8, marginBottom: 8
               }}>
                 <span style={{ color: WHEAT, fontSize: 12 }}>{ing.name}</span>
@@ -376,7 +376,7 @@ export default function RecipeEditPage() {
         )}
 
         <div style={{ background: 'rgba(242,84,45,0.05)', borderRadius: 8, padding: 16, border: `1px solid ${ORANGE}20` }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)', gap: 10, marginBottom: 12 }}>
             <CatalogPicker
               query={newIngredient.name}
               onQueryChange={q => setNewIngredient(prev => ({ ...prev, name: q }))}

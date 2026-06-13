@@ -504,7 +504,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           HEADER — Hero + Budget + Économies
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px 220px', gap: 10, minHeight: 180 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 260px) minmax(0, 220px)', gap: 10, minHeight: 180 }}>
 
         {/* Hero */}
         <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -669,7 +669,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           TABS
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--border)' }}>
+      <div className="toolbar-scroll" style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--border)' }}>
         {([
           { k: 'liste',      l: 'Liste de courses' },
           { k: 'rayon',      l: 'Par rayon' },
@@ -690,7 +690,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           MAIN CONTENT — 3 colonnes
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px 260px', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 280px) minmax(0, 260px)', gap: 10 }}>
 
         {/* ── Col 1 : Liste de courses ─────────── */}
         <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
@@ -983,7 +983,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           SECONDARY — Parcours + Dépenses + IA
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
 
         {/* Parcours magasin */}
         <div style={{ ...card(), padding: 20 }}>
@@ -1136,7 +1136,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           FOOTER — Astuce IA + Total + Valider
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'stretch' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10, alignItems: 'stretch' }}>
         {/* Astuce IA */}
         <div style={{ ...card({ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }) }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: TEAL_BG, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1151,7 +1151,7 @@ export default function CoursesPage() {
         </div>
 
         {/* Total estimé + Valider */}
-        <div style={{ ...card({ padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 24 }) }}>
+        <div style={{ ...card({ padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }) }}>
           <div>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Total estimé</p>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>

@@ -148,7 +148,7 @@ export default function RecipeViewPage() {
   return (
     <div style={{ padding: 30 }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 30 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 30, flexWrap: 'wrap' }}>
         <button onClick={() => router.back()}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: WHEAT, padding: 0 }}>
           <ChevronLeft size={24} />
@@ -168,7 +168,7 @@ export default function RecipeViewPage() {
       </div>
 
       {/* Main Layout: Left (ingredients) | Center (recipe) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 250px) minmax(0, 1fr)', gap: 20 }}>
         {/* LEFT: Ingredients Panel */}
         <div>
           {/* Portions adjuster */}
@@ -295,7 +295,7 @@ export default function RecipeViewPage() {
           background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999
         }}>
           <div style={{
-            background: 'var(--bg-card)', borderRadius: 12, padding: 24, width: 400,
+            background: 'var(--bg-card)', borderRadius: 12, padding: 24, width: '100%', maxWidth: 400,
             border: `1px solid var(--border)`
           }}>
             <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: WHEAT, marginBottom: 20 }}>Ajouter au menu</p>

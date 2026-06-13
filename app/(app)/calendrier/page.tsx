@@ -889,7 +889,7 @@ function CalendrierContent() {
       </div>
 
       {/* ── ROW 2 : Nav bar ────────────────────────────────────────────────── */}
-      <div className="col-span-4" style={{ ...card(), padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="col-span-4 toolbar-scroll" style={{ ...card(), padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         {/* View tabs */}
         <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', borderRadius: 8, padding: 3, border: '1px solid var(--border)' }}>
           {(['day','week','month'] as CalView[]).map(v => {
@@ -931,6 +931,8 @@ function CalendrierContent() {
       {/* Vue mois */}
       {calView === 'month' && (
         <div ref={calGridRef} className="col-span-4" style={{ ...card(), overflow: 'hidden' }}>
+         <div style={{ overflowX: 'auto' }}>
+          <div style={{ minWidth: 560 }}>
           {/* Entêtes jours */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border)' }}>
             {DAY_LABELS.map(l => (
@@ -980,12 +982,16 @@ function CalendrierContent() {
               )
             })}
           </div>
+          </div>
+         </div>
         </div>
       )}
 
       {/* Vue jour + semaine (time grid) */}
       {calView !== 'month' && (
-      <div ref={calGridRef} className="col-span-4" style={{ ...card(), display: 'flex', flexDirection: 'column', overflow: 'hidden', height: SLOT_PX * 8 + 40 }}>
+      <div ref={calGridRef} className="col-span-4" style={{ ...card(), display: 'flex', overflow: 'hidden', height: SLOT_PX * 8 + 40 }}>
+       <div style={{ flex: 1, minWidth: 0, overflowX: 'auto' }}>
+        <div style={{ minWidth: calView === 'day' ? undefined : 560, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
         {/* Day headers */}
         <div style={{ display: 'grid', gridTemplateColumns: `${TIME_COL}px repeat(${weekDays.length}, 1fr)`, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
@@ -1176,6 +1182,8 @@ function CalendrierContent() {
             )}
           </div>
         </div>
+        </div>
+       </div>
       </div>
       )} {/* end calView !== 'month' */}
 

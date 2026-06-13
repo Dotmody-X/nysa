@@ -487,7 +487,7 @@ function SportPageInner() {
             </p>
 
             {/* Actions toolbar */}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a href={typeof window !== 'undefined' ? stravaAuthUrl() : '#'}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8,
                   background: STRAVA_ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, textDecoration: 'none' }}>
@@ -516,7 +516,7 @@ function SportPageInner() {
           </div>
 
           {/* Bottom stats row */}
-          <div style={{ display: 'flex', gap: 24, paddingTop: 16, borderTop: '1px solid rgba(var(--text-rgb),0.12)' }}>
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid rgba(var(--text-rgb),0.12)' }}>
             {[
               { l: 'Temps',      v: fmtDurLong(secWeek) },
               { l: 'Dénivelé',   v: elevWeek > 0 ? `+${elevWeek}m` : '—' },
@@ -647,7 +647,7 @@ function SportPageInner() {
 
             {showPlanForm ? (
               <form onSubmit={handlePlan} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
                   <div>
                     <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Date</p>
                     <input type="date" value={planForm.date}
@@ -862,7 +862,7 @@ function SportPageInner() {
           </div>
           <div style={{ ...card(), padding: 20 }}>
             <p style={{ ...label(), marginBottom: 12 }}>FC Moyenne</p>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
               {activities.slice(0, 5).filter(a => a.heart_rate_avg).map(a => (
                 <div key={a.id} style={{ textAlign: 'center' }}>
                   <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: 'var(--text)' }}>{a.heart_rate_avg}</p>
@@ -913,7 +913,7 @@ function SportPageInner() {
             })}
           </div>
           {/* Prochains objectifs */}
-          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(var(--text-rgb),0.12)', display: 'flex', gap: 16 }}>
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(var(--text-rgb),0.12)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, background: 'rgba(var(--text-rgb),0.07)', borderRadius: 8, padding: '10px 14px' }}>
               <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Objectif semaine</p>
               <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT }}>{Math.ceil(OBJ_KM_DYNAMIC)} km · {Math.ceil(OBJ_SEANCES_DYNAMIC)} sorties</p>

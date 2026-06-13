@@ -2,14 +2,26 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Calendar, BarChart2, User, Plus } from 'lucide-react'
+import {
+  Home, BarChart2, User, Plus, LayoutGrid, X,
+  Calendar, Clock, FolderKanban, CheckSquare, Activity, HeartPulse,
+  UtensilsCrossed, ShoppingCart, Wallet, Sparkles,
+} from 'lucide-react'
 import { useState } from 'react'
 
-const NAV_ITEMS = [
-  { href: '/',           label: 'Accueil',    Icon: Home      },
-  { href: '/calendrier', label: 'Calendrier', Icon: Calendar  },
-  { href: '/rapports',   label: 'Rapports',   Icon: BarChart2 },
-  { href: '/compte',     label: 'Profil',     Icon: User      },
+const ALL_SECTIONS = [
+  { href: '/',             label: 'Accueil',      Icon: Home },
+  { href: '/calendrier',   label: 'Calendrier',   Icon: Calendar },
+  { href: '/time-tracker', label: 'Time Tracker', Icon: Clock },
+  { href: '/projets',      label: 'Projets',      Icon: FolderKanban },
+  { href: '/todo',         label: 'To Do',        Icon: CheckSquare },
+  { href: '/sport',        label: 'Running',      Icon: Activity },
+  { href: '/health',       label: 'Health',       Icon: HeartPulse },
+  { href: '/recettes',     label: 'Recettes',     Icon: UtensilsCrossed },
+  { href: '/courses',      label: 'Courses',      Icon: ShoppingCart },
+  { href: '/budget',       label: 'Budget',       Icon: Wallet },
+  { href: '/rapports',     label: 'Rapports',     Icon: BarChart2 },
+  { href: '/agent',        label: 'Agent IA',     Icon: Sparkles },
 ]
 
 const QUICK_LINKS = [
@@ -21,85 +33,103 @@ const QUICK_LINKS = [
 
 export function MobileNav() {
   const pathname = usePathname()
-  const [open, setOpen] = useState(false)
+  const [quickOpen, setQuickOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  function isActive(href: string) {
-    if (href === '/') return pathname === '/'
-    return pathname.startsWith(href)
+  const isActive = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href)
+
+  const tab = (href: string, label: string, Icon: typeof Home, onClick?: () => void) => {
+    const active = !onClick && isActive(href)
+    const inner = (
+      <>
+        <Icon size={21} style={{ color: active ? 'var(--accent-budget)' : 'var(--text-muted)' }} />
+        <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? 'var(--accent-budget)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
+      </>
+    )
+    const style: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, minWidth: 52, textDecoration: 'none', padding: '4px 0', background: 'none', border: 'none', cursor: 'pointer' }
+    return onClick
+      ? <button key={label} onClick={onClick} style={style}>{inner}</button>
+      : <Link key={label} href={href} style={style}>{inner}</Link>
   }
 
   return (
     <>
-      {/* Quick-add overlay */}
-      {open && (
+      {/* Menu complet (toutes les sections) */}
+      {menuOpen && (
         <>
-          <div onClick={() => setOpen(false)}
-            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:59, backdropFilter:'blur(4px)' }}
-          />
-          <div style={{
-            position:'fixed', bottom:90, left:'50%', transform:'translateX(-50%)',
-            display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, zIndex:60, width:240,
+          <div onClick={() => setMenuOpen(false)} className="md:hidden"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 60, backdropFilter: 'blur(4px)' }} />
+          <div className="md:hidden" style={{
+            position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
+            background: 'var(--bg-card)', borderTop: '1px solid var(--border)',
+            borderRadius: '20px 20px 0 0', padding: '20px 16px calc(24px + env(safe-area-inset-bottom, 0px))',
+            maxHeight: '80vh', overflowY: 'auto',
           }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <p style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text)' }}>Navigation</p>
+              <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              {ALL_SECTIONS.map(({ href, label, Icon }) => {
+                const active = isActive(href)
+                return (
+                  <Link key={label} href={href} onClick={() => setMenuOpen(false)}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      padding: '16px 8px', borderRadius: 14, textDecoration: 'none',
+                      background: active ? 'var(--accent-budget)' : 'var(--bg-input)',
+                      border: '1px solid var(--border)',
+                    }}>
+                    <Icon size={22} style={{ color: active ? 'var(--creamy-ivory)' : 'var(--text)' }} />
+                    <span style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, textAlign: 'center', color: active ? 'var(--creamy-ivory)' : 'var(--text-muted)' }}>{label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Quick-add */}
+      {quickOpen && (
+        <>
+          <div onClick={() => setQuickOpen(false)} className="md:hidden"
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 59, backdropFilter: 'blur(4px)' }} />
+          <div className="md:hidden" style={{ position: 'fixed', bottom: 96, left: '50%', transform: 'translateX(-50%)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, zIndex: 60, width: 240 }}>
             {QUICK_LINKS.map(l => (
-              <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
-                style={{
-                  background:l.color, borderRadius:14, padding:'14px 16px',
-                  display:'flex', flexDirection:'column', gap:2, textDecoration:'none',
-                }}>
-                <span style={{ fontFamily:'var(--font-display)', fontSize:12, fontWeight:800, color:'#fff', letterSpacing:'0.06em' }}>{l.label}</span>
-                <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.75)' }}>Ouvrir →</span>
+              <Link key={l.href} href={l.href} onClick={() => setQuickOpen(false)}
+                style={{ background: l.color, borderRadius: 14, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 2, textDecoration: 'none' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 800, color: 'var(--creamy-ivory)', letterSpacing: '0.06em' }}>{l.label}</span>
+                <span style={{ fontSize: 10, color: 'rgba(245,241,237,0.8)' }}>Ouvrir →</span>
               </Link>
             ))}
           </div>
         </>
       )}
 
-      {/* Nav bar */}
+      {/* Barre de navigation */}
       <nav className="md:hidden bottom-nav"
         style={{
-          position:'fixed', bottom:0, left:0, right:0, zIndex:50,
-          background:'var(--bg-sidebar)', borderTop:'1px solid var(--border)',
-          display:'flex', alignItems:'center', justifyContent:'space-around',
-          padding:'8px 12px',
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 62,
+          background: 'var(--bg-sidebar)', borderTop: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 12px',
         }}>
+        {tab('/', 'Accueil', Home)}
+        {tab('', 'Menu', LayoutGrid, () => { setMenuOpen(o => !o); setQuickOpen(false) })}
 
-        {NAV_ITEMS.slice(0, 2).map(({ href, label, Icon }) => {
-          const active = isActive(href)
-          return (
-            <Link key={href} href={href}
-              style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, minWidth:52, textDecoration:'none', padding:'4px 0' }}>
-              <Icon size={21} style={{ color: active ? 'var(--accent-budget)' : 'var(--text-muted)' }} />
-              <span style={{ fontSize:9, fontFamily:'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? 'var(--accent-budget)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                {label}
-              </span>
-            </Link>
-          )
-        })}
-
-        {/* Centre : bouton + */}
-        <button onClick={() => setOpen(o => !o)}
+        <button onClick={() => { setQuickOpen(o => !o); setMenuOpen(false) }}
+          aria-label="Ajout rapide"
           style={{
-            width:54, height:54, borderRadius:99, background:'var(--accent-budget)', border:'none',
-            cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-            boxShadow:'0 4px 18px rgba(242,84,45,0.45)', flexShrink:0,
-            transform: open ? 'rotate(45deg)' : 'none',
-            transition:'transform 0.2s cubic-bezier(0.4,0,0.2,1)',
+            width: 54, height: 54, borderRadius: 99, background: 'var(--accent-budget)', border: 'none',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 18px rgba(217,126,53,0.45)', flexShrink: 0,
+            transform: quickOpen ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s cubic-bezier(0.4,0,0.2,1)',
           }}>
-          <Plus size={24} style={{ color:'#fff' }} />
+          <Plus size={24} style={{ color: 'var(--creamy-ivory)' }} />
         </button>
 
-        {NAV_ITEMS.slice(2).map(({ href, label, Icon }) => {
-          const active = isActive(href)
-          return (
-            <Link key={href} href={href}
-              style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, minWidth:52, textDecoration:'none', padding:'4px 0' }}>
-              <Icon size={21} style={{ color: active ? 'var(--accent-budget)' : 'var(--text-muted)' }} />
-              <span style={{ fontSize:9, fontFamily:'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? 'var(--accent-budget)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                {label}
-              </span>
-            </Link>
-          )
-        })}
+        {tab('/rapports', 'Rapports', BarChart2)}
+        {tab('/compte', 'Profil', User)}
       </nav>
     </>
   )

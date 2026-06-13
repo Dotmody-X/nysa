@@ -220,7 +220,7 @@ export default function MesuresPage() {
       {showForm && (
         <form onSubmit={handleAdd} style={{ marginBottom: 16, padding: 20, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border-active)' }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: ORANGE, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>Nouvelle mesure</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr) 2fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 10 }}>
             {FORM_FIELDS.map(f => (
               <div key={f.k}>
                 <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{f.lbl}</p>
@@ -293,6 +293,8 @@ export default function MesuresPage() {
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{mesures.length} entrées</span>
         </div>
 
+        <div style={{ overflowX: 'auto' }}>
+        <div style={{ minWidth: 560 }}>
         {/* Column headers */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 100px 80px 72px',
           padding: '8px 20px', background: 'var(--bg-input)', borderBottom: '1px solid var(--border)' }}>
@@ -309,7 +311,7 @@ export default function MesuresPage() {
             return (
               <form key={m.id} onSubmit={saveEdit}
                 style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', background: `${ORANGE}08`, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr) 2fr', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
                   {FORM_FIELDS.map(f => (
                     <div key={f.k}>
                       <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{f.lbl}</p>
@@ -383,6 +385,8 @@ export default function MesuresPage() {
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune mesure enregistrée</p>
           </div>
         )}
+        </div>
+        </div>
       </div>
 
       {/* Confirm delete modal */}

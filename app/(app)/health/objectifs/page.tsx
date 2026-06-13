@@ -93,7 +93,7 @@ function FormPanel({
   return (
     <form onSubmit={onSubmit} style={{ marginBottom: 16, padding: 20, borderRadius: 12, background: 'var(--bg-card)', border: `1px solid ${isEdit ? TEAL + '44' : 'var(--border-active)'}` }}>
       <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: isEdit ? TEAL : ORANGE, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>{title}</p>
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 80px 1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 12 }}>
         <div>
           <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Intitulé</p>
           <input type="text" value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))}

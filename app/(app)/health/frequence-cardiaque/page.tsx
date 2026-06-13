@@ -134,7 +134,7 @@ export default function FrequenceCardiaqueePage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10, marginBottom: 16 }}>
         {/* Chart */}
         <div style={{ padding: 24, borderRadius: 12, background: 'var(--bg)', border: '1px solid rgba(255,80,80,0.15)' }}>
           <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'rgba(255,80,80,0.7)', textTransform: 'uppercase', marginBottom: 16 }}>
@@ -173,7 +173,8 @@ export default function FrequenceCardiaqueePage() {
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune sortie avec données FC. Connectez Strava ou importez un GPX avec FC.</p>
           </div>
         ) : (
-          <>
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ minWidth: 560 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px 80px 80px', gap: 0,
               padding: '8px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)' }}>
               {['Sortie', 'Distance', 'Durée', 'FC moy.', 'FC max', 'Allure'].map(h => (
@@ -198,7 +199,8 @@ export default function FrequenceCardiaqueePage() {
                 </p>
               </div>
             ))}
-          </>
+            </div>
+          </div>
         )}
       </div>
     </div>

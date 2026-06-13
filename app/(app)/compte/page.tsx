@@ -242,7 +242,7 @@ export default function ComptePage() {
       {showDelete && (
         <>
           <div onClick={()=>setShowDelete(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:200, backdropFilter:'blur(4px)' }} />
-          <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:16, padding:28, width:400, border:'1px solid rgba(242,84,45,0.3)' }}>
+          <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:16, padding:28, width:'calc(100% - 32px)', maxWidth:400, border:'1px solid rgba(242,84,45,0.3)' }}>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
               <AlertTriangle size={20} style={{ color: ORANGE }} />
               <p style={{ ...DF, fontWeight:800, fontSize:15, color:'var(--text)' }}>Supprimer mon compte</p>
@@ -275,7 +275,7 @@ export default function ComptePage() {
         return (
           <>
             <div onClick={()=>setActiveIntegration(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.65)', zIndex:200, backdropFilter:'blur(4px)' }} />
-            <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:16, padding:28, width:380, border:'1px solid var(--border)', boxShadow:'0 24px 60px rgba(0,0,0,0.4)' }}>
+            <div style={{ position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', zIndex:201, background:'var(--bg-card)', borderRadius:16, padding:28, width:'calc(100% - 32px)', maxWidth:380, border:'1px solid var(--border)', boxShadow:'0 24px 60px rgba(0,0,0,0.4)' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   <span style={{ fontSize:28 }}>{app.icon}</span>
@@ -311,9 +311,9 @@ export default function ComptePage() {
       })()}
 
       {/* ══ HEADER ═══════════════════════════════════════════════════════════ */}
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:20 }}>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:20, flexWrap:'wrap' }}>
         <div>
-          <h1 style={{ ...DF, fontWeight:900, fontSize:52, color:WHEAT, letterSpacing:'-0.02em', lineHeight:1, marginBottom:4 }}>MON PROFIL.</h1>
+          <h1 style={{ ...DF, fontWeight:900, fontSize:'clamp(32px, 9vw, 52px)', color:WHEAT, letterSpacing:'-0.02em', lineHeight:1, marginBottom:4 }}>MON PROFIL.</h1>
           <p style={{ fontSize:10, color:'var(--text-muted)', letterSpacing:'0.16em', textTransform:'uppercase' }}>VOTRE ESPACE · VOS DONNÉES · VOS OBJECTIFS</p>
         </div>
 
@@ -341,7 +341,7 @@ export default function ComptePage() {
       </div>
 
       {/* ══ ROW 1 : Profil + Stats ════════════════════════════════════════════ */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap:10 }}>
 
         {/* Profil card */}
         <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:22, display:'flex', flexDirection:'column', gap:14 }}>
@@ -440,7 +440,7 @@ export default function ComptePage() {
       </div>
 
       {/* ══ ROW 2 : Succès + Résumé activité ════════════════════════════════ */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap:10 }}>
 
         {/* Succès */}
         <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:20 }}>
@@ -505,7 +505,7 @@ export default function ComptePage() {
       </div>
 
       {/* ══ ROW 3 : Série + Préférences + Apps ══════════════════════════════ */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
+      <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap:10 }}>
 
         {/* Série actuelle */}
         <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:20 }}>
@@ -599,7 +599,7 @@ export default function ComptePage() {
       </div>
 
       {/* ══ ROW 5 : Paramètres + Abonnement ════════════════════════════════ */}
-      <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:10 }}>
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr]" style={{ gap:10 }}>
 
         {/* Paramètres du compte */}
         <div style={{ ...card('var(--bg-card)'), border:'1px solid var(--border)', padding:22 }}>

@@ -742,7 +742,7 @@ export default function ProjetsPage() {
           </div>
 
           {/* Tabs */}
-          <div style={{ borderBottom: '1px solid var(--border)', padding: '0 20px', display: 'flex', gap: 0 }}>
+          <div className="toolbar-scroll" style={{ borderBottom: '1px solid var(--border)', padding: '0 20px', display: 'flex', gap: 0 }}>
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 style={{
@@ -935,7 +935,8 @@ export default function ProjetsPage() {
                 <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune tâche</p>
               </div>
             ) : (
-              <div style={{ overflowY: 'auto', flex: 1 }}>
+              <div style={{ overflowY: 'auto', overflowX: 'auto', flex: 1 }}>
+               <div style={{ minWidth: 420 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 90px 80px', padding: '8px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
                   {['TÂCHE', 'STATUT', 'PRIORITÉ', 'ÉCHÉANCE'].map(h => (
                     <span key={h} style={{ fontSize: 9, color: 'var(--text-muted)', ...DF, fontWeight: 700, letterSpacing: '0.1em' }}>{h}</span>
@@ -961,6 +962,7 @@ export default function ProjetsPage() {
                     </div>
                   )
                 })}
+               </div>
               </div>
             )}
           </div>

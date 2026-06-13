@@ -118,7 +118,7 @@ export default function PoidsPage() {
 
       {/* Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 16, padding: 16,
+        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: 16,
           borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--border-active)' }}>
           <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
             style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }} />

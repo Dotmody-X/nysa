@@ -116,7 +116,7 @@ function Drawer({ title, open, onClose, children, width = 480 }: {
       )}
       {/* Panel */}
       <div style={{
-        position:'fixed', top:0, right:0, bottom:0, width, zIndex:201,
+        position:'fixed', top:0, right:0, bottom:0, width:'100%', maxWidth:width, zIndex:201,
         background:'var(--bg-card)', borderLeft:'1px solid var(--border-active)',
         display:'flex', flexDirection:'column',
         transform: open ? 'translateX(0)' : `translateX(${width}px)`,
@@ -838,7 +838,7 @@ export default function BudgetPage() {
           </p>
         </div>
         {/* Résumé du mois */}
-        <div style={{ background:ORANGE, borderRadius:16, padding:'14px 20px', display:'flex', gap:0, flexShrink:0, minWidth:500, '--text-rgb':'26, 10, 10', '--text':'#1a0a0a', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+        <div style={{ background:ORANGE, borderRadius:16, padding:'14px 20px', display:'flex', gap:0, flexShrink:0, flexWrap:'wrap', width:'100%', maxWidth:500, '--text-rgb':'26, 10, 10', '--text':'#1a0a0a', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
           <div style={{ flex:1, paddingRight:20 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <span style={{ ...LBL, fontSize:9, color:'rgba(var(--text-rgb),0.8)' }}>RÉSUMÉ DU MOIS</span>
@@ -847,7 +847,7 @@ export default function BudgetPage() {
                 <MoreVertical size={13} style={{ color:'rgba(var(--text-rgb),0.6)' }}/>
               </div>
             </div>
-            <div style={{ display:'flex', gap:0 }}>
+            <div style={{ display:'flex', gap:0, flexWrap:'wrap', rowGap:10 }}>
               {[
                 { l:'Revenus',       v:fmtEur(cur.totalIncome),        d:deltaIncome,   pos:deltaIncome>=0   },
                 { l:'Dépenses',      v:fmtEur(cur.totalExpense),       d:-deltaExpense, pos:deltaExpense<=0  },
@@ -870,7 +870,7 @@ export default function BudgetPage() {
       </div>
 
       {/* ════ FILTER BAR ════ */}
-      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+      <div className="toolbar-scroll" style={{ display:'flex', alignItems:'center', gap:10 }}>
         <button onClick={prevMo} style={{ width:32, height:32, borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
           <ChevronLeft size={15}/>
         </button>
@@ -1235,7 +1235,7 @@ export default function BudgetPage() {
       {/* ════ MODAL TRANSACTION ════ */}
       {showTxModal && (
         <div style={{ position:'fixed', inset:0, background:'rgba(22,22,42,0.88)', backdropFilter:'blur(10px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }}>
-          <div style={{ background:'var(--bg-card)', borderRadius:20, border:'1px solid var(--border-active)', padding:28, width:460, boxShadow:'0 24px 60px rgba(0,0,0,0.55)' }}>
+          <div style={{ background:'var(--bg-card)', borderRadius:20, border:'1px solid var(--border-active)', padding:28, width:'100%', maxWidth:460, boxShadow:'0 24px 60px rgba(0,0,0,0.55)' }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
               <h3 style={{ ...DF, fontSize:20, fontWeight:900, color:WHEAT }}>Nouvelle transaction</h3>
               <button onClick={()=>setShowTxModal(false)} style={{ width:30, height:30, borderRadius:8, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:18, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
