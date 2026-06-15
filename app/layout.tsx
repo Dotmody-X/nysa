@@ -1,7 +1,8 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Bricolage_Grotesque, Hanken_Grotesk } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { PWA } from '@/components/PWA'
 import { Analytics } from '@vercel/analytics/next'
 
 // Display caractériel (néo-brutalisme) — exposé sous --font-saira pour
@@ -23,6 +24,15 @@ const sora = Hanken_Grotesk({
 export const metadata: Metadata = {
   title: 'NYSA — Focus. Plan. Progress.',
   description: 'Ton dashboard personnel tout-en-un.',
+  applicationName: 'NYSA',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'NYSA' },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#f5f1ed',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -34,6 +44,7 @@ export default function RootLayout({
     <html lang="fr" data-theme="system" className={`${saira.variable} ${sora.variable} h-full`}>
       <body className="h-full antialiased" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
         <ThemeProvider>{children}</ThemeProvider>
+        <PWA />
         <Analytics />
       </body>
     </html>
