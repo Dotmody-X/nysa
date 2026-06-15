@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { ChevronLeft, Plus, X, Trash2 } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
 import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
+import { unitToGrams } from '@/lib/stock'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)'
@@ -23,8 +24,14 @@ interface RecipeData {
   cook_time: number
   tags: string[]
   is_favorite: boolean
-  ingredients: Array<{ id: string; name: string; quantity: number; unit: string; calories_per_qty?: number; protein_per_qty?: number; carbs_per_qty?: number; fat_per_qty?: number }>
+  ingredients: Array<{ id: string; name: string; quantity: number; unit: string; calories_per_qty?: number; protein_per_qty?: number; carbs_per_qty?: number; fat_per_qty?: number; grams_per_piece?: number }>
   steps: string[]
+}
+
+// kcal d'un ingrédient : macros pour 100 g × (grammes représentés / 100)
+function ingredientKcal(ing: { quantity?: number; unit?: string; calories_per_qty?: number; grams_per_piece?: number }): number {
+  const grams = unitToGrams(ing.quantity ?? 0, ing.unit, ing.grams_per_piece ?? 100)
+  return Math.round((ing.calories_per_qty ?? 0) * grams / 100)
 }
 
 function normalizeSteps(raw: unknown): string[] {
@@ -54,7 +61,7 @@ export default function RecipeEditPage() {
   })
 
   const [newIngredient, setNewIngredient] = useState({
-    name: '', quantity: 0, unit: 'g',
+    name: '', quantity: 0, unit: 'g', grams_per_piece: 100,
     calories_per_qty: 0, protein_per_qty: 0, carbs_per_qty: 0, fat_per_qty: 0,
   })
   const [loading, setLoading] = useState(!isNew)
@@ -188,16 +195,18 @@ export default function RecipeEditPage() {
     }
   }
 
-  // Sélection d'un aliment → remplit nom + macros (par gramme) automatiquement
+  // Sélection d'un aliment → remplit nom + macros (POUR 100 g), l'unité
+  // suggérée et le poids d'une pièce (pour l'unité « pc »).
   const pickIngredient = (item: PickedItem) => {
     setNewIngredient(prev => ({
       ...prev,
       name: item.name,
-      unit: item.macros100 ? 'g' : prev.unit,
-      calories_per_qty: item.macros100 ? +(item.macros100.kcal  / 100).toFixed(4) : prev.calories_per_qty,
-      protein_per_qty:  item.macros100 ? +(item.macros100.prot  / 100).toFixed(4) : prev.protein_per_qty,
-      carbs_per_qty:    item.macros100 ? +(item.macros100.carbs / 100).toFixed(4) : prev.carbs_per_qty,
-      fat_per_qty:      item.macros100 ? +(item.macros100.fat   / 100).toFixed(4) : prev.fat_per_qty,
+      unit: item.unit ?? prev.unit,
+      grams_per_piece: item.gramsPerPiece ?? prev.grams_per_piece,
+      calories_per_qty: item.macros100 ? item.macros100.kcal  : prev.calories_per_qty,
+      protein_per_qty:  item.macros100 ? item.macros100.prot  : prev.protein_per_qty,
+      carbs_per_qty:    item.macros100 ? item.macros100.carbs : prev.carbs_per_qty,
+      fat_per_qty:      item.macros100 ? item.macros100.fat   : prev.fat_per_qty,
     }))
   }
 
@@ -208,7 +217,7 @@ export default function RecipeEditPage() {
       ...prev,
       ingredients: [...prev.ingredients, { ...newIngredient, id: ingredId }]
     }))
-    setNewIngredient({ name: '', quantity: 0, unit: 'g', calories_per_qty: 0, protein_per_qty: 0, carbs_per_qty: 0, fat_per_qty: 0 })
+    setNewIngredient({ name: '', quantity: 0, unit: 'g', grams_per_piece: 100, calories_per_qty: 0, protein_per_qty: 0, carbs_per_qty: 0, fat_per_qty: 0 })
   }
 
   const removeIngredient = (ingId: string) => {
@@ -377,7 +386,7 @@ export default function RecipeEditPage() {
               }}>
                 <span style={{ color: WHEAT, fontSize: 12 }}>{ing.name}</span>
                 <span style={{ color: WHEAT, fontSize: 12 }}>{ing.quantity} {ing.unit}</span>
-                <span style={{ color: TEAL, fontSize: 11, fontWeight: 600 }}>{ing.calories_per_qty ? Math.round((ing.calories_per_qty || 0) * (ing.quantity || 0)) : '—'} cal</span>
+                <span style={{ color: TEAL, fontSize: 11, fontWeight: 600 }}>{ing.calories_per_qty ? ingredientKcal(ing) : '—'} kcal</span>
                 <button onClick={() => removeIngredient(ing.id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, padding: 0 }}>
                   <X size={16} />
@@ -406,11 +415,11 @@ export default function RecipeEditPage() {
                 padding: '8px 10px', borderRadius: 6, background: 'var(--bg-input)',
                 border: '1px solid var(--border)', color: WHEAT
               }}>
-              <option>g</option>
-              <option>ml</option>
-              <option>pc</option>
-              <option>cuillère</option>
-              <option>cup</option>
+              <option value="g">g (grammes)</option>
+              <option value="ml">ml (millilitres)</option>
+              <option value="pc">pc (pièce/unité)</option>
+              <option value="cuillère">cuillère (c. à soupe)</option>
+              <option value="cup">cup (c. à café)</option>
             </select>
             <button onClick={addIngredient}
               style={{

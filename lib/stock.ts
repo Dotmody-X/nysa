@@ -61,6 +61,26 @@ export function findInv<T extends { name: string }>(items: T[], name: string): T
     || items.find(i => norm(i.name).includes(n) || n.includes(norm(i.name)))
 }
 
+/**
+ * Convertit une quantité + unité en GRAMMES (pour le calcul nutritionnel,
+ * les macros étant exprimées pour 100 g).
+ *  - g/kg/mg → masse ; ml/cl/l → volume (densité ≈ 1)
+ *  - cuillère = cuillère à soupe ≈ 15 g ; cup = cuillère à café ≈ 5 g
+ *  - pc/pièce/unité → quantité × poids d'une pièce (gramsPerPiece)
+ */
+export function unitToGrams(quantity: number, unit?: string, gramsPerPiece = 100): number {
+  const q = quantity || 0
+  const u = norm(unit || '')
+  const mass: Record<string, number> = { mg: 0.001, g: 1, gr: 1, gramme: 1, grammes: 1, kg: 1000, kilo: 1000, kilos: 1000 }
+  const vol: Record<string, number> = { ml: 1, cl: 10, dl: 100, l: 1000, litre: 1000, litres: 1000 }
+  if (u in mass) return q * mass[u]
+  if (u in vol) return q * vol[u]
+  if (['cuillere', 'cuilleres', 'cas', 'c.a.s', 'tbsp', 'cuillere a soupe'].includes(u)) return q * 15
+  if (['cup', 'cac', 'c.a.c', 'tsp', 'cuillere a cafe'].includes(u)) return q * 5
+  if (['pc', 'piece', 'pieces', 'unite', 'unites', 'u', 'x'].includes(u)) return q * gramsPerPiece
+  return q // unité inconnue/vide → on suppose des grammes
+}
+
 /** Additionne deux quantités libres si comparables, sinon garde l'existante. */
 export function mergeQty(existing: string, added: string): string {
   const a = parseInvQty(existing || ''), b = parseInvQty(added || '')

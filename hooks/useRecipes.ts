@@ -1,17 +1,27 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { unitToGrams } from '@/lib/stock'
 
 export interface RecipeIngredient {
   id: string
   name: string
   quantity: number
   unit: string
+  // Macros exprimées POUR 100 g (kcal/prot/glucides/lipides). Le calcul
+  // convertit quantity+unit en grammes (cf. unitToGrams) puis ramène à 100 g.
   calories_per_qty: number
   protein_per_qty: number
   carbs_per_qty: number
   fat_per_qty: number
+  /** Poids d'une pièce (g) pour l'unité « pc » ; défaut 100 g. */
+  grams_per_piece?: number
   inventory_item_name?: string
+}
+
+/** Grammes représentés par un ingrédient (quantité × unité → g). */
+function ingredientGrams(ing: { quantity?: number; unit?: string; grams_per_piece?: number }): number {
+  return unitToGrams(ing.quantity ?? 0, ing.unit, ing.grams_per_piece ?? 100)
 }
 
 export interface Recipe {
@@ -39,12 +49,15 @@ export function calcRecipeNutrition(recipe: Recipe | undefined | null, servings 
   }
   const ratio = servings / (recipe.servings || 1)
   const total = recipe.ingredients.reduce(
-    (sum, ing) => ({
-      calories: sum.calories + (ing.calories_per_qty ?? 0) * (ing.quantity ?? 0) * ratio,
-      protein:  sum.protein  + (ing.protein_per_qty  ?? 0) * (ing.quantity ?? 0) * ratio,
-      carbs:    sum.carbs    + (ing.carbs_per_qty    ?? 0) * (ing.quantity ?? 0) * ratio,
-      fat:      sum.fat       + (ing.fat_per_qty      ?? 0) * (ing.quantity ?? 0) * ratio,
-    }),
+    (sum, ing) => {
+      const f = (ingredientGrams(ing) / 100) * ratio // facteur « pour 100 g » → réel
+      return {
+        calories: sum.calories + (ing.calories_per_qty ?? 0) * f,
+        protein:  sum.protein  + (ing.protein_per_qty  ?? 0) * f,
+        carbs:    sum.carbs    + (ing.carbs_per_qty    ?? 0) * f,
+        fat:      sum.fat       + (ing.fat_per_qty      ?? 0) * f,
+      }
+    },
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   )
   return {
@@ -141,13 +154,13 @@ export function useRecipes() {
 
     const total = recipe.ingredients.reduce(
       (sum, ing) => {
-        const quantityInGrams = ing.quantity // quantity is already in the unit specified
         const servingRatio = servings / (recipe.servings || 1)
+        const f = (ingredientGrams(ing) / 100) * servingRatio
         return {
-          calories: sum.calories + (ing.calories_per_qty * quantityInGrams * servingRatio),
-          protein: sum.protein + (ing.protein_per_qty * quantityInGrams * servingRatio),
-          carbs: sum.carbs + (ing.carbs_per_qty * quantityInGrams * servingRatio),
-          fat: sum.fat + (ing.fat_per_qty * quantityInGrams * servingRatio),
+          calories: sum.calories + (ing.calories_per_qty * f),
+          protein: sum.protein + (ing.protein_per_qty * f),
+          carbs: sum.carbs + (ing.carbs_per_qty * f),
+          fat: sum.fat + (ing.fat_per_qty * f),
         }
       },
       { calories: 0, protein: 0, carbs: 0, fat: 0 }

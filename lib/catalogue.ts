@@ -276,3 +276,53 @@ export function catalogNutrition(name: string): Macros | null {
   }
   return null
 }
+
+// ── Poids moyen d'une pièce (en grammes) ────────────────────────
+// Pour convertir une quantité en « pièce/unité » (pc) en grammes lors du
+// calcul nutritionnel. Ex. 2 œufs = 2 × 50 g = 100 g → ~155 kcal/100 g ≈ 155 kcal.
+export const PIECE_GRAMS: Record<string, number> = {
+  'Œufs': 50,
+  'Pomme': 180, 'Banane': 120, 'Orange': 130, 'Clémentine': 70, 'Citron': 100,
+  'Citron vert': 70, 'Pamplemousse': 230, 'Poire': 170, 'Pêche': 150, 'Nectarine': 140,
+  'Abricot': 40, 'Prune': 60, 'Kiwi': 75, 'Mangue': 200, 'Avocat': 170,
+  'Tomate': 120, 'Tomate cerise': 15, 'Concombre': 300, 'Courgette': 200, 'Aubergine': 250,
+  'Poivron': 150, 'Carotte': 70, 'Pomme de terre': 150, 'Patate douce': 150, 'Oignon': 110,
+  'Oignon rouge': 110, 'Échalote': 30, 'Ail': 5, 'Brocoli': 300, 'Chou-fleur': 600,
+  'Champignon de Paris': 15, 'Betterave': 120, 'Radis': 10, 'Navet': 120, 'Poireau': 150,
+  'Céleri': 60, 'Fenouil': 250, 'Gingembre frais': 30,
+  'Blanc de poulet': 150, 'Cuisse de poulet': 130, 'Escalope de dinde': 120,
+  'Steak': 150, 'Côte de porc': 150, 'Saucisse': 70, 'Merguez': 60, 'Chipolata': 50,
+  'Pavé de saumon': 150, 'Crevette': 10, 'Sardine': 25, 'Maquereau': 150,
+  'Jambon blanc': 40, 'Jambon cru': 30, 'Bacon': 15,
+  'Yaourt nature': 125, 'Yaourt grec': 150, 'Yaourt aux fruits': 125, 'Petit-suisse': 60,
+  'Mozzarella': 125, 'Camembert': 250, 'Tofu': 200,
+  'Pain': 250, 'Baguette': 250, 'Pain de mie': 30, 'Pain complet': 250, 'Pain burger': 60,
+  'Wraps': 60, 'Tortillas': 60, 'Pâte feuilletée': 230, 'Pâte brisée': 230, 'Pâte à pizza': 260,
+  'Biscuits': 10, 'Gnocchi': 300,
+}
+
+/** Poids d'une pièce (g) pour un aliment ; défaut 100 g si inconnu. */
+export function catalogPieceGrams(name: string): number {
+  const n = norm(name.trim())
+  if (!n) return 100
+  for (const [k, v] of Object.entries(PIECE_GRAMS)) {
+    if (norm(k) === n) return v
+  }
+  for (const [k, v] of Object.entries(PIECE_GRAMS)) {
+    if (norm(k).includes(n) || n.includes(norm(k))) return v
+  }
+  return 100
+}
+
+/** Unité par défaut suggérée : « pc » si l'aliment se compte à la pièce, sinon « g ». */
+export function defaultUnitFor(name: string): 'pc' | 'g' {
+  const n = norm(name.trim())
+  if (!n) return 'g'
+  for (const k of Object.keys(PIECE_GRAMS)) {
+    if (norm(k) === n) return 'pc'
+  }
+  for (const k of Object.keys(PIECE_GRAMS)) {
+    if (norm(k).includes(n) || n.includes(norm(k))) return 'pc'
+  }
+  return 'g'
+}

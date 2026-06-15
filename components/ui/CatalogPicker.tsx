@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Search, Loader2 } from '@/components/ui/icons'
-import { searchCatalog, catalogNutrition, CATEGORY_EMOJI, type CatalogCategory } from '@/lib/catalogue'
+import { searchCatalog, catalogNutrition, catalogPieceGrams, defaultUnitFor, CATEGORY_EMOJI, type CatalogCategory } from '@/lib/catalogue'
 import { searchProducts, guessCategory as guessOffCategory } from '@/lib/openFoodFacts'
 
 export type PickedItem = {
@@ -13,6 +13,8 @@ export type PickedItem = {
   productId?: string
   /** Macros pour 100 g (kcal, protéines, glucides, lipides) si connues. */
   macros100?: { kcal: number; prot: number; carbs: number; fat: number }
+  /** Poids moyen d'une pièce (g) — pour convertir l'unité « pc » en grammes. */
+  gramsPerPiece?: number
 }
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -106,8 +108,10 @@ export function CatalogPicker({
             const macros = catalogNutrition(item.name)
             return (
             <button key={`c-${item.name}`} onClick={() => pick({
-              name: item.name, category: item.category, unit: item.unit,
+              name: item.name, category: item.category,
+              unit: item.unit ?? defaultUnitFor(item.name),
               macros100: macros ?? undefined,
+              gramsPerPiece: catalogPieceGrams(item.name),
             })}
               style={rowStyle} className="cat-row">
               <span style={{ fontSize: 14 }}>{CATEGORY_EMOJI[item.category as CatalogCategory] ?? '•'}</span>
