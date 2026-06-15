@@ -1,9 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { User, Palette, Bell, Database, Keyboard, Info, Puzzle, RotateCcw } from '@/components/ui/icons'
-import { saveTheme, loadTheme, type ThemeMode } from '@/lib/theme'
+import { User, Palette, Bell, Database, Keyboard, Info } from '@/components/ui/icons'
+import { saveTheme, type ThemeMode } from '@/lib/theme'
 import { isDemoModeEnabled, toggleDemoMode } from '@/lib/demo-mode'
 import { PageTitle } from '@/components/ui/PageTitle'
+import { createClient } from '@/lib/supabase/client'
+import { loadNotifPrefs, saveNotifPrefs, NOTIF_DEFS, type NotifPrefs } from '@/lib/notifPrefs'
+import { exportAllJson, exportTasksCsv, exportFinancesCsv, deleteAllData } from '@/lib/dataExport'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
@@ -76,26 +79,68 @@ export default function ReglagesPage() {
   )
 }
 
+const LBL_F: React.CSSProperties = { fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-display)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }
+const INP_F: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }
+
 function ProfilTab() {
+  const [name, setName]   = useState('')
+  const [email, setEmail] = useState('')
+  const [tz, setTz]       = useState('')
+  const [df, setDf]       = useState('JJ/MM/AAAA')
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg]     = useState<string | null>(null)
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (!data.user) return
+      const m = data.user.user_metadata ?? {}
+      setEmail(data.user.email ?? '')
+      setName(m.display_name ?? '')
+      setTz(m.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'Europe/Brussels')
+      setDf(m.date_format ?? 'JJ/MM/AAAA')
+    })
+  }, [])
+
+  async function save() {
+    setSaving(true)
+    const { error } = await createClient().auth.updateUser({ data: { display_name: name, timezone: tz, date_format: df } })
+    try { localStorage.setItem('nysa_date_format', df) } catch { /* ignore */ }
+    setMsg(error ? '❌ ' + error.message : '✅ Profil enregistré')
+    setSaving(false)
+    setTimeout(() => setMsg(null), 3000)
+  }
+
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Profil</p>
       <div className="flex flex-col gap-4">
-        {[
-          { label:'Nom', placeholder:'Ton prénom', type:'text' },
-          { label:'Email', placeholder:'email@exemple.com', type:'email' },
-          { label:'Fuseau horaire', placeholder:'Europe/Brussels', type:'text' },
-          { label:'Format de date', placeholder:'JJ/MM/AAAA', type:'text' },
-        ].map(f => (
-          <div key={f.label}>
-            <p style={{ fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-display)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>{f.label}</p>
-            <input type={f.type} placeholder={f.placeholder}
-              style={{ width:'100%', background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }} />
+        <div>
+          <p style={LBL_F}>Nom</p>
+          <input value={name} onChange={e=>setName(e.target.value)} placeholder="Ton prénom" style={INP_F} />
+        </div>
+        <div>
+          <p style={LBL_F}>Email</p>
+          <input value={email} readOnly title="L'email se modifie depuis la sécurité du compte"
+            style={{ ...INP_F, color:'var(--text-muted)', cursor:'not-allowed' }} />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p style={LBL_F}>Fuseau horaire</p>
+            <input value={tz} onChange={e=>setTz(e.target.value)} placeholder="Europe/Brussels" style={INP_F} />
           </div>
-        ))}
-        <button className="nb-press" style={{ background:'var(--accent-budget)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, width:'fit-content', marginTop:8 }}>
-          Sauvegarder
-        </button>
+          <div>
+            <p style={LBL_F}>Format de date</p>
+            <select value={df} onChange={e=>setDf(e.target.value)} style={INP_F}>
+              <option>JJ/MM/AAAA</option><option>MM/JJ/AAAA</option><option>AAAA-MM-JJ</option>
+            </select>
+          </div>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:8 }}>
+          <button onClick={save} disabled={saving} className="nb-press" style={{ background:'var(--accent-budget)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+            {saving ? 'Enregistrement…' : 'Sauvegarder'}
+          </button>
+          {msg && <span style={{ fontSize:12, color: msg.startsWith('✅') ? 'var(--azul)' : 'var(--accent-budget)' }}>{msg}</span>}
+        </div>
       </div>
     </div>
   )
@@ -145,27 +190,72 @@ function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; acce
   )
 }
 
-function NotifsTab() {
+function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Notifications</p>
-      {[
-        { label:'Rappels de tâches',     desc:'Notif avant deadline' },
-        { label:'Résumé quotidien',       desc:'Chaque matin à 9h' },
-        { label:'Objectifs atteints',     desc:'Célébration automatique' },
-        { label:'Alertes budget',         desc:'Dépassement de seuil' },
-        { label:'Météo courses à pied',   desc:'Avant tes runs prévus' },
-      ].map(n => (
-        <div key={n.label} className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)' }}>
-          <div>
-            <p style={{ fontSize:13, color:'var(--text)' }}>{n.label}</p>
-            <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{n.desc}</p>
-          </div>
-          <div className="nb-press" style={{ width:42, height:24, borderRadius:99, background:'var(--azul)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', cursor:'pointer', position:'relative' }}>
-            <div style={{ width:16, height:16, borderRadius:'50%', background:'var(--creamy-ivory)', position:'absolute', top:2, right:2, transition:'all 0.2s' }} />
-          </div>
+    <button onClick={onClick} className="nb-press" role="switch" aria-checked={on}
+      style={{ width:46, height:26, borderRadius:99, background: on ? 'var(--azul)' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', cursor:'pointer', position:'relative', flexShrink:0, transition:'background 0.2s' }}>
+      <div style={{ width:16, height:16, borderRadius:'50%', background: on ? 'var(--creamy-ivory)' : 'var(--text-muted)', position:'absolute', top:3, left: on ? 24 : 3, transition:'left 0.2s' }} />
+    </button>
+  )
+}
+
+function NotifsTab() {
+  const [prefs, setPrefs] = useState<NotifPrefs>({})
+  const [perm, setPerm]   = useState<string>('default')
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    setPrefs(loadNotifPrefs())
+    if (typeof Notification !== 'undefined') setPerm(Notification.permission)
+    setHydrated(true)
+  }, [])
+
+  function toggle(key: string) {
+    const next = { ...prefs, [key]: !prefs[key] }
+    setPrefs(next)            // autosave immédiat (best practice toggles)
+    saveNotifPrefs(next)
+  }
+
+  async function enableBrowser() {
+    if (typeof Notification === 'undefined') return
+    const r = await Notification.requestPermission()
+    setPerm(r)
+    if (r === 'granted') new Notification('NYSA', { body: 'Notifications activées ✅' })
+  }
+
+  if (!hydrated) return null
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+      {/* Permission navigateur */}
+      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+        <div>
+          <p style={{ fontSize:13, color:'var(--text)', fontWeight:600 }}>Notifications du navigateur</p>
+          <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>
+            {perm === 'granted' ? 'Autorisées ✅' : perm === 'denied' ? 'Bloquées dans le navigateur' : 'Non activées'}
+          </p>
         </div>
-      ))}
+        {perm !== 'granted' && (
+          <button onClick={enableBrowser} className="nb-press" disabled={perm === 'denied'}
+            style={{ background: perm==='denied' ? 'var(--bg-input)' : 'var(--accent-budget)', color: perm==='denied' ? 'var(--text-muted)' : 'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', padding:'8px 16px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:11, cursor: perm==='denied' ? 'not-allowed' : 'pointer' }}>
+            Activer
+          </button>
+        )}
+      </div>
+
+      {/* Préférences (sauvegarde immédiate) */}
+      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'8px 24px 16px' }}>
+        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', margin:'14px 0 4px' }}>Préférences</p>
+        {NOTIF_DEFS.map(n => (
+          <div key={n.key} className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)' }}>
+            <div>
+              <p style={{ fontSize:13, color:'var(--text)' }}>{n.label}</p>
+              <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{n.desc}</p>
+            </div>
+            <Toggle on={!!prefs[n.key]} onClick={() => toggle(n.key)} />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -173,6 +263,10 @@ function NotifsTab() {
 function DonneesTab() {
   const [demoEnabled, setDemoEnabled] = useState(false)
   const [hydrated, setHydrated] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [msg, setMsg] = useState<string | null>(null)
+  const [confirmDel, setConfirmDel] = useState(false)
+  const [delInput, setDelInput] = useState('')
 
   useEffect(() => {
     setDemoEnabled(isDemoModeEnabled())
@@ -182,6 +276,25 @@ function DonneesTab() {
   function handleToggleDemo() {
     toggleDemoMode()
     setDemoEnabled(!demoEnabled)
+  }
+
+  async function runExport(kind: 'json' | 'tasks' | 'finances') {
+    setBusy(kind); setMsg(null)
+    try {
+      if (kind === 'json') await exportAllJson()
+      else if (kind === 'tasks') await exportTasksCsv()
+      else await exportFinancesCsv()
+      setMsg('✅ Export téléchargé')
+    } catch { setMsg('❌ Échec de l\'export') }
+    finally { setBusy(null); setTimeout(() => setMsg(null), 3000) }
+  }
+
+  async function runDelete() {
+    if (delInput !== 'SUPPRIMER') return
+    setBusy('delete'); setMsg(null)
+    try { await deleteAllData(); setMsg('✅ Données supprimées'); setConfirmDel(false); setDelInput('') }
+    catch { setMsg('❌ Échec de la suppression') }
+    finally { setBusy(null); setTimeout(() => setMsg(null), 4000) }
   }
 
   return (
@@ -224,41 +337,72 @@ function DonneesTab() {
         </div>
       )}
 
-      {/* Export actions */}
-      {[
-        { label:'Exporter toutes les données', desc:'Export JSON complet', color:'var(--accent-time)' },
-        { label:'Exporter les tâches',         desc:'Format CSV',          color:'var(--accent-time)' },
-        { label:'Exporter les finances',       desc:'Format Excel/CSV',    color:'var(--accent-time)' },
-        { label:'Supprimer toutes les données', desc:'Action irréversible', color:'var(--accent-budget)' },
-      ].map(a => (
+      {/* Export actions (fonctionnels) */}
+      {([
+        { label:'Exporter toutes les données', desc:'Export JSON complet', action:'json'    as const, btn:'Exporter' },
+        { label:'Exporter les tâches',         desc:'Format CSV',          action:'tasks'   as const, btn:'Exporter' },
+        { label:'Exporter les finances',       desc:'Format CSV (Excel)',  action:'finances'as const, btn:'Exporter' },
+      ]).map(a => (
         <div key={a.label} className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)' }}>
           <div>
             <p style={{ fontSize:13, color:'var(--text)' }}>{a.label}</p>
             <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{a.desc}</p>
           </div>
-          <button className="nb-press" style={{ fontSize:11, color:a.color, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)' }}>
-            Exporter
+          <button onClick={() => runExport(a.action)} disabled={busy===a.action} className="nb-press"
+            style={{ fontSize:11, color:'var(--azul)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)', cursor: busy===a.action ? 'default':'pointer', opacity: busy===a.action ? 0.6:1 }}>
+            {busy===a.action ? '…' : a.btn}
           </button>
         </div>
       ))}
+
+      {/* Zone dangereuse (en bas, avec confirmation) */}
+      <div style={{ marginTop:18, padding:'14px 16px', borderRadius:'var(--radius-lg)', border:'2px solid var(--accent-budget)', background:'rgba(242,84,45,0.06)' }}>
+        <p style={{ fontSize:12, color:'var(--accent-budget)', ...({fontFamily:'var(--font-display)'} as React.CSSProperties), fontWeight:800 }}>Zone dangereuse</p>
+        <div className="flex items-center justify-between" style={{ marginTop:8, gap:12, flexWrap:'wrap' }}>
+          <p style={{ fontSize:11, color:'var(--text-muted)', flex:1, minWidth:180 }}>Supprimer toutes tes données (tâches, finances, runs, recettes, courses…). Irréversible.</p>
+          {!confirmDel ? (
+            <button onClick={()=>setConfirmDel(true)} className="nb-press"
+              style={{ fontSize:11, color:'var(--accent-budget)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)', cursor:'pointer' }}>
+              Tout supprimer
+            </button>
+          ) : (
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <input value={delInput} onChange={e=>setDelInput(e.target.value)} placeholder="SUPPRIMER" autoFocus
+                style={{ width:120, background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:12 }} />
+              <button disabled={delInput!=='SUPPRIMER' || busy==='delete'} onClick={runDelete} className="nb-press"
+                style={{ fontSize:11, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 12px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background: delInput==='SUPPRIMER' ? 'var(--accent-budget)':'var(--bg-input)', color: delInput==='SUPPRIMER' ? 'var(--chocolate)':'var(--text-muted)', cursor: delInput==='SUPPRIMER' ? 'pointer':'not-allowed' }}>
+                {busy==='delete' ? '…' : 'Confirmer'}
+              </button>
+              <button onClick={()=>{setConfirmDel(false);setDelInput('')}} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:12 }}>Annuler</button>
+            </div>
+          )}
+        </div>
+      </div>
+      {msg && <p style={{ fontSize:12, marginTop:10, color: msg.startsWith('✅') ? 'var(--azul)':'var(--accent-budget)' }}>{msg}</p>}
     </div>
   )
 }
 
 function RaccourcisTab() {
   const shortcuts = [
-    { keys:'⌘ K', action:'Recherche globale' },
-    { keys:'⌘ N', action:'Nouvelle tâche' },
-    { keys:'⌘ T', action:'Démarrer timer' },
-    { keys:'⌘ /', action:'Aide & commandes' },
+    { keys:'⌘ K', action:'Palette de commandes' },
     { keys:'G H', action:'Accueil' },
     { keys:'G C', action:'Calendrier' },
+    { keys:'G T', action:'Time Tracker' },
     { keys:'G P', action:'Projets' },
+    { keys:'G D', action:'To-Do' },
+    { keys:'G U', action:'Running' },
+    { keys:'G E', action:'Health' },
+    { keys:'G R', action:'Recettes' },
+    { keys:'G O', action:'Courses' },
     { keys:'G B', action:'Budget' },
+    { keys:'G A', action:'Agent IA' },
+    { keys:'G S', action:'Réglages' },
   ]
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Raccourcis clavier</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:8 }}>Raccourcis clavier</p>
+      <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:16 }}>Ouvre la palette avec ⌘K (ou Ctrl+K), ou tape « G » puis la touche pour naviguer.</p>
       <div className="grid grid-cols-2 gap-2">
         {shortcuts.map(s => (
           <div key={s.action} className="flex items-center justify-between px-4 py-3 rounded-lg" style={{ background:'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)' }}>
@@ -285,7 +429,7 @@ function AboutTab() {
         </p>
         {[
           { label:'Version', value:'1.0.0' },
-          { label:'Framework', value:'Next.js 15' },
+          { label:'Framework', value:'Next.js 16' },
           { label:'Base de données', value:'Supabase' },
           { label:'Déployé sur', value:'Vercel' },
         ].map(item => (
