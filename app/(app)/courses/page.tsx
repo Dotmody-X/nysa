@@ -242,8 +242,18 @@ export default function CoursesPage() {
   const { items, loading: itemsLoading, addItem, toggleItem, removeItem, checkedCount, totalEstimated, byCategory } = useShoppingItems(activeListId)
 
   /* ── Interconnexions : inventaire maison + recettes du jour ── */
-  const { items: inventory, toBuy, hydrated: inventoryHydrated } = useInventory()
+  const { items: inventory, toBuy, hydrated: inventoryHydrated, restock } = useInventory()
   const { todayRecipes } = useMealPlan()
+
+  /* Valider une liste → tout passe au stock maison, puis on archive la liste */
+  const validateList = (listId: string) => {
+    items.forEach(it => {
+      const q = `${it.quantity ?? ''} ${it.unit ?? ''}`.trim()
+      restock(it.name, q, it.category || 'Autre')
+    })
+    completeList(listId)
+    setActiveListId(null)
+  }
 
   /* ── UI state ────────────────────────────────── */
   const [tab, setTab]               = useState<'liste' | 'rayon' | 'promos' | 'historique'>('liste')
@@ -696,7 +706,7 @@ export default function CoursesPage() {
                 <Plus size={10} /> Manuel
               </button>
               {activeListId && items.length > 0 && checkedCount === items.length && (
-                <button onClick={() => { completeList(activeListId); setActiveListId(null) }} className="crs-btn"
+                <button onClick={() => validateList(activeListId)} className="crs-btn"
                   style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, background: TEAL_BG, border: 'none', color: 'var(--creamy-ivory)', fontSize: 10, cursor: 'pointer', ...DF, fontWeight: 700 }}>
                   <Check size={10} /> Terminer
                 </button>
@@ -1152,7 +1162,7 @@ export default function CoursesPage() {
             {savingExpense ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
             {expenseSaved ? 'Dépense enregistrée' : 'Enregistrer comme dépense'}
           </button>
-          <button className="crs-btn nb-press" onClick={() => activeListId && completeList(activeListId)}
+          <button className="crs-btn nb-press" onClick={() => activeListId && validateList(activeListId)}
             style={{ padding: '14px 28px', borderRadius: 'var(--radius-lg)', background: TEAL_BG, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
             Valider ma liste
           </button>

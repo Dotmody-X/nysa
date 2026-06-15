@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { ChevronLeft, Edit, Heart, Plus, Minus, Calendar } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
 import { MEAL_TYPES, currentWeekDays, type MealType } from '@/hooks/useMealPlan'
+import { addRecipeShortfallToShoppingList } from '@/lib/mealShopping'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)'
@@ -24,7 +25,14 @@ interface RecipeData {
   tags: string[]
   is_favorite: boolean
   ingredients: any
-  steps: string
+  steps: string[]
+}
+
+// Normalise les étapes (anciennes recettes stockées en texte → tableau)
+function normalizeSteps(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.map(s => String(s)).filter(s => s.trim())
+  if (typeof raw === 'string') return raw.split('\n').map(s => s.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(Boolean)
+  return []
 }
 
 export default function RecipeViewPage() {
@@ -37,6 +45,7 @@ export default function RecipeViewPage() {
   const [loading, setLoading] = useState(true)
   const [servings, setServings] = useState(0)
   const [showSchedule, setShowSchedule] = useState(false)
+  const [scheduleMsg, setScheduleMsg] = useState<string | null>(null)
   const weekDays = currentWeekDays()
   const [scheduleForm, setScheduleForm] = useState<{ dateISO: string; mealType: MealType }>({
     dateISO: weekDays[0].iso,
@@ -44,18 +53,19 @@ export default function RecipeViewPage() {
   })
 
   useEffect(() => {
+    if (id === 'new') { router.replace('/recettes/new/edit'); return }
     loadRecipe()
   }, [id])
 
   const loadRecipe = async () => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('recipes')
         .select('*')
         .eq('id', id)
-        .single()
+        .maybeSingle()
       if (data) {
-        setRecipe(data as RecipeData)
+        setRecipe({ ...(data as RecipeData), steps: normalizeSteps((data as { steps?: unknown }).steps) })
         setServings(data.servings)
       }
     } catch (e) {
@@ -93,41 +103,9 @@ export default function RecipeViewPage() {
         servings,
       })
 
-      // Add ingredients to shopping list
-      const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : []
-      const today = new Date().toISOString().split('T')[0]
-      
-      const { data: listData } = await supabase
-        .from('shopping_lists')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .single()
-
-      let listId = listData?.id
-      if (!listId) {
-        const { data: newList } = await supabase
-          .from('shopping_lists')
-          .insert({ user_id: user.id, name: `Shopping - ${today}`, date: today, status: 'active' })
-          .select()
-          .single()
-        listId = newList?.id
-      }
-
-      if (listId && ingredients.length > 0) {
-        const ratio = servings / (recipe.servings || 1)
-        const items = ingredients.map(ing => ({
-          user_id: user.id,
-          shopping_list_id: listId,
-          recipe_id: id,
-          name: ing.name,
-          quantity: ing.quantity * ratio,
-          unit: ing.unit,
-          category: 'Recette',
-          done: false,
-        }))
-        await supabase.from('shopping_items').insert(items)
-      }
+      // Ajoute aux courses UNIQUEMENT ce qui manque dans le stock maison
+      const added = await addRecipeShortfallToShoppingList({ id, servings: recipe.servings, ingredients: recipe.ingredients }, servings)
+      setScheduleMsg(added > 0 ? `${added} ingrédient${added > 1 ? 's' : ''} ajouté${added > 1 ? 's' : ''} aux courses (stock insuffisant)` : 'Tout est déjà en stock — rien ajouté aux courses')
 
       setShowSchedule(false)
     } catch (e) {
@@ -264,13 +242,28 @@ export default function RecipeViewPage() {
             </div>
           )}
 
-          {/* Étapes */}
-          {recipe.steps && (
+          {/* Étapes — chaque instruction séparée et numérotée */}
+          {recipe.steps.length > 0 && (
             <div style={{ ...card(), padding: 20, marginBottom: 20 }}>
               <h2 style={{ ...DF, fontSize: 16, fontWeight: 900, color: WHEAT, marginBottom: 16 }}>Consignes</h2>
-              <div style={{ whiteSpace: 'pre-wrap', color: WHEAT, lineHeight: 1.6, fontSize: 13 }}>
-                {recipe.steps}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {recipe.steps.map((step, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <span style={{
+                      ...DF, flexShrink: 0, width: 26, height: 26, borderRadius: 8, background: ORANGE,
+                      color: 'var(--chocolate)', border: '2px solid var(--ink)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12,
+                    }}>{i + 1}</span>
+                    <p style={{ color: WHEAT, lineHeight: 1.5, fontSize: 13, paddingTop: 3 }}>{step}</p>
+                  </div>
+                ))}
               </div>
+            </div>
+          )}
+
+          {scheduleMsg && (
+            <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', border: '2px solid var(--ink)', color: WHEAT, fontSize: 12, fontWeight: 600 }}>
+              {scheduleMsg}
             </div>
           )}
 

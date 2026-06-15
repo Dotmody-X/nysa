@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { calcRecipeNutrition, type Recipe } from './useRecipes'
+import { addRecipeShortfallToShoppingList } from '@/lib/mealShopping'
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 
@@ -47,7 +48,11 @@ export function useMealPlan() {
       .insert({ user_id: user.id, recipe_id: recipeId, date, meal_type: mealType, servings })
       .select('*, recipes(*)')
       .single()
-    if (!error && data) setPlans(p => [...p, data as MealPlanEntry])
+    if (!error && data) {
+      setPlans(p => [...p, data as MealPlanEntry])
+      // Ajoute aux courses ce qui manque dans le stock maison
+      try { await addRecipeShortfallToShoppingList((data as MealPlanEntry).recipes ?? null, servings) } catch { /* noop */ }
+    }
     return { data: data as MealPlanEntry | null, error }
   }
 

@@ -214,7 +214,7 @@ export default function RecettesPage() {
             </p>
             {/* Action buttons */}
             <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-              <button className="rec-btn nb-press" onClick={() => router.push('/recettes/new')}
+              <button className="rec-btn nb-press" onClick={() => router.push('/recettes/new/edit')}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
                   background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Plus size={11} /> Nouvelle recette
@@ -707,7 +707,7 @@ export default function RecettesPage() {
             {allRecipes.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'center', textAlign: 'center', padding: '12px 0' }}>
                 <p style={{ fontSize: 13, color: 'rgba(var(--text-rgb),0.7)' }}>Aucune recette — crée une recette d&apos;abord</p>
-                <button onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new') }} className="nb-press"
+                <button onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new/edit') }} className="nb-press"
                   style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 'var(--radius-lg)',
                     background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                   <Plus size={12} /> Nouvelle recette

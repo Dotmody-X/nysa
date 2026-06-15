@@ -24,7 +24,13 @@ interface RecipeData {
   tags: string[]
   is_favorite: boolean
   ingredients: Array<{ id: string; name: string; quantity: number; unit: string; calories_per_qty?: number; protein_per_qty?: number; carbs_per_qty?: number; fat_per_qty?: number }>
-  steps: string
+  steps: string[]
+}
+
+function normalizeSteps(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.map(s => String(s))
+  if (typeof raw === 'string') return raw.split('\n').map(s => s.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(Boolean)
+  return []
 }
 
 export default function RecipeEditPage() {
@@ -44,7 +50,7 @@ export default function RecipeEditPage() {
     tags: [],
     is_favorite: false,
     ingredients: [],
-    steps: '',
+    steps: [],
   })
 
   const [newIngredient, setNewIngredient] = useState({
@@ -87,7 +93,7 @@ export default function RecipeEditPage() {
         .select('*')
         .eq('id', id)
         .single()
-      if (data) setRecipe(data as RecipeData)
+      if (data) setRecipe({ ...(data as RecipeData), steps: normalizeSteps((data as { steps?: unknown }).steps) })
     } catch (e) {
       console.error(e)
     } finally {
@@ -143,7 +149,7 @@ export default function RecipeEditPage() {
             tags: recipe.tags,
             is_favorite: recipe.is_favorite,
             ingredients: recipe.ingredients,
-            steps: recipe.steps,
+            steps: recipe.steps.map(s => s.trim()).filter(Boolean),
           })
           .select()
           .single()
@@ -160,7 +166,7 @@ export default function RecipeEditPage() {
             tags: recipe.tags,
             is_favorite: recipe.is_favorite,
             ingredients: recipe.ingredients,
-            steps: recipe.steps,
+            steps: recipe.steps.map(s => s.trim()).filter(Boolean),
           })
           .eq('id', id)
         router.push(`/recettes/${id}`)
@@ -211,6 +217,12 @@ export default function RecipeEditPage() {
       ingredients: prev.ingredients.filter(i => i.id !== ingId)
     }))
   }
+
+  const addStep = () => setRecipe(prev => ({ ...prev, steps: [...prev.steps, ''] }))
+  const updateStep = (i: number, val: string) =>
+    setRecipe(prev => ({ ...prev, steps: prev.steps.map((s, idx) => idx === i ? val : s) }))
+  const removeStep = (i: number) =>
+    setRecipe(prev => ({ ...prev, steps: prev.steps.filter((_, idx) => idx !== i) }))
 
   const addTag = () => {
     if (!tagInput.trim()) return
@@ -411,17 +423,40 @@ export default function RecipeEditPage() {
         </div>
       </div>
 
-      {/* Étapes */}
+      {/* Étapes — une instruction par ligne, séparées */}
       <div style={{ ...card(), padding: 20, marginBottom: 20 }}>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 12 }}>
           Consignes de préparation
         </label>
-        <textarea value={recipe.steps} onChange={e => setRecipe(prev => ({ ...prev, steps: e.target.value }))}
-          placeholder="1. Étape 1\n2. Étape 2\n3. Étape 3"
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {recipe.steps.map((step, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <span style={{
+                ...DF, flexShrink: 0, width: 28, height: 38, borderRadius: 8, background: ORANGE,
+                color: 'var(--chocolate)', border: '2px solid var(--ink)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13,
+              }}>{i + 1}</span>
+              <textarea value={step} onChange={e => updateStep(i, e.target.value)} rows={2}
+                placeholder={`Étape ${i + 1}…`}
+                style={{
+                  flex: 1, padding: '8px 12px', borderRadius: 8, background: 'var(--bg-input)',
+                  border: '2px solid var(--ink)', color: WHEAT, boxSizing: 'border-box', resize: 'vertical', minHeight: 38,
+                }} />
+              <button onClick={() => removeStep(i)} aria-label="Supprimer l'étape"
+                style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, padding: 6 }}>
+                <X size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <button onClick={addStep} className="nb-press"
           style={{
-            width: '100%', padding: '12px', borderRadius: 8, background: 'var(--bg-input)',
-            border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', minHeight: 150
-          }} />
+            marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+            borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', color: WHEAT,
+            border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', cursor: 'pointer', fontWeight: 700, fontSize: 12,
+          }}>
+          <Plus size={14} /> Ajouter une étape
+        </button>
       </div>
 
       {/* Actions */}

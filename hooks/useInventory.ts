@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { norm, mergeQty } from '@/lib/stock'
 
 export type InventStatus = 'ok' | 'low' | 'buy'
 
@@ -54,7 +55,21 @@ export function useInventory() {
     setItems(prev => prev.map(x => x.id === id ? { ...x, status } : x))
   }, [])
 
+  // Réapprovisionne le stock : ajoute l'article ou augmente sa quantité,
+  // et repasse son statut à "ok". Utilisé quand une liste de courses est validée.
+  const restock = useCallback((name: string, qty: string, category = 'Autre') => {
+    setItems(prev => {
+      const i = prev.findIndex(x => norm(x.name) === norm(name))
+      if (i === -1) {
+        return [...prev, { id: Math.random().toString(36).slice(2), name, qty: qty || '1', category, status: 'ok' as InventStatus }]
+      }
+      const copy = [...prev]
+      copy[i] = { ...copy[i], qty: mergeQty(copy[i].qty, qty), status: 'ok' }
+      return copy
+    })
+  }, [])
+
   const toBuy = items.filter(i => i.status === 'buy')
 
-  return { items, hydrated, setItems, upsert, remove, setStatus, toBuy }
+  return { items, hydrated, setItems, upsert, remove, setStatus, restock, toBuy }
 }
