@@ -88,7 +88,43 @@ export default function RecettesPage() {
 
   const handleImport = async (draft: DraftRecipe) => { await importDraft(draft); await refetch() }
 
+  const [generating, setGenerating] = useState(false)
+
   const weekDays = currentWeekDays()
+
+  /* Génère un plan de la semaine : remplit les créneaux vides en visant
+     les objectifs caloriques (petit-déj ~25 %, déj/dîner ~37,5 % chacun),
+     puis schedule() ajoute aux courses ce qui manque dans le stock. */
+  const generateAutoPlan = async () => {
+    if (generating) return
+    if (recipes.length === 0) { setShowDiscover(true); return }
+    setGenerating(true)
+    try {
+      const withCal = recipes.map(r => ({ r, cal: calcRecipeNutrition(r, 1).calories || 0 }))
+      const isBreakfast = (tags: string[] = []) => tags.some(t => /petit|d[ée]j|breakfast|brunch/i.test(t))
+      const bfPool   = withCal.filter(x => isBreakfast(x.r.tags))
+      const mainPool = withCal.filter(x => !isBreakfast(x.r.tags))
+      const pick = (pool: typeof withCal, targetCal: number, k: number) => {
+        const src = pool.length ? pool : withCal
+        if (!src.length) return null
+        const sorted = [...src].sort((a, b) => Math.abs(a.cal - targetCal) - Math.abs(b.cal - targetCal))
+        const top = sorted.slice(0, Math.min(3, sorted.length))
+        return top[k % top.length].r
+      }
+      const slots: { mt: MealType; frac: number }[] = [
+        { mt: 'breakfast', frac: 0.25 }, { mt: 'lunch', frac: 0.375 }, { mt: 'dinner', frac: 0.375 },
+      ]
+      for (let d = 0; d < weekDays.length; d++) {
+        for (const slot of slots) {
+          if (plans.some(p => p.date === weekDays[d].iso && p.meal_type === slot.mt)) continue
+          const r = pick(slot.mt === 'breakfast' ? bfPool : mainPool, CAL_TARGET * slot.frac, d)
+          if (r) await schedule(r.id, weekDays[d].iso, slot.mt, 1)
+        }
+      }
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   /* ── Liste de courses partagée (même source que /courses) ── */
   const activeList = lists.find(l => l.status === 'active') ?? lists[0] ?? null
@@ -401,9 +437,12 @@ export default function RecettesPage() {
             </table>
           </div>
 
-          <button style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0 0', marginTop: 6, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.25)' }}>GÉNÉRER UN PLAN AUTO</span>
-            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.25)' }} />
+          <button onClick={generateAutoPlan} disabled={generating}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: generating ? 'default' : 'pointer', padding: '12px 0 0', marginTop: 6, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: generating ? ORANGE : 'rgba(var(--text-rgb),0.45)' }}>
+              {generating ? 'GÉNÉRATION…' : 'GÉNÉRER UN PLAN AUTO'}
+            </span>
+            <ChevronRight size={11} style={{ color: generating ? ORANGE : 'rgba(var(--text-rgb),0.45)' }} />
           </button>
         </div>
 
