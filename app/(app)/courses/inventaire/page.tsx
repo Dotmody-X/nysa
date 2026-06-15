@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ChevronLeft, Plus, Package, Pencil, Trash2, Check, X,
-  AlertTriangle, ShoppingCart, Search, Loader2,
+  AlertTriangle, ShoppingCart, Search, Loader2, Calendar,
 } from '@/components/ui/icons'
 import { AlertTriangle as AlertIcon } from '@/components/ui/icons'
 import { useInventory } from '@/hooks/useInventory'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
 import { CATALOG_CATEGORIES } from '@/lib/catalogue'
+import { type ExpBatch, itemExpiry, expiryColor, expiryLabel, newBatch } from '@/lib/expiry'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -35,6 +36,7 @@ interface InventItem {
   status: Status
   minQty?: string
   notes?: string
+  expirations?: ExpBatch[]
 }
 
 /* ─── Status config ──────────────────────────────────────────── */
@@ -91,8 +93,11 @@ function ItemRow({
   onStatusChange: (id: string, status: Status) => void
 }) {
   const s = STATUS[item.status]
+  const exp = itemExpiry(item.expirations)
+  const expired = exp?.level === 'expired'
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px', borderBottom: '1px solid var(--border)', transition: 'background .1s', flexWrap: 'wrap' }}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px', borderBottom: '1px solid var(--border)', transition: 'background .1s', flexWrap: 'wrap',
+      background: expired ? 'rgba(239,68,68,0.07)' : undefined, borderLeft: exp ? `3px solid ${expiryColor(exp.level)}` : undefined }}
       className="inv-row">
       {/* Icon */}
       <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -101,10 +106,16 @@ function ItemRow({
       {/* Name + qty */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: WHEAT }}>{item.name}</p>
-        <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 2, flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{item.qty}</span>
           <span style={{ fontSize: 10, color: catColor(item.category), ...DF, fontWeight: 600 }}>{item.category}</span>
           {item.minQty && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Min : {item.minQty}</span>}
+          {exp && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20, color: '#fff', background: expiryColor(exp.level), ...DF }}
+              title={exp.batchCount > 1 ? `${exp.batchCount} lots — le plus proche affiché` : undefined}>
+              <Calendar size={9} /> {expiryLabel(exp.days)}{exp.batchCount > 1 ? ` · ${exp.batchCount} lots` : ''}
+            </span>
+          )}
         </div>
       </div>
       {/* Status selector */}
@@ -149,11 +160,11 @@ function EditPanel({
 }) {
   const isNew = item === null
   const [form, setForm] = useState<InventItem>(
-    item ?? { id: '', name: '', qty: '', category: 'Épicerie', status: 'ok', minQty: '', notes: '' }
+    item ?? { id: '', name: '', qty: '', category: 'Épicerie', status: 'ok', minQty: '', notes: '', expirations: [] }
   )
 
   useEffect(() => {
-    setForm(item ?? { id: '', name: '', qty: '', category: 'Épicerie', status: 'ok', minQty: '', notes: '' })
+    setForm(item ?? { id: '', name: '', qty: '', category: 'Épicerie', status: 'ok', minQty: '', notes: '', expirations: [] })
   }, [item])
 
   const inp: React.CSSProperties = {
@@ -163,8 +174,17 @@ function EditPanel({
 
   function handleSave() {
     if (!form.name.trim()) return
-    onSave({ ...form, id: form.id || Date.now().toString() })
+    // On ne garde que les lots qui ont une date
+    const expirations = (form.expirations ?? []).filter(b => b.date)
+    onSave({ ...form, expirations, id: form.id || Date.now().toString() })
   }
+
+  const batches = form.expirations ?? []
+  const addBatch = () => setForm(f => ({ ...f, expirations: [...(f.expirations ?? []), newBatch()] }))
+  const updateBatch = (id: string, patch: Partial<ExpBatch>) =>
+    setForm(f => ({ ...f, expirations: (f.expirations ?? []).map(b => b.id === id ? { ...b, ...patch } : b) }))
+  const removeBatch = (id: string) =>
+    setForm(f => ({ ...f, expirations: (f.expirations ?? []).filter(b => b.id !== id) }))
 
   function handlePick(item: PickedItem) {
     setForm(f => ({
@@ -238,6 +258,37 @@ function EditPanel({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Dates de péremption (DLC) — plusieurs lots possibles */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Dates de péremption (DLC)</label>
+              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Rappels : J‑10, J‑2, veille, jour J</span>
+            </div>
+            {batches.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+                {batches.map((b, i) => {
+                  const ex = b.date ? itemExpiry([b]) : null
+                  return (
+                    <div key={b.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input type="date" value={b.date} onChange={e => updateBatch(b.id, { date: e.target.value })}
+                        style={{ ...inp, flex: 1, borderLeft: ex ? `3px solid ${expiryColor(ex.level)}` : inp.border as string }} />
+                      <input value={b.qty ?? ''} onChange={e => updateBatch(b.id, { qty: e.target.value })}
+                        placeholder={`Lot ${i + 1} (qté)`} style={{ ...inp, width: 110 }} />
+                      <button onClick={() => removeBatch(b.id)} aria-label="Retirer ce lot"
+                        style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 7, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <X size={12} style={{ color: ORANGE }} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            <button onClick={addBatch}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: 'var(--bg-input)', border: '1px dashed var(--border)', cursor: 'pointer', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 11 }}>
+              <Plus size={12} /> Ajouter une date {batches.length > 0 ? '(autre lot)' : ''}
+            </button>
           </div>
 
           {/* Notes */}
@@ -335,6 +386,13 @@ export default function InventairePage() {
 
   const itemToBuy = countByStatus('buy')
 
+  /* ── Rappels de péremption (J-10 → périmé), triés par urgence ── */
+  const reminders = items
+    .map(i => ({ item: i, exp: itemExpiry(i.expirations) }))
+    .filter((x): x is { item: InventItem; exp: NonNullable<ReturnType<typeof itemExpiry>> } => !!x.exp && x.exp.level !== 'ok')
+    .sort((a, b) => a.exp.days - b.exp.days)
+  const expiredCount = reminders.filter(r => r.exp.level === 'expired').length
+
   return (
     <div style={{ padding: 30, minHeight: '100%' }}>
       <style>{`.inv-row:hover { background: var(--bg-input) !important; }`}</style>
@@ -393,6 +451,28 @@ export default function InventairePage() {
           </div>
         ))}
       </div>
+
+      {/* ── Rappels de péremption ── */}
+      {reminders.length > 0 && (
+        <div style={{ marginBottom: 16, padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: expiredCount > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <AlertTriangle size={18} style={{ color: expiredCount > 0 ? '#EF4444' : '#F59E0B', flexShrink: 0 }} />
+            <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: expiredCount > 0 ? '#EF4444' : '#F59E0B' }}>
+              {expiredCount > 0 && `${expiredCount} périmé${expiredCount > 1 ? 's' : ''} · `}
+              {reminders.length} article{reminders.length > 1 ? 's' : ''} à surveiller
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {reminders.map(({ item, exp }) => (
+              <button key={item.id} onClick={() => setEditItem(item)} className="nb-press"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 'var(--radius-md)', background: 'var(--bg-card)', border: `2px solid ${expiryColor(exp.level)}`, cursor: 'pointer' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: WHEAT }}>{item.name}</span>
+                <span style={{ fontSize: 9, fontWeight: 800, color: expiryColor(exp.level), ...DF }}>{expiryLabel(exp.days)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Filters ── */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>

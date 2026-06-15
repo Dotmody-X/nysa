@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { norm, mergeQty } from '@/lib/stock'
+import type { ExpBatch } from '@/lib/expiry'
 
 export type InventStatus = 'ok' | 'low' | 'buy'
 
@@ -13,6 +14,8 @@ export interface InventItem {
   status: InventStatus
   minQty?: string
   notes?: string
+  /** Lots avec date de péremption (DLC) — achats à des dates différentes. */
+  expirations?: ExpBatch[]
 }
 
 const KEY = 'nysa_inventaire'
