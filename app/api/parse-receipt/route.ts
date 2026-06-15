@@ -3,6 +3,8 @@
 // L'analyse en lignes d'articles se fait côté client (lib/receiptParse).
 
 import { NextResponse } from 'next/server'
+import { createRequire } from 'node:module'
+import { pathToFileURL } from 'node:url'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -23,8 +25,12 @@ export async function POST(request: Request) {
   try {
     const buf = new Uint8Array(await file.arrayBuffer())
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-    // Pas de worker côté serveur (exécution sur le thread principal Node)
-    try { (pdfjs as { GlobalWorkerOptions?: { workerSrc: string } }).GlobalWorkerOptions!.workerSrc = '' } catch { /* noop */ }
+    // pdfjs a besoin d'un workerSrc valide même en Node : on pointe le fichier worker installé.
+    try {
+      const require = createRequire(import.meta.url)
+      const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')
+      ;(pdfjs as { GlobalWorkerOptions: { workerSrc: string } }).GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href
+    } catch { /* noop — getDocument tentera le worker par défaut */ }
 
     const doc = await pdfjs.getDocument({ data: buf, isEvalSupported: false, useSystemFonts: true }).promise
     let text = ''
