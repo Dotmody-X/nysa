@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { MEAL_TYPES, currentWeekDays, type MealType } from '@/hooks/useMealPlan'
 import { addRecipeShortfallToShoppingList } from '@/lib/mealShopping'
 import { useInventory } from '@/hooks/useInventory'
-import { findInv } from '@/lib/stock'
+import { usePrices } from '@/hooks/usePrices'
+import { findInv, unitToGrams } from '@/lib/stock'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)'
@@ -50,6 +51,7 @@ export default function RecipeViewPage() {
   const [scheduleMsg, setScheduleMsg] = useState<string | null>(null)
   const [cookMsg, setCookMsg] = useState<string | null>(null)
   const { items: inventory, consume } = useInventory()
+  const { pricePer100g } = usePrices()
   const weekDays = currentWeekDays()
   const [scheduleForm, setScheduleForm] = useState<{ dateISO: string; mealType: MealType }>({
     dateISO: weekDays[0].iso,
@@ -149,6 +151,15 @@ export default function RecipeViewPage() {
     quantity: Math.round(ing.quantity * ratio * 10) / 10,
   }))
 
+  // Coût estimé (honnête) : seulement les ingrédients dont on connaît un prix au poids/volume
+  let recipeCost = 0, costPriced = 0
+  for (const ing of ingredients) {
+    const p100 = pricePer100g(ing.name)
+    if (p100 == null) continue
+    const grams = unitToGrams((ing.quantity ?? 0) * ratio, ing.unit, ing.grams_per_piece ?? 100)
+    if (grams > 0) { recipeCost += p100 * grams / 100; costPriced++ }
+  }
+
   return (
     <div style={{ padding: 30 }}>
       {/* Header */}
@@ -243,6 +254,13 @@ export default function RecipeViewPage() {
               <div style={{ ...card(), padding: 16 }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: ORANGE, textTransform: 'uppercase', marginBottom: 8 }}>Total</p>
                 <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT }}>{recipe.prep_time + recipe.cook_time}min</p>
+              </div>
+            )}
+            {costPriced > 0 && (
+              <div style={{ ...card(), padding: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#5B9F3A', textTransform: 'uppercase', marginBottom: 8 }}>Coût estimé</p>
+                <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: WHEAT }}>≈ {recipeCost.toFixed(2)} €</p>
+                <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{costPriced}/{ingredients.length} ingrédient{ingredients.length > 1 ? 's' : ''} chiffré{costPriced > 1 ? 's' : ''}</p>
               </div>
             )}
           </div>

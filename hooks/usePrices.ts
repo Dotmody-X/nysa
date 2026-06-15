@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { norm } from '@/lib/stock'
+import { norm, unitToGrams } from '@/lib/stock'
+
+// Unités de masse/volume → on sait en dériver un prix au gramme
+const MASS_VOL = new Set(['g', 'gr', 'gramme', 'grammes', 'kg', 'kilo', 'kilos', 'mg', 'ml', 'cl', 'dl', 'l', 'litre', 'litres'])
 
 export type ProductPrice = {
   id: string
@@ -93,7 +96,26 @@ export function usePrices() {
     return matches.length ? (matches[0].unit_price as number) : null
   }
 
+  /**
+   * Prix au 100 g connu pour un produit, dérivé d'une observation au
+   * poids/volume (fiable). null si on ne sait pas convertir (achat à la pièce).
+   */
+  function pricePer100g(name: string): number | null {
+    const key = norm(name)
+    if (!key) return null
+    for (const p of prices) { // déjà triées par date décroissante (plus récent d'abord)
+      const k = p.product_key
+      if (!(k === key || k.includes(key) || key.includes(k))) continue
+      const u = (p.unit ?? '').toLowerCase()
+      if (!MASS_VOL.has(u)) continue
+      const grams = unitToGrams(p.quantity ?? 0, p.unit ?? undefined)
+      const total = p.total_price ?? 0
+      if (grams > 0 && total > 0) return Math.round((total / grams) * 100 * 100) / 100
+    }
+    return null
+  }
+
   const stores = Array.from(new Set(prices.map(p => p.store).filter(Boolean))) as string[]
 
-  return { prices, loading, refetch: fetchPrices, recordPrices, priceFor, stores }
+  return { prices, loading, refetch: fetchPrices, recordPrices, priceFor, pricePer100g, stores }
 }
