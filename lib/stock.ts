@@ -89,3 +89,20 @@ export function mergeQty(existing: string, added: string): string {
   const label = b.base === 'g' ? ' g' : b.base === 'ml' ? ' ml' : ''
   return `${total}${label}`
 }
+
+/** Formate une valeur + base en libellé de quantité ("500 g", "2"). */
+export function formatQty(value: number, base: Base): string {
+  const v = Math.round(value * 100) / 100
+  return base === 'g' ? `${v} g` : base === 'ml' ? `${v} ml` : `${v}`
+}
+
+/** Soustrait une quantité (consommation). Garde l'existante si non comparable. */
+export function subtractQty(existing: string, amount: string): string {
+  const a = parseInvQty(existing || ''), b = parseInvQty(amount || '')
+  if (b.value <= 0) return existing
+  if (a.base !== b.base) return existing // unités non comparables → inchangé
+  const total = Math.max(0, Math.round((a.value - b.value) * 100) / 100)
+  // Préserve le format « xN » des comptages
+  if (a.base === 'unit' && /^\s*x/i.test(existing)) return `x${total}`
+  return formatQty(total, a.base)
+}

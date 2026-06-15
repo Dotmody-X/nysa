@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { norm, mergeQty } from '@/lib/stock'
+import { norm, mergeQty, subtractQty, parseInvQty, formatQty } from '@/lib/stock'
 import type { ExpBatch } from '@/lib/expiry'
 
 export type InventStatus = 'ok' | 'low' | 'buy'
@@ -72,7 +72,44 @@ export function useInventory() {
     })
   }, [])
 
+  // Consomme une quantité depuis les lots les plus proches de péremption (FEFO).
+  function consumeFromBatches(batches: ExpBatch[], amount: string): ExpBatch[] {
+    const amt = parseInvQty(amount)
+    let remaining = amt.value
+    const sorted = [...batches].sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+    const out: ExpBatch[] = []
+    for (const b of sorted) {
+      if (remaining <= 0 || !b.qty) { out.push(b); continue }
+      const bq = parseInvQty(b.qty)
+      if (bq.base !== amt.base) { out.push(b); continue }
+      if (bq.value <= remaining + 1e-9) { remaining -= bq.value } // lot épuisé → retiré
+      else { out.push({ ...b, qty: formatQty(bq.value - remaining, bq.base) }); remaining = 0 }
+    }
+    return out
+  }
+
+  // Marque une quantité comme utilisée : diminue le stock, met à jour le statut
+  // (faible/à racheter) et réduit les lots datés en priorité (FEFO).
+  const consume = useCallback((id: string, amount: string) => {
+    setItems(prev => prev.map(it => {
+      if (it.id !== id) return it
+      const newQty = subtractQty(it.qty, amount)
+      const left = parseInvQty(newQty)
+      const depleted = left.value <= 0
+      let status = it.status
+      if (depleted) status = 'buy'
+      else if (it.minQty) {
+        const min = parseInvQty(it.minQty)
+        if (min.base === left.base && left.value <= min.value) status = 'low'
+      }
+      const expirations = it.expirations?.length
+        ? (depleted ? [] : consumeFromBatches(it.expirations, amount))
+        : it.expirations
+      return { ...it, qty: depleted ? '0' : newQty, status, expirations }
+    }))
+  }, [])
+
   const toBuy = items.filter(i => i.status === 'buy')
 
-  return { items, hydrated, setItems, upsert, remove, setStatus, restock, toBuy }
+  return { items, hydrated, setItems, upsert, remove, setStatus, restock, consume, toBuy }
 }

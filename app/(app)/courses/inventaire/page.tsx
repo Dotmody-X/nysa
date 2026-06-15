@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ChevronLeft, Plus, Package, Pencil, Trash2, Check, X,
+  ChevronLeft, Plus, Minus, Package, Pencil, Trash2, Check, X,
   AlertTriangle, ShoppingCart, Search, Loader2, Calendar,
 } from '@/components/ui/icons'
 import { AlertTriangle as AlertIcon } from '@/components/ui/icons'
+import { parseInvQty } from '@/lib/stock'
 import { useInventory } from '@/hooks/useInventory'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
@@ -84,17 +85,30 @@ function ConfirmModal({ name, onConfirm, onCancel }: { name: string; onConfirm: 
 }
 
 /* ─── ItemRow ────────────────────────────────────────────────── */
+const UNIT_FROM_BASE: Record<string, string> = { g: 'g', ml: 'ml', unit: 'pc' }
+
 function ItemRow({
-  item, onEdit, onDelete, onStatusChange,
+  item, onEdit, onDelete, onStatusChange, onConsume,
 }: {
   item: InventItem
   onEdit: (item: InventItem) => void
   onDelete: (id: string) => void
   onStatusChange: (id: string, status: Status) => void
+  onConsume: (id: string, amount: string) => void
 }) {
   const s = STATUS[item.status]
   const exp = itemExpiry(item.expirations)
   const expired = exp?.level === 'expired'
+  const [consuming, setConsuming] = useState(false)
+  const [amt, setAmt] = useState('1')
+  const [unit, setUnit] = useState(() => UNIT_FROM_BASE[parseInvQty(item.qty).base] ?? 'pc')
+
+  const doConsume = () => {
+    const n = parseFloat(amt.replace(',', '.'))
+    if (!n || n <= 0) return
+    onConsume(item.id, `${n} ${unit}`)
+    setConsuming(false); setAmt('1')
+  }
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px', borderBottom: '1px solid var(--border)', transition: 'background .1s', flexWrap: 'wrap',
       background: expired ? 'rgba(239,68,68,0.07)' : undefined, borderLeft: exp ? `3px solid ${expiryColor(exp.level)}` : undefined }}
@@ -137,6 +151,10 @@ function ItemRow({
       </div>
       {/* Actions */}
       <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+        <button onClick={() => setConsuming(c => !c)} title="J'ai utilisé…"
+          style={{ display: 'flex', alignItems: 'center', gap: 4, height: 28, padding: '0 9px', borderRadius: 7, background: consuming ? '#5B9F3A' : 'var(--bg-input)', border: `1px solid ${consuming ? '#5B9F3A' : 'var(--border)'}`, cursor: 'pointer', color: consuming ? '#fff' : '#5B9F3A', ...DF, fontWeight: 700, fontSize: 10 }}>
+          <Minus size={12} /> Utiliser
+        </button>
         <button onClick={() => onEdit(item)}
           style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Pencil size={12} style={{ color: 'var(--text-muted)' }} />
@@ -146,6 +164,27 @@ function ItemRow({
           <Trash2 size={12} style={{ color: ORANGE } } />
         </button>
       </div>
+
+      {/* Formulaire « j'ai utilisé » (déstockage) */}
+      {consuming && (
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(91,159,58,0.08)', border: '1px solid rgba(91,159,58,0.3)' }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', ...DF, fontWeight: 700 }}>Quantité utilisée :</span>
+          <input type="number" min="0" step="any" value={amt} onChange={e => setAmt(e.target.value)} autoFocus
+            onKeyDown={e => { if (e.key === 'Enter') doConsume(); if (e.key === 'Escape') setConsuming(false) }}
+            style={{ width: 70, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', color: 'var(--text)', fontSize: 12, outline: 'none' }} />
+          <select value={unit} onChange={e => setUnit(e.target.value)}
+            style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 6px', color: 'var(--text)', fontSize: 12, cursor: 'pointer' }}>
+            <option value="pc">pc</option><option value="g">g</option><option value="kg">kg</option>
+            <option value="ml">ml</option><option value="cl">cl</option><option value="l">l</option>
+          </select>
+          <button onClick={doConsume}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: '#5B9F3A', color: '#fff', border: '2px solid var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
+            <Check size={12} /> Retirer du stock
+          </button>
+          <button onClick={() => setConsuming(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}><X size={14} /></button>
+        </div>
+      )}
     </div>
   )
 }
@@ -319,7 +358,7 @@ export default function InventairePage() {
   const router = useRouter()
 
   /* ── Source de vérité partagée (localStorage, démarre vide) ── */
-  const { items, upsert, remove, setStatus } = useInventory()
+  const { items, upsert, remove, setStatus, consume } = useInventory()
 
   /* ── Liste de courses active (Supabase) pour "→ ajouter aux courses" ── */
   const { lists } = useShoppingLists()
@@ -527,6 +566,7 @@ export default function InventairePage() {
                 onEdit={setEditItem}
                 onDelete={id => setConfirmId(id)}
                 onStatusChange={handleStatusChange}
+                onConsume={consume}
               />
             ))}
           </div>
