@@ -1,6 +1,7 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { ClientOnly } from '@/components/ClientOnly'
+import { CommandPalette } from '@/components/CommandPalette'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <ClientOnly>{children}</ClientOnly>
       </main>
       <MobileNav />
+      <CommandPalette />
     </div>
   )
 }
