@@ -194,6 +194,7 @@ function EditPanel({
               onQueryChange={name => setForm(f => ({ ...f, name }))}
               onSelect={handlePick}
               placeholder="Riz basmati, Lait…"
+              category={form.category}
               autoFocus
             />
           </div>

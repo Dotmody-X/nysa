@@ -10,7 +10,7 @@ import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { useInventory } from '@/hooks/useInventory'
 import { useMealPlan } from '@/hooks/useMealPlan'
 import { createClient } from '@/lib/supabase/client'
-import { searchProducts, getProductByBarcode, guessCategory, OFFProduct } from '@/lib/openFoodFacts'
+import { searchProducts, findProductAnywhere, guessCategory, OFFProduct } from '@/lib/openFoodFacts'
 import { getRecentDiscountedPrices, discountPct, type OpenPrice } from '@/lib/openPrices'
 import { STORE_CHAINS, getChainById, mapCategoryToDepartment, type StoreChain, type SavedStore } from '@/lib/storeData'
 import { CatalogPicker, type PickedItem } from '@/components/ui/CatalogPicker'
@@ -373,7 +373,8 @@ export default function CoursesPage() {
   async function handleBarcodeSearch() {
     if (!barcode.trim()) return
     setSearching(true)
-    const p = await getProductByBarcode(barcode.trim())
+    // Scan multi-bases : alimentaire, cosmétique, animalerie, produits divers
+    const p = await findProductAnywhere(barcode.trim())
     setResults(p ? [p] : [])
     setSearching(false)
   }
@@ -736,6 +737,7 @@ export default function CoursesPage() {
                   onQueryChange={setManualName}
                   onSelect={handleManualPick}
                   placeholder="Nom de l'article *"
+                  category={manualCat}
                   autoFocus
                 />
               </div>

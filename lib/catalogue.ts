@@ -5,6 +5,8 @@
  * dans son rayon. Complété à la demande par la recherche OpenFoodFacts.
  */
 
+import { CIQUAL_ROWS, type CiqualRow } from './ciqual.generated'
+
 export type CatalogCategory =
   | 'Fruits & Légumes'
   | 'Viandes & Poissons'
@@ -177,7 +179,22 @@ export function searchCatalog(query: string, limit = 8): CatalogItem[] {
     else if (n.includes(q)) contains.push(item)
     if (starts.length >= limit) break
   }
-  return [...starts, ...contains].slice(0, limit)
+  const curated = [...starts, ...contains].slice(0, limit)
+  if (curated.length >= limit) return curated
+
+  // Complète avec la table CIQUAL (aliments bruts/transformés) sans doublon
+  const seen = new Set(curated.map(i => norm(i.name)))
+  const ciqStarts: CatalogItem[] = []
+  const ciqContains: CatalogItem[] = []
+  for (const r of CIQUAL_ROWS) {
+    const n = norm(r[0])
+    if (seen.has(n)) continue
+    const item: CatalogItem = { name: r[0], category: r[8] as CatalogCategory }
+    if (n.startsWith(q)) ciqStarts.push(item)
+    else if (n.includes(q)) ciqContains.push(item)
+    if (ciqStarts.length >= limit) break
+  }
+  return [...curated, ...ciqStarts, ...ciqContains].slice(0, limit)
 }
 
 /** Devine la catégorie d'un nom libre via le catalogue (sinon undefined). */
@@ -264,7 +281,33 @@ export const NUTRITION_PER_100G: Record<string, Macros> = {
   'Lait de soja': m(33,3.3,1.8,1.8), 'Eau': m(0,0,0,0), 'Eau pétillante': m(0,0,0,0),
 }
 
-/** Macros pour 100 g d'un aliment (accent/casse-insensible). null si inconnu. */
+// ── CIQUAL (ANSES) : ~2 300 aliments bruts/transformés en repli ──
+// Index paresseux nom normalisé → ligne CIQUAL (construit au 1er accès).
+let _ciqualIndex: Map<string, CiqualRow> | null = null
+function ciqualIndex(): Map<string, CiqualRow> {
+  if (!_ciqualIndex) {
+    _ciqualIndex = new Map()
+    for (const r of CIQUAL_ROWS) _ciqualIndex.set(norm(r[0]), r)
+  }
+  return _ciqualIndex
+}
+const ciqualMacros = (r: CiqualRow): Macros => ({ kcal: r[1], prot: r[2], carbs: r[3], fat: r[5] })
+
+/** Macros pour 100 g via la table CIQUAL (repli). null si rien de pertinent. */
+export function ciqualNutrition(name: string): Macros | null {
+  const n = norm(name.trim())
+  if (!n) return null
+  const exact = ciqualIndex().get(n)
+  if (exact) return ciqualMacros(exact)
+  // sinon : 1re ligne dont le nom (ou son 1er segment) commence par la requête
+  for (const r of CIQUAL_ROWS) {
+    const rn = norm(r[0])
+    if (rn.startsWith(n) || rn.split(',')[0].trim() === n) return ciqualMacros(r)
+  }
+  return null
+}
+
+/** Macros pour 100 g d'un aliment : catalogue curé d'abord, puis CIQUAL. */
 export function catalogNutrition(name: string): Macros | null {
   const n = norm(name.trim())
   if (!n) return null
@@ -274,7 +317,7 @@ export function catalogNutrition(name: string): Macros | null {
   for (const [k, v] of Object.entries(NUTRITION_PER_100G)) {
     if (norm(k).includes(n) || n.includes(norm(k))) return v
   }
-  return null
+  return ciqualNutrition(name)
 }
 
 // ── Poids moyen d'une pièce (en grammes) ────────────────────────

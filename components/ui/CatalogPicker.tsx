@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Search, Loader2 } from '@/components/ui/icons'
 import { searchCatalog, catalogNutrition, catalogPieceGrams, defaultUnitFor, CATEGORY_EMOJI, type CatalogCategory } from '@/lib/catalogue'
-import { searchProducts, guessCategory as guessOffCategory } from '@/lib/openFoodFacts'
+import { searchProducts, guessCategory as guessOffCategory, sourceForCategory, offSourceLabel } from '@/lib/openFoodFacts'
 
 export type PickedItem = {
   name: string
@@ -33,6 +33,7 @@ export function CatalogPicker({
   placeholder = 'Nom de l\'article…',
   enableOFF = true,
   autoFocus = false,
+  category,
 }: {
   query: string
   onQueryChange: (q: string) => void
@@ -40,7 +41,10 @@ export function CatalogPicker({
   placeholder?: string
   enableOFF?: boolean
   autoFocus?: boolean
+  /** Rayon ciblé : oriente la recherche OFF vers la bonne base (hygiène, animaux, ménager…). */
+  category?: string
 }) {
+  const offSource = sourceForCategory(category)
   const [open, setOpen] = useState(false)
   const [offLoading, setOffLoading] = useState(false)
   const [offResults, setOffResults] = useState<Awaited<ReturnType<typeof searchProducts>>>([])
@@ -63,7 +67,7 @@ export function CatalogPicker({
   async function runOff() {
     if (!query.trim()) return
     setOffLoading(true)
-    try { setOffResults(await searchProducts(query, 8)) }
+    try { setOffResults(await searchProducts(query, 8, offSource)) }
     catch { setOffResults([]) }
     finally { setOffLoading(false) }
   }
@@ -132,7 +136,7 @@ export function CatalogPicker({
             <button onClick={runOff} disabled={offLoading}
               style={{ ...rowStyle, borderTop: '1px solid var(--border)', color: 'var(--accent-budget)', ...DF, fontWeight: 700, fontSize: 11 }}>
               {offLoading ? <Loader2 size={13} className="spin" /> : <Search size={13} />}
-              {offLoading ? 'Recherche en ligne…' : 'Rechercher sur OpenFoodFacts'}
+              {offLoading ? 'Recherche en ligne…' : `Rechercher sur ${offSourceLabel(offSource)}`}
             </button>
           )}
 
