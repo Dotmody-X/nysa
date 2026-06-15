@@ -9,6 +9,7 @@ import {
 import { ImportReceipt } from '@/components/courses/ImportReceipt'
 import { useShoppingLists, useShoppingItems, type ShoppingItem } from '@/hooks/useShoppingLists'
 import { useInventory } from '@/hooks/useInventory'
+import { usePrices } from '@/hooks/usePrices'
 import { useMealPlan } from '@/hooks/useMealPlan'
 import { createClient } from '@/lib/supabase/client'
 import { searchProducts, findProductAnywhere, guessCategory, OFFProduct } from '@/lib/openFoodFacts'
@@ -240,7 +241,7 @@ export default function CoursesPage() {
   const router = useRouter()
   const { lists, loading: listsLoading, createList, deleteList, completeList } = useShoppingLists()
   const [activeListId, setActiveListId]   = useState<string | null>(null)
-  const { items, loading: itemsLoading, addItem, toggleItem, removeItem, checkedCount, totalEstimated, byCategory } = useShoppingItems(activeListId)
+  const { items, loading: itemsLoading, addItem, toggleItem, removeItem, checkedCount, byCategory } = useShoppingItems(activeListId)
 
   /* ── Interconnexions : inventaire maison + recettes du jour ── */
   const { items: inventory, toBuy, hydrated: inventoryHydrated, restock } = useInventory()
@@ -300,9 +301,23 @@ export default function CoursesPage() {
   const [showSearch, setShowSearch] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  /* ── Estimation du panier (prix saisis + base prix des tickets) ── */
+  const { priceFor, stores } = usePrices()
+  const estPrice = (it: ShoppingItem) => it.price_estimated ?? priceFor(it.name) ?? 0
+  const basketTotal = items.reduce((s, it) => s + estPrice(it) * (it.quantity ?? 1), 0)
+  // Estimation par magasin connu → lequel est le moins cher pour ce panier
+  const storeEstimates = stores
+    .map(store => ({
+      store,
+      total: items.reduce((s, it) => s + (priceFor(it.name, store) ?? priceFor(it.name) ?? 0) * (it.quantity ?? 1), 0),
+    }))
+    .filter(s => s.total > 0)
+    .sort((a, b) => a.total - b.total)
+  const cheapestStore = storeEstimates[0] ?? null
+
   /* ── Budget ──────────────────────────────────── */
   const BUDGET_TARGET = 100
-  const budgetPct = Math.min(100, (totalEstimated / BUDGET_TARGET) * 100)
+  const budgetPct = Math.min(100, (basketTotal / BUDGET_TARGET) * 100)
 
   /* ── Preferred store ─────────────────────────── */
   const [preferredStore, setPreferredStore] = useState<SavedStore | null>(null)
@@ -473,14 +488,14 @@ export default function CoursesPage() {
   const [savingExpense, setSavingExpense] = useState(false)
   const [expenseSaved, setExpenseSaved] = useState(false)
   async function saveAsExpense() {
-    if (totalEstimated <= 0 || !activeList) return
+    if (basketTotal <= 0 || !activeList) return
     setSavingExpense(true)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       await supabase.from('transactions').insert({
         user_id: user.id,
-        amount: totalEstimated,
+        amount: Math.round(basketTotal * 100) / 100,
         type: 'expense',
         description: 'Courses — ' + activeList.name,
         date: new Date().toISOString().slice(0, 10),
@@ -558,7 +573,7 @@ export default function CoursesPage() {
           <div>
             <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.55)', marginBottom: 2 }}>Total estimé</p>
             <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>
-              {fmtEur(totalEstimated)}
+              {fmtEur(basketTotal)}
             </p>
             <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.55)', marginTop: 2, marginBottom: 10 }}>
               Budget : {BUDGET_TARGET},00 €
@@ -569,9 +584,15 @@ export default function CoursesPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)' }}>{budgetPct.toFixed(0)}%</span>
               <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)' }}>
-                Reste : {fmtEur(Math.max(0, BUDGET_TARGET - totalEstimated))}
+                Reste : {fmtEur(Math.max(0, BUDGET_TARGET - basketTotal))}
               </span>
             </div>
+            {cheapestStore && (
+              <div style={{ marginTop: 10, padding: '6px 10px', borderRadius: 8, background: 'rgba(26,10,10,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.7)', fontWeight: 700 }}>🏪 Moins cher : {cheapestStore.store}</span>
+                <span style={{ ...DF, fontSize: 11, fontWeight: 900, color: '#1A0A0A' }}>~{fmtEur(cheapestStore.total)}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1173,18 +1194,19 @@ export default function CoursesPage() {
           <div>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Total estimé</p>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>
-              {fmtEur(totalEstimated)}
+              {fmtEur(basketTotal)}
             </p>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 3 }}>
               {totalItems} article{totalItems > 1 ? 's' : ''} &nbsp;·&nbsp; {totalRayons} rayon{totalRayons > 1 ? 's' : ''}
+              {cheapestStore ? <> &nbsp;·&nbsp; 🏪 {cheapestStore.store} ~{fmtEur(cheapestStore.total)}</> : null}
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
             <ShoppingCart size={18} style={{ color: 'var(--chocolate)' }} />
           </div>
           {/* Interconnexion Courses → Budget */}
-          <button className="crs-btn nb-press" onClick={saveAsExpense} disabled={totalEstimated <= 0 || savingExpense || expenseSaved}
-            style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: totalEstimated <= 0 ? 'default' : 'pointer', color: ORANGE, ...DF, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, opacity: totalEstimated <= 0 ? 0.5 : 1 }}>
+          <button className="crs-btn nb-press" onClick={saveAsExpense} disabled={basketTotal <= 0 || savingExpense || expenseSaved}
+            style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: basketTotal <= 0 ? 'default' : 'pointer', color: ORANGE, ...DF, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, opacity: basketTotal <= 0 ? 0.5 : 1 }}>
             {savingExpense ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
             {expenseSaved ? 'Dépense enregistrée' : 'Enregistrer comme dépense'}
           </button>
