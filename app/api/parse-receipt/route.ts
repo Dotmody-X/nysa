@@ -1,10 +1,9 @@
 // Extraction du TEXTE d'un PDF de ticket/facture (côté serveur, Node).
 //   POST multipart { file } → { text } (texte avec sauts de ligne reconstitués)
+// Utilise `unpdf` (pdfjs sans worker, prêt pour Node/serverless).
 // L'analyse en lignes d'articles se fait côté client (lib/receiptParse).
 
 import { NextResponse } from 'next/server'
-import { createRequire } from 'node:module'
-import { pathToFileURL } from 'node:url'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -24,15 +23,9 @@ export async function POST(request: Request) {
 
   try {
     const buf = new Uint8Array(await file.arrayBuffer())
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-    // pdfjs a besoin d'un workerSrc valide même en Node : on pointe le fichier worker installé.
-    try {
-      const require = createRequire(import.meta.url)
-      const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')
-      ;(pdfjs as { GlobalWorkerOptions: { workerSrc: string } }).GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href
-    } catch { /* noop — getDocument tentera le worker par défaut */ }
+    const { getDocumentProxy } = await import('unpdf')
+    const doc = await getDocumentProxy(buf)
 
-    const doc = await pdfjs.getDocument({ data: buf, isEvalSupported: false, useSystemFonts: true }).promise
     let text = ''
     for (let p = 1; p <= doc.numPages; p++) {
       const page = await doc.getPage(p)
@@ -53,6 +46,7 @@ export async function POST(request: Request) {
       }
       text += '\n'
     }
+
     if (!text.trim()) return NextResponse.json({ error: 'PDF sans texte (probablement scanné en image)' }, { status: 422 })
     return NextResponse.json({ text })
   } catch {
