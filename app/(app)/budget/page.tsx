@@ -172,7 +172,7 @@ export default function BudgetPage() {
   const prevMonth = month===1 ? 12 : month-1
 
   const cur        = useBudget(year, month)
-  const prev       = useBudget(prevYear, prevMonth)
+  const prev       = useBudget(prevYear, prevMonth, cur.categories) // réutilise les catégories déjà chargées
   const multiMonth = useMultiMonthSummary(year, month, 6)
 
   // ── UI state ──
@@ -222,7 +222,7 @@ export default function BudgetPage() {
     .filter(c => c.subtype==='bill')
     .map(cat => {
       const budget = cat.budget_monthly ?? 0
-      const paid = cur.transactions.filter(t=>t.budget_category_id===cat.id).reduce((s,t)=>s+t.amount,0)
+      const paid = cur.spentByCategory[cat.id] ?? 0
       const isPaid = paid >= budget * 0.8
       const dueDay = cat.name==='Internet' ? 23 : cat.name==='Frais' ? 30 : 1
       return { cat, budget, paid, isPaid, dueDate: new Date(year, month-1, dueDay) }
@@ -931,7 +931,7 @@ export default function BudgetPage() {
               : cur.categories.filter(c=>c.type==='expense'&&(c.budget_monthly??0)>0).length===0
               ? <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:8, opacity:0.5 }}><Target size={26} style={{color:'var(--text-muted)'}}/><p style={{fontSize:12,color:'var(--text-muted)'}}>Aucun budget défini</p></div>
               : cur.categories.filter(c=>c.type==='expense'&&(c.budget_monthly??0)>0).map(cat=>{
-                  const spent  = cur.transactions.filter(t=>t.budget_category_id===cat.id).reduce((s,t)=>s+t.amount,0)
+                  const spent  = cur.spentByCategory[cat.id] ?? 0
                   const budget = cat.budget_monthly!
                   const pct    = Math.min(100, Math.round(spent/budget*100))
                   const over   = spent > budget
@@ -1122,7 +1122,7 @@ export default function BudgetPage() {
             {cur.categories.filter(c=>c.type==='expense').length===0
               ? <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', opacity:0.5 }}><p style={{ fontSize:12, color:'var(--text-muted)' }}>Aucune catégorie</p></div>
               : cur.categories.filter(c=>c.type==='expense').map(cat=>{
-                  const spent  = cur.transactions.filter(t=>t.budget_category_id===cat.id).reduce((s,t)=>s+t.amount,0)
+                  const spent  = cur.spentByCategory[cat.id] ?? 0
                   const budget = cat.budget_monthly??0
                   const reste  = budget - spent
                   const pct    = budget>0 ? Math.min(100,Math.round(spent/budget*100)) : (spent>0?100:0)

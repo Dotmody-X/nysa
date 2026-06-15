@@ -1,7 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+// Formate une Date en 'YYYY-MM-DD' en heure LOCALE (évite le décalage UTC).
+const ymdLocal = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
 
 // ── Types ──────────────────────────────────────────────────────────────────
 export type CategorySubtype = 'income' | 'expense' | 'bill' | 'savings' | 'debt'
@@ -110,35 +114,48 @@ function getSupabase() {
 }
 
 // ── Hook principal ─────────────────────────────────────────────────────────
-export function useBudget(year: number, month: number) {
+/**
+ * @param sharedCategories — pour le mois précédent (ou tout calcul auxiliaire),
+ *   on injecte les catégories déjà chargées par l'instance principale afin
+ *   d'éviter une requête `budget_categories` redondante à chaque rendu.
+ */
+export function useBudget(year: number, month: number, sharedCategories?: BudgetCategory[]) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [categories,   setCategories]   = useState<BudgetCategory[]>([])
+  const [ownCategories, setOwnCategories] = useState<BudgetCategory[]>([])
   const [loading,      setLoading]      = useState(true)
 
-  const monthStr  = `${year}-${String(month).padStart(2,'0')}`
+  const usesShared = sharedCategories !== undefined
+  const categories = sharedCategories ?? ownCategories
+
+  const monthStr  = `${year}-${pad2(month)}`
   const dateStart = `${monthStr}-01`
-  const dateEnd   = new Date(year, month, 1).toISOString().slice(0,10)
+  // Premier jour du mois suivant, en chaîne locale (pas de conversion UTC)
+  const dateEnd   = month === 12 ? `${year + 1}-01-01` : `${year}-${pad2(month + 1)}-01`
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
     const supabase = getSupabase()
-    const [{ data: tx }, { data: cats }] = await Promise.all([
-      supabase
-        .from('transactions')
-        .select('*, budget_categories(*)')
-        .gte('date', dateStart)
-        .lt('date', dateEnd)
-        .order('date', { ascending: false }),
-      supabase
-        .from('budget_categories')
-        .select('*')
-        .order('name', { ascending: true }),
-    ])
-    setTransactions(tx ?? [])
-    setCategories(cats ?? [])
+    const txReq = supabase
+      .from('transactions')
+      .select('*, budget_categories(*)')
+      .gte('date', dateStart)
+      .lt('date', dateEnd)
+      .order('date', { ascending: false })
+
+    if (usesShared) {
+      const { data: tx } = await txReq
+      setTransactions(tx ?? [])
+    } else {
+      const [{ data: tx }, { data: cats }] = await Promise.all([
+        txReq,
+        supabase.from('budget_categories').select('*').order('name', { ascending: true }),
+      ])
+      setTransactions(tx ?? [])
+      setOwnCategories(cats ?? [])
+    }
     setLoading(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [monthStr])
+  }, [monthStr, usesShared])
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
@@ -191,7 +208,7 @@ export function useBudget(year: number, month: number) {
       .select()
       .single()
     if (error || !data) return null
-    setCategories(prev => [...prev, data].sort((a,b) => a.name.localeCompare(b.name)))
+    setOwnCategories(prev => [...prev, data].sort((a,b) => a.name.localeCompare(b.name)))
     return data
   }
 
@@ -204,75 +221,64 @@ export function useBudget(year: number, month: number) {
       .select()
       .single()
     if (error || !data) return null
-    setCategories(prev => prev.map(c => c.id === id ? data : c))
+    setOwnCategories(prev => prev.map(c => c.id === id ? data : c))
     return data
   }
 
-  // ── Computed values ────────────────────────────────────────────────────
-  const totalIncome  = transactions.filter(t => t.type==='income').reduce((s,t) => s+t.amount, 0)
-  const totalExpense = transactions.filter(t => t.type==='expense').reduce((s,t) => s+t.amount, 0)
-  const balance      = totalIncome - totalExpense
+  // ── Computed values (mémoïsé : un seul passage O(n) sur les transactions) ──
+  const computed = useMemo(() => {
+    const catById = new Map(categories.map(c => [c.id, c]))
 
-  // Dépenses variables seulement (pas bills, pas savings)
-  const totalVariableExpense = transactions
-    .filter(t => t.type==='expense')
-    .filter(t => {
-      const cat = categories.find(c => c.id === t.budget_category_id)
-      return cat?.subtype === 'expense'
+    // Cumuls en une passe
+    let totalIncome = 0, totalExpense = 0
+    let totalVariableExpense = 0, totalBills = 0, totalSavings = 0
+    const spentByCategory: Record<string, number> = {}
+    const byDay: Record<string, { income: number; expense: number }> = {}
+
+    for (const t of transactions) {
+      if (t.type === 'income') totalIncome += t.amount
+      else {
+        totalExpense += t.amount
+        if (t.budget_category_id) {
+          spentByCategory[t.budget_category_id] = (spentByCategory[t.budget_category_id] ?? 0) + t.amount
+          const sub = catById.get(t.budget_category_id)?.subtype
+          if (sub === 'expense') totalVariableExpense += t.amount
+          else if (sub === 'bill') totalBills += t.amount
+          else if (sub === 'savings') totalSavings += t.amount
+        }
+      }
+      const d = byDay[t.date] ?? (byDay[t.date] = { income: 0, expense: 0 })
+      if (t.type === 'income') d.income += t.amount; else d.expense += t.amount
+    }
+
+    const totalBillsBudget = categories
+      .filter(c => c.subtype === 'bill')
+      .reduce((s, c) => s + (c.budget_monthly ?? 0), 0)
+
+    const byCategory = categories
+      .filter(c => c.type === 'expense')
+      .map(cat => ({ ...cat, spent: spentByCategory[cat.id] ?? 0 }))
+      .filter(c => c.spent > 0)
+      .sort((a, b) => b.spent - a.spent)
+
+    const daysInMonth = new Date(year, month, 0).getDate()
+    const dailyData = Array.from({ length: daysInMonth }, (_, i) => {
+      const e = byDay[`${monthStr}-${pad2(i + 1)}`] ?? { income: 0, expense: 0 }
+      return { day: i + 1, income: e.income, expense: e.expense }
     })
-    .reduce((s,t) => s+t.amount, 0)
 
-  // Bills payées ce mois
-  const totalBills = transactions
-    .filter(t => t.type==='expense')
-    .filter(t => {
-      const cat = categories.find(c => c.id === t.budget_category_id)
-      return cat?.subtype === 'bill'
-    })
-    .reduce((s,t) => s+t.amount, 0)
-
-  // Épargne ce mois
-  const totalSavings = transactions
-    .filter(t => t.type==='expense')
-    .filter(t => {
-      const cat = categories.find(c => c.id === t.budget_category_id)
-      return cat?.subtype === 'savings'
-    })
-    .reduce((s,t) => s+t.amount, 0)
-
-  // Budget total des charges fixes
-  const totalBillsBudget = categories
-    .filter(c => c.subtype === 'bill')
-    .reduce((s,c) => s + (c.budget_monthly ?? 0), 0)
-
-  // byCategory (expenses) avec montant dépensé
-  const byCategory = categories
-    .filter(c => c.type==='expense')
-    .map(cat => {
-      const spent = transactions
-        .filter(t => t.type==='expense' && t.budget_category_id===cat.id)
-        .reduce((s,t) => s+t.amount, 0)
-      return { ...cat, spent }
-    })
-    .filter(c => c.spent > 0)
-    .sort((a,b) => b.spent-a.spent)
-
-  // dailyData pour le graphique
-  const daysInMonth = new Date(year, month, 0).getDate()
-  const dailyData = Array.from({ length: daysInMonth }, (_,i) => {
-    const day = `${monthStr}-${String(i+1).padStart(2,'0')}`
-    const income  = transactions.filter(t => t.date===day && t.type==='income').reduce((s,t)=>s+t.amount, 0)
-    const expense = transactions.filter(t => t.date===day && t.type==='expense').reduce((s,t)=>s+t.amount, 0)
-    return { day: i+1, income, expense }
-  })
+    return {
+      totalIncome, totalExpense, balance: totalIncome - totalExpense,
+      totalVariableExpense, totalBills, totalSavings, totalBillsBudget,
+      byCategory, dailyData, spentByCategory,
+    }
+  }, [transactions, categories, monthStr, year, month])
 
   return {
     transactions, categories, loading,
     addTransaction, removeTransaction, updateTransaction,
     addCategory, updateCategory,
-    totalIncome, totalExpense, balance,
-    totalVariableExpense, totalBills, totalBillsBudget, totalSavings,
-    byCategory, dailyData,
+    ...computed,
     refetch: fetchAll,
   }
 }
@@ -284,14 +290,14 @@ export function useMultiMonthSummary(year: number, month: number, count = 6): Mo
   useEffect(() => {
     async function fetch() {
       const supabase = getSupabase()
-      // Date de départ : count mois avant le mois actuel
+      // Bornes en chaîne locale (pas de conversion UTC qui décale d'un jour)
       const startDate = new Date(year, month - 1 - count + 1, 1)
-      const endDate   = new Date(year, month, 1)
+      const endDate   = new Date(year, month, 1) // 1er du mois suivant
       const { data: rows } = await supabase
         .from('transactions')
         .select('amount, type, date')
-        .gte('date', startDate.toISOString().slice(0,10))
-        .lt('date',  endDate.toISOString().slice(0,10))
+        .gte('date', ymdLocal(startDate))
+        .lt('date',  ymdLocal(endDate))
       if (!rows) return
 
       // Agréger par mois
