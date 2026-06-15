@@ -5,7 +5,8 @@ import {
   Target, Zap, Calendar, MoreVertical, ExternalLink,
   Trash2, Edit2, X, Check, Save, BarChart2, RefreshCw,
 } from '@/components/ui/icons'
-import { useBudget, useMultiMonthSummary, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
+import { useBudget, useMultiMonthSummary, useAccountFlows, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
+import { usePrices } from '@/hooks/usePrices'
 
 // ── Constantes ──────────────────────────────────────────────────────────────
 const ORANGE  = 'var(--accent-budget)'
@@ -18,7 +19,7 @@ const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 type Compte     = { id:string; name:string; balance:number; type:string; icon:string }
 type Goal       = { id:string; label:string; target:number; current:number; color:string; icon:string }
-type PanelType  = 'analyse'|'budget'|'comptes'|'transactions'|'paiements'|'objectifs'|'tresorerie'|'ai' | null
+type PanelType  = 'analyse'|'budget'|'comptes'|'transactions'|'paiements'|'objectifs'|'tresorerie'|'prix'|'ai' | null
 
 function fmtEur(n: number, sign = false) {
   const s = Math.abs(n).toLocaleString('fr-BE', { minimumFractionDigits:0, maximumFractionDigits:2 })
@@ -174,6 +175,8 @@ export default function BudgetPage() {
   const cur        = useBudget(year, month)
   const prev       = useBudget(prevYear, prevMonth, cur.categories) // réutilise les catégories déjà chargées
   const multiMonth = useMultiMonthSummary(year, month, 6)
+  const { flows: accountFlows, refetch: refetchFlows } = useAccountFlows()
+  const { prices } = usePrices()
 
   // ── UI state ──
   const [activePanel, setActivePanel] = useState<PanelType>(null)
@@ -211,7 +214,9 @@ export default function BudgetPage() {
   // ── Computed ──
   const monthName = new Date(year, month-1, 1).toLocaleDateString('fr-FR', { month:'long', year:'numeric' })
   const savings   = cur.totalIncome > 0 ? Math.round((cur.balance/cur.totalIncome)*100) : 0
-  const totalComptes = comptes.reduce((s,c) => s+c.balance, 0)
+  // Solde effectif = solde de base (manuel) + mouvements des transactions du compte
+  const effBalance = (c: Compte) => c.balance + (accountFlows[c.id] ?? 0)
+  const totalComptes = comptes.reduce((s,c) => s+effBalance(c), 0)
   const deltaIncome  = cur.totalIncome  - prev.totalIncome
   const deltaExpense = cur.totalExpense - prev.totalExpense
   const investSpent  = cur.transactions.filter(t=>t.budget_categories?.name==='Invest').reduce((s,t)=>s+t.amount,0)
@@ -241,6 +246,7 @@ export default function BudgetPage() {
     e.preventDefault()
     if (!txForm.amount) return
     await cur.addTransaction(txForm)
+    refetchFlows()
     setShowTxModal(false)
     setTxForm({ amount:0, type:'expense', date: now.toISOString().slice(0,10), description:'' })
   }
@@ -456,7 +462,7 @@ export default function BudgetPage() {
 
   const PanelComptes = (
     <div style={{ padding:'20px 24px', display:'flex', flexDirection:'column', gap:12 }}>
-      <p style={{ fontSize:12, color:'var(--text-muted)' }}>Gérez vos comptes et soldes. Cliquez sur un solde pour le modifier.</p>
+      <p style={{ fontSize:12, color:'var(--text-muted)' }}>Solde affiché = solde de base + mouvements des transactions du compte. Cliquez sur un solde pour ajuster sa base.</p>
       <div style={{ background:'var(--bg-input)', borderRadius:12, padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
         <span style={{ fontSize:12, color:'var(--text-muted)' }}>Patrimoine total estimé</span>
         <span style={{ ...DF, fontSize:20, fontWeight:900, color:WHEAT }}>{fmtEur(totalComptes)}</span>
@@ -483,11 +489,18 @@ export default function BudgetPage() {
               </button>
             </div>
           ) : (
-            <button onClick={()=>setEditingCompte(compte.id)}
+            <button onClick={()=>setEditingCompte(compte.id)} title="Modifier le solde de base"
               style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-              <span style={{ ...DF, fontWeight:700, fontSize:15, color: compte.balance < 0 ? ORANGE : TEAL }}>
-                {compte.balance < 0 ? '-' : ''}{fmtEur(Math.abs(compte.balance))}
-              </span>
+              <div style={{ textAlign:'right' }}>
+                <span style={{ ...DF, fontWeight:700, fontSize:15, color: effBalance(compte) < 0 ? ORANGE : TEAL }}>
+                  {effBalance(compte) < 0 ? '-' : ''}{fmtEur(Math.abs(effBalance(compte)))}
+                </span>
+                {(accountFlows[compte.id] ?? 0) !== 0 && (
+                  <p style={{ fontSize:9, color:'var(--text-muted)', marginTop:1 }}>
+                    base {fmtEur(compte.balance)} · {fmtEur(accountFlows[compte.id] ?? 0, true)} mouv.
+                  </p>
+                )}
+              </div>
               <Edit2 size={10} style={{ color:'var(--text-muted)' }}/>
             </button>
           )}
@@ -558,7 +571,7 @@ export default function BudgetPage() {
               <span style={{ ...DF, fontWeight:700, fontSize:13, color: tx.type==='income'?TEAL:ORANGE, flexShrink:0 }}>
                 {tx.type==='income'?'+':'-'}{fmtEur(tx.amount)}
               </span>
-              <button onClick={()=>cur.removeTransaction(tx.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:3, flexShrink:0 }}>
+              <button onClick={async ()=>{ await cur.removeTransaction(tx.id); refetchFlows() }} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:3, flexShrink:0 }}>
                 <Trash2 size={12}/>
               </button>
             </div>
@@ -796,6 +809,76 @@ export default function BudgetPage() {
     </div>
   )
 
+  // ── Panel : Prix & magasins (issu des tickets importés) ──
+  const pricesThisMonth = prices.filter(p => (p.date ?? '').startsWith(`${year}-${String(month).padStart(2,'0')}`))
+  const byStore = Object.entries(
+    pricesThisMonth.reduce<Record<string, number>>((m, p) => {
+      const s = p.store || 'Autre'; m[s] = (m[s] ?? 0) + (p.total_price ?? 0); return m
+    }, {})
+  ).sort((a, b) => b[1] - a[1])
+  const storeTotal = byStore.reduce((s, [, v]) => s + v, 0)
+
+  const byProduct = prices.reduce<Record<string, typeof prices>>((m, p) => {
+    if (p.unit_price == null) return m
+    ;(m[p.product_key] ??= []).push(p); return m
+  }, {})
+  const priceDrift = Object.values(byProduct).map(obs => {
+    const sorted = [...obs].sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
+    const first = sorted[0], last = sorted[sorted.length - 1]
+    if (sorted.length < 2 || !first.unit_price) return null
+    const pct = Math.round(((last.unit_price! - first.unit_price) / first.unit_price) * 100)
+    return { name: last.product_name, from: first.unit_price, to: last.unit_price!, pct, n: sorted.length }
+  }).filter((d): d is NonNullable<typeof d> => !!d && d.pct !== 0)
+    .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 8)
+
+  const PanelPrix = (
+    <div style={{ padding:'20px 24px', display:'flex', flexDirection:'column', gap:20 }}>
+      <p style={{ fontSize:12, color:'var(--text-muted)' }}>Analyse issue de tes tickets importés (Courses → Importer un ticket).</p>
+
+      {/* Dépenses par magasin ce mois */}
+      <div>
+        <p style={{ ...LBL, color:'var(--text-muted)', marginBottom:10 }}>Dépenses par magasin · {monthName}</p>
+        {byStore.length === 0
+          ? <p style={{ fontSize:12, color:'var(--text-muted)' }}>Aucun ticket importé ce mois.</p>
+          : byStore.map(([store, total], i) => (
+            <div key={store} style={{ marginBottom:10 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                <span style={{ fontSize:12, color:'var(--text)' }}>🏪 {store}</span>
+                <span style={{ ...DF, fontSize:12, fontWeight:700, color:WHEAT }}>{fmtEur(total)}</span>
+              </div>
+              <div style={{ height:6, borderRadius:99, background:'var(--border)', overflow:'hidden' }}>
+                <div style={{ height:'100%', borderRadius:99, background:PALETTE[i%PALETTE.length], width:`${storeTotal>0?Math.round(total/storeTotal*100):0}%` }}/>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      {/* Dérive des prix */}
+      <div>
+        <p style={{ ...LBL, color:'var(--text-muted)', marginBottom:10 }}>Évolution des prix</p>
+        {priceDrift.length === 0
+          ? <p style={{ fontSize:12, color:'var(--text-muted)' }}>Pas encore assez d&apos;historique (il faut ≥ 2 achats d&apos;un même produit).</p>
+          : (
+            <div style={{ borderRadius:12, overflow:'hidden', border:'1px solid var(--border)' }}>
+              {priceDrift.map((d, i) => (
+                <div key={d.name+i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', borderBottom: i<priceDrift.length-1?'1px solid var(--border)':'none', background: i%2===0?'transparent':'rgba(var(--text-rgb),0.02)' }}>
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <p style={{ fontSize:11, color:'var(--text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.name}</p>
+                    <p style={{ fontSize:9, color:'var(--text-muted)' }}>{fmtEur(d.from)} → {fmtEur(d.to)} · {d.n} achats</p>
+                  </div>
+                  <span style={{ ...DF, fontSize:13, fontWeight:800, color: d.pct>0?ORANGE:TEAL, flexShrink:0 }}>
+                    {d.pct>0?'+':''}{d.pct}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          )
+        }
+      </div>
+    </div>
+  )
+
   // ── Mapping panel → titre + contenu ──
   const PANELS: Record<NonNullable<PanelType>, { title:string; content: React.ReactNode; width?:number }> = {
     analyse:      { title:'Analyse complète des dépenses',   content: PanelAnalyse,       width:500 },
@@ -805,6 +888,7 @@ export default function BudgetPage() {
     paiements:    { title:'Paiements & charges récurrents',  content: PanelPaiements,     width:460 },
     objectifs:    { title:'Objectifs financiers',            content: PanelObjectifs,     width:460 },
     tresorerie:   { title:'Rapport de trésorerie',           content: PanelTresorerie,    width:480 },
+    prix:         { title:'Prix & magasins',                 content: PanelPrix,          width:480 },
     ai:           { title:'Insight de l\'Agent IA',          content: PanelAI,            width:460 },
   }
 
@@ -874,6 +958,10 @@ export default function BudgetPage() {
           {comptes.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
         </select>
         <div style={{ flex:1 }}/>
+        <button onClick={()=>panel('prix')} className="nb-press"
+          style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:10, background:'var(--bg-card)', color:'var(--text)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer' }}>
+          <BarChart2 size={13}/> Prix & magasins
+        </button>
         <button onClick={()=>setShowTxModal(true)} className="nb-press"
           style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 20px', borderRadius:10, background:ORANGE, color:'var(--chocolate)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer' }}>
           <Plus size={14}/> + TRANSACTION
@@ -966,17 +1054,23 @@ export default function BudgetPage() {
             <span style={{ fontSize:9, color:'var(--text-muted)', ...DF, fontWeight:700 }}>Solde</span>
           </div>
           <div style={{ flex:1, padding:'8px 16px', overflow:'auto' }}>
-            {comptes.map((c,i)=>(
+            {comptes.map((c,i)=>{
+              const bal = effBalance(c)
+              const flow = accountFlows[c.id] ?? 0
+              return (
               <div key={c.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 0', borderBottom:i<comptes.length-1?'1px solid var(--border)':'none' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                   <div style={{ width:28, height:28, borderRadius:8, background:'var(--bg-input)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0 }}>{c.icon}</div>
                   <span style={{ fontSize:11, color:'var(--text)' }}>{c.name}</span>
                 </div>
-                <span style={{ ...DF, fontWeight:700, fontSize:13, color:c.balance<0?ORANGE:TEAL }}>
-                  {c.balance<0?'-':''}{fmtEur(Math.abs(c.balance))}
-                </span>
+                <div style={{ textAlign:'right' }}>
+                  <span style={{ ...DF, fontWeight:700, fontSize:13, color:bal<0?ORANGE:TEAL }}>
+                    {bal<0?'-':''}{fmtEur(Math.abs(bal))}
+                  </span>
+                  {flow !== 0 && <p style={{ fontSize:8, color:'var(--text-muted)', marginTop:1 }}>{fmtEur(flow, true)} mouv.</p>}
+                </div>
               </div>
-            ))}
+            )})}
           </div>
           <div style={{ padding:'10px 16px', borderTop:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
             <span style={{ fontSize:10, color:'var(--text-muted)' }}>Total</span>

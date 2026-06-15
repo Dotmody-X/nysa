@@ -283,6 +283,26 @@ export function useBudget(year: number, month: number, sharedCategories?: Budget
   }
 }
 
+// ── Mouvement net par compte (toutes les transactions) ─────────────────────
+// Permet d'afficher un solde « effectif » = solde de base + mouvements.
+export function useAccountFlows() {
+  const [flows, setFlows] = useState<Record<string, number>>({})
+
+  const refetch = useCallback(async () => {
+    const supabase = getSupabase()
+    const { data } = await supabase.from('transactions').select('account, amount, type')
+    const m: Record<string, number> = {}
+    for (const t of (data ?? []) as { account: string | null; amount: number; type: string }[]) {
+      if (!t.account) continue
+      m[t.account] = (m[t.account] ?? 0) + (t.type === 'income' ? t.amount : -t.amount)
+    }
+    setFlows(m)
+  }, [])
+
+  useEffect(() => { refetch() }, [refetch])
+  return { flows, refetch }
+}
+
 // ── Hook multi-mois (flux de trésorerie 6 mois) ────────────────────────────
 export function useMultiMonthSummary(year: number, month: number, count = 6): MonthSummary[] {
   const [data, setData] = useState<MonthSummary[]>([])
