@@ -6,7 +6,7 @@ import {
   ChevronRight, Zap, Tag, Bell, Truck, Users, Star, TrendingDown,
   Package, AlertTriangle, MapPin, Calendar, Store, Navigation,
 } from '@/components/ui/icons'
-import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
+import { useShoppingLists, useShoppingItems, type ShoppingItem } from '@/hooks/useShoppingLists'
 import { useInventory } from '@/hooks/useInventory'
 import { useMealPlan } from '@/hooks/useMealPlan'
 import { createClient } from '@/lib/supabase/client'
@@ -245,12 +245,27 @@ export default function CoursesPage() {
   const { items: inventory, toBuy, hydrated: inventoryHydrated, restock } = useInventory()
   const { todayRecipes } = useMealPlan()
 
-  /* Valider une liste → tout passe au stock maison, puis on archive la liste */
+  /* Articles déjà réapprovisionnés (pour ne pas compter deux fois) */
+  const [restockedIds, setRestockedIds] = useState<Set<string>>(new Set())
+  const qtyOf = (it: ShoppingItem) => `${it.quantity ?? ''} ${it.unit ?? ''}`.trim()
+
+  /* Cocher un article = je l'ai acheté → ajout immédiat à l'inventaire maison */
+  const handleToggle = (item: ShoppingItem) => {
+    const next = !item.is_checked
+    toggleItem(item.id, next)
+    if (next && !restockedIds.has(item.id)) {
+      restock(item.name, qtyOf(item), item.category || 'Autre')
+      setRestockedIds(prev => new Set(prev).add(item.id))
+    }
+  }
+
+  /* Valider une liste → stocke ce qui ne l'a pas déjà été, puis archive */
   const validateList = (listId: string) => {
     items.forEach(it => {
-      const q = `${it.quantity ?? ''} ${it.unit ?? ''}`.trim()
-      restock(it.name, q, it.category || 'Autre')
+      if (restockedIds.has(it.id)) return
+      restock(it.name, qtyOf(it), it.category || 'Autre')
     })
+    setRestockedIds(new Set())
     completeList(listId)
     setActiveListId(null)
   }
@@ -787,7 +802,7 @@ export default function CoursesPage() {
                     <div key={item.id} className="crs-item"
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px',
                         borderBottom: '1px solid var(--border)', background: 'transparent', transition: 'background .12s' }}>
-                      <button onClick={() => toggleItem(item.id, !item.is_checked)}
+                      <button onClick={() => handleToggle(item)}
                         style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${item.is_checked ? TEAL : 'var(--border)'}`,
                           background: item.is_checked ? TEAL : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
                         {item.is_checked && <Check size={9} color="#fff" />}
