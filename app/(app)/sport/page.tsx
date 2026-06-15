@@ -3,8 +3,6 @@ import { Suspense } from 'react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Upload, Plus, RefreshCw, CheckCircle2, AlertCircle, ChevronRight, Activity, Zap, TrendingUp, Target, Award, Calendar } from '@/components/ui/icons'
-import { PageEmpty } from '@/components/ui/PageEmpty'
-import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useHealth } from '@/hooks/useHealth'
 import { parseGpx } from '@/lib/parseGpx'
 import { createClient } from '@/lib/supabase/client'
@@ -402,17 +400,6 @@ function SportPageInner() {
   })
 
   // Empty state for demo mode
-  const noDemoMode = isDemoModeDisabled()
-  const hasData = activities.length > 0
-  if (noDemoMode && !hasData) {
-    return (
-      <PageEmpty
-        icon="⚹️"
-        title="Sport vide"
-        description="Commencez à tracker vos activités sportives"
-      />
-    )
-  }
 
   return (
     <div style={{ padding: 30, minHeight: '100%' }}>

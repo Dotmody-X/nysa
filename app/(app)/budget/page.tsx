@@ -5,8 +5,6 @@ import {
   Target, Zap, Calendar, MoreVertical, ExternalLink,
   Trash2, Edit2, X, Check, Save, BarChart2, RefreshCw,
 } from '@/components/ui/icons'
-import { PageEmpty } from '@/components/ui/PageEmpty'
-import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useBudget, useMultiMonthSummary, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
 
 // ── Constantes ──────────────────────────────────────────────────────────────
@@ -813,19 +811,6 @@ export default function BudgetPage() {
   // ════════ RENDU ════════════════════════════════════════════════════════════
 
   // Empty state for demo mode
-  const noDemoMode = isDemoModeDisabled()
-  const hasData = comptes.length > 0 || cur.transactions.length > 0 || cur.categories.length > 0
-  if (noDemoMode && !hasData && hydrated) {
-    return (
-      <PageEmpty
-        icon="💰"
-        title="Budget vide"
-        description="Commencez à tracker vos revenus et dépenses"
-        actionLabel="Ajouter une transaction"
-        actionOnClick={() => setShowTxModal(true)}
-      />
-    )
-  }
 
   return (
     <div style={{ padding:'20px 26px', display:'flex', flexDirection:'column', gap:14, minHeight:'100%' }}>

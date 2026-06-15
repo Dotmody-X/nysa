@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVertical } from '@/components/ui/icons'
-import { PageEmpty } from '@/components/ui/PageEmpty'
-import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useRecipes, calcRecipeNutrition } from '@/hooks/useRecipes'
 import { useMealPlan, MEAL_TYPES, currentWeekDays, type MealType } from '@/hooks/useMealPlan'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
@@ -186,17 +184,6 @@ export default function RecettesPage() {
     : 0
 
   // Empty state for demo mode
-  const noDemoMode = isDemoModeDisabled()
-  const hasData = filtered.length > 0 && hydrated
-  if (noDemoMode && !hasData && hydrated) {
-    return (
-      <PageEmpty
-        icon="🍳"
-        title="Recettes vide"
-        description="Commencez à ajouter vos recettes préférées"
-      />
-    )
-  }
 
   return (
     <div style={{ padding: 30, minHeight: '100%' }}>

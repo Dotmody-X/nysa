@@ -5,8 +5,6 @@ import {
   Plus, TrendingDown, TrendingUp, Activity, Moon, Heart, Droplets,
   ChevronRight, Check, Utensils, Apple as AppleIcon, Scale, Flame, Zap
 } from '@/components/ui/icons'
-import { PageEmpty } from '@/components/ui/PageEmpty'
-import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useHealth } from '@/hooks/useHealth'
 import { useMealPlan } from '@/hooks/useMealPlan'
 
@@ -258,17 +256,6 @@ export default function HealthPage() {
   }
 
   // Empty state for demo mode
-  const noDemoMode = isDemoModeDisabled()
-  const hasData = metrics.length > 0 || activities.length > 0
-  if (noDemoMode && !hasData) {
-    return (
-      <PageEmpty
-        icon="❤️"
-        title="Santé vide"
-        description="Commencez à tracker votre santé et vos activités"
-      />
-    )
-  }
 
   return (
     <div style={{ padding: 30, minHeight: '100%' }}>

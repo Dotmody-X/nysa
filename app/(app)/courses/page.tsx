@@ -6,8 +6,6 @@ import {
   ChevronRight, Zap, Tag, Bell, Truck, Users, Star, TrendingDown,
   Package, AlertTriangle, MapPin, Calendar, Store, Navigation,
 } from '@/components/ui/icons'
-import { PageEmpty } from '@/components/ui/PageEmpty'
-import { isDemoModeDisabled } from '@/lib/demo-mode'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { useInventory } from '@/hooks/useInventory'
 import { useMealPlan } from '@/hooks/useMealPlan'
@@ -423,8 +421,6 @@ export default function CoursesPage() {
   const totalRayons = Object.keys(byCategory).length
 
   /* ── Gating démo : page vide tant qu'aucune liste n'existe ── */
-  const noDemoMode = isDemoModeDisabled()
-  const hasData = lists.length > 0
 
   /* ── Interconnexion Inventaire → Courses ── */
   const [pushingInventory, setPushingInventory] = useState(false)
@@ -468,20 +464,6 @@ export default function CoursesPage() {
     borderRadius: 8, padding: '7px 11px', color: 'var(--text)', fontSize: 12, outline: 'none',
   }
 
-  /* ── État vide : aucune liste (après chargement) ── */
-  if (noDemoMode && !listsLoading && !hasData) {
-    return (
-      <div style={{ padding: 30, minHeight: '100%' }}>
-        <PageEmpty
-          icon="🛒"
-          title="Aucune liste de courses"
-          description="Crée ta première liste pour commencer."
-          actionLabel="Nouvelle liste"
-          actionOnClick={() => createList('Ma liste')}
-        />
-      </div>
-    )
-  }
 
   return (
     <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 14, minHeight: '100%' }}>
