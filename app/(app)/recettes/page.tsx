@@ -6,6 +6,8 @@ import { useRecipes, calcRecipeNutrition } from '@/hooks/useRecipes'
 import { useMealPlan, MEAL_TYPES, currentWeekDays, type MealType } from '@/hooks/useMealPlan'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { createClient } from '@/lib/supabase/client'
+import { DiscoverRecipes } from '@/components/recipes/DiscoverRecipes'
+import type { DraftRecipe } from '@/lib/recipeImport'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -72,7 +74,7 @@ function DonutChart({ slices, size = 110 }: { slices: { pct: number; color: stri
 export default function RecettesPage() {
   const router   = useRouter()
   const supabase = createClient()
-  const { recipes, loading } = useRecipes()
+  const { recipes, loading, importDraft, refetch } = useRecipes()
   const { plans, schedule, removeEntry, todayRecipes, todayNutrition, weekCaloriesByDay } = useMealPlan()
   const { lists, createList } = useShoppingLists()
   const [filter, setFilter]     = useState('Toutes')
@@ -82,6 +84,9 @@ export default function RecettesPage() {
   const [showAddItem, setShowAddItem] = useState(false)
   const [catMenu, setCatMenu] = useState<string | null>(null) // For category 3-dot menus
   const [selectedMealSlot, setSelectedMealSlot] = useState<{ dayIso: string; dayLabel: string; mealType: MealType; mealLabel: string } | null>(null)
+  const [showDiscover, setShowDiscover] = useState(false)
+
+  const handleImport = async (draft: DraftRecipe) => { await importDraft(draft); await refetch() }
 
   const weekDays = currentWeekDays()
 
@@ -219,10 +224,10 @@ export default function RecettesPage() {
                   background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Plus size={11} /> Nouvelle recette
               </button>
-              <button className="rec-btn nb-press"
+              <button className="rec-btn nb-press" onClick={() => setShowDiscover(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
                   background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-                <Zap size={11} /> Générer un repas
+                <Zap size={11} /> Découvrir des recettes
               </button>
             </div>
             {/* Search */}
@@ -451,14 +456,14 @@ export default function RecettesPage() {
             <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 10 }}>Actions rapides</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {[
-                { l: '+ Recette', bg: ORANGE, color: 'var(--chocolate)' },
-                { l: 'Importer', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
-                { l: 'Favoris', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
-                { l: 'Exporter', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT },
+                { l: '+ Recette', bg: ORANGE, color: 'var(--chocolate)', onClick: () => router.push('/recettes/new/edit') },
+                { l: 'Importer', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setShowDiscover(true) },
+                { l: 'Favoris', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setFilter('Toutes') },
+                { l: 'Exporter', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: undefined },
               ].map(a => (
-                <button key={a.l} className="rec-btn"
-                  style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                    background: a.bg, color: a.color, ...DF, fontWeight: 800, fontSize: 11 }}>
+                <button key={a.l} className="rec-btn" onClick={a.onClick}
+                  style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: a.onClick ? 'pointer' : 'default',
+                    background: a.bg, color: a.color, ...DF, fontWeight: 800, fontSize: 11, opacity: a.onClick ? 1 : 0.5 }}>
                   {a.l}
                 </button>
               ))}
@@ -697,6 +702,11 @@ export default function RecettesPage() {
         </div>
 
       </div>
+
+      {/* Modal: Découvrir des recettes (pack FR + TheMealDB) */}
+      {showDiscover && (
+        <DiscoverRecipes onClose={() => setShowDiscover(false)} onImport={handleImport} />
+      )}
 
       {/* Modal: Sélection de repas */}
       {selectedMealSlot && (

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { unitToGrams } from '@/lib/stock'
+import { draftToRecipePayload, type DraftRecipe } from '@/lib/recipeImport'
 
 export interface RecipeIngredient {
   id: string
@@ -119,6 +120,11 @@ export function useRecipes() {
     } catch (e) {
       return { error: String(e) }
     }
+  }
+
+  // Importe une recette externe (pack FR, TheMealDB…) avec macros résolues
+  async function importDraft(draft: DraftRecipe) {
+    return createRecipe(draftToRecipePayload(draft) as Partial<Recipe>)
   }
 
   // Add ingredient to recipe
@@ -246,6 +252,7 @@ export function useRecipes() {
     loading,
     refetch: fetch,
     createRecipe,
+    importDraft,
     addIngredient,
     calculateNutrition,
     scaleIngredients,
