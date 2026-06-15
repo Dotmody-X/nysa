@@ -3,6 +3,7 @@ import { MobileNav } from '@/components/layout/MobileNav'
 import { ClientOnly } from '@/components/ClientOnly'
 import { CommandPalette } from '@/components/CommandPalette'
 import { ExpiryNotifier } from '@/components/ExpiryNotifier'
+import { AuthSync } from '@/components/AuthSync'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <MobileNav />
       <CommandPalette />
       <ExpiryNotifier />
+      <AuthSync />
     </div>
   )
 }

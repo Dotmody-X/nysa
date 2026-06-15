@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { loadNotifPrefs } from '@/lib/notifPrefs'
 import { itemExpiry, type ExpBatch } from '@/lib/expiry'
+import { userKey } from '@/lib/userStore'
 
 type Inv = { name: string; expirations?: ExpBatch[] }
 
@@ -22,7 +23,7 @@ export function ExpiryNotifier() {
     if (localStorage.getItem('nysa_expiry_notified') === today) return
 
     let items: Inv[] = []
-    try { items = JSON.parse(localStorage.getItem('nysa_inventaire') || '[]') } catch { return }
+    try { items = JSON.parse(localStorage.getItem(userKey('nysa_inventaire')) || '[]') } catch { return }
 
     const due: { name: string; days: number }[] = []
     for (const it of items) {

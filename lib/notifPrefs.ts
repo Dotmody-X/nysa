@@ -1,5 +1,7 @@
 // Préférences de notifications (localStorage). Toggles → sauvegarde immédiate.
 
+import { userKey } from '@/lib/userStore'
+
 export type NotifPrefs = Record<string, boolean>
 
 const KEY = 'nysa_notif_prefs'
@@ -15,9 +17,9 @@ export const NOTIF_DEFS: { key: string; label: string; desc: string; default: bo
 
 export function loadNotifPrefs(): NotifPrefs {
   const base = Object.fromEntries(NOTIF_DEFS.map(d => [d.key, d.default]))
-  try { return { ...base, ...JSON.parse(localStorage.getItem(KEY) || '{}') } } catch { return base }
+  try { return { ...base, ...JSON.parse(localStorage.getItem(userKey(KEY)) || '{}') } } catch { return base }
 }
 
 export function saveNotifPrefs(p: NotifPrefs) {
-  try { localStorage.setItem(KEY, JSON.stringify(p)) } catch { /* ignore */ }
+  try { localStorage.setItem(userKey(KEY), JSON.stringify(p)) } catch { /* ignore */ }
 }

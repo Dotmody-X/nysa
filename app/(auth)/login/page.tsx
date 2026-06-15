@@ -3,30 +3,43 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { setActiveUser } from '@/lib/userStore'
 import { NysaLogo } from '@/components/ui/NysaLogo'
 
 export default function LoginPage() {
   const router   = useRouter()
   const supabase = createClient()
 
+  const [mode,     setMode]     = useState<'login' | 'signup'>('login')
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState<string | null>(null)
+  const [info,     setInfo]     = useState<string | null>(null)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    setError(null)
+    setError(null); setInfo(null)
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (mode === 'signup') {
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (error) { setError(error.message); setLoading(false); return }
+      if (!data.session) { // confirmation par email requise
+        setInfo('Compte créé ! Vérifie ton email pour confirmer, puis connecte-toi.')
+        setMode('login'); setLoading(false); return
+      }
+      setActiveUser(data.user?.id ?? null)
+      router.push('/'); router.refresh(); return
+    }
 
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError(error.message)
       setLoading(false)
       return
     }
-
+    setActiveUser(data.user?.id ?? null)
     router.push('/')
     router.refresh()
   }
@@ -98,6 +111,11 @@ export default function LoginPage() {
             {error}
           </p>
         )}
+        {info && (
+          <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--text)', background: 'var(--bg-input)', border: '2px solid var(--ink)' }}>
+            {info}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -105,7 +123,16 @@ export default function LoginPage() {
           className="nb-press w-full py-2.5 rounded-[10px] text-sm font-semibold tracking-wide mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
         >
-          {loading ? 'Connexion…' : 'Se connecter'}
+          {loading ? (mode === 'signup' ? 'Création…' : 'Connexion…') : (mode === 'signup' ? 'Créer mon compte' : 'Se connecter')}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setError(null); setInfo(null) }}
+          className="text-xs text-center mt-1"
+          style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          {mode === 'login' ? 'Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
         </button>
       </form>
     </div>

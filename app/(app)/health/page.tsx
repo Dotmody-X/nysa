@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/icons'
 import { useHealth } from '@/hooks/useHealth'
 import { useMealPlan } from '@/hooks/useMealPlan'
+import { userKey } from '@/lib/userStore'
 
 /* ─── Constants ─────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -156,7 +157,7 @@ export default function HealthPage() {
 
   useEffect(() => {
     try {
-      const savedM = localStorage.getItem('nysa_mesures')
+      const savedM = localStorage.getItem(userKey('nysa_mesures'))
       if (savedM) {
         const arr = JSON.parse(savedM) as Array<{ taille?: number; massGrasse?: number; massMuscul?: number; imc?: number }>
         const latest = arr[0] ?? {}
@@ -166,17 +167,17 @@ export default function HealthPage() {
     } catch {}
 
     try {
-      const savedO = localStorage.getItem('nysa_objectifs')
+      const savedO = localStorage.getItem(userKey('nysa_objectifs'))
       if (savedO) setLsObjectifs(JSON.parse(savedO))
     } catch {}
 
     try {
-      const savedR = localStorage.getItem('nysa_resume_jour')
+      const savedR = localStorage.getItem(userKey('nysa_resume_jour'))
       if (savedR) setResume(JSON.parse(savedR))
     } catch {}
 
     try {
-      const savedH = localStorage.getItem(`nysa_hydration_${todayKey}`)
+      const savedH = localStorage.getItem(userKey(`nysa_hydration_${todayKey}`))
       if (savedH) setGlasses(parseInt(savedH) || 0)
     } catch {}
   }, [todayKey])
@@ -184,7 +185,7 @@ export default function HealthPage() {
   function updateGlasses(next: number) {
     const v = Math.max(0, Math.min(GLASS_TARGET, next))
     setGlasses(v)
-    try { localStorage.setItem(`nysa_hydration_${todayKey}`, String(v)) } catch {}
+    try { localStorage.setItem(userKey(`nysa_hydration_${todayKey}`), String(v)) } catch {}
   }
 
   /* ── Stats derivation ────────────── */
@@ -379,7 +380,7 @@ export default function HealthPage() {
                 <button onClick={() => {
                   const updated = { pas: parseInt(resumeForm.pas) || 0, pasTarget: parseInt(resumeForm.pasTarget) || 10000, cal: parseInt(resumeForm.cal) || 0, calTarget: parseInt(resumeForm.calTarget) || 2200 }
                   setResume(updated)
-                  localStorage.setItem('nysa_resume_jour', JSON.stringify(updated))
+                  localStorage.setItem(userKey('nysa_resume_jour'), JSON.stringify(updated))
                   setEditResume(false)
                 }} style={{ padding: '6px 14px', borderRadius: 6, background: 'rgba(26,10,10,0.3)', color: '#1A0A0A', border: 'none', fontSize: 11, ...DF, fontWeight: 700, cursor: 'pointer' }}>
                   Enregistrer

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, Target, Award, Droplets, Activity, Trash2, Check, Pencil, X, AlertTriangle } from '@/components/ui/icons'
+import { userKey } from '@/lib/userStore'
 import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -171,7 +172,7 @@ export default function ObjectifsPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('nysa_objectifs')
+      const saved = localStorage.getItem(userKey('nysa_objectifs'))
       if (saved) setObjectifs(JSON.parse(saved))
     } catch {}
     setHydrated(true)
@@ -179,7 +180,7 @@ export default function ObjectifsPage() {
 
   useEffect(() => {
     if (!hydrated) return
-    localStorage.setItem('nysa_objectifs', JSON.stringify(objectifs))
+    localStorage.setItem(userKey('nysa_objectifs'), JSON.stringify(objectifs))
   }, [objectifs, hydrated])
 
   const [showForm,   setShowForm]   = useState(false)

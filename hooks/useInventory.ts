@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { norm, mergeQty, subtractQty, parseInvQty, formatQty } from '@/lib/stock'
+import { userKey } from '@/lib/userStore'
 import type { ExpBatch } from '@/lib/expiry'
 
 export type InventStatus = 'ok' | 'low' | 'buy'
@@ -31,7 +32,7 @@ export function useInventory() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(KEY)
+      const saved = localStorage.getItem(userKey(KEY))
       if (saved) setItems(JSON.parse(saved))
     } catch { /* ignore */ }
     setHydrated(true)
@@ -39,7 +40,7 @@ export function useInventory() {
 
   useEffect(() => {
     if (!hydrated) return
-    try { localStorage.setItem(KEY, JSON.stringify(items)) } catch { /* ignore */ }
+    try { localStorage.setItem(userKey(KEY), JSON.stringify(items)) } catch { /* ignore */ }
   }, [items, hydrated])
 
   const upsert = useCallback((item: InventItem) => {

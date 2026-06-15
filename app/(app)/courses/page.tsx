@@ -7,6 +7,7 @@ import {
   Package, AlertTriangle, MapPin, Calendar, Store, Navigation, Upload,
 } from '@/components/ui/icons'
 import { ImportReceipt } from '@/components/courses/ImportReceipt'
+import { userKey } from '@/lib/userStore'
 import { useShoppingLists, useShoppingItems, type ShoppingItem } from '@/hooks/useShoppingLists'
 import { useInventory } from '@/hooks/useInventory'
 import { usePrices } from '@/hooks/usePrices'
@@ -325,14 +326,14 @@ export default function CoursesPage() {
 
   useEffect(() => {
     try {
-      const s = localStorage.getItem('nysa_preferred_store')
+      const s = localStorage.getItem(userKey('nysa_preferred_store'))
       if (s) setPreferredStore(JSON.parse(s))
     } catch {}
   }, [])
 
   function saveStore(store: SavedStore) {
     setPreferredStore(store)
-    localStorage.setItem('nysa_preferred_store', JSON.stringify(store))
+    localStorage.setItem(userKey('nysa_preferred_store'), JSON.stringify(store))
     setShowStoreSelector(false)
   }
 

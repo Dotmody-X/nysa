@@ -10,6 +10,7 @@ import { DiscoverRecipes } from '@/components/recipes/DiscoverRecipes'
 import type { DraftRecipe } from '@/lib/recipeImport'
 import { recipeNutriScore } from '@/lib/recipeQuality'
 import { NUTRI_COLOR, type NutriGrade } from '@/lib/nutriScore'
+import { userKey } from '@/lib/userStore'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -96,11 +97,11 @@ export default function RecettesPage() {
   const WATER_GOAL = 8
   const [water, setWater] = useState(0)
   useEffect(() => {
-    try { setWater(parseInt(localStorage.getItem('nysa_water_' + new Date().toISOString().slice(0, 10)) || '0') || 0) } catch { /* noop */ }
+    try { setWater(parseInt(localStorage.getItem(userKey('nysa_water_' + new Date().toISOString().slice(0, 10))) || '0') || 0) } catch { /* noop */ }
   }, [])
   const addWater = (d: number) => setWater(w => {
     const nw = Math.max(0, Math.min(20, w + d))
-    try { localStorage.setItem('nysa_water_' + new Date().toISOString().slice(0, 10), String(nw)) } catch { /* noop */ }
+    try { localStorage.setItem(userKey('nysa_water_' + new Date().toISOString().slice(0, 10)), String(nw)) } catch { /* noop */ }
     return nw
   })
 

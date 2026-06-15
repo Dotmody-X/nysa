@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, TrendingDown, TrendingUp, Pencil, Trash2, Check, X, AlertTriangle } from '@/components/ui/icons'
+import { userKey } from '@/lib/userStore'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL   = 'var(--azul)'
@@ -132,7 +133,7 @@ export default function MesuresPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('nysa_mesures')
+      const saved = localStorage.getItem(userKey('nysa_mesures'))
       if (saved) setMesures(JSON.parse(saved))
     } catch {}
     setHydrated(true)
@@ -140,7 +141,7 @@ export default function MesuresPage() {
 
   useEffect(() => {
     if (!hydrated) return
-    localStorage.setItem('nysa_mesures', JSON.stringify(mesures))
+    localStorage.setItem(userKey('nysa_mesures'), JSON.stringify(mesures))
   }, [mesures, hydrated])
 
   const latest = mesures[0]

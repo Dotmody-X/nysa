@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/icons'
 import { useBudget, useMultiMonthSummary, useAccountFlows, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
 import { usePrices } from '@/hooks/usePrices'
+import { userKey } from '@/lib/userStore'
 
 // ── Constantes ──────────────────────────────────────────────────────────────
 const ORANGE  = 'var(--accent-budget)'
@@ -193,14 +194,14 @@ export default function BudgetPage() {
   const [hydrated, setHydrated] = useState(false)
   useEffect(() => {
     try {
-      const rawComptes = localStorage.getItem('nysa_comptes_v2')
+      const rawComptes = localStorage.getItem(userKey('nysa_comptes_v2'))
       if (rawComptes) {
         const parsed = JSON.parse(rawComptes)
         if (Array.isArray(parsed)) setComptes(parsed)
       }
     } catch { /* ignore corrupted storage */ }
     try {
-      const rawGoals = localStorage.getItem('nysa_objectifs_v2')
+      const rawGoals = localStorage.getItem(userKey('nysa_objectifs_v2'))
       if (rawGoals) {
         const parsed = JSON.parse(rawGoals)
         if (Array.isArray(parsed)) setGoals(parsed)
@@ -208,8 +209,8 @@ export default function BudgetPage() {
     } catch { /* ignore corrupted storage */ }
     setHydrated(true)
   }, [])
-  useEffect(() => { if (hydrated) localStorage.setItem('nysa_comptes_v2',   JSON.stringify(comptes))  }, [comptes,  hydrated])
-  useEffect(() => { if (hydrated) localStorage.setItem('nysa_objectifs_v2', JSON.stringify(goals))    }, [goals,    hydrated])
+  useEffect(() => { if (hydrated) localStorage.setItem(userKey('nysa_comptes_v2'),   JSON.stringify(comptes))  }, [comptes,  hydrated])
+  useEffect(() => { if (hydrated) localStorage.setItem(userKey('nysa_objectifs_v2'), JSON.stringify(goals))    }, [goals,    hydrated])
 
   // ── Computed ──
   const monthName = new Date(year, month-1, 1).toLocaleDateString('fr-FR', { month:'long', year:'numeric' })

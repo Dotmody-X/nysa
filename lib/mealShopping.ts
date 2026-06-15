@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { checkStock, findInv } from '@/lib/stock'
+import { userKey } from '@/lib/userStore'
 
 type RecipeLike = {
   id?: string
@@ -23,7 +24,7 @@ export async function addRecipeShortfallToShoppingList(
   if (ingredients.length === 0) return 0
 
   let inventory: InvItem[] = []
-  try { inventory = JSON.parse(localStorage.getItem('nysa_inventaire') || '[]') } catch { inventory = [] }
+  try { inventory = JSON.parse(localStorage.getItem(userKey('nysa_inventaire')) || '[]') } catch { inventory = [] }
 
   const ratio = servings / (recipe?.servings || servings || 1)
   const needed = ingredients

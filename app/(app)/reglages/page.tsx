@@ -7,6 +7,7 @@ import { PageTitle } from '@/components/ui/PageTitle'
 import { createClient } from '@/lib/supabase/client'
 import { loadNotifPrefs, saveNotifPrefs, NOTIF_DEFS, type NotifPrefs } from '@/lib/notifPrefs'
 import { exportAllJson, exportTasksCsv, exportFinancesCsv, deleteAllData } from '@/lib/dataExport'
+import { userKey } from '@/lib/userStore'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
@@ -104,7 +105,7 @@ function ProfilTab() {
   async function save() {
     setSaving(true)
     const { error } = await createClient().auth.updateUser({ data: { display_name: name, timezone: tz, date_format: df } })
-    try { localStorage.setItem('nysa_date_format', df) } catch { /* ignore */ }
+    try { localStorage.setItem(userKey('nysa_date_format'), df) } catch { /* ignore */ }
     setMsg(error ? '❌ ' + error.message : '✅ Profil enregistré')
     setSaving(false)
     setTimeout(() => setMsg(null), 3000)
