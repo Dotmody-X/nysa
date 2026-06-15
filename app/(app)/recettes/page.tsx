@@ -86,7 +86,7 @@ export default function RecettesPage() {
   const [showAddItem, setShowAddItem] = useState(false)
   const [catMenu, setCatMenu] = useState<string | null>(null) // For category 3-dot menus
   const [selectedMealSlot, setSelectedMealSlot] = useState<{ dayIso: string; dayLabel: string; mealType: MealType; mealLabel: string } | null>(null)
-  const [showDiscover, setShowDiscover] = useState(false)
+  const [discoverTab, setDiscoverTab] = useState<null | 'pack' | 'online' | 'io'>(null)
 
   const handleImport = async (draft: DraftRecipe) => { await importDraft(draft); await refetch() }
 
@@ -111,7 +111,7 @@ export default function RecettesPage() {
      puis schedule() ajoute aux courses ce qui manque dans le stock. */
   const generateAutoPlan = async () => {
     if (generating) return
-    if (recipes.length === 0) { setShowDiscover(true); return }
+    if (recipes.length === 0) { setDiscoverTab('pack'); return }
     setGenerating(true)
     try {
       const withCal = recipes.map(r => ({ r, cal: calcRecipeNutrition(r, 1).calories || 0 }))
@@ -292,7 +292,7 @@ export default function RecettesPage() {
                   background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Plus size={11} /> Nouvelle recette
               </button>
-              <button className="rec-btn nb-press" onClick={() => setShowDiscover(true)}
+              <button className="rec-btn nb-press" onClick={() => setDiscoverTab('pack')}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
                   background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Zap size={11} /> Découvrir des recettes
@@ -533,13 +533,13 @@ export default function RecettesPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {[
                 { l: '+ Recette', bg: ORANGE, color: 'var(--chocolate)', onClick: () => router.push('/recettes/new/edit') },
-                { l: 'Importer', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setShowDiscover(true) },
+                { l: 'Importer', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setDiscoverTab('io') },
                 { l: 'Favoris', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setFilter('Toutes') },
-                { l: 'Exporter', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: undefined },
+                { l: 'Exporter', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setDiscoverTab('io') },
               ].map(a => (
                 <button key={a.l} className="rec-btn" onClick={a.onClick}
-                  style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: a.onClick ? 'pointer' : 'default',
-                    background: a.bg, color: a.color, ...DF, fontWeight: 800, fontSize: 11, opacity: a.onClick ? 1 : 0.5 }}>
+                  style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                    background: a.bg, color: a.color, ...DF, fontWeight: 800, fontSize: 11 }}>
                   {a.l}
                 </button>
               ))}
@@ -804,8 +804,8 @@ export default function RecettesPage() {
       </div>
 
       {/* Modal: Découvrir des recettes (pack FR + TheMealDB) */}
-      {showDiscover && (
-        <DiscoverRecipes onClose={() => setShowDiscover(false)} onImport={handleImport} />
+      {discoverTab && (
+        <DiscoverRecipes initialTab={discoverTab} recipes={recipes} onClose={() => setDiscoverTab(null)} onImport={handleImport} />
       )}
 
       {/* Modal: Sélection de repas */}

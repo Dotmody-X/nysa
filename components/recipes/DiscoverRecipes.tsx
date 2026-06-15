@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, X, Check, Loader2 } from '@/components/ui/icons'
 import { RECIPE_PACK } from '@/lib/recipePack'
 import { searchMeals, randomMeals, mealToDraft, type MealSummary } from '@/lib/theMealDb'
 import type { DraftRecipe } from '@/lib/recipeImport'
+import { exportRecipesJson, parseRecipesJson } from '@/lib/recipeIO'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const ORANGE = 'var(--accent-budget)'
@@ -20,16 +21,56 @@ const WHEAT = 'var(--text)'
 export function DiscoverRecipes({
   onClose,
   onImport,
+  recipes = [],
+  initialTab = 'pack',
 }: {
   onClose: () => void
   onImport: (draft: DraftRecipe) => Promise<void>
+  recipes?: unknown[]
+  initialTab?: 'pack' | 'online' | 'io'
 }) {
-  const [tab, setTab] = useState<'pack' | 'online'>('pack')
+  const [tab, setTab] = useState<'pack' | 'online' | 'io'>(initialTab)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<MealSummary[]>([])
   const [loading, setLoading] = useState(false)
   const [importing, setImporting] = useState<string | null>(null)
   const [done, setDone] = useState<Set<string>>(new Set())
+  const [url, setUrl] = useState('')
+  const [ioMsg, setIoMsg] = useState<string | null>(null)
+  const [ioBusy, setIoBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  function downloadExport() {
+    const blob = new Blob([exportRecipesJson(recipes as never[])], { type: 'application/json' })
+    const href = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = href; a.download = `nysa-recettes-${new Date().toISOString().slice(0, 10)}.json`; a.click()
+    URL.revokeObjectURL(href)
+  }
+
+  async function importFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setIoBusy(true); setIoMsg(null)
+    try {
+      const drafts = parseRecipesJson(await file.text())
+      for (const d of drafts) await onImport(d)
+      setIoMsg(`${drafts.length} recette${drafts.length > 1 ? 's' : ''} importée${drafts.length > 1 ? 's' : ''}.`)
+    } catch (err) { setIoMsg('Fichier invalide : ' + (err as Error).message) }
+    finally { setIoBusy(false); if (fileRef.current) fileRef.current.value = '' }
+  }
+
+  async function importFromUrl() {
+    if (!url.trim()) return
+    setIoBusy(true); setIoMsg(null)
+    try {
+      const res = await fetch(`/api/import-recipe?url=${encodeURIComponent(url.trim())}`)
+      const data = await res.json()
+      if (data.draft) { await onImport(data.draft); setIoMsg(`« ${data.draft.name} » importée.`); setUrl('') }
+      else setIoMsg(data.error || 'Échec de l\'import.')
+    } catch { setIoMsg('Impossible de contacter le serveur.') }
+    finally { setIoBusy(false) }
+  }
 
   const loadRandom = useCallback(async () => {
     setLoading(true)
@@ -89,6 +130,7 @@ export function DiscoverRecipes({
         <div style={{ display: 'flex', gap: 8, padding: '14px 22px 0' }}>
           <button style={tabBtn(tab === 'pack')} onClick={() => setTab('pack')}>Pack FR ({RECIPE_PACK.length})</button>
           <button style={tabBtn(tab === 'online')} onClick={() => setTab('online')}>En ligne · TheMealDB</button>
+          <button style={tabBtn(tab === 'io')} onClick={() => setTab('io')}>Import / Export</button>
         </div>
 
         {/* Recherche (online) */}
@@ -107,7 +149,50 @@ export function DiscoverRecipes({
         )}
 
         {/* Contenu */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 22, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 12, alignContent: 'start' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 22, display: tab === 'io' ? 'block' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 12, alignContent: 'start' }}>
+          {tab === 'io' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 460 }}>
+              {/* Export */}
+              <div>
+                <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT, marginBottom: 6 }}>Exporter mes recettes</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Télécharge toutes tes recettes dans un fichier JSON (sauvegarde / partage).</p>
+                <button onClick={downloadExport} disabled={(recipes as unknown[]).length === 0}
+                  style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 'var(--radius-md)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', background: ORANGE, color: 'var(--chocolate)', cursor: (recipes as unknown[]).length ? 'pointer' : 'default', opacity: (recipes as unknown[]).length ? 1 : 0.5 }}>
+                  Télécharger ({(recipes as unknown[]).length})
+                </button>
+              </div>
+
+              <div style={{ height: 1, background: 'var(--border)' }} />
+
+              {/* Import fichier */}
+              <div>
+                <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT, marginBottom: 6 }}>Importer un fichier JSON</p>
+                <input ref={fileRef} type="file" accept="application/json,.json" onChange={importFile}
+                  style={{ fontSize: 11, color: 'var(--text)' }} />
+              </div>
+
+              <div style={{ height: 1, background: 'var(--border)' }} />
+
+              {/* Import URL */}
+              <div>
+                <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT, marginBottom: 6 }}>Importer depuis une URL</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Colle le lien d&apos;une recette (Marmiton, 750g, etc.) — lecture du balisage de la page.</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" onKeyDown={e => e.key === 'Enter' && importFromUrl()}
+                    style={{ flex: 1, background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8, padding: '8px 10px', fontSize: 12, color: 'var(--text)', outline: 'none' }} />
+                  <button onClick={importFromUrl} disabled={ioBusy || !url.trim()}
+                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: ORANGE, color: 'var(--chocolate)', cursor: ioBusy || !url.trim() ? 'default' : 'pointer', opacity: ioBusy || !url.trim() ? 0.5 : 1 }}>
+                    {ioBusy ? '…' : 'Importer'}
+                  </button>
+                </div>
+              </div>
+
+              {ioMsg && (
+                <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'var(--bg-card)', border: '2px solid var(--ink)', color: WHEAT, fontSize: 12 }}>{ioMsg}</div>
+              )}
+            </div>
+          )}
+
           {tab === 'pack' && RECIPE_PACK.map(r => {
             const key = `pack-${r.name}`
             return (
