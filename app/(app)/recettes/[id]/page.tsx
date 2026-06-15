@@ -1,10 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ChevronLeft, Edit, Heart, Plus, Minus, Calendar } from '@/components/ui/icons'
+import { ChevronLeft, Edit, Heart, Plus, Minus, Calendar, Check } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
 import { MEAL_TYPES, currentWeekDays, type MealType } from '@/hooks/useMealPlan'
 import { addRecipeShortfallToShoppingList } from '@/lib/mealShopping'
+import { useInventory } from '@/hooks/useInventory'
+import { findInv } from '@/lib/stock'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)'
@@ -46,6 +48,8 @@ export default function RecipeViewPage() {
   const [servings, setServings] = useState(0)
   const [showSchedule, setShowSchedule] = useState(false)
   const [scheduleMsg, setScheduleMsg] = useState<string | null>(null)
+  const [cookMsg, setCookMsg] = useState<string | null>(null)
+  const { items: inventory, consume } = useInventory()
   const weekDays = currentWeekDays()
   const [scheduleForm, setScheduleForm] = useState<{ dateISO: string; mealType: MealType }>({
     dateISO: weekDays[0].iso,
@@ -111,6 +115,28 @@ export default function RecipeViewPage() {
     } catch (e) {
       console.error(e)
     }
+  }
+
+  // « J'ai cuisiné » → déstocke les ingrédients trouvés dans l'inventaire (FEFO)
+  const handleCooked = () => {
+    if (!recipe) return
+    const ings = Array.isArray(recipe.ingredients) ? recipe.ingredients : []
+    const ratio = servings / (recipe.servings || 1)
+    let deducted = 0
+    const missing: string[] = []
+    for (const ing of ings) {
+      const qty = Math.round((ing.quantity ?? 0) * ratio * 100) / 100
+      if (!ing.name || qty <= 0) continue
+      const inv = findInv(inventory, ing.name)
+      if (inv) { consume(inv.id, `${qty} ${ing.unit || 'pc'}`); deducted++ }
+      else missing.push(ing.name)
+    }
+    setCookMsg(
+      deducted > 0
+        ? `${deducted} ingrédient${deducted > 1 ? 's' : ''} déduit${deducted > 1 ? 's' : ''} du stock${missing.length ? ` · ${missing.length} absent${missing.length > 1 ? 's' : ''} du stock` : ''}`
+        : 'Aucun de ces ingrédients n\'est dans ton inventaire'
+    )
+    setTimeout(() => setCookMsg(null), 5000)
   }
 
   if (loading) return <div style={{ padding: 30, color: WHEAT }}>Chargement...</div>
@@ -261,21 +287,29 @@ export default function RecipeViewPage() {
             </div>
           )}
 
-          {scheduleMsg && (
+          {(scheduleMsg || cookMsg) && (
             <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', border: '2px solid var(--ink)', color: WHEAT, fontSize: 12, fontWeight: 600 }}>
-              {scheduleMsg}
+              {cookMsg ?? scheduleMsg}
             </div>
           )}
 
           {/* CTA Buttons */}
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button onClick={() => setShowSchedule(true)} className="nb-press"
               style={{
-                flex: 1, padding: '14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)',
+                flex: 1, minWidth: 180, padding: '14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)',
                 border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', gap: 8, fontSize: 14
               }}>
               <Calendar size={18} /> Ajouter au menu
+            </button>
+            <button onClick={handleCooked} className="nb-press"
+              style={{
+                flex: 1, minWidth: 180, padding: '14px', borderRadius: 'var(--radius-lg)', background: '#5B9F3A', color: 'var(--creamy-ivory)',
+                border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center',
+                justifyContent: 'center', gap: 8, fontSize: 14
+              }}>
+              <Check size={18} /> J&apos;ai cuisiné
             </button>
           </div>
         </div>
