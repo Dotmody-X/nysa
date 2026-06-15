@@ -4,8 +4,9 @@ import { useRouter } from 'next/navigation'
 import {
   Plus, X, Trash2, Search, ShoppingCart, Check, Loader2, Barcode,
   ChevronRight, Zap, Tag, Bell, Truck, Users, Star, TrendingDown,
-  Package, AlertTriangle, MapPin, Calendar, Store, Navigation,
+  Package, AlertTriangle, MapPin, Calendar, Store, Navigation, Upload,
 } from '@/components/ui/icons'
+import { ImportReceipt } from '@/components/courses/ImportReceipt'
 import { useShoppingLists, useShoppingItems, type ShoppingItem } from '@/hooks/useShoppingLists'
 import { useInventory } from '@/hooks/useInventory'
 import { useMealPlan } from '@/hooks/useMealPlan'
@@ -244,6 +245,10 @@ export default function CoursesPage() {
   /* ── Interconnexions : inventaire maison + recettes du jour ── */
   const { items: inventory, toBuy, hydrated: inventoryHydrated, restock } = useInventory()
   const { todayRecipes } = useMealPlan()
+
+  /* Import de ticket (PDF / saisie assistée) */
+  const [showReceipt, setShowReceipt] = useState(false)
+  const [receiptMsg, setReceiptMsg] = useState<string | null>(null)
 
   /* Articles déjà réapprovisionnés (pour ne pas compter deux fois) */
   const [restockedIds, setRestockedIds] = useState<Set<string>>(new Set())
@@ -677,7 +682,7 @@ export default function CoursesPage() {
       {/* ══════════════════════════════════════════
           TABS
       ══════════════════════════════════════════ */}
-      <div className="toolbar-scroll" style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--border)' }}>
+      <div className="toolbar-scroll" style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--border)', alignItems: 'center' }}>
         {([
           { k: 'liste',      l: 'Liste de courses' },
           { k: 'rayon',      l: 'Par rayon' },
@@ -693,6 +698,10 @@ export default function CoursesPage() {
             {t.l}
           </button>
         ))}
+        <button onClick={() => setShowReceipt(true)} className="nb-press"
+          style={{ marginLeft: 'auto', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-md)', background: TEAL, color: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>
+          <Upload size={13} /> Importer un ticket
+        </button>
       </div>
 
       {/* ══════════════════════════════════════════
@@ -1185,6 +1194,19 @@ export default function CoursesPage() {
           </button>
         </div>
       </div>
+
+      {/* Import de ticket → stock + prix + budget */}
+      {showReceipt && (
+        <ImportReceipt onClose={() => setShowReceipt(false)} restock={restock} onDone={setReceiptMsg} />
+      )}
+      {receiptMsg && (
+        <div onClick={() => setReceiptMsg(null)}
+          style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, maxWidth: 480,
+            padding: '12px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', color: 'var(--creamy-ivory)',
+            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
+          {receiptMsg}
+        </div>
+      )}
     </div>
   )
 }
