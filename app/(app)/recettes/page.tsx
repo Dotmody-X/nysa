@@ -8,6 +8,8 @@ import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
 import { createClient } from '@/lib/supabase/client'
 import { DiscoverRecipes } from '@/components/recipes/DiscoverRecipes'
 import type { DraftRecipe } from '@/lib/recipeImport'
+import { recipeNutriScore } from '@/lib/recipeQuality'
+import { NUTRI_COLOR, type NutriGrade } from '@/lib/nutriScore'
 
 /* ─── Constants ──────────────────────────────────────────────── */
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -90,6 +92,18 @@ export default function RecettesPage() {
 
   const [generating, setGenerating] = useState(false)
 
+  /* Hydratation du jour (verres d'eau), persistée en localStorage */
+  const WATER_GOAL = 8
+  const [water, setWater] = useState(0)
+  useEffect(() => {
+    try { setWater(parseInt(localStorage.getItem('nysa_water_' + new Date().toISOString().slice(0, 10)) || '0') || 0) } catch { /* noop */ }
+  }, [])
+  const addWater = (d: number) => setWater(w => {
+    const nw = Math.max(0, Math.min(20, w + d))
+    try { localStorage.setItem('nysa_water_' + new Date().toISOString().slice(0, 10), String(nw)) } catch { /* noop */ }
+    return nw
+  })
+
   const weekDays = currentWeekDays()
 
   /* Génère un plan de la semaine : remplit les créneaux vides en visant
@@ -133,6 +147,7 @@ export default function RecettesPage() {
   // Recettes réelles → modèle d'affichage, macros calculées depuis les ingrédients
   const allRecipes = recipes.map(r => {
     const n = calcRecipeNutrition(r, 1)
+    const q = recipeNutriScore(r)
     return {
       id: r.id,
       name: r.name,
@@ -144,6 +159,8 @@ export default function RecettesPage() {
       tags: r.tags || [],
       emoji: '🍽️',
       fav: r.is_favorite || false,
+      grade: q?.grade ?? null,
+      gradeColor: q?.color ?? null,
     }
   })
 
@@ -198,6 +215,21 @@ export default function RecettesPage() {
     fatTarget: FAT_TARGET,
   }
   const hasNutrition = nutrition.cal > 0 || nutrition.prot > 0 || nutrition.carbs > 0 || nutrition.fat > 0
+
+  /* KPIs — Indice qualité (Nutri-Score moyen) & Balance (atteinte des objectifs) */
+  const GVAL: Record<NutriGrade, number> = { A: 1, B: 2, C: 3, D: 4, E: 5 }
+  const graded = allRecipes.filter(r => r.grade) as (typeof allRecipes[number] & { grade: NutriGrade })[]
+  const avgGrade: NutriGrade | null = graded.length
+    ? (['A', 'B', 'C', 'D', 'E'][Math.round(graded.reduce((s, r) => s + GVAL[r.grade], 0) / graded.length) - 1] as NutriGrade)
+    : null
+  const balancePct = hasNutrition
+    ? Math.round((
+        Math.min(1, nutrition.prot / PROT_TARGET) +
+        Math.min(1, nutrition.carbs / CARBS_TARGET) +
+        Math.min(1, nutrition.fat / FAT_TARGET)
+      ) / 3 * 100)
+    : null
+
   const totalMacrosG = nutrition.prot + nutrition.carbs + nutrition.fat
   const donutSlices = totalMacrosG > 0 ? [
     { pct: Math.round((nutrition.prot  / totalMacrosG) * 100), color: TEAL   },
@@ -354,11 +386,16 @@ export default function RecettesPage() {
                 </button>
               )}
             </div>
-            {/* Emoji + time */}
+            {/* Emoji + time + Nutri-Score */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
               <span style={{ fontSize: 38 }}>{r.emoji}</span>
-              <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
-                background: 'rgba(242,84,45,0.12)', color: ORANGE }}>{r.time} min</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {r.grade && (
+                  <span style={{ ...DF, fontSize: 11, fontWeight: 900, width: 20, height: 20, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: r.gradeColor as string, border: '1.5px solid var(--ink)' }} title="Nutri-Score (estimation)">{r.grade}</span>
+                )}
+                <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
+                  background: 'rgba(242,84,45,0.12)', color: ORANGE }}>{r.time} min</span>
+              </div>
             </div>
             {/* Name */}
             <p style={{ ...DF, fontWeight: 800, fontSize: 13, color: WHEAT, lineHeight: 1.3, marginBottom: 8, flex: 1 }}>{r.name}</p>
@@ -615,6 +652,9 @@ export default function RecettesPage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                  {r.grade && (
+                    <span style={{ ...DF, fontSize: 9, fontWeight: 900, width: 16, height: 16, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: r.gradeColor as string }} title="Nutri-Score (estimation)">{r.grade}</span>
+                  )}
                   {r.tags.slice(0, 1).map((tag: string) => (
                     <span key={tag} style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4,
                       background: 'rgba(14,149,148,0.15)', color: TEAL, ...DF, fontWeight: 700 }}>{tag}</span>
@@ -723,19 +763,40 @@ export default function RecettesPage() {
               </div>
             </div>
 
-            {/* KPIs rapides */}
+            {/* KPIs rapides — réels */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                { l: 'Indice qualité',  color: TEAL   },
-                { l: 'Balance',         color: ORANGE },
-                { l: 'Hydratation',     color: '#3B82F6' },
-              ].map(kpi => (
-                <div key={kpi.l} style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
-                  <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{kpi.l}</p>
+              {/* Indice qualité = Nutri-Score moyen des recettes */}
+              <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
+                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Indice qualité</p>
+                {avgGrade ? (
+                  <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: NUTRI_COLOR[avgGrade], lineHeight: 1 }}>
+                    {avgGrade} <span style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)' }}>Nutri-Score</span>
+                  </p>
+                ) : (
                   <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>—</p>
-                  <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 2 }}>bientôt</p>
+                )}
+                <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 2 }}>{graded.length} recette{graded.length > 1 ? 's' : ''}</p>
+              </div>
+
+              {/* Balance = atteinte moyenne des objectifs macros du jour */}
+              <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
+                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Balance</p>
+                <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{balancePct != null ? `${balancePct}%` : '—'}</p>
+                <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 2 }}>objectifs du jour</p>
+              </div>
+
+              {/* Hydratation = compteur de verres d'eau (interactif) */}
+              <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
+                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Hydratation</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button onClick={() => addWater(-1)} aria-label="Retirer un verre"
+                    style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--ink)', background: 'var(--bg-card)', color: WHEAT, cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>–</button>
+                  <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: water >= WATER_GOAL ? '#3B82F6' : WHEAT, lineHeight: 1 }}>{water}<span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.4)' }}>/{WATER_GOAL}</span></p>
+                  <button onClick={() => addWater(1)} aria-label="Ajouter un verre"
+                    style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--ink)', background: '#3B82F6', color: '#fff', cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>+</button>
                 </div>
-              ))}
+                <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 4 }}>verres d&apos;eau</p>
+              </div>
             </div>
           </div>
         </div>

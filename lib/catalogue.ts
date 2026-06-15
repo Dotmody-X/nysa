@@ -293,6 +293,27 @@ function ciqualIndex(): Map<string, CiqualRow> {
 }
 const ciqualMacros = (r: CiqualRow): Macros => ({ kcal: r[1], prot: r[2], carbs: r[3], fat: r[5] })
 
+// Profil nutritionnel étendu pour 100 g (incl. sucres, fibres, sel) — pour le Nutri-Score.
+export type ExtendedNutrition = { kcal: number; prot: number; carbs: number; sugars: number; fat: number; fiber: number; salt: number }
+const ciqualExtended = (r: CiqualRow): ExtendedNutrition => ({
+  kcal: r[1], prot: r[2], carbs: r[3], sugars: r[4], fat: r[5], fiber: r[6], salt: r[7],
+})
+
+/** Profil étendu (sucres/fibres/sel) via CIQUAL ; sinon dérivé du catalogue curé. */
+export function catalogExtended(name: string): ExtendedNutrition | null {
+  const n = norm(name.trim())
+  if (!n) return null
+  const exact = ciqualIndex().get(n)
+  if (exact) return ciqualExtended(exact)
+  for (const r of CIQUAL_ROWS) {
+    const rn = norm(r[0])
+    if (rn.startsWith(n) || rn.split(',')[0].trim() === n) return ciqualExtended(r)
+  }
+  // Repli : catalogue curé (sucres/fibres/sel inconnus → 0)
+  const m = catalogNutrition(name)
+  return m ? { kcal: m.kcal, prot: m.prot, carbs: m.carbs, sugars: 0, fat: m.fat, fiber: 0, salt: 0 } : null
+}
+
 /** Macros pour 100 g via la table CIQUAL (repli). null si rien de pertinent. */
 export function ciqualNutrition(name: string): Macros | null {
   const n = norm(name.trim())
