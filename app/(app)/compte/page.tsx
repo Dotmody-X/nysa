@@ -12,6 +12,7 @@ import { useHealth } from '@/hooks/useHealth'
 import { useDashboard } from '@/hooks/useDashboard'
 import { useRapports } from '@/hooks/useRapports'
 import { saveTheme, loadTheme, type ThemeMode } from '@/lib/theme'
+import { setActiveUser } from '@/lib/userStore'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)', TEAL_BG = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
@@ -178,6 +179,15 @@ export default function ComptePage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = `nysa-export-${new Date().toISOString().slice(0,10)}.json`
     a.click(); URL.revokeObjectURL(url)
+  }
+
+  // ── Logout ─────────────────────────────────────────────────────────────────
+  async function handleLogout() {
+    const supabase = createClient()
+    setActiveUser(null)
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
   }
 
   // ── Delete account ─────────────────────────────────────────────────────────
@@ -672,6 +682,14 @@ export default function ComptePage() {
             <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:10, lineHeight:1.5 }}>Téléchargez une copie de toutes vos données au format JSON.</p>
             <button onClick={exportData} className="nb-press" style={{ width:'100%', background:'var(--bg-input)', color:'var(--text)', borderRadius:'var(--radius-lg)', padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
               <Download size={12} /> Exporter
+            </button>
+          </div>
+
+          <div style={{ ...card('var(--bg-card)'), padding:16 }}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:WHEAT, textTransform:'uppercase', marginBottom:6 }}>Session</p>
+            <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:10, lineHeight:1.5 }}>Se déconnecter de ce compte sur cet appareil. Tes données restent enregistrées.</p>
+            <button onClick={handleLogout} className="nb-press" style={{ width:'100%', background:'var(--bg-input)', color:'var(--text)', borderRadius:'var(--radius-lg)', padding:'9px 0', ...DF, fontWeight:800, fontSize:11, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+              <ExternalLink size={12} /> Se déconnecter
             </button>
           </div>
 
