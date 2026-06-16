@@ -14,12 +14,14 @@ export type ThemeConfig = {
 }
 
 export type Plan = { id: string; name: string; price: number; features: string[] }
+export type ThemePreset = { id: string; name: string; theme: ThemeConfig }
 
 export type SiteConfig = {
   hiddenSections: string[]
   announcement: { text: string; active: boolean }
   maintenance: boolean
   theme: ThemeConfig
+  themePresets: ThemePreset[]
   plans: Plan[]
 }
 
@@ -28,6 +30,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   announcement: { text: '', active: false },
   maintenance: false,
   theme: {},
+  themePresets: [],
   plans: [],
 }
 

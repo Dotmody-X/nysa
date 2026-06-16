@@ -1,8 +1,22 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Trash2, Check, AlertTriangle, Plus, X } from '@/components/ui/icons'
-import { THEME_CSS_MAP, type SiteConfig, type ThemeConfig, type Plan } from '@/hooks/useAppConfig'
+import { Loader2, Trash2, Check, AlertTriangle, Plus, X, Eye } from '@/components/ui/icons'
+import { type SiteConfig, type ThemeConfig, type ThemePreset, type Plan } from '@/hooks/useAppConfig'
+
+// Presets de thème intégrés (points de départ rapides)
+const BUILTIN_PRESETS: { name: string; theme: ThemeConfig }[] = [
+  { name: 'Néo-brutaliste (défaut)', theme: { accent: '#ff5c35', secondary: '#2d5bff', ink: '#18130e', bg: '#f6efe0', card: '#fffaf0', text: '#18130e', radius: 16 } },
+  { name: 'Minuit', theme: { accent: '#8b5cf6', secondary: '#36c5f0', ink: '#000000', bg: '#0c0c14', card: '#15151f', text: '#f5f1ed', radius: 14 } },
+  { name: 'Forêt', theme: { accent: '#18b26b', secondary: '#737a4e', ink: '#10231a', bg: '#f1f5ec', card: '#ffffff', text: '#10231a', radius: 12 } },
+  { name: 'Rose bonbon', theme: { accent: '#ff4d8d', secondary: '#6c5ce7', ink: '#2a0a1a', bg: '#fff0f6', card: '#ffffff', text: '#2a0a1a', radius: 20 } },
+]
+
+type ImpersonateData = {
+  user: { id: string; email: string; display_name: string | null; plan: string | null; created_at: string }
+  counts: Record<string, number>
+  samples: { recipes: { name: string }[]; transactions: { amount: number; type: string; description: string | null; date: string }[]; tasks: { title: string; status: string }[] }
+}
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const ORANGE = 'var(--accent-budget)', TEAL = 'var(--azul)', WHEAT = 'var(--text)'
@@ -47,6 +61,9 @@ export default function AdminPage() {
   const [savingCfg, setSavingCfg] = useState(false)
   const [cfgMsg, setCfgMsg] = useState<string | null>(null)
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
+  const [view, setView] = useState<ImpersonateData | null>(null)
+  const [viewLoading, setViewLoading] = useState(false)
+  const [presetName, setPresetName] = useState('')
 
   const load = useCallback(async () => {
     const me = await fetch('/api/admin/me').then(r => r.json()).catch(() => ({ isAdmin: false }))
@@ -86,6 +103,20 @@ export default function AdminPage() {
 
   const setTheme = (patch: Partial<ThemeConfig>) => setConfig(c => c && ({ ...c, theme: { ...c.theme, ...patch } }))
   const setPlans = (plans: Plan[]) => setConfig(c => c && ({ ...c, plans }))
+
+  async function openView(id: string) {
+    setViewLoading(true); setView(null)
+    const d = await fetch(`/api/admin/impersonate?userId=${id}`).then(r => r.json()).catch(() => null)
+    setViewLoading(false)
+    if (d && !d.error) setView(d)
+  }
+
+  function saveAsPreset() {
+    if (!config || !presetName.trim()) return
+    const preset: ThemePreset = { id: Math.random().toString(36).slice(2), name: presetName.trim(), theme: config.theme }
+    setConfig(c => c && ({ ...c, themePresets: [...c.themePresets, preset] }))
+    setPresetName('')
+  }
 
   function toggleSection(href: string) {
     setConfig(c => c && ({ ...c, hiddenSections: c.hiddenSections.includes(href) ? c.hiddenSections.filter(h => h !== href) : [...c.hiddenSections, href] }))
@@ -151,11 +182,11 @@ export default function AdminPage() {
       {/* ── Utilisateurs ── */}
       {tab === 'users' && (
         <div style={{ ...card, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.9fr 0.9fr 1fr 40px', padding: '10px 16px', background: 'var(--bg-input)', borderBottom: '2px solid var(--ink)', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.9fr 0.9fr 1fr 66px', padding: '10px 16px', background: 'var(--bg-input)', borderBottom: '2px solid var(--ink)', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             <span>Email</span><span>Nom</span><span>Créé</span><span>Dern. connexion</span><span>Abonnement</span><span />
           </div>
           {users.map(u => (
-            <div key={u.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.9fr 0.9fr 1fr 40px', padding: '10px 16px', borderBottom: '1px solid var(--border)', alignItems: 'center', fontSize: 12, gap: 6 }}>
+            <div key={u.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.9fr 0.9fr 1fr 66px', padding: '10px 16px', borderBottom: '1px solid var(--border)', alignItems: 'center', fontSize: 12, gap: 6 }}>
               <span style={{ color: WHEAT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.email}{!u.confirmed && <span style={{ fontSize: 8, color: ORANGE, marginLeft: 6 }}>non confirmé</span>}</span>
               <span style={{ color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.display_name ?? '—'}</span>
               <span style={{ color: 'var(--text-muted)' }}>{fmtDate(u.created_at)}</span>
@@ -165,11 +196,14 @@ export default function AdminPage() {
                 <option value="">— Aucun —</option>
                 {(config?.plans ?? []).map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
               </select>
-              {confirmDel === u.id ? (
-                <button onClick={() => deleteUser(u.id)} title="Confirmer la suppression" style={{ background: ORANGE, border: 'none', borderRadius: 6, cursor: 'pointer', color: 'var(--chocolate)', padding: '4px 6px' }}><Check size={13} /></button>
-              ) : (
-                <button onClick={() => setConfirmDel(u.id)} title="Supprimer ce compte" style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE }}><Trash2 size={14} /></button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
+                <button onClick={() => openView(u.id)} title="Voir les données (support)" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Eye size={14} /></button>
+                {confirmDel === u.id ? (
+                  <button onClick={() => deleteUser(u.id)} title="Confirmer la suppression" style={{ background: ORANGE, border: 'none', borderRadius: 6, cursor: 'pointer', color: 'var(--chocolate)', padding: '4px 6px' }}><Check size={13} /></button>
+                ) : (
+                  <button onClick={() => setConfirmDel(u.id)} title="Supprimer ce compte" style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE }}><Trash2 size={14} /></button>
+                )}
+              </div>
             </div>
           ))}
           {users.length === 0 && <p style={{ padding: 20, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>Aucun compte.</p>}
@@ -203,6 +237,56 @@ export default function AdminPage() {
                 style={{ width: 90, ...inp }} />
             </div>
           </div>
+
+          {/* Presets */}
+          <div style={{ ...card, padding: 18 }}>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: ORANGE, marginBottom: 10 }}>Presets</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+              {BUILTIN_PRESETS.map(p => (
+                <button key={p.name} onClick={() => setConfig(c => c && ({ ...c, theme: p.theme }))}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, border: '2px solid var(--ink)', background: 'var(--bg-input)', cursor: 'pointer', ...DF, fontSize: 11, fontWeight: 700, color: WHEAT }}>
+                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: p.theme.accent }} />{p.name}
+                </button>
+              ))}
+            </div>
+            {config.themePresets.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                {config.themePresets.map(p => (
+                  <span key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 8px 5px 12px', borderRadius: 20, border: `2px solid ${TEAL}`, background: 'var(--bg-input)', ...DF, fontSize: 11, fontWeight: 700, color: WHEAT }}>
+                    <button onClick={() => setConfig(c => c && ({ ...c, theme: p.theme }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 700, fontSize: 11 }}>{p.name || 'Sans nom'}</button>
+                    <button onClick={() => setConfig(c => c && ({ ...c, themePresets: c.themePresets.filter(x => x.id !== p.id) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={11} /></button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input value={presetName} onChange={e => setPresetName(e.target.value)} placeholder="Nom du preset à enregistrer…" style={{ ...inp, flex: 1 }} />
+              <button onClick={saveAsPreset} disabled={!presetName.trim()} style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: 'var(--bg-card)', color: WHEAT, cursor: presetName.trim() ? 'pointer' : 'default', opacity: presetName.trim() ? 1 : 0.5 }}>Enregistrer</button>
+            </div>
+            <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 6 }}>Enregistre le thème courant comme preset (sauvegardé avec « Appliquer »).</p>
+          </div>
+
+          {/* Aperçu live */}
+          <div style={{ ...card, padding: 18 }}>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: ORANGE, marginBottom: 10 }}>Aperçu</p>
+            {(() => {
+              const tv = (k: 'accent' | 'secondary' | 'ink' | 'bg' | 'card' | 'text') => config.theme[k] || DEFAULT_HEX[k]
+              const r = config.theme.radius ?? 16
+              return (
+                <div style={{ background: tv('bg'), border: `2px solid ${tv('ink')}`, borderRadius: r, padding: 18 }}>
+                  <div style={{ background: tv('card'), border: `2px solid ${tv('ink')}`, borderRadius: r, boxShadow: `4px 4px 0 ${tv('ink')}`, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: tv('text') }}>Aperçu du thème</p>
+                    <p style={{ fontSize: 12, color: tv('text'), opacity: 0.7 }}>Un exemple de carte avec tes couleurs.</p>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <button style={{ background: tv('accent'), color: tv('bg'), border: `2px solid ${tv('ink')}`, borderRadius: r * 0.6, padding: '8px 14px', ...DF, fontWeight: 800, fontSize: 12 }}>Action</button>
+                      <span style={{ background: tv('secondary'), color: tv('bg'), borderRadius: 20, padding: '4px 12px', ...DF, fontWeight: 700, fontSize: 11 }}>Étiquette</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={saveConfig} disabled={savingCfg} className="nb-press"
               style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
@@ -286,6 +370,43 @@ export default function AdminPage() {
               {savingCfg ? 'Enregistrement…' : 'Enregistrer les réglages'}
             </button>
             {cfgMsg && <span style={{ fontSize: 12, color: cfgMsg.startsWith('✅') ? TEAL : ORANGE }}>{cfgMsg}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal « Voir les données » (support, lecture seule) ── */}
+      {(view || viewLoading) && (
+        <div onClick={() => setView(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '8vh' }}>
+          <div onClick={e => e.stopPropagation()} style={{ ...card, width: '100%', maxWidth: 560, maxHeight: '82vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '2px solid var(--ink)' }}>
+              <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT }}>{viewLoading ? 'Chargement…' : view?.user.email}</p>
+              <button onClick={() => setView(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
+            </div>
+            {viewLoading ? (
+              <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)' }}><Loader2 size={18} className="animate-spin" /></div>
+            ) : view && (
+              <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {view.user.display_name && <>Nom : <b style={{ color: WHEAT }}>{view.user.display_name}</b> · </>}
+                  Plan : <b style={{ color: WHEAT }}>{view.user.plan ?? '—'}</b> · Créé le {fmtDate(view.user.created_at)}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                  {Object.entries(view.counts).map(([t, n]) => (
+                    <div key={t} style={{ background: 'var(--bg-input)', borderRadius: 8, padding: '8px 10px' }}>
+                      <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{TABLE_LABELS[t] ?? t}</p>
+                      <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: WHEAT }}>{n}</p>
+                    </div>
+                  ))}
+                </div>
+                {view.samples.recipes.length > 0 && (
+                  <div><p style={{ fontSize: 10, color: ORANGE, ...DF, fontWeight: 700, marginBottom: 4 }}>RECETTES RÉCENTES</p>{view.samples.recipes.map((r, i) => <p key={i} style={{ fontSize: 12, color: WHEAT }}>• {r.name}</p>)}</div>
+                )}
+                {view.samples.transactions.length > 0 && (
+                  <div><p style={{ fontSize: 10, color: ORANGE, ...DF, fontWeight: 700, marginBottom: 4 }}>DERNIÈRES TRANSACTIONS</p>{view.samples.transactions.map((tr, i) => <p key={i} style={{ fontSize: 12, color: WHEAT }}>• {tr.type === 'income' ? '+' : '-'}{tr.amount} € {tr.description ? `— ${tr.description}` : ''} ({fmtDate(tr.date)})</p>)}</div>
+                )}
+                <p style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>Note : les données stockées dans le navigateur de l&apos;utilisateur (inventaire, comptes locaux…) ne sont pas visibles côté serveur.</p>
+              </div>
+            )}
           </div>
         </div>
       )}

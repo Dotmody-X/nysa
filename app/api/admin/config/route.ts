@@ -3,9 +3,17 @@ import { getAdmin, serviceClient } from '@/lib/admin'
 
 export const runtime = 'nodejs'
 
-const DEFAULT = { hiddenSections: [] as string[], announcement: { text: '', active: false }, maintenance: false, theme: {}, plans: [] }
+const DEFAULT = { hiddenSections: [] as string[], announcement: { text: '', active: false }, maintenance: false, theme: {}, themePresets: [], plans: [] }
 
 const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined)
+
+function cleanTheme(th: Record<string, unknown> = {}) {
+  return {
+    accent: str(th.accent), secondary: str(th.secondary), ink: str(th.ink),
+    bg: str(th.bg), card: str(th.card), text: str(th.text),
+    radius: typeof th.radius === 'number' ? th.radius : null,
+  }
+}
 
 // Lecture de la config globale (admin).
 export async function GET() {
@@ -33,11 +41,12 @@ export async function PUT(request: Request) {
         active: !!body.announcement?.active,
       },
       maintenance: !!body.maintenance,
-      theme: {
-        accent: str(th.accent), secondary: str(th.secondary), ink: str(th.ink),
-        bg: str(th.bg), card: str(th.card), text: str(th.text),
-        radius: typeof th.radius === 'number' ? th.radius : null,
-      },
+      theme: cleanTheme(th),
+      themePresets: Array.isArray(body.themePresets) ? body.themePresets.map((p: Record<string, unknown>) => ({
+        id: String(p.id ?? Math.random().toString(36).slice(2)),
+        name: String(p.name ?? ''),
+        theme: cleanTheme((p.theme as Record<string, unknown>) ?? {}),
+      })) : [],
       plans: Array.isArray(body.plans) ? body.plans.map((p: Record<string, unknown>) => ({
         id: String(p.id ?? Math.random().toString(36).slice(2)),
         name: String(p.name ?? ''),
