@@ -11,32 +11,20 @@ import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjectNotes } from '@/hooks/useProjectNotes'
 import { useProjectFiles } from '@/hooks/useProjectFiles'
 import { useProjectSettings } from '@/hooks/useProjectSettings'
+import { useProjectGroupes, type Groupe } from '@/hooks/useProjectGroupes'
+import { userKey } from '@/lib/userStore'
 import type { Project }   from '@/types'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Constantes marques
-// ─────────────────────────────────────────────────────────────────────────────
-export const GROUPES = [
-  { value: 'Le Mixologue', color: '#111111' },
-  { value: 'Aeterna',      color: '#737a4e' },
-  { value: 'E-Smoker',     color: '#9B59B6' },
-  { value: 'Interne',      color: '#D97706' },
-  { value: 'Autre',        color: '#6B7280' },
-] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+const GROUPE_FALLBACK = '#6B7280'
 
 function fmtHours(s: number): string {
   const h = Math.floor(s / 3600)
   const m = Math.floor((s % 3600) / 60)
   return h > 0 ? `${h}h${m > 0 ? String(m).padStart(2, '0') : ''}` : `${m}min`
-}
-
-function groupeColor(g: string | undefined): string {
-  return GROUPES.find(x => x.value === g)?.color ?? '#6B7280'
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -130,14 +118,18 @@ function Dropdown<T extends string>({
 // Modal Projet (création + édition)
 // ─────────────────────────────────────────────────────────────────────────────
 function ProjectModal({
-  project, onSave, onCreate, onDelete, onClose,
+  project, onSave, onCreate, onDelete, onClose, groupes, colorOf, onAddGroupe,
 }: {
   project?:  Project
   onSave?:   (id: string, patch: Partial<Project>) => Promise<unknown>
   onCreate?: (payload: Omit<Project, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<unknown>
   onDelete?: (id: string) => Promise<unknown>
   onClose:   () => void
+  groupes:   Groupe[]
+  colorOf:   (v?: string) => string
+  onAddGroupe: (value: string) => void
 }) {
+  const [newGroupe, setNewGroupe] = useState('')
   const isEdit = !!project
   const [form, setForm] = useState({
     name:        project?.name        ?? '',
@@ -176,7 +168,7 @@ function ProjectModal({
     onClose()
   }
 
-  const gc = groupeColor(form.groupe)
+  const gc = colorOf(form.groupe)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -206,9 +198,9 @@ function ProjectModal({
             Marque / Catégorie
           </label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['', ...GROUPES.map(g => g.value)].map(g => {
+            {['', ...groupes.map(g => g.value)].map(g => {
               const active = form.groupe === g
-              const gColor = groupeColor(g)
+              const gColor = colorOf(g)
               return (
                 <button key={g || 'none'} onClick={() => setForm(f => ({ ...f, groupe: g }))}
                   style={{
@@ -222,6 +214,17 @@ function ProjectModal({
                 </button>
               )
             })}
+          </div>
+          {/* Créer une marque à la volée */}
+          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+            <input value={newGroupe} onChange={e => setNewGroupe(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && newGroupe.trim()) { onAddGroupe(newGroupe); setForm(f => ({ ...f, groupe: newGroupe.trim() })); setNewGroupe('') } }}
+              placeholder="Nouvelle marque…" style={{ ...inp, flex: 1, fontSize: 11, padding: '6px 10px' }} />
+            <button type="button" disabled={!newGroupe.trim()}
+              onClick={() => { onAddGroupe(newGroupe); setForm(f => ({ ...f, groupe: newGroupe.trim() })); setNewGroupe('') }}
+              style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-muted)', cursor: newGroupe.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 11, opacity: newGroupe.trim() ? 1 : 0.5 }}>
+              + Ajouter
+            </button>
           </div>
         </div>
 
@@ -431,6 +434,20 @@ export default function ProjetsPage() {
   const { projects, loading, create, update, remove } = useProjects()
   const { tasks }   = useTasks()
   const { entries } = useTimeEntries()
+  const { groupes, hydrated: groupesHydrated, add: addGroupe, update: updateGroupe, remove: removeGroupe, colorOf } = useProjectGroupes()
+  const [showGroupes, setShowGroupes] = useState(false)
+
+  // Reprise en douceur : amorce une fois les marques depuis les projets existants
+  // (données de l'utilisateur, pas des valeurs par défaut). Nouveau compte → reste vide.
+  useEffect(() => {
+    if (!groupesHydrated || groupes.length > 0) return
+    try {
+      if (localStorage.getItem(userKey('nysa_projet_marques_seeded'))) return
+      const existing = Array.from(new Set(projects.map(p => p.groupe).filter((g): g is string => !!g)))
+      existing.forEach(g => addGroupe(g))
+      localStorage.setItem(userKey('nysa_projet_marques_seeded'), '1')
+    } catch { /* ignore */ }
+  }, [groupesHydrated, groupes.length, projects, addGroupe])
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('tous')
   const [search,       setSearch]       = useState('')
@@ -465,13 +482,13 @@ export default function ProjetsPage() {
 
   // Temps par groupe (marque) — toutes les entries de la semaine
   const timeByGroupe: Record<string, { sec: number; color: string }> = {}
-  GROUPES.forEach(g => { timeByGroupe[g.value] = { sec: 0, color: g.color } })
-  timeByGroupe['Non classé'] = { sec: 0, color: '#6B7280' }
+  groupes.forEach(g => { timeByGroupe[g.value] = { sec: 0, color: g.color } })
+  timeByGroupe['Non classé'] = { sec: 0, color: GROUPE_FALLBACK }
   entries.forEach(e => {
     if (!e.duration_seconds) return
     const proj  = projects.find(p => p.id === e.project_id)
     const key   = proj?.groupe ?? 'Non classé'
-    if (!timeByGroupe[key]) timeByGroupe[key] = { sec: 0, color: groupeColor(key) }
+    if (!timeByGroupe[key]) timeByGroupe[key] = { sec: 0, color: colorOf(key) }
     timeByGroupe[key].sec += e.duration_seconds
   })
   const groupeRows = Object.entries(timeByGroupe)
@@ -481,7 +498,7 @@ export default function ProjetsPage() {
 
   // Projets groupés par marque pour l'affichage
   const groupedProjects: Record<string, Project[]> = {}
-  const GROUPE_ORDER = [...GROUPES.map(g => g.value), 'Non classé']
+  const GROUPE_ORDER = [...groupes.map(g => g.value), 'Non classé']
   filtered.forEach(p => {
     const key = p.groupe ?? 'Non classé'
     if (!groupedProjects[key]) groupedProjects[key] = []
@@ -551,36 +568,46 @@ export default function ProjetsPage() {
       <div className="col-span-2" style={{ ...card, background: 'var(--accent-budget)', border: '2px solid var(--ink)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' } as React.CSSProperties}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
-          <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.7)', fontWeight: 600 }}>{totalSec > 0 ? fmtHours(totalSec) : '—'} cette semaine</span>
+          <button onClick={() => setShowGroupes(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.25)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 800, color: 'var(--chocolate)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <Pencil size={10} /> Gérer
+          </button>
         </div>
-        {/* 4 cellules : Mixologue / E-Smoker / Aeterna / Interne */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', flex: 1 }}>
-          {GROUPES.filter(g => g.value !== 'Autre').map((g, i) => {
-            const sec      = timeByGroupe[g.value]?.sec ?? 0
-            const projCount = projects.filter(p => p.groupe === g.value && p.status === 'active').length
-            return (
-              <div key={g.value} style={{
-                padding: '16px 20px',
-                borderRight:  i % 2 === 0 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none',
-                borderBottom: i < 2       ? '1px solid rgba(var(--text-rgb),0.2)' : 'none',
-                display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.8)', flexShrink: 0 }} />
-                  <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.85)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{g.value}</span>
+        {groupes.length === 0 ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 20, textAlign: 'center' }}>
+            <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.75)', maxWidth: 220 }}>Aucune marque. Crée tes catégories de projets (ex. clients, activités…).</p>
+            <button onClick={() => setShowGroupes(true)} className="nb-press" style={{ background: 'var(--chocolate)', color: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '7px 16px', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11 }}>
+              + Ajouter une marque
+            </button>
+          </div>
+        ) : (
+          <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start' }}>
+            {groupes.map((g, i) => {
+              const sec       = timeByGroupe[g.value]?.sec ?? 0
+              const projCount = projects.filter(p => p.groupe === g.value && p.status === 'active').length
+              return (
+                <div key={g.value} style={{
+                  padding: '14px 18px', minHeight: 92,
+                  borderRight:  i % 2 === 0 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none',
+                  borderBottom: '1px solid rgba(var(--text-rgb),0.2)',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: g.color, border: '1px solid rgba(var(--text-rgb),0.4)', flexShrink: 0 }} />
+                    <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.85)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{g.value}</span>
+                  </div>
+                  <div>
+                    <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--chocolate)', lineHeight: 1 }}>
+                      {sec > 0 ? fmtHours(sec) : '—'}
+                    </p>
+                    <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)', marginTop: 3 }}>
+                      {projCount} projet{projCount !== 1 ? 's' : ''} actif{projCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p style={{ ...DF, fontWeight: 900, fontSize: 24, color: 'var(--chocolate)', lineHeight: 1 }}>
-                    {sec > 0 ? fmtHours(sec) : '—'}
-                  </p>
-                  <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)', marginTop: 3 }}>
-                    {projCount} projet{projCount !== 1 ? 's' : ''} actif{projCount !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* ── ROW 2 : Barre de filtres ────────────────────────────────────────── */}
@@ -627,7 +654,7 @@ export default function ProjetsPage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {orderedGroupes.map((groupeName, gi) => {
-              const gColor   = groupeColor(groupeName)
+              const gColor   = colorOf(groupeName)
               const gProjs   = groupedProjects[groupeName] ?? []
               const gSec     = timeByGroupe[groupeName]?.sec ?? 0
               return (
@@ -767,7 +794,7 @@ export default function ProjetsPage() {
                   ].map(row => (
                     <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
                       <span style={{ fontSize: 9, color: 'var(--text-muted)', ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{row.label}</span>
-                      <span style={{ fontSize: 12, color: row.label === 'Marque' ? groupeColor(selectedProject.groupe) : 'var(--text)', fontWeight: row.label === 'Marque' ? 700 : 500 }}>{row.value}</span>
+                      <span style={{ fontSize: 12, color: row.label === 'Marque' ? colorOf(selectedProject.groupe) : 'var(--text)', fontWeight: row.label === 'Marque' ? 700 : 500 }}>{row.value}</span>
                     </div>
                   ))}
                 </div>
@@ -1026,7 +1053,7 @@ export default function ProjetsPage() {
             </div>
           ) : entries.slice(0, 8).map((e, i) => {
             const proj = projects.find(p => p.id === e.project_id)
-            const gc2  = groupeColor(proj?.groupe)
+            const gc2  = colorOf(proj?.groupe)
             return (
               <div key={e.id} style={{ padding: '10px 16px', borderBottom: i < Math.min(entries.length, 8) - 1 ? '1px solid var(--border)' : 'none', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: gc2, flexShrink: 0, marginTop: 4 }} />
@@ -1085,11 +1112,65 @@ export default function ProjetsPage() {
 
       {/* ── Modals ──────────────────────────────────────────────────────────── */}
       {editModal && (
-        <ProjectModal project={editModal} onSave={update} onDelete={remove} onClose={() => setEditModal(null)} />
+        <ProjectModal project={editModal} onSave={update} onDelete={remove} onClose={() => setEditModal(null)} groupes={groupes} colorOf={colorOf} onAddGroupe={addGroupe} />
       )}
       {createModal && (
-        <ProjectModal onCreate={create} onClose={() => setCreateModal(false)} />
+        <ProjectModal onCreate={create} onClose={() => setCreateModal(false)} groupes={groupes} colorOf={colorOf} onAddGroupe={addGroupe} />
       )}
+      {showGroupes && (
+        <GroupesModal groupes={groupes} onAdd={addGroupe} onUpdate={updateGroupe} onRemove={removeGroupe} onClose={() => setShowGroupes(false)} />
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Modal de gestion des marques (créer / renommer / recolorer / supprimer)
+// ─────────────────────────────────────────────────────────────────────────────
+function GroupesModal({
+  groupes, onAdd, onUpdate, onRemove, onClose,
+}: {
+  groupes: Groupe[]
+  onAdd: (value: string, color?: string) => void
+  onUpdate: (oldValue: string, patch: Partial<Groupe>) => void
+  onRemove: (value: string) => void
+  onClose: () => void
+}) {
+  const [name, setName] = useState('')
+  const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none' }
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
+      <div className="w-full max-w-sm rounded-[16px] p-5 flex flex-col gap-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <p style={{ ...DF, fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Gérer les marques</p>
+          <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflowY: 'auto' }}>
+          {groupes.length === 0 && <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune marque pour l&apos;instant.</p>}
+          {groupes.map(g => (
+            <div key={g.value} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input type="color" value={g.color} onChange={e => onUpdate(g.value, { color: e.target.value })}
+                style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border)', padding: 3, cursor: 'pointer', background: 'var(--bg)', flexShrink: 0 }} />
+              <input value={g.value} onChange={e => onUpdate(g.value, { value: e.target.value })} style={{ ...inp, flex: 1 }} />
+              <button onClick={() => onRemove(g.value)} title="Supprimer"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-budget)', padding: 4 }}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Nouvelle marque…"
+            onKeyDown={e => { if (e.key === 'Enter' && name.trim()) { onAdd(name); setName('') } }}
+            style={{ ...inp, flex: 1 }} />
+          <button onClick={() => { if (name.trim()) { onAdd(name); setName('') } }} disabled={!name.trim()} className="nb-press"
+            style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '8px 14px', cursor: name.trim() ? 'pointer' : 'default', ...DF, fontWeight: 800, fontSize: 11, opacity: name.trim() ? 1 : 0.5 }}>
+            + Ajouter
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
