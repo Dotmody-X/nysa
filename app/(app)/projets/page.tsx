@@ -440,12 +440,13 @@ export default function ProjetsPage() {
   // Reprise en douceur : amorce une fois les marques depuis les projets existants
   // (données de l'utilisateur, pas des valeurs par défaut). Nouveau compte → reste vide.
   useEffect(() => {
-    if (!groupesHydrated || groupes.length > 0) return
+    if (!groupesHydrated || groupes.length > 0 || projects.length === 0) return // attend le chargement des projets
     try {
-      if (localStorage.getItem(userKey('nysa_projet_marques_seeded'))) return
+      if (localStorage.getItem(userKey('nysa_projet_marques_seeded_v2'))) return
       const existing = Array.from(new Set(projects.map(p => p.groupe).filter((g): g is string => !!g)))
+      if (existing.length === 0) return
       existing.forEach(g => addGroupe(g))
-      localStorage.setItem(userKey('nysa_projet_marques_seeded'), '1')
+      localStorage.setItem(userKey('nysa_projet_marques_seeded_v2'), '1')
     } catch { /* ignore */ }
   }, [groupesHydrated, groupes.length, projects, addGroupe])
 
@@ -498,12 +499,15 @@ export default function ProjetsPage() {
 
   // Projets groupés par marque pour l'affichage
   const groupedProjects: Record<string, Project[]> = {}
-  const GROUPE_ORDER = [...groupes.map(g => g.value), 'Non classé']
   filtered.forEach(p => {
     const key = p.groupe ?? 'Non classé'
     if (!groupedProjects[key]) groupedProjects[key] = []
     groupedProjects[key].push(p)
   })
+  // Ordre : marques connues d'abord, puis toute marque présente sur un projet
+  // mais absente de la liste (sinon ces projets seraient masqués), puis « Non classé ».
+  const extraGroupes = Object.keys(groupedProjects).filter(k => k !== 'Non classé' && !groupes.some(g => g.value === k))
+  const GROUPE_ORDER = [...groupes.map(g => g.value), ...extraGroupes, 'Non classé']
   const orderedGroupes = GROUPE_ORDER.filter(g => groupedProjects[g]?.length > 0)
 
   // Projet sélectionné
