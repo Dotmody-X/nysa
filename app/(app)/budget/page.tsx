@@ -1351,11 +1351,11 @@ export default function BudgetPage() {
                   <option value="">Compte…</option>
                   {comptes.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                 </select>
-                <select value={txForm.person||'Nathan'} onChange={e=>setTxForm(f=>({...f,person:e.target.value}))}
-                  style={{ flex:1, padding:'10px 12px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-input)', color:'var(--text)', fontSize:12 }}>
-                  <option value="Nathan">Nathan</option>
-                  <option value="Combined">Combined</option>
-                </select>
+                <input list="nysa-persons" value={txForm.person||''} onChange={e=>setTxForm(f=>({...f,person:e.target.value||undefined}))} placeholder="Personne (optionnel)…"
+                  style={{ flex:1, padding:'10px 12px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-input)', color:'var(--text)', fontSize:12 }} />
+                <datalist id="nysa-persons">
+                  {Array.from(new Set(cur.transactions.map(t=>t.person).filter(Boolean))).map(p=><option key={p as string} value={p as string} />)}
+                </datalist>
               </div>
               <label style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
                 <input type="checkbox" checked={txForm.is_recurring??false} onChange={e=>setTxForm(f=>({...f,is_recurring:e.target.checked}))} style={{ width:15, height:15, accentColor:TEAL }}/>
