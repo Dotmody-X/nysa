@@ -62,8 +62,8 @@ export function MobileNav() {
           <div className="md:hidden" style={{
             position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
             background: 'var(--bg-card)', borderTop: '2px solid var(--ink)',
-            borderRadius: '20px 20px 0 0', padding: '20px 16px calc(24px + env(safe-area-inset-bottom, 0px))',
-            maxHeight: '80vh', overflowY: 'auto',
+            borderRadius: '20px 20px 0 0', padding: '20px 16px calc(96px + env(safe-area-inset-bottom, 0px))',
+            maxHeight: '85vh', overflowY: 'auto',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <p style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text)' }}>Navigation</p>
