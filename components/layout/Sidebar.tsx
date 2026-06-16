@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from 'react'
 import { saveTheme, THEME_KEY } from '@/lib/theme'
 import type { ThemeMode } from '@/lib/theme'
 import { createClient } from '@/lib/supabase/client'
+import { useAppConfig, useIsAdmin } from '@/hooks/useAppConfig'
 
 type NavItem = { href: string; label: string; color?: string; accent?: boolean }
 
@@ -34,6 +35,12 @@ const themeOptions: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { config } = useAppConfig()
+  const isAdmin = useIsAdmin()
+  const visibleNav: NavItem[] = [
+    ...navItems.filter(i => !config.hiddenSections.includes(i.href)),
+    ...(isAdmin ? [{ href: '/admin', label: 'Admin', color: 'var(--azul)', accent: true } as NavItem] : []),
+  ]
   const [themeOpen, setThemeOpen] = useState(false)
   const [currentTheme, setCurrentTheme] = useState<ThemeMode>('system')
   const [displayName, setDisplayName] = useState('NYSA')
@@ -109,9 +116,9 @@ export function Sidebar() {
 
       {/* ── Nav ──────────────────────────────────────────────── */}
       <nav className="flex-1 flex flex-col px-4 py-4 gap-0.5 overflow-y-auto">
-        {navItems.map((item, idx) => {
+        {visibleNav.map((item, idx) => {
           const active = isActive(item.href)
-          const prevItem = navItems[idx - 1]
+          const prevItem = visibleNav[idx - 1]
           const showSep = item.accent && prevItem && !prevItem.accent
           return (
             <div key={item.href}>

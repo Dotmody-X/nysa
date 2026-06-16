@@ -8,6 +8,7 @@ import {
   UtensilsCrossed, ShoppingCart, Wallet,
 } from '@/components/ui/icons'
 import { useState } from 'react'
+import { useAppConfig } from '@/hooks/useAppConfig'
 
 const ALL_SECTIONS = [
   { href: '/',             label: 'Accueil',      Icon: Home },
@@ -33,6 +34,8 @@ const QUICK_LINKS = [
 
 export function MobileNav() {
   const pathname = usePathname()
+  const { config } = useAppConfig()
+  const visibleSections = ALL_SECTIONS.filter(s => !config.hiddenSections.includes(s.href))
   const [quickOpen, setQuickOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -70,7 +73,7 @@ export function MobileNav() {
               <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-              {ALL_SECTIONS.map(({ href, label, Icon }) => {
+              {visibleSections.map(({ href, label, Icon }) => {
                 const active = isActive(href)
                 return (
                   <Link key={label} href={href} onClick={() => setMenuOpen(false)}
