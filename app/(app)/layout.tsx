@@ -5,6 +5,7 @@ import { CommandPalette } from '@/components/CommandPalette'
 import { ExpiryNotifier } from '@/components/ExpiryNotifier'
 import { AuthSync } from '@/components/AuthSync'
 import { SiteChrome } from '@/components/SiteChrome'
+import { ThemeInjector } from '@/components/ThemeInjector'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,6 +18,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <CommandPalette />
       <ExpiryNotifier />
       <AuthSync />
+      <ThemeInjector />
     </div>
   )
 }

@@ -3,16 +3,38 @@
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 
+export type ThemeConfig = {
+  accent?: string     // --accent-budget (couleur principale)
+  secondary?: string  // --azul (couleur secondaire)
+  ink?: string        // --ink (contours / ombres)
+  bg?: string         // --bg (fond papier)
+  card?: string       // --bg-card
+  text?: string       // --text
+  radius?: number | null // --radius-lg (px)
+}
+
+export type Plan = { id: string; name: string; price: number; features: string[] }
+
 export type SiteConfig = {
   hiddenSections: string[]
   announcement: { text: string; active: boolean }
   maintenance: boolean
+  theme: ThemeConfig
+  plans: Plan[]
 }
 
 export const DEFAULT_CONFIG: SiteConfig = {
   hiddenSections: [],
   announcement: { text: '', active: false },
   maintenance: false,
+  theme: {},
+  plans: [],
+}
+
+// Mapping token de thème → variable CSS appliquée au :root
+export const THEME_CSS_MAP: Record<keyof Omit<ThemeConfig, 'radius'>, string> = {
+  accent: '--accent-budget', secondary: '--azul', ink: '--ink',
+  bg: '--bg', card: '--bg-card', text: '--text',
 }
 
 function browser() {

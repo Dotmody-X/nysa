@@ -16,8 +16,27 @@ export async function GET() {
       last_sign_in_at: u.last_sign_in_at,
       confirmed: !!u.email_confirmed_at,
       display_name: (u.user_metadata as { display_name?: string } | null)?.display_name ?? null,
+      plan: (u.user_metadata as { plan?: string } | null)?.plan ?? null,
     }))
     return NextResponse.json({ users })
+  } catch (e) {
+    return NextResponse.json({ error: 'Erreur serveur', details: String(e) }, { status: 500 })
+  }
+}
+
+// Modifie l'abonnement (plan) d'un compte — stocké dans user_metadata.plan.
+export async function PATCH(request: Request) {
+  const admin = await getAdmin()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  try {
+    const { id, plan } = await request.json()
+    if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
+    const svc = serviceClient()
+    const { data } = await svc.auth.admin.getUserById(id)
+    const meta = { ...(data?.user?.user_metadata ?? {}), plan: plan || null }
+    const { error } = await svc.auth.admin.updateUserById(id, { user_metadata: meta })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
   } catch (e) {
     return NextResponse.json({ error: 'Erreur serveur', details: String(e) }, { status: 500 })
   }
