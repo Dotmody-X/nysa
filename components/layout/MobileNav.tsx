@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   Home, BarChart2, User, Plus, LayoutGrid, X,
   Calendar, Clock, FolderKanban, CheckSquare, Activity, HeartPulse,
-  UtensilsCrossed, ShoppingCart, Wallet, Sparkles,
+  UtensilsCrossed, ShoppingCart, Wallet,
 } from '@/components/ui/icons'
 import { useState } from 'react'
 
@@ -21,7 +21,7 @@ const ALL_SECTIONS = [
   { href: '/courses',      label: 'Courses',      Icon: ShoppingCart },
   { href: '/budget',       label: 'Budget',       Icon: Wallet },
   { href: '/rapports',     label: 'Rapports',     Icon: BarChart2 },
-  { href: '/agent',        label: 'Agent IA',     Icon: Sparkles },
+  // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
 
 const QUICK_LINKS = [

@@ -23,7 +23,7 @@ const navItems: NavItem[] = [
   { href: '/courses',      label: 'Courses',       color: 'var(--accent-time)' },
   { href: '/budget',       label: 'Budget',        color: 'var(--accent-time)' },
   { href: '/rapports',     label: 'Rapports',      color: 'var(--accent-time)' },
-  { href: '/agent',        label: 'Agent IA',      color: 'var(--accent-budget)', accent: true },
+  // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
 
 const themeOptions: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [

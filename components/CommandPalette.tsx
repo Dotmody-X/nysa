@@ -21,7 +21,6 @@ const DESTINATIONS: Dest[] = [
   { label: 'Inventaire',    href: '/courses/inventaire', emoji: '📦' },
   { label: 'Budget',        href: '/budget',             emoji: '💳', key: 'b' },
   { label: 'Rapports',      href: '/rapports',           emoji: '📊' },
-  { label: 'Agent IA',      href: '/agent',              emoji: '⚡', key: 'a' },
   { label: 'Réglages',      href: '/reglages',           emoji: '⚙️', key: 's' },
   { label: 'Profil',        href: '/compte',             emoji: '👤' },
 ]
