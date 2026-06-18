@@ -472,7 +472,9 @@ export default function ProjetsPage() {
 
   // ── Données dérivées ───────────────────────────────────────────────────────
   const filtered = projects.filter(p => {
-    if (statusFilter !== 'tous' && p.status !== statusFilter) return false
+    // « Tous » exclut les archivés : ils n'apparaissent que via le filtre « Archivés »
+    if (statusFilter === 'tous') { if (p.status === 'archived') return false }
+    else if (p.status !== statusFilter) return false
     if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
@@ -754,10 +756,17 @@ export default function ProjetsPage() {
                 </span>
               )}
             </div>
-            <button onClick={() => setEditModal(selectedProject)}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 700, ...DF }}>
-              <Pencil size={10} /> Modifier
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button onClick={() => update(selectedProject.id, { status: selectedProject.status === 'archived' ? 'active' : 'archived' })}
+                title={selectedProject.status === 'archived' ? 'Remettre dans les projets actifs' : 'Archiver ce projet'}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 700, ...DF }}>
+                {selectedProject.status === 'archived' ? '↩ Désarchiver' : '🗄 Archiver'}
+              </button>
+              <button onClick={() => setEditModal(selectedProject)}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 700, ...DF }}>
+                <Pencil size={10} /> Modifier
+              </button>
+            </div>
           </div>
 
           {/* Tabs */}

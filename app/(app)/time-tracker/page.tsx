@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/icons'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjects }    from '@/hooks/useProjects'
+import { useTimeCategories } from '@/hooks/useTimeCategories'
 import type { TimeEntry } from '@/types'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -258,21 +259,24 @@ const LABEL_COLORS: Record<string, string> = {
   'Running':   'var(--accent-budget)',
 }
 
-function LabelPickerDropdown({ labels, selected, onSelect, onClose }: {
+function LabelPickerDropdown({ labels, selected, onSelect, onAdd, onClose }: {
   labels: string[]
   selected: string
   onSelect: (l: string) => void
+  onAdd?: (l: string) => void
   onClose: () => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const [newCat, setNewCat] = useState('')
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
   return (
-    <div ref={ref} style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 200, background: '#0d1a1a', border: '1px solid rgba(var(--text-rgb),0.15)', borderRadius: 10, minWidth: 150, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-      <p style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', padding: '6px 10px 4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Calendrier cible</p>
+    <div ref={ref} style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, zIndex: 200, background: '#0d1a1a', border: '1px solid rgba(var(--text-rgb),0.15)', borderRadius: 10, minWidth: 160, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+      <p style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.4)', textTransform: 'uppercase', padding: '6px 10px 4px', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Catégorie</p>
+      {labels.length === 0 && <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.4)', padding: '4px 10px' }}>Aucune — ajoute la première.</p>}
       {labels.map(l => (
         <button key={l} onClick={() => onSelect(l)}
           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 7, background: l === selected ? 'rgba(var(--text-rgb),0.1)' : 'transparent', border: 'none', cursor: 'pointer', color: l === selected ? '#fff' : 'rgba(var(--text-rgb),0.7)', fontSize: 11, fontWeight: l === selected ? 700 : 400, textAlign: 'left' }}
@@ -283,16 +287,58 @@ function LabelPickerDropdown({ labels, selected, onSelect, onClose }: {
           {l === selected && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--accent-budget)' }}>✓</span>}
         </button>
       ))}
+      {onAdd && (
+        <div style={{ display: 'flex', gap: 4, padding: '6px 6px 4px', borderTop: '1px solid rgba(var(--text-rgb),0.1)', marginTop: 4 }}>
+          <input value={newCat} onChange={e => setNewCat(e.target.value)} placeholder="+ Nouvelle…"
+            onKeyDown={e => { if (e.key === 'Enter' && newCat.trim()) { onAdd(newCat.trim()); setNewCat('') } }}
+            style={{ flex: 1, background: 'rgba(var(--text-rgb),0.08)', border: '1px solid rgba(var(--text-rgb),0.15)', borderRadius: 6, padding: '5px 8px', color: '#fff', fontSize: 11, outline: 'none' }} />
+          <button onClick={() => { if (newCat.trim()) { onAdd(newCat.trim()); setNewCat('') } }}
+            style={{ padding: '0 10px', borderRadius: 6, background: 'var(--accent-budget)', color: 'var(--chocolate)', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 11 }}>+</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ══ Sélecteur de catégorie (menu déroulant + ajout) ══════════════════════════ */
+function CategoryPicker({ value, categories, onChange, onAdd, inp }: {
+  value: string
+  categories: string[]
+  onChange: (v: string) => void
+  onAdd: (v: string) => void
+  inp: React.CSSProperties
+}) {
+  const [adding, setAdding] = useState(false)
+  const [name, setName] = useState('')
+  const commit = () => { const v = name.trim(); if (v) { onAdd(v); onChange(v) } setAdding(false); setName('') }
+  const btn: React.CSSProperties = { padding: '0 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12, flexShrink: 0 }
+  if (adding) return (
+    <div style={{ display: 'flex', gap: 6 }}>
+      <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="Nouvelle catégorie…"
+        onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setAdding(false); setName('') } }}
+        style={{ ...inp, flex: 1 }} />
+      <button onClick={commit} style={btn}>OK</button>
+    </div>
+  )
+  return (
+    <div style={{ display: 'flex', gap: 6 }}>
+      <select value={value} onChange={e => onChange(e.target.value)} style={{ ...inp, flex: 1 }}>
+        <option value="">Sans catégorie</option>
+        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+      </select>
+      <button onClick={() => setAdding(true)} title="Nouvelle catégorie" style={btn}>+</button>
     </div>
   )
 }
 
 /* ══ Edit Entry Modal ═════════════════════════════════════════════════════════ */
 function EditEntryModal({
-  entry, projects, onSave, onDelete, onClose,
+  entry, projects, categories, onAddCategory, onSave, onDelete, onClose,
 }: {
   entry: TimeEntry
   projects: Array<{ id: string; name: string; color: string }>
+  categories: string[]
+  onAddCategory: (v: string) => void
   onSave:   (id: string, patch: Partial<Pick<TimeEntry,'description'|'project_id'|'category'|'started_at'|'ended_at'|'is_billable'>>) => Promise<unknown>
   onDelete: (id: string) => Promise<void>
   onClose:  () => void
@@ -332,7 +378,7 @@ function EditEntryModal({
           <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inp}>
             <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
         <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
-          <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Design, Dev, Réunion…" style={inp} /></div>
+          <CategoryPicker value={form.category} categories={categories} onChange={v => setForm(f => ({ ...f, category: v }))} onAdd={onAddCategory} inp={inp} /></div>
         <div className="grid grid-cols-2 gap-2">
           <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Début</label>
             <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} style={{ ...inp, marginBottom: 4 }} />
@@ -371,9 +417,11 @@ function EditEntryModal({
 
 /* ══ Manual Entry Modal ═══════════════════════════════════════════════════════ */
 function ManualEntryModal({
-  projects, onCreate, onClose,
+  projects, categories, onAddCategory, onCreate, onClose,
 }: {
   projects: Array<{ id: string; name: string; color: string }>
+  categories: string[]
+  onAddCategory: (v: string) => void
   onCreate: (patch: { description?: string; project_id?: string; category?: string; is_billable?: boolean; started_at: string; ended_at?: string }) => Promise<unknown>
   onClose:  () => void
 }) {
@@ -414,7 +462,7 @@ function ManualEntryModal({
           <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inp}>
             <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
         <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
-          <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Design, Dev, Réunion…" style={inp} /></div>
+          <CategoryPicker value={form.category} categories={categories} onChange={v => setForm(f => ({ ...f, category: v }))} onAdd={onAddCategory} inp={inp} /></div>
         <div className="grid grid-cols-2 gap-2">
           <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Début</label>
             <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value, endDate: e.target.value }))} style={{ ...inp, marginBottom: 4 }} />
@@ -455,8 +503,7 @@ export default function TimeTrackerPage() {
   const [projId,  setProjId]  = useState('')
   const [billable, setBillable] = useState(true)
   const [addToCalendar, setAddToCalendar] = useState(true)
-  const [calendarLabel, setCalendarLabel] = useState('Mixologue')
-  const [availableLabels, setAvailableLabels] = useState<string[]>(['Mixologue', 'E-Smoker', 'Aeterna', 'Travail', 'Perso', 'Santé', 'Running'])
+  const [calendarLabel, setCalendarLabel] = useState('')
   const [showLabelPicker, setShowLabelPicker] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -465,6 +512,7 @@ export default function TimeTrackerPage() {
   const { from, to } = getPeriodDates(period)
   const { entries, loading, start, stop, update, remove, createManual } = useTimeEntries(from, to)
   const { projects } = useProjects()
+  const { categories: timeCategories, add: addTimeCategory } = useTimeCategories(entries.map(e => e.category))
 
   const running = entries.find(e => !e.ended_at)
 
@@ -674,14 +722,15 @@ export default function TimeTrackerPage() {
                     onClick={() => setShowLabelPicker(v => !v)}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.2)', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 600, ...DF }}>
                     <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[calendarLabel] ?? '#fff', flexShrink: 0 }} />
-                    {calendarLabel}
+                    {calendarLabel || 'Catégorie'}
                     <ChevronDown size={9} style={{ opacity: 0.7, transform: showLabelPicker ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
                   </button>
                   {showLabelPicker && (
                     <LabelPickerDropdown
-                      labels={availableLabels}
+                      labels={timeCategories}
                       selected={calendarLabel}
                       onSelect={l => { setCalendarLabel(l); setShowLabelPicker(false) }}
+                      onAdd={l => { addTimeCategory(l); setCalendarLabel(l); setShowLabelPicker(false) }}
                       onClose={() => setShowLabelPicker(false)}
                     />
                   )}
@@ -1152,11 +1201,11 @@ export default function TimeTrackerPage() {
 
     {/* ── Modals ─────────────────────────────────────────────────────────── */}
     {editingEntry && (
-      <EditEntryModal entry={editingEntry} projects={projects} onSave={update}
+      <EditEntryModal entry={editingEntry} projects={projects} categories={timeCategories} onAddCategory={addTimeCategory} onSave={update}
         onDelete={async (id) => { await remove(id) }} onClose={() => setEditingEntry(null)} />
     )}
     {manualOpen && (
-      <ManualEntryModal projects={projects} onCreate={createManual} onClose={() => setManualOpen(false)} />
+      <ManualEntryModal projects={projects} categories={timeCategories} onAddCategory={addTimeCategory} onCreate={createManual} onClose={() => setManualOpen(false)} />
     )}
     </>
   )
