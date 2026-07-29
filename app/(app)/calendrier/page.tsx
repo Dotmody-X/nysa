@@ -328,6 +328,141 @@ function AppleModal({ onClose, onSynced }: { onClose: () => void; onSynced?: () 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// iCal Feed Modal (abonnement à un calendrier .ics / webcal)
+// ─────────────────────────────────────────────────────────────────────────────
+interface IcsFeedItem { id: string; url: string; name: string; color: string }
+
+function IcsModal({ onClose, onChanged }: { onClose: () => void; onChanged?: () => void }) {
+  const [feeds, setFeeds]     = useState<IcsFeedItem[]>([])
+  const [url, setUrl]         = useState('')
+  const [name, setName]       = useState('')
+  const [busy, setBusy]       = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [result, setResult]   = useState<string | null>(null)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const res  = await fetch('/api/calendar/ics')
+      const json = await res.json()
+      if (res.ok) setFeeds(json.feeds ?? [])
+    } catch {}
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  async function handleAdd() {
+    if (!url.trim()) return
+    setBusy(true); setResult(null)
+    try {
+      const res  = await fetch('/api/calendar/ics', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim(), name: name.trim() || undefined }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setResult(`❌ ${json.error ?? 'Erreur'}`) }
+      else {
+        setResult(`✅ ${json.message ?? 'Ajouté'}`)
+        setUrl(''); setName('')
+        await load()
+        onChanged?.()
+      }
+    } catch {
+      setResult('❌ Impossible de contacter le serveur')
+    } finally { setBusy(false) }
+  }
+
+  async function handleDelete(id: string) {
+    setBusy(true)
+    try {
+      await fetch('/api/calendar/ics', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      await load()
+      onChanged?.()
+    } catch {} finally { setBusy(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
+      <div className="w-full max-w-md rounded-[16px] p-6 flex flex-col gap-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-[8px] flex items-center justify-center" style={{ background: 'var(--bg-input)' }}>
+              <Link2 size={16} style={{ color: 'var(--text)' }} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text)', fontFamily: 'var(--font-display)' }}>Calendrier abonné (iCal)</p>
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Flux .ics / webcal</p>
+            </div>
+          </div>
+          <button onClick={onClose}><X size={14} style={{ color: 'var(--text-muted)' }} /></button>
+        </div>
+
+        {/* Aide : où trouver l'URL */}
+        <div className="rounded-[10px] p-4 flex flex-col gap-2" style={{ background: 'rgba(14,149,148,0.12)', border: '1px solid rgba(14,149,148,0.25)' }}>
+          <p className="text-xs font-semibold" style={{ color: 'var(--azul)' }}>Où trouver le lien ?</p>
+          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text)' }}>
+            Dans l'app <strong style={{ color: 'var(--text)' }}>Calendrier</strong> (Mac) : clic droit sur le calendrier abonné → <strong style={{ color: 'var(--text)' }}>Modifier…</strong> → copie l'adresse du champ <strong style={{ color: 'var(--text)' }}>URL</strong>. Colle-la ci-dessous.
+          </p>
+        </div>
+
+        {/* Ajout */}
+        <div className="flex flex-col gap-2">
+          <input autoFocus type="url" value={url} onChange={e => setUrl(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !busy && handleAdd()}
+            placeholder="webcal://… ou https://…/calendar.ics"
+            className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
+            style={{ background: 'var(--bg-input)', color: 'var(--text)', border: '1px solid var(--border)' }} />
+          <input type="text" value={name} onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !busy && handleAdd()}
+            placeholder="Nom (optionnel — sinon détecté automatiquement)"
+            className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
+            style={{ background: 'var(--bg-input)', color: 'var(--text)', border: '1px solid var(--border)' }} />
+          <button onClick={handleAdd} disabled={busy || !url.trim()}
+            className="w-full py-2.5 rounded-[8px] text-sm font-semibold disabled:opacity-40"
+            style={{ background: 'var(--accent-budget)', color: '#fff' }}>
+            {busy ? 'Import…' : 'Ajouter ce calendrier'}
+          </button>
+        </div>
+
+        {result && (
+          <p className="text-[11px] px-3 py-2 rounded-[7px]" style={{ background: result.startsWith('✅') ? 'rgba(14,149,148,0.12)' : 'rgba(242,84,45,0.12)', color: result.startsWith('✅') ? 'var(--azul)' : 'var(--accent-budget)' }}>
+            {result}
+          </p>
+        )}
+
+        {/* Liste des flux existants */}
+        {(loading || feeds.length > 0) && (
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
+              {loading ? 'Chargement…' : `Mes abonnements (${feeds.length})`}
+            </p>
+            {feeds.map(f => (
+              <div key={f.id} className="flex items-center gap-3 px-3 py-2 rounded-[8px]"
+                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: f.color, flexShrink: 0 }} />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.url}</p>
+                </div>
+                <button onClick={() => handleDelete(f.id)} disabled={busy}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, flexShrink: 0 }}>
+                  <Trash2 size={13} style={{ color: 'var(--accent-budget)' }} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Event Modal (create + edit)
 // ─────────────────────────────────────────────────────────────────────────────
 function EventModal({
@@ -575,6 +710,9 @@ function CalendrierContent() {
   const [lastSync, setLastSync]           = useState<Date | null>(null)
   const [appleCalendars, setAppleCalendars]       = useState<string[]>([])
   const [showAllReminders, setShowAllReminders]   = useState(false)
+  const [icsOpen, setIcsOpen]             = useState(false)
+  const [icsCount, setIcsCount]           = useState(0)
+  const [icsLastSync, setIcsLastSync]     = useState<Date | null>(null)
 
   const gridScrollRef = useRef<HTMLDivElement | null>(null)
   const colsRef       = useRef<HTMLDivElement | null>(null)
@@ -656,9 +794,31 @@ function CalendrierContent() {
         }
       } catch {}
     }
+    // Sync silencieux des calendriers abonnés (flux .ics / webcal)
+    async function bgSyncIcs() {
+      try {
+        const res  = await fetch('/api/calendar/ics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+        const json = await res.json()
+        if (!json.skipped) {
+          setIcsCount(json.feeds ?? 0)
+          setIcsLastSync(new Date())
+          if ((json.synced ?? 0) > 0 || (json.updated ?? 0) > 0 || (json.removed ?? 0) > 0) refetch()
+        }
+      } catch {}
+    }
+    // Charge le nombre de flux abonnés (pour l'état de la carte)
+    async function loadIcsFeeds() {
+      try {
+        const res  = await fetch('/api/calendar/ics')
+        const json = await res.json()
+        if (res.ok) setIcsCount((json.feeds ?? []).length)
+      } catch {}
+    }
     bgSync(true)
     loadAppleCals()
-    const interval = setInterval(() => bgSync(false), 5 * 60 * 1000)
+    bgSyncIcs()
+    loadIcsFeeds()
+    const interval = setInterval(() => { bgSync(false); bgSyncIcs() }, 5 * 60 * 1000)
     return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -1350,6 +1510,28 @@ function CalendrierContent() {
                 </button>
               </div>
             </div>
+            {/* Calendrier abonné (iCal / webcal) */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: icsCount > 0 ? 'rgba(14,149,148,0.08)' : 'var(--bg-card-hover)', border: `1px solid ${icsCount > 0 ? 'rgba(14,149,148,0.25)' : 'var(--border)'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: icsCount > 0 ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Link2 size={14} style={{ color: icsCount > 0 ? 'var(--azul)' : 'var(--text)' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Calendrier abonné</p>
+                  <p style={{ fontSize: 9, color: icsCount > 0 ? 'var(--azul)' : 'var(--text-muted)' }}>
+                    {icsCount > 0
+                      ? (icsLastSync ? `${icsCount} flux · sync ${icsLastSync.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}` : `${icsCount} flux`)
+                      : 'iCal / webcal'}
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {icsCount > 0 && <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--azul)' }} />}
+                <button onClick={() => setIcsOpen(true)} style={{ fontSize: 10, fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', color: icsCount > 0 ? 'var(--azul)' : 'var(--text-muted)', padding: 0 }}>
+                  {icsCount > 0 ? 'Gérer' : 'Ajouter'}
+                </button>
+              </div>
+            </div>
             {/* Google Calendar */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border)', opacity: 0.5 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1386,6 +1568,7 @@ function CalendrierContent() {
         />
       )}
       {appleOpen && <AppleModal onClose={() => setAppleOpen(false)} onSynced={() => { refetch(); setAppleConnected(true); setLastSync(new Date()) }} />}
+      {icsOpen && <IcsModal onClose={() => setIcsOpen(false)} onChanged={() => { refetch(); setIcsLastSync(new Date()); fetch('/api/calendar/ics').then(r => r.json()).then(j => setIcsCount((j.feeds ?? []).length)).catch(() => {}) }} />}
     </div>
   )
 }
