@@ -10,6 +10,7 @@ type Dest = { label: string; href: string; emoji: string; key?: string }
 // Destinations + raccourci « g <touche> »
 const DESTINATIONS: Dest[] = [
   { label: 'Accueil',       href: '/',                   emoji: '🏠', key: 'h' },
+  { label: 'Brief',         href: '/brief',              emoji: '📋', key: 'w' },
   { label: 'Calendrier',    href: '/calendrier',         emoji: '📅', key: 'c' },
   { label: 'Time Tracker',  href: '/time-tracker',       emoji: '⏱', key: 't' },
   { label: 'Projets',       href: '/projets',            emoji: '📁', key: 'p' },

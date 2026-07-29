@@ -5,13 +5,14 @@ import { usePathname } from 'next/navigation'
 import {
   Home, BarChart2, User, Plus, LayoutGrid, X,
   Calendar, Clock, FolderKanban, CheckSquare, Activity, HeartPulse,
-  UtensilsCrossed, ShoppingCart, Wallet,
+  UtensilsCrossed, ShoppingCart, Wallet, List,
 } from '@/components/ui/icons'
 import { useState } from 'react'
 import { useAppConfig } from '@/hooks/useAppConfig'
 
 const ALL_SECTIONS = [
   { href: '/',             label: 'Accueil',      Icon: Home },
+  { href: '/brief',        label: 'Brief',        Icon: List },
   { href: '/calendrier',   label: 'Calendrier',   Icon: Calendar },
   { href: '/time-tracker', label: 'Time Tracker', Icon: Clock },
   { href: '/projets',      label: 'Projets',      Icon: FolderKanban },
