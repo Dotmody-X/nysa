@@ -1,72 +1,24 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { RefreshCw, Loader2, Sun, Moon } from '@/components/ui/icons'
+import { RefreshCw, Loader2 } from '@/components/ui/icons'
 import { PageTitle } from '@/components/ui/PageTitle'
-import { useDigests, type Digest } from '@/hooks/useDigests'
+import { useDigests } from '@/hooks/useDigests'
+import { DigestCard } from '@/components/brief/DigestCard'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const WHEAT = 'var(--text)'
-const BRIEF_COLOR = 'var(--azul)'          // cobalt
-const DEBRIEF_COLOR = 'var(--accent-budget)' // tangerine
+const BRIEF_COLOR = 'var(--azul)'
+const DEBRIEF_COLOR = 'var(--accent-budget)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
   boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 
-const kindMeta = (kind: string) => kind === 'debrief'
-  ? { label: 'Débrief', color: DEBRIEF_COLOR, Icon: Moon }
-  : { label: 'Brief',   color: BRIEF_COLOR,   Icon: Sun }
-
-function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
-}
 const dayKey = (iso: string) => {
   const d = new Date(iso)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-/* ── Carte « en tête » (dernier brief / débrief) ── */
-function HeadlineCard({ digest, fallback }: { digest: Digest | null; fallback: string }) {
-  if (!digest) {
-    return (
-      <div style={{ ...card(), padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 140 }}>
-        <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{fallback}</p>
-      </div>
-    )
-  }
-  const m = kindMeta(digest.kind)
-  return (
-    <div style={{ ...card(), padding: 0, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: m.color, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <m.Icon size={16} style={{ color: 'var(--creamy-ivory)' }} />
-        <span style={{ ...DF, fontSize: 12, fontWeight: 900, color: 'var(--creamy-ivory)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Dernier {m.label.toLowerCase()}</span>
-        <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(245,241,237,0.85)' }}>{fmtDate(digest.generated_at)}</span>
-      </div>
-      <div style={{ padding: 18, maxHeight: 260, overflowY: 'auto' }}>
-        <p style={{ fontSize: 13, color: WHEAT, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{digest.content}</p>
-      </div>
-    </div>
-  )
-}
-
-/* ── Élément d'historique ── */
-function HistoryItem({ digest }: { digest: Digest }) {
-  const m = kindMeta(digest.kind)
-  return (
-    <div style={{ ...card(), padding: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 20, color: 'var(--creamy-ivory)', background: m.color, ...DF }}>
-          <m.Icon size={11} /> {m.label}
-        </span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{fmtDate(digest.generated_at)}</span>
-      </div>
-      <div style={{ padding: '14px 16px' }}>
-        <p style={{ fontSize: 12.5, color: WHEAT, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{digest.content}</p>
-      </div>
-    </div>
-  )
 }
 
 export default function BriefPage() {
@@ -79,6 +31,11 @@ export default function BriefPage() {
     if (dateFilter && dayKey(d.generated_at) !== dateFilter) return false
     return true
   }), [digests, typeFilter, dateFilter])
+
+  // Sans filtre : l'historique n'affiche pas les deux « derniers » déjà en tête.
+  const filterActive = typeFilter !== 'tous' || !!dateFilter
+  const topIds = new Set([latestBrief?.id, latestDebrief?.id].filter((x): x is number => x != null))
+  const history = filterActive ? filtered : filtered.filter(d => !topIds.has(d.id))
 
   const chip = (active: boolean, color: string): React.CSSProperties => ({
     ...DF, fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
@@ -103,11 +60,13 @@ export default function BriefPage() {
         </div>
       )}
 
-      {/* En tête : dernier brief + dernier débrief */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
-        <HeadlineCard digest={latestBrief} fallback={loading ? 'Chargement…' : 'Aucun brief pour le moment'} />
-        <HeadlineCard digest={latestDebrief} fallback={loading ? 'Chargement…' : 'Aucun débrief pour le moment'} />
-      </div>
+      {/* En tête : dernier brief + dernier débrief (rendu riche via payload) */}
+      {!loading && (latestBrief || latestDebrief) && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, alignItems: 'start' }}>
+          {latestBrief && <DigestCard digest={latestBrief} />}
+          {latestDebrief && <DigestCard digest={latestDebrief} />}
+        </div>
+      )}
 
       {/* Filtres */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -123,15 +82,15 @@ export default function BriefPage() {
       </div>
 
       {/* Historique antichronologique */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {loading ? (
           <div style={{ ...card(), padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>Chargement…</div>
-        ) : filtered.length === 0 ? (
+        ) : history.length === 0 ? (
           <div style={{ ...card(), padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
-            {digests.length === 0 ? 'Aucun brief ni débrief.' : 'Aucun résultat pour ces filtres.'}
+            {digests.length === 0 ? 'Aucun brief ni débrief.' : filterActive ? 'Aucun résultat pour ces filtres.' : 'Rien de plus dans l’historique.'}
           </div>
         ) : (
-          filtered.map(d => <HistoryItem key={d.id} digest={d} />)
+          history.map(d => <DigestCard key={d.id} digest={d} />)
         )}
       </div>
     </div>
