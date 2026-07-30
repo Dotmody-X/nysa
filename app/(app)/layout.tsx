@@ -6,6 +6,7 @@ import { ExpiryNotifier } from '@/components/ExpiryNotifier'
 import { AuthSync } from '@/components/AuthSync'
 import { SiteChrome } from '@/components/SiteChrome'
 import { ThemeInjector } from '@/components/ThemeInjector'
+import { BriefDock } from '@/components/brief/BriefDock'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <ExpiryNotifier />
       <AuthSync />
       <ThemeInjector />
+      <ClientOnly><BriefDock /></ClientOnly>
     </div>
   )
 }

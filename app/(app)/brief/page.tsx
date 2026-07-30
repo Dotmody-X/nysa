@@ -37,8 +37,8 @@ export default function BriefPage() {
   const topIds = new Set([latestBrief?.id, latestDebrief?.id].filter((x): x is number => x != null))
   const history = filterActive ? filtered : filtered.filter(d => !topIds.has(d.id))
 
-  function openDetached() {
-    window.open('/brief-window', 'nysa-brief', 'width=480,height=880,menubar=no,toolbar=no,location=no,status=no')
+  function toggleDock() {
+    window.dispatchEvent(new Event('nysa:toggle-brief'))
   }
 
   const chip = (active: boolean, color: string): React.CSSProperties => ({
@@ -53,9 +53,9 @@ export default function BriefPage() {
       <PageTitle title="Brief" sub="Briefs & débriefs quotidiens"
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={openDetached} className="nb-press" title="Ouvrir le brief dans une fenêtre détachée (à garder ouverte)"
+            <button onClick={toggleDock} className="nb-press" title="Ouvrir/fermer la mini-fenêtre Brief (dispo sur toutes les pages)"
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 12 }}>
-              <ExternalLink size={13} /> Détacher
+              <ExternalLink size={13} /> Mini-fenêtre
             </button>
             <button onClick={refetch} className="nb-press"
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 700, fontSize: 12 }}>
