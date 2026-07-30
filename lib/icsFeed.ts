@@ -28,21 +28,31 @@ export function normalizeFeedUrl(raw: string): string | null {
 }
 
 // ── Récupération du flux ──────────────────────────────────────────────────────
+// UA navigateur : Google (et d'autres fournisseurs) répondent parfois 403/429 à
+// un User-Agent non-navigateur depuis une IP serveur/datacenter. On se présente
+// donc comme un navigateur. Timeout via AbortController (portable partout).
+const BROWSER_UA =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+
 export async function fetchIcsText(url: string): Promise<{ ok: boolean; text: string; error?: string }> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 20_000)
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'NYSA/1.0', Accept: 'text/calendar, text/plain, */*' },
+      headers: { 'User-Agent': BROWSER_UA, Accept: 'text/calendar, text/plain, */*' },
       redirect: 'follow',
-      signal: AbortSignal.timeout(20_000),
+      signal: controller.signal,
       cache: 'no-store',
     })
-    if (!res.ok) return { ok: false, text: '', error: `HTTP ${res.status}` }
+    if (!res.ok) return { ok: false, text: '', error: `Le serveur du calendrier a répondu ${res.status}` }
     const text = await res.text()
     if (!text.includes('BEGIN:VCALENDAR')) return { ok: false, text: '', error: 'Ce lien ne renvoie pas un calendrier iCal (.ics)' }
     return { ok: true, text }
   } catch (e: unknown) {
-    const msg = e instanceof Error && e.name === 'TimeoutError' ? 'Délai dépassé' : 'Lien injoignable'
-    return { ok: false, text: '', error: msg }
+    const aborted = e instanceof Error && e.name === 'AbortError'
+    return { ok: false, text: '', error: aborted ? 'Délai dépassé (le calendrier a mis trop de temps à répondre)' : 'Lien injoignable' }
+  } finally {
+    clearTimeout(timer)
   }
 }
 
