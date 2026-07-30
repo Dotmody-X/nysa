@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { RefreshCw, Loader2 } from '@/components/ui/icons'
+import { RefreshCw, Loader2, ExternalLink } from '@/components/ui/icons'
 import { PageTitle } from '@/components/ui/PageTitle'
 import { useDigests } from '@/hooks/useDigests'
 import { DigestCard } from '@/components/brief/DigestCard'
@@ -37,6 +37,10 @@ export default function BriefPage() {
   const topIds = new Set([latestBrief?.id, latestDebrief?.id].filter((x): x is number => x != null))
   const history = filterActive ? filtered : filtered.filter(d => !topIds.has(d.id))
 
+  function openDetached() {
+    window.open('/brief-window', 'nysa-brief', 'width=480,height=880,menubar=no,toolbar=no,location=no,status=no')
+  }
+
   const chip = (active: boolean, color: string): React.CSSProperties => ({
     ...DF, fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
     border: `2px solid ${active ? color : 'var(--border)'}`,
@@ -48,10 +52,16 @@ export default function BriefPage() {
     <div style={{ padding: 30, minHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
       <PageTitle title="Brief" sub="Briefs & débriefs quotidiens"
         right={
-          <button onClick={refetch} className="nb-press"
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 700, fontSize: 12 }}>
-            {loading ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />} Actualiser
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={openDetached} className="nb-press" title="Ouvrir le brief dans une fenêtre détachée (à garder ouverte)"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 12 }}>
+              <ExternalLink size={13} /> Détacher
+            </button>
+            <button onClick={refetch} className="nb-press"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 700, fontSize: 12 }}>
+              {loading ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />} Actualiser
+            </button>
+          </div>
         } />
 
       {error && (
