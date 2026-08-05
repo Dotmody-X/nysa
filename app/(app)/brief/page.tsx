@@ -5,6 +5,7 @@ import { RefreshCw, Loader2, ExternalLink } from '@/components/ui/icons'
 import { PageTitle } from '@/components/ui/PageTitle'
 import { useDigests } from '@/hooks/useDigests'
 import { DigestCard } from '@/components/brief/DigestCard'
+import { DailyNotes } from '@/components/brief/DailyNotes'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const WHEAT = 'var(--text)'
@@ -77,6 +78,9 @@ export default function BriefPage() {
           {latestDebrief && <DigestCard digest={latestDebrief} />}
         </div>
       )}
+
+      {/* Notes du jour — saisies au fil de la journée, lues par le débrief du soir */}
+      <DailyNotes />
 
       {/* Filtres */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
