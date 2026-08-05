@@ -16,6 +16,7 @@ const navItems: NavItem[] = [
   { href: '/',             label: 'Accueil',       color: 'var(--accent-budget)' },
   { href: '/brief',        label: 'Brief',         color: 'var(--accent-time)' },
   { href: '/calendrier',   label: 'Calendrier',    color: 'var(--accent-time)' },
+  { href: '/publications', label: 'Publications',  color: 'var(--accent-time)' },
   { href: '/time-tracker', label: 'Time Trackers', color: 'var(--accent-time)' },
   { href: '/projets',      label: 'Projets',       color: 'var(--accent-time)' },
   { href: '/todo',         label: 'To Do List',    color: 'var(--accent-time)' },
