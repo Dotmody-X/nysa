@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/client'
 import { loadNotifPrefs, saveNotifPrefs, NOTIF_DEFS, type NotifPrefs } from '@/lib/notifPrefs'
 import { exportAllJson, exportTasksCsv, exportFinancesCsv, deleteAllData } from '@/lib/dataExport'
 import { userKey } from '@/lib/userStore'
+import { useDefaultLabel } from '@/hooks/useDefaultLabel'
+import { useTimeCategories } from '@/hooks/useTimeCategories'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
@@ -90,6 +92,8 @@ function ProfilTab() {
   const [df, setDf]       = useState('JJ/MM/AAAA')
   const [saving, setSaving] = useState(false)
   const [msg, setMsg]     = useState<string | null>(null)
+  const { label: defaultLabel, setLabel: setDefaultLabel } = useDefaultLabel()
+  const { categories: labelSuggestions } = useTimeCategories([])
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => {
@@ -135,6 +139,17 @@ function ProfilTab() {
               <option>JJ/MM/AAAA</option><option>MM/JJ/AAAA</option><option>AAAA-MM-JJ</option>
             </select>
           </div>
+        </div>
+        <div>
+          <p style={LBL_F}>Label par défaut des activités</p>
+          <input value={defaultLabel} onChange={e=>setDefaultLabel(e.target.value)} list="nysa-default-label-list"
+            placeholder="Ex. Développement — appliqué au Calendrier et au Time Tracker" style={INP_F} />
+          <datalist id="nysa-default-label-list">
+            {labelSuggestions.map(c => <option key={c} value={c} />)}
+          </datalist>
+          <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:6 }}>
+            Pré-rempli automatiquement quand tu crées un événement ou ajoutes une activité à l'agenda. Enregistré aussitôt ; laisse vide pour désactiver.
+          </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:8 }}>
           <button onClick={save} disabled={saving} className="nb-press" style={{ background:'var(--accent-budget)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>

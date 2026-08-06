@@ -10,6 +10,7 @@ import {
 import { useCalendar, CalendarEvent, NewEvent } from '@/hooks/useCalendar'
 import { useTasks } from '@/hooks/useTasks'
 import { useProjects } from '@/hooks/useProjects'
+import { readDefaultLabel } from '@/hooks/useDefaultLabel'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -484,7 +485,7 @@ function EventModal({
   const [form, setForm] = useState({
     title:       initialValues?.title       ?? '',
     description: initialValues?.description ?? '',
-    category:    initialValues?.category    ?? (extraCategories[0] || 'Travail'),
+    category:    initialValues?.category    ?? (readDefaultLabel() || extraCategories[0] || 'Travail'),
     location:    initialValues?.location    ?? '',
     projectId:   initialValues?.project_id  ?? '',
     date:        date,
@@ -588,6 +589,9 @@ function EventModal({
           <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
             className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
             style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }}>
+            {form.category && !CATEGORIES[form.category] && !extraCategories.includes(form.category) && (
+              <option value={form.category}>{form.category}</option>
+            )}
             {extraCategories.length > 0 && (
               <optgroup label="Apple Calendar">
                 {extraCategories.map(c => <option key={c} value={c}>{c}</option>)}

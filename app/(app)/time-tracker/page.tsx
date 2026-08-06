@@ -7,6 +7,7 @@ import {
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjects }    from '@/hooks/useProjects'
 import { useTimeCategories } from '@/hooks/useTimeCategories'
+import { readDefaultLabel } from '@/hooks/useDefaultLabel'
 import type { TimeEntry } from '@/types'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -429,7 +430,7 @@ function ManualEntryModal({
   const yd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
   const currentTime = `${String(today.getHours()).padStart(2,'0')}:${String(today.getMinutes()).padStart(2,'0')}`
   const [form, setForm] = useState({
-    description: '', projectId: '', category: '', billable: true,
+    description: '', projectId: '', category: readDefaultLabel(), billable: true,
     startDate: yd(today), startTime: currentTime, endDate: '', endTime: '',
   })
   const [saving, setSaving] = useState(false)
@@ -507,6 +508,9 @@ export default function TimeTrackerPage() {
   const [showLabelPicker, setShowLabelPicker] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Pré-remplit le label agenda avec le label par défaut choisi dans les réglages
+  useEffect(() => { const d = readDefaultLabel(); if (d) setCalendarLabel(l => l || d) }, [])
 
   /* ── Fetch data based on period ─────────────────────────────────────────── */
   const { from, to } = getPeriodDates(period)
