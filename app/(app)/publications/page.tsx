@@ -24,7 +24,7 @@ const CHANNEL_COLOR: Record<string, string> = {
   TikTok:      '#0891B2',
   Newsletter:  '#D97706',
   Magazine:    '#16A34A',
-  'Site web':  'var(--azul)',
+  'Site web':  '#0D9488',
   Autre:       '#6b7280',
 }
 const CH_PALETTE = ['#E1306C', '#9333EA', '#2563EB', '#0891B2', '#D97706', '#16A34A', '#0EA5E9', '#DC2626', '#7C3AED', '#DB2777']
@@ -427,8 +427,8 @@ export default function PublicationsPage() {
                       {pubs.map(p => (
                         <div key={p.id} onClick={e => { e.stopPropagation(); openEdit(p) }}
                           title={`${p.title ?? ''}${p.brand ? ' — ' + p.brand : ''}${p.channel ? ' · ' + p.channel : ''}`}
-                          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 5px', borderRadius: 5, background: 'var(--bg-card)', border: '1px solid var(--border)', borderLeft: `3px solid ${channelColor(p.channel)}`, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : 1 }}>
-                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: channelColor(p.channel), flexShrink: 0 }} />
+                          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 5px', borderRadius: 5, background: channelColor(p.channel) + '2e', border: '1px solid var(--border)', borderLeft: `3px solid ${channelColor(p.channel)}`, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : 1 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: brandColor(p.brand ?? ''), border: '1px solid var(--ink)', flexShrink: 0 }} />
                           <span style={{ fontSize: 10, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {p.title}{p.channel ? ` · ${p.channel}` : ''}
                           </span>
@@ -464,12 +464,12 @@ export default function PublicationsPage() {
               {backlog.map(p => (
                 <div key={p.id} style={{ ...card({ boxShadow: '3px 3px 0 var(--ink)' }), borderLeft: `5px solid ${channelColor(p.channel)}`, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.6 : 1 }} onClick={() => openEdit(p)}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: channelColor(p.channel), marginTop: 4, flexShrink: 0 }} />
+                    <span title={p.brand ?? undefined} style={{ width: 10, height: 10, borderRadius: '50%', background: brandColor(p.brand ?? ''), border: '1.5px solid var(--ink)', marginTop: 4, flexShrink: 0 }} />
                     <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--text)', lineHeight: 1.3 }}>{p.title}</span>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
                     <BrandBadge brand={p.brand} />
-                    {p.channel && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{p.channel}</span>}
+                    {p.channel && <span style={{ fontSize: 10, fontWeight: 700, color: channelColor(p.channel) }}>{p.channel}</span>}
                   </div>
                   {p.notes && <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.notes}</p>}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={e => e.stopPropagation()}>
