@@ -11,7 +11,30 @@ import { brandColor } from '@/lib/digestStyle'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 const BRANDS = ['Le Mixologue', 'E-Smoker', 'Aeterna', 'Transverse', 'Interne']
-const CHANNELS = ['Instagram', 'Facebook', 'TikTok', 'Newsletter', 'Magazine', 'Site web', 'Autre']
+const CHANNELS = ['Instagram', 'Réel', 'Story', 'Facebook', 'TikTok', 'Newsletter', 'Magazine', 'Site web', 'Autre']
+
+// Couleur par canal (type de post). Liste éditable → repli par hash pour les
+// canaux personnalisés, afin que chaque canal garde une couleur stable.
+const CHANNEL_COLOR: Record<string, string> = {
+  Instagram:   '#E1306C',
+  'Réel':      '#9333EA',
+  Reel:        '#9333EA',
+  Story:       '#F59E0B',
+  Facebook:    '#2563EB',
+  TikTok:      '#0891B2',
+  Newsletter:  '#D97706',
+  Magazine:    '#16A34A',
+  'Site web':  'var(--azul)',
+  Autre:       '#6b7280',
+}
+const CH_PALETTE = ['#E1306C', '#9333EA', '#2563EB', '#0891B2', '#D97706', '#16A34A', '#0EA5E9', '#DC2626', '#7C3AED', '#DB2777']
+function channelColor(name?: string | null): string {
+  if (!name) return '#6b7280'
+  if (CHANNEL_COLOR[name]) return CHANNEL_COLOR[name]
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff
+  return CH_PALETTE[Math.abs(h) % CH_PALETTE.length]
+}
 const STATUSES: { key: PubStatus; label: string; color: string }[] = [
   { key: 'idea',      label: 'Idée',      color: '#6b7280' },
   { key: 'draft',     label: 'Brouillon', color: '#d97706' },
@@ -361,6 +384,15 @@ export default function PublicationsPage() {
         </select>
       </div>
 
+      {/* Légende — couleur par canal (type de post) */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '0 4px' }}>
+        {CHANNELS.filter(c => c !== 'Autre').map(c => (
+          <span key={c} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'var(--text-muted)', ...DF, fontWeight: 600 }}>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: channelColor(c), border: '1.5px solid var(--ink)', flexShrink: 0 }} /> {c}
+          </span>
+        ))}
+      </div>
+
       {/* ── Vue Calendrier ─────────────────────────────────────────────────── */}
       {view === 'calendar' && (
         <div style={{ ...card(), overflow: 'hidden' }}>
@@ -394,10 +426,10 @@ export default function PublicationsPage() {
                       <span style={{ fontSize: 11, fontWeight: isToday ? 900 : 600, color: isToday ? 'var(--accent-budget)' : 'var(--text-muted)', ...DF }}>{day.getDate()}</span>
                       {pubs.map(p => (
                         <div key={p.id} onClick={e => { e.stopPropagation(); openEdit(p) }}
-                          title={`${p.title ?? ''}${p.channel ? ' · ' + p.channel : ''}`}
-                          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 5px', borderRadius: 5, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : 1 }}>
-                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: brandColor(p.brand ?? ''), flexShrink: 0 }} />
-                          <span style={{ fontSize: 10, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: p.status === 'published' ? 'none' : 'none' }}>
+                          title={`${p.title ?? ''}${p.brand ? ' — ' + p.brand : ''}${p.channel ? ' · ' + p.channel : ''}`}
+                          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 5px', borderRadius: 5, background: 'var(--bg-card)', border: '1px solid var(--border)', borderLeft: `3px solid ${channelColor(p.channel)}`, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : 1 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: channelColor(p.channel), flexShrink: 0 }} />
+                          <span style={{ fontSize: 10, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {p.title}{p.channel ? ` · ${p.channel}` : ''}
                           </span>
                         </div>
@@ -430,9 +462,9 @@ export default function PublicationsPage() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
               {backlog.map(p => (
-                <div key={p.id} style={{ ...card({ boxShadow: '3px 3px 0 var(--ink)' }), padding: 12, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.6 : 1 }} onClick={() => openEdit(p)}>
+                <div key={p.id} style={{ ...card({ boxShadow: '3px 3px 0 var(--ink)' }), borderLeft: `5px solid ${channelColor(p.channel)}`, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.6 : 1 }} onClick={() => openEdit(p)}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: brandColor(p.brand ?? ''), marginTop: 4, flexShrink: 0 }} />
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: channelColor(p.channel), marginTop: 4, flexShrink: 0 }} />
                     <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--text)', lineHeight: 1.3 }}>{p.title}</span>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
