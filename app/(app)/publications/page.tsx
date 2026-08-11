@@ -427,7 +427,7 @@ export default function PublicationsPage() {
                       {pubs.map(p => (
                         <div key={p.id} onClick={e => { e.stopPropagation(); openEdit(p) }}
                           title={`${p.title ?? ''}${p.brand ? ' — ' + p.brand : ''}${p.channel ? ' · ' + p.channel : ''}`}
-                          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 5px', borderRadius: 5, background: channelColor(p.channel) + '2e', border: '1px solid var(--border)', borderLeft: `3px solid ${channelColor(p.channel)}`, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : 1 }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 5px', borderRadius: 5, background: channelColor(p.channel) + '2e', border: '1px solid var(--border)', borderLeft: `3px solid ${channelColor(p.channel)}`, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : p.status === 'published' ? 0.8 : 1 }}>
                           <span style={{ width: 7, height: 7, borderRadius: '50%', background: brandColor(p.brand ?? ''), border: '1px solid var(--ink)', flexShrink: 0 }} />
                           <span style={{ fontSize: 10, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {p.title}{p.channel ? ` · ${p.channel}` : ''}
