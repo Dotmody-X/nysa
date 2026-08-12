@@ -477,7 +477,7 @@ function EventModal({
   initialValues?: CalendarEvent | null
   onUpdate?: (id: string, patch: Partial<NewEvent>) => Promise<unknown>
 }) {
-  const { projects, create: createProject } = useProjects()
+  const { projects, activeProjects, create: createProject } = useProjects()
   const isEdit    = !!initialValues
   const initStart = initialValues ? new Date(initialValues.start_at) : null
   const initEnd   = initialValues ? new Date(initialValues.end_at)   : null
@@ -634,7 +634,7 @@ function EventModal({
               className="w-full px-3 py-2 rounded-[8px] text-sm outline-none"
               style={{ background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)' }}>
               <option value="">Sans projet</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
 
             {/* Dot projet sélectionné */}

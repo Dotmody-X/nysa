@@ -172,7 +172,7 @@ function EditTaskModal({
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function TodoPage() {
   const { tasks, loading, create, toggle, update, remove } = useTasks()
-  const { projects } = useProjects()
+  const { projects, activeProjects } = useProjects()
 
   const [search,        setSearch]        = useState('')
   const [tab,           setTab]           = useState<'toutes' | 'priorites' | 'projets' | 'auto'>('toutes')
@@ -330,7 +330,7 @@ export default function TodoPage() {
           <select value={newProjectId} onChange={e => setNewProjectId(e.target.value)}
             style={{ ...inp, minWidth: 120 }}>
             <option value="">Sans projet</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
           <button type="submit" className="nb-press"
             style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
@@ -445,7 +445,7 @@ export default function TodoPage() {
           {/* Projets */}
           <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--azul)', textTransform: 'uppercase', marginBottom: 10 }}>Projets</p>
-            {projects.map(p => {
+            {activeProjects.map(p => {
               const count   = tasks.filter(t => t.project_id === p.id && t.status !== 'done').length
               const isActive = filterProject === p.id
               return (
@@ -500,7 +500,7 @@ export default function TodoPage() {
     {editingTask && (
       <EditTaskModal
         task={editingTask}
-        projects={projects}
+        projects={activeProjects}
         onSave={update}
         onDelete={async (id) => { await remove(id) }}
         onClose={() => setEditingTask(null)}
