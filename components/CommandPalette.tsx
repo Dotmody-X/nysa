@@ -13,7 +13,7 @@ const DESTINATIONS: Dest[] = [
   { label: 'Brief',         href: '/brief',              emoji: '📋', key: 'w' },
   { label: 'Calendrier',    href: '/calendrier',         emoji: '📅', key: 'c' },
   { label: 'Publications',  href: '/publications',       emoji: '🗓', key: 'n' },
-  { label: 'Directeur marketing', href: '/directeur-marketing', emoji: '🎓', key: 'm' },
+  { label: 'Marketing', href: '/directeur-marketing', emoji: '🎓', key: 'm' },
   { label: 'Time Tracker',  href: '/time-tracker',       emoji: '⏱', key: 't' },
   { label: 'Projets',       href: '/projets',            emoji: '📁', key: 'p' },
   { label: 'To-Do',         href: '/todo',               emoji: '✅', key: 'd' },
