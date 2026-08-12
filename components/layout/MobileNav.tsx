@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   Home, BarChart2, User, Plus, LayoutGrid, X,
   Calendar, Clock, FolderKanban, CheckSquare, Activity, HeartPulse,
-  UtensilsCrossed, ShoppingCart, Wallet, List, Send,
+  UtensilsCrossed, ShoppingCart, Wallet, List, Send, Award,
 } from '@/components/ui/icons'
 import { useState } from 'react'
 import { useAppConfig } from '@/hooks/useAppConfig'
@@ -15,6 +15,7 @@ const ALL_SECTIONS = [
   { href: '/brief',        label: 'Brief',        Icon: List },
   { href: '/calendrier',   label: 'Calendrier',   Icon: Calendar },
   { href: '/publications', label: 'Publications', Icon: Send },
+  { href: '/directeur-marketing', label: 'Marketing', Icon: Award },
   { href: '/time-tracker', label: 'Time Tracker', Icon: Clock },
   { href: '/projets',      label: 'Projets',      Icon: FolderKanban },
   { href: '/todo',         label: 'To Do',        Icon: CheckSquare },
