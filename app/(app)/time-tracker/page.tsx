@@ -515,7 +515,7 @@ export default function TimeTrackerPage() {
   /* ── Fetch data based on period ─────────────────────────────────────────── */
   const { from, to } = getPeriodDates(period)
   const { entries, loading, start, stop, update, remove, createManual } = useTimeEntries(from, to)
-  const { projects } = useProjects()
+  const { projects, activeProjects } = useProjects()
   const { categories: timeCategories, add: addTimeCategory } = useTimeCategories(entries.map(e => e.category))
 
   const running = entries.find(e => !e.ended_at)
@@ -754,7 +754,7 @@ export default function TimeTrackerPage() {
               style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text)', fontSize: 13, marginBottom: 10, outline: 'none' }} />
             <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
               <select value={projId} onChange={e => setProjId(e.target.value)} style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }}>
-                <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                <option value="">Sans projet</option>{activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
               <button onClick={() => setBillable(b => !b)} style={{ padding: '8px 12px', borderRadius: 8, background: billable ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', color: billable ? 'var(--azul)' : 'var(--text-muted)', border: '1px solid var(--border)', ...DF, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
                 {billable ? '€ Fact.' : 'Non fact.'}
@@ -1205,11 +1205,11 @@ export default function TimeTrackerPage() {
 
     {/* ── Modals ─────────────────────────────────────────────────────────── */}
     {editingEntry && (
-      <EditEntryModal entry={editingEntry} projects={projects} categories={timeCategories} onAddCategory={addTimeCategory} onSave={update}
+      <EditEntryModal entry={editingEntry} projects={activeProjects} categories={timeCategories} onAddCategory={addTimeCategory} onSave={update}
         onDelete={async (id) => { await remove(id) }} onClose={() => setEditingEntry(null)} />
     )}
     {manualOpen && (
-      <ManualEntryModal projects={projects} categories={timeCategories} onAddCategory={addTimeCategory} onCreate={createManual} onClose={() => setManualOpen(false)} />
+      <ManualEntryModal projects={activeProjects} categories={timeCategories} onAddCategory={addTimeCategory} onCreate={createManual} onClose={() => setManualOpen(false)} />
     )}
     </>
   )

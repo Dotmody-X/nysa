@@ -45,5 +45,9 @@ export function useProjects() {
     return { error }
   }
 
-  return { projects, loading, error, refetch: fetch, create, update, remove }
+  // Projets proposables dans les sélecteurs (les archivés sont exclus partout ;
+  // ils restent dans `projects` pour afficher le nom des éléments déjà liés).
+  const activeProjects = projects.filter(p => p.status !== 'archived')
+
+  return { projects, activeProjects, loading, error, refetch: fetch, create, update, remove }
 }

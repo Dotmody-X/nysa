@@ -293,7 +293,7 @@ export default function PublicationsPage() {
     (async () => {
       const supabase = createClient()
       const [{ data: pj }, { data: tk }] = await Promise.all([
-        supabase.from('projects').select('id, name, groupe').order('groupe', { ascending: true }).order('name', { ascending: true }),
+        supabase.from('projects').select('id, name, groupe').neq('status', 'archived').order('groupe', { ascending: true }).order('name', { ascending: true }),
         supabase.from('tasks').select('id, title').order('created_at', { ascending: false }).limit(300),
       ])
       setProjects((pj as ProjectOpt[]) ?? [])
