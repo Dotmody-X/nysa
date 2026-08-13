@@ -761,7 +761,7 @@ export default function BudgetPage() {
   // ── Panel : Insight IA ──
   const PanelAI = (
     <div style={{ padding:'20px 24px', display:'flex', flexDirection:'column', gap:16 }}>
-      <div style={{ background:TEAL_BG, borderRadius:12, padding:'16px 18px', display:'flex', gap:12, alignItems:'flex-start', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+      <div style={{ background:TEAL_BG, borderRadius:12, padding:'16px 18px', display:'flex', gap:12, alignItems:'flex-start', '--text-rgb':'244, 243, 240', '--text':'#f4f3f0', '--text-muted':'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
         <Zap size={20} style={{ color:WHEAT, flexShrink:0, marginTop:2 }}/>
         <div>
           <p style={{ ...LBL, color:WHEAT, opacity:0.7, marginBottom:6 }}>Analyse du mois</p>
@@ -973,7 +973,7 @@ export default function BudgetPage() {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gridTemplateRows:'300px 300px 500px 400px 260px', gap:12, flex:1 }}>
 
         {/* B1 Aperçu dépenses */}
-        <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', '--text-rgb':'244, 243, 240', '--text':'#f4f3f0', '--text-muted':'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <div style={{ ...HDR, borderBottom:'1px solid rgba(var(--text-rgb),0.1)' }}>
             <span style={{ ...LBL, color:WHEAT }}>Aperçu des dépenses</span>
             <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.45)' }}>{cur.byCategory.length} catégories</span>
@@ -1115,7 +1115,7 @@ export default function BudgetPage() {
                 <p style={{ fontSize:8, color:ORANGE, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:2 }}>Dépenses totales</p>
                 <p style={{ ...DF, fontSize:17, fontWeight:900, color:ORANGE }}>{fmtK(multiMonth.reduce((s,m)=>s+m.expense,0))}</p>
               </div>
-              <div style={{ padding:'10px 14px', borderRadius:10, background:TEAL_BG, '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+              <div style={{ padding:'10px 14px', borderRadius:10, background:TEAL_BG, '--text-rgb':'244, 243, 240', '--text':'#f4f3f0', '--text-muted':'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
                 <p style={{ fontSize:8, color:WHEAT, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:2, opacity:0.7 }}>Solde</p>
                 <p style={{ ...DF, fontSize:17, fontWeight:900, color:WHEAT }}>{fmtK(multiMonth.reduce((s,m)=>s+m.balance,0))}</p>
               </div>
@@ -1279,7 +1279,7 @@ export default function BudgetPage() {
         </div>
 
         {/* B9 Agent IA */}
-        <div style={{ gridColumn:'1/5', gridRow:'5/6', background:TEAL_BG, borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', display:'flex', alignItems:'center', padding:'0 36px', gap:24, overflow:'hidden', '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ gridColumn:'1/5', gridRow:'5/6', background:TEAL_BG, borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', display:'flex', alignItems:'center', padding:'0 36px', gap:24, overflow:'hidden', '--text-rgb':'244, 243, 240', '--text':'#f4f3f0', '--text-muted':'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <div style={{ width:48, height:48, borderRadius:'50%', background:'rgba(var(--text-rgb),0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
             <Zap size={22} style={{ color:WHEAT }}/>
           </div>

@@ -36,7 +36,7 @@ const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: TEAL_BG, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-  '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)', ...extra,
+  '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)', ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',

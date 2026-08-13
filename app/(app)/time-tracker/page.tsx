@@ -832,7 +832,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 4 — Productivité (teal) */}
-      <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, height: 280, display: 'flex', flexDirection: 'column', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+      <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, height: 280, display: 'flex', flexDirection: 'column', '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Taux facturable</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: 'var(--creamy-ivory)', lineHeight: 1, marginBottom: 6 }}>{prodPct}%</p>
         <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginBottom: 'auto' }}>{fmtDur(billableSec)} facturables</p>
@@ -1081,7 +1081,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* Évolution du temps — stacked bars */}
-      <div className="col-span-2" style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380, '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Évolution du temps</p>
           <Dropdown<Period>

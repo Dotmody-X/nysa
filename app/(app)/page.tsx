@@ -44,7 +44,7 @@ export default function DashboardPage() {
   const totalTasks  = data?.todayTasks.length ?? 0
 
   const INK = '#18130e'
-  const CREAM = '#f6efe0'
+  const CREAM = '#f4f3f0'
 
   return (
     <div className="bento-grid md:grid md:grid-cols-4 gap-4 p-4 md:p-7 min-h-full">

@@ -6,8 +6,8 @@ import { type SiteConfig, type ThemeConfig, type ThemePreset, type Plan } from '
 
 // Presets de thème intégrés (points de départ rapides)
 const BUILTIN_PRESETS: { name: string; theme: ThemeConfig }[] = [
-  { name: 'Néo-brutaliste (défaut)', theme: { accent: '#ff5c35', secondary: '#2d5bff', ink: '#18130e', bg: '#f6efe0', card: '#fffaf0', text: '#18130e', radius: 16 } },
-  { name: 'Minuit', theme: { accent: '#8b5cf6', secondary: '#36c5f0', ink: '#000000', bg: '#0c0c14', card: '#15151f', text: '#f5f1ed', radius: 14 } },
+  { name: 'Néo-brutaliste (défaut)', theme: { accent: '#ff5c35', secondary: '#2d5bff', ink: '#18130e', bg: '#f4f3f0', card: '#ffffff', text: '#18130e', radius: 16 } },
+  { name: 'Minuit', theme: { accent: '#8b5cf6', secondary: '#36c5f0', ink: '#000000', bg: '#0c0c14', card: '#15151f', text: '#f4f3f0', radius: 14 } },
   { name: 'Forêt', theme: { accent: '#18b26b', secondary: '#737a4e', ink: '#10231a', bg: '#f1f5ec', card: '#ffffff', text: '#10231a', radius: 12 } },
   { name: 'Rose bonbon', theme: { accent: '#ff4d8d', secondary: '#6c5ce7', ink: '#2a0a1a', bg: '#fff0f6', card: '#ffffff', text: '#2a0a1a', radius: 20 } },
 ]
@@ -45,7 +45,7 @@ const THEME_FIELDS: { key: keyof Omit<ThemeConfig, 'radius'>; label: string }[] 
   { key: 'card', label: 'Fond des cartes' }, { key: 'text', label: 'Texte' },
 ]
 const DEFAULT_HEX: Record<string, string> = {
-  accent: '#ff5c35', secondary: '#2d5bff', ink: '#18130e', bg: '#f6efe0', card: '#fffaf0', text: '#18130e',
+  accent: '#ff5c35', secondary: '#2d5bff', ink: '#18130e', bg: '#f4f3f0', card: '#ffffff', text: '#18130e',
 }
 const rid = () => Math.random().toString(36).slice(2)
 

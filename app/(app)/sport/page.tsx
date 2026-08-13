@@ -385,7 +385,7 @@ function SportPageInner() {
   const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
     background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
     boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-    '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)',
+    '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)',
     ...extra,
   } as React.CSSProperties)
   const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
@@ -571,7 +571,7 @@ function SportPageInner() {
             boxShadow: '4px 4px 0 var(--ink)', padding: '22px 22px 18px',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden',
             ...(kpi.dark
-              ? { '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' }
+              ? { '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' }
               : { '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' }),
           } as React.CSSProperties}>
             <div>

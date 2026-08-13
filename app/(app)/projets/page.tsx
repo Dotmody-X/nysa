@@ -1012,7 +1012,7 @@ export default function ProjetsPage() {
       {/* ── ROW 6 : RÉPARTITION PAR MARQUE (teal, col-span-2) + ACTIVITÉ + LIENS */}
 
       {/* RÉPARTITION PAR MARQUE */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '2px solid var(--ink)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '2px solid var(--ink)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
         <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition par marque</p>
           <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>

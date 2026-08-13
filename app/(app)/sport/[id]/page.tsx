@@ -12,7 +12,7 @@ import { SegmentDetails } from '@/components/sport/SegmentDetails'
 // Import Leaflet uniquement côté client
 const ActivityMap = dynamic(
   () => import('@/components/sport/ActivityMap').then(m => m.ActivityMap),
-  { ssr: false, loading: () => <div style={{ height: 360, background: '#0C0C0C', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Chargement de la carte…</span></div> }
+  { ssr: false, loading: () => <div style={{ height: 360, background: '#0C0C0C', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Chargement de la carte…</span></div> }
 )
 
 // Error boundary léger pour éviter le crash total de la page
@@ -22,7 +22,7 @@ class SafeMap extends Component<{ children: ReactNode }, { hasError: boolean }> 
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ height: 360, background: '#161616', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ height: 360, background: '#161616', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <span style={{ fontSize: 28 }}>🗺️</span>
           <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)', fontFamily: 'var(--font-display)' }}>Carte non disponible</p>
         </div>
@@ -285,7 +285,7 @@ export default function ActivityDetailPage() {
           {gpxData && (
             <div className="flex flex-col gap-4">
               {/* Profil d'élévation */}
-              <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, flex: 1, '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+              <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, flex: 1, '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
                 <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                   Profil d'élévation
                 </p>

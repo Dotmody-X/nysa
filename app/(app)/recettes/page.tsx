@@ -24,7 +24,7 @@ const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: TEAL_BG, '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: ORANGE, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,

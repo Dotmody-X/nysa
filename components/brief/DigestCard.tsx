@@ -184,7 +184,7 @@ export function DigestCard({ digest }: { digest: Digest }) {
         <m.Icon size={18} style={{ color: 'var(--creamy-ivory)' }} />
         <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'var(--creamy-ivory)', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.85 }}>{m.label}</span>
         <span style={{ ...DF, fontSize: 15, fontWeight: 900, color: 'var(--creamy-ivory)', flex: 1, minWidth: 120 }}>{title}</span>
-        <span style={{ fontSize: 11, color: 'rgba(245,241,237,0.9)', textTransform: 'capitalize' }}>{dateStr}</span>
+        <span style={{ fontSize: 11, color: 'rgba(244, 243, 240,0.9)', textTransform: 'capitalize' }}>{dateStr}</span>
       </div>
       {p ? <PayloadBody p={p} /> : <MarkdownFallback content={digest.content} />}
     </div>

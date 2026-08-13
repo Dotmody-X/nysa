@@ -1011,7 +1011,7 @@ function CalendrierContent() {
       </div>
 
       {/* À VENIR — col-span-2, teal, 300px, liste verticale */}
-      <div className="col-span-2" style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden', '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden', '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
           <span style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', fontWeight: 600 }}>{upcoming.length}</span>
@@ -1436,7 +1436,7 @@ function CalendrierContent() {
       <div className="col-span-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, paddingBottom: 10 }}>
 
         {/* VUE D'ENSEMBLE — teal */}
-        <div style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12, '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12, '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <div>
             <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'rgba(var(--text-rgb),0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue d'ensemble</p>
             <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', marginTop: 3 }}>{fmtShortDate(weekStart)} – {fmtShortDate(addDays(weekStart, 6))}</p>

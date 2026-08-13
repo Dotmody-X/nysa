@@ -106,7 +106,7 @@ const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: TEAL_BG, overflow: 'hidden', ...STICKER,
   // Fond foncé fixe (cobalt) → encre claire dans les deux thèmes
-  '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)',
+  '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)',
   ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({

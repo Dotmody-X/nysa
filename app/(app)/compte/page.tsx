@@ -419,7 +419,7 @@ export default function ComptePage() {
         </div>
 
         {/* Stats globales */}
-        <div style={{ ...card(TEAL_BG), padding:22, '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...card(TEAL_BG), padding:22, '--text-rgb':'244, 243, 240', '--text':'#f4f3f0', '--text-muted':'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase', marginBottom:18 }}>Vos statistiques globales</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
             {[
@@ -659,7 +659,7 @@ export default function ComptePage() {
 
         {/* Abonnement + Export + Supprimer */}
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-          <div style={{ ...card(TEAL_BG), padding:20, flex:1, '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+          <div style={{ ...card(TEAL_BG), padding:20, flex:1, '--text-rgb':'244, 243, 240', '--text':'#f4f3f0', '--text-muted':'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Abonnement</p>
               <span style={{ padding:'3px 8px', borderRadius:99, background:'rgba(14,149,148,0.3)', color:WHEAT, fontSize:9, ...DF, fontWeight:700 }}>Actif</span>

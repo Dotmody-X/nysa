@@ -703,7 +703,7 @@ export default function RapportsPage() {
         ))}
 
         {/* ── R3 C1-2 : Aperçu activité ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <CH label="Aperçu de l'activité" color={WHEAT}
             right={
               <div style={{ display: 'flex', gap: 12 }}>
@@ -935,7 +935,7 @@ export default function RapportsPage() {
         </div>
 
         {/* ── R6 : Insight IA ─────────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <div style={{ flex: 1.2, padding: '20px 28px', borderRight: '1px solid rgba(14,149,148,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(14,149,148,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
