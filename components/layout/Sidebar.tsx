@@ -2,7 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Settings, Sun, Moon, Monitor, User } from '@/components/ui/icons'
+import {
+  Settings, Sun, Moon, Monitor, User,
+  Home, BarChart2, Calendar, Clock, FolderKanban, CheckSquare, Activity,
+  HeartPulse, UtensilsCrossed, ShoppingCart, Wallet, List, Send, Award, Shield,
+} from '@/components/ui/icons'
 import { NysaLogo } from '@/components/ui/NysaLogo'
 import { useState, useEffect, useRef } from 'react'
 import { saveTheme, THEME_KEY } from '@/lib/theme'
@@ -10,25 +14,25 @@ import type { ThemeMode } from '@/lib/theme'
 import { createClient } from '@/lib/supabase/client'
 import { useAppConfig, useIsAdmin } from '@/hooks/useAppConfig'
 
-type NavItem = { href: string; label: string; color?: string; accent?: boolean; group?: string }
+type NavItem = { href: string; label: string; Icon: typeof Home; accent?: boolean; group?: string }
 
 // Sections courtes (loi de Hick) : regroupement par proximité plutôt
-// qu'une liste plate de 14 entrées.
+// qu'une liste plate de 14 entrées. Icônes = repérage immédiat.
 const navItems: NavItem[] = [
-  { href: '/',             label: 'Accueil',       color: 'var(--accent-brand)' },
-  { href: '/brief',        label: 'Brief',         color: 'var(--accent-time)' },
-  { href: '/calendrier',   label: 'Calendrier',    color: 'var(--accent-time)', group: 'Organiser' },
-  { href: '/time-tracker', label: 'Time Trackers', color: 'var(--accent-time)', group: 'Organiser' },
-  { href: '/projets',      label: 'Projets',       color: 'var(--accent-time)', group: 'Organiser' },
-  { href: '/todo',         label: 'To Do List',    color: 'var(--accent-time)', group: 'Organiser' },
-  { href: '/publications', label: 'Publications',  color: 'var(--accent-time)', group: 'Organiser' },
-  { href: '/directeur-marketing', label: 'Marketing', color: 'var(--accent-time)', group: 'Organiser' },
-  { href: '/sport',        label: 'Running',       color: 'var(--accent-time)', group: 'Quotidien' },
-  { href: '/health',       label: 'Health',        color: 'var(--accent-time)', group: 'Quotidien' },
-  { href: '/recettes',     label: 'Recettes',      color: 'var(--accent-time)', group: 'Quotidien' },
-  { href: '/courses',      label: 'Courses',       color: 'var(--accent-time)', group: 'Quotidien' },
-  { href: '/budget',       label: 'Budget',        color: 'var(--accent-time)', group: 'Analyser' },
-  { href: '/rapports',     label: 'Rapports',      color: 'var(--accent-time)', group: 'Analyser' },
+  { href: '/',             label: 'Accueil',       Icon: Home },
+  { href: '/brief',        label: 'Brief',         Icon: List },
+  { href: '/calendrier',   label: 'Calendrier',    Icon: Calendar,     group: 'Organiser' },
+  { href: '/time-tracker', label: 'Time Trackers', Icon: Clock,        group: 'Organiser' },
+  { href: '/projets',      label: 'Projets',       Icon: FolderKanban, group: 'Organiser' },
+  { href: '/todo',         label: 'To Do List',    Icon: CheckSquare,  group: 'Organiser' },
+  { href: '/publications', label: 'Publications',  Icon: Send,         group: 'Organiser' },
+  { href: '/directeur-marketing', label: 'Marketing', Icon: Award,     group: 'Organiser' },
+  { href: '/sport',        label: 'Running',       Icon: Activity,     group: 'Quotidien' },
+  { href: '/health',       label: 'Health',        Icon: HeartPulse,   group: 'Quotidien' },
+  { href: '/recettes',     label: 'Recettes',      Icon: UtensilsCrossed, group: 'Quotidien' },
+  { href: '/courses',      label: 'Courses',       Icon: ShoppingCart, group: 'Quotidien' },
+  { href: '/budget',       label: 'Budget',        Icon: Wallet,       group: 'Analyser' },
+  { href: '/rapports',     label: 'Rapports',      Icon: BarChart2,    group: 'Analyser' },
   // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
 
@@ -44,7 +48,7 @@ export function Sidebar() {
   const isAdmin = useIsAdmin()
   const visibleNav: NavItem[] = [
     ...navItems.filter(i => !config.hiddenSections.includes(i.href)),
-    ...(isAdmin ? [{ href: '/admin', label: 'Admin', color: 'var(--azul)', accent: true } as NavItem] : []),
+    ...(isAdmin ? [{ href: '/admin', label: 'Admin', Icon: Shield, accent: true } as NavItem] : []),
   ]
   const [themeOpen, setThemeOpen] = useState(false)
   const [currentTheme, setCurrentTheme] = useState<ThemeMode>('system')
@@ -144,15 +148,11 @@ export function Sidebar() {
                   marginTop: item.accent ? 2 : 0,
                 }}
               >
-                {/* Square bullet */}
-                <span
+                <item.Icon
+                  size={15}
                   style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: 1,
                     flexShrink: 0,
-                    background: active ? 'var(--ink-dark)' : item.color ?? 'var(--accent-time)',
-                    opacity: active ? 1 : item.accent ? 0.85 : 0.6,
+                    color: active ? 'var(--ink-dark)' : item.accent ? 'var(--accent-brand)' : 'var(--text-muted)',
                   }}
                 />
                 <span

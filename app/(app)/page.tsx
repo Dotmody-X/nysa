@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Clock, Sparkles } from '@/components/ui/icons'
-import { NysaLogo } from '@/components/ui/NysaLogo'
+import {
+  ArrowRight, Clock, Calendar, CheckSquare, Wallet, FolderKanban, Activity,
+} from '@/components/ui/icons'
 import { useDashboard } from '@/hooks/useDashboard'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -18,6 +19,10 @@ function fmtEur(n: number) {
   return n.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 })
 }
 
+function fmtTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+}
+
 function getGreeting() {
   const h = new Date().getHours()
   if (h >= 5  && h < 12) return 'Bonjour'
@@ -26,96 +31,205 @@ function getGreeting() {
   return 'Bonne nuit'
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+const PRIORITY_COLOR: Record<string, string> = {
+  urgent: 'var(--danger)',
+  high:   'var(--danger)',
+  medium: 'var(--warning)',
+  low:    'var(--text-subtle)',
+}
 
-const FONT_DISPLAY: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { data, loading } = useDashboard()
 
-  const greeting  = getGreeting()
   const todayLabel = new Date().toLocaleDateString('fr-FR', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    weekday: 'long', day: 'numeric', month: 'long',
   })
   const todayCapitalized = todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)
 
-  const balance     = data ? data.monthIncome - data.monthExpense : 0
-  const doneTasks   = data?.todayTasks.filter(t => t.status === 'done').length ?? 0
-  const totalTasks  = data?.todayTasks.length ?? 0
-
-  const INK = 'var(--ink-dark)'
-  const CREAM = 'var(--ink-light)'
+  const balance    = data ? data.monthIncome - data.monthExpense : 0
+  const tasks      = data?.todayTasks ?? []
+  const doneTasks  = tasks.filter(t => t.status === 'done').length
+  const openTasks  = tasks.filter(t => t.status !== 'done')
+  const events     = data?.todayEvents ?? []
+  const projects   = data?.activeProjects ?? []
+  const nextDeadline = projects
+    .filter(p => p.deadline)
+    .sort((a, b) => (a.deadline! < b.deadline! ? -1 : 1))[0]
 
   return (
-    <div className="bento-grid md:grid md:grid-cols-4 gap-4 p-4 md:p-7 min-h-full">
+    <div className="page-wrap" style={{ gap: 16 }}>
 
-      {/* ═══════════════════════════════════════════════════════════ ROW 1 */}
-
-      {/* Hero — col-span-2 */}
-      <div className="col-span-2 flex flex-col justify-between p-2 md:p-4">
+      {/* ── En-tête : salutation + alertes + date ─────────────────────── */}
+      <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <span className="font-display inline-block text-xs font-extrabold tracking-wider uppercase mb-3 nb-tile" style={{ background: 'var(--accent-brand)', color: INK, padding: '4px 12px' }}>
-            {greeting}
-          </span>
-          <h1 className="font-display font-extrabold text-5xl md:text-6xl lg:text-7xl leading-[0.95]" style={{ color: 'var(--text)', letterSpacing: '-0.02em' }}>
-            Focus.<br />Plan.<br />Progress.
+          <p className="text-xs font-semibold uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.12em' }}>
+            {todayCapitalized}
+          </p>
+          <h1 className="font-display font-extrabold" style={{ fontSize: 'clamp(26px, 4vw, 38px)', letterSpacing: '-0.02em' }}>
+            {getGreeting()} 👋
           </h1>
         </div>
-        <p className="text-sm font-semibold mt-4" style={{ color: 'var(--text-muted)' }}>
-          {todayCapitalized}
-        </p>
-      </div>
-
-      {/* Agent IA — col-span-2, tangerine sticker */}
-      <div className="nb-tile col-span-2 flex flex-col justify-between p-5 md:p-6" style={{ background: 'var(--accent-brand)' }}>
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={16} style={{ color: INK }} />
-            <p className="font-display text-sm font-extrabold tracking-wide uppercase" style={{ color: INK }}>
-              Agent IA
-            </p>
-          </div>
-          <p className="text-sm font-medium leading-relaxed" style={{ color: INK }}>
-            Bonjour !<br />
-            {totalTasks > 0
-              ? `Tu as ${totalTasks} tâche${totalTasks > 1 ? 's' : ''} aujourd'hui.`
-              : "Ta journée est libre."}<br />
-            Veux-tu que je t'aide à planifier ?
-          </p>
+        <div className="flex items-center gap-2">
+          {!loading && (data?.lateTasks ?? 0) > 0 && (
+            <span className="nb-tile px-3 py-1 text-xs font-bold" style={{ ...DF, background: 'var(--danger)', color: 'var(--ink-light)' }}>
+              {data!.lateTasks} en retard
+            </span>
+          )}
+          {!loading && (data?.urgentTasks ?? 0) > 0 && (
+            <span className="nb-tile px-3 py-1 text-xs font-bold" style={{ ...DF, background: 'var(--warning)', color: 'var(--ink-dark)' }}>
+              {data!.urgentTasks} urgente{data!.urgentTasks > 1 ? 's' : ''}
+            </span>
+          )}
         </div>
-        <Link href="/agent" className="nb-tile nb-press flex items-center justify-between px-4 py-2.5 mt-4" style={{ background: INK, color: CREAM }}>
-          <span className="font-display text-sm font-bold">Discuter</span>
-          <ArrowRight size={16} />
-        </Link>
+      </header>
+
+      {/* ── KPI compacts : l'essentiel en un scan ─────────────────────── */}
+      <div className="kpi-grid grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Kpi icon={Clock}       label="Temps aujourd'hui" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub={loading ? '' : `${fmtSeconds(data?.weekSeconds ?? 0)} cette semaine`} accent="var(--accent-time)" href="/time-tracker" />
+        <Kpi icon={CheckSquare} label="Tâches du jour"    value={loading ? '…' : `${doneTasks}/${tasks.length}`}       sub={loading ? '' : tasks.length === 0 ? 'journée libre' : `${tasks.length - doneTasks} restante${tasks.length - doneTasks > 1 ? 's' : ''}`} accent="var(--accent-todo)" href="/todo"
+             progress={tasks.length > 0 ? doneTasks / tasks.length : undefined} />
+        <Kpi icon={FolderKanban} label="Projets actifs"   value={loading ? '…' : String(projects.length)}              sub={nextDeadline ? `Échéance : ${new Date(nextDeadline.deadline!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : 'aucune échéance'} accent="var(--accent-projets)" href="/projets" />
+        <Kpi icon={Wallet}      label="Solde du mois"     value={loading ? '…' : fmtEur(balance)}                      sub={loading ? '' : `${fmtEur(data?.monthIncome ?? 0)} in · ${fmtEur(data?.monthExpense ?? 0)} out`} accent="var(--accent-budget)" href="/budget"
+             valueColor={balance < 0 ? 'var(--danger)' : undefined} />
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════ ROW 2 — 4 nav cards */}
+      {/* ── Aujourd'hui : tâches + agenda côte à côte ─────────────────── */}
+      <div className="bento-grid md:grid md:grid-cols-2 gap-4">
 
-      <NavCard href="/calendrier"   bg="var(--accent-calendar)" label="Calendrier"    value={loading ? '…' : `${data?.todayEvents.length ?? 0} événement${(data?.todayEvents.length ?? 0) !== 1 ? 's' : ''}`} sub="aujourd'hui" ink={INK} />
-      <NavCard href="/time-tracker" bg="var(--accent-time)"     label="Time Trackers" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub="aujourd'hui" ink={CREAM} />
-      <NavCard href="/projets"      bg="var(--accent-projets)"  label="Projets"       value={loading ? '…' : `${data?.activeProjects.length ?? 0} actif${(data?.activeProjects.length ?? 0) !== 1 ? 's' : ''}`} sub="en cours" ink={CREAM} />
-      <NavCard href="/todo"         bg="var(--accent-todo)"     label="To Do List"    value={loading ? '…' : `${totalTasks} tâche${totalTasks !== 1 ? 's' : ''}`} sub={`${doneTasks} terminée${doneTasks !== 1 ? 's' : ''}`} ink={INK} />
+        {/* Tâches */}
+        <section className="nb-card p-5 flex flex-col" style={{ minHeight: 220 }}>
+          <SectionHead icon={CheckSquare} title="À faire aujourd'hui" accent="var(--accent-todo)" href="/todo" />
+          {loading ? <Placeholder /> : openTasks.length === 0 ? (
+            <Empty text={tasks.length > 0 ? 'Tout est fait. Bien joué ✔' : "Rien de prévu aujourd'hui."} />
+          ) : (
+            <ul className="flex flex-col gap-1 mt-3">
+              {openTasks.slice(0, 6).map(t => (
+                <li key={t.id} className="flex items-center gap-3 py-1.5" style={{ borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, flexShrink: 0, background: PRIORITY_COLOR[t.priority] ?? 'var(--text-subtle)' }} />
+                  <span className="text-sm font-medium truncate" style={{ flex: 1 }}>{t.title}</span>
+                  {t.due_time && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t.due_time.slice(0, 5)}</span>}
+                  {t.project_name && (
+                    <span className="text-xs px-2 py-0.5 rounded-[6px] font-semibold" style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {t.project_name}
+                    </span>
+                  )}
+                </li>
+              ))}
+              {openTasks.length > 6 && (
+                <li className="text-xs pt-2" style={{ color: 'var(--text-muted)' }}>+ {openTasks.length - 6} autres…</li>
+              )}
+            </ul>
+          )}
+        </section>
 
+        {/* Agenda */}
+        <section className="nb-card p-5 flex flex-col" style={{ minHeight: 220 }}>
+          <SectionHead icon={Calendar} title="Agenda du jour" accent="var(--accent-calendar)" href="/calendrier" />
+          {loading ? <Placeholder /> : events.length === 0 ? (
+            <Empty text="Aucun événement aujourd'hui." />
+          ) : (
+            <ul className="flex flex-col gap-1 mt-3">
+              {events.slice(0, 6).map(e => (
+                <li key={e.id} className="flex items-center gap-3 py-1.5" style={{ borderBottom: '1px solid var(--border)' }}>
+                  <span className="text-xs font-bold" style={{ ...DF, color: 'var(--accent-calendar)', width: 76, flexShrink: 0 }}>
+                    {fmtTime(e.start_at)}–{fmtTime(e.end_at)}
+                  </span>
+                  <span style={{ width: 3, alignSelf: 'stretch', borderRadius: 2, background: e.color ?? 'var(--accent-calendar)', flexShrink: 0 }} />
+                  <span className="text-sm font-medium truncate">{e.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {/* ── Projets en cours (progression) ────────────────────────────── */}
+      {!loading && projects.length > 0 && (
+        <section className="nb-card p-5">
+          <SectionHead icon={FolderKanban} title="Projets en cours" accent="var(--accent-projets)" href="/projets" />
+          <div className="grid md:grid-cols-2 gap-x-8 gap-y-3 mt-3">
+            {projects.slice(0, 6).map(p => (
+              <div key={p.id} className="flex items-center gap-3">
+                <span className="text-sm font-semibold truncate" style={{ flex: 1 }}>{p.name}</span>
+                <div style={{ width: 120, height: 8, borderRadius: 99, background: 'var(--bg-input)', border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
+                  <div style={{ width: `${Math.min(100, Math.max(0, p.progress))}%`, height: '100%', background: p.color || 'var(--accent-projets)' }} />
+                </div>
+                <span className="text-xs font-bold" style={{ ...DF, width: 34, textAlign: 'right', color: 'var(--text-muted)' }}>{Math.round(p.progress)}%</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Signal santé/sport discret ────────────────────────────────── */}
+      {!loading && data?.lastRun && (
+        <Link href="/sport" className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+          <Activity size={13} style={{ color: 'var(--accent-sport)' }} />
+          Dernière sortie : {data.lastRun.distance_km.toFixed(1)} km
+          {data.lastRun.duration_seconds ? ` · ${fmtSeconds(data.lastRun.duration_seconds)}` : ''}
+          <ArrowRight size={12} />
+        </Link>
+      )}
     </div>
   )
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function NavCard({ href, bg, label, value, sub, ink }: { href: string; bg: string; label: string; value: string; sub: string; ink: string }) {
+function SectionHead({ icon: Icon, title, accent, href }: { icon: typeof Clock; title: string; accent: string; href: string }) {
   return (
-    <Link href={href} className="nb-tile nb-press flex flex-col justify-between p-5" style={{ background: bg, minHeight: 240 }}>
-      <div className="flex items-start justify-between">
-        <NysaLogo size={52} color={ink} />
-        <ArrowRight size={18} style={{ color: ink }} />
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Icon size={15} style={{ color: accent }} />
+        <h2 className="font-display text-xs font-extrabold uppercase" style={{ letterSpacing: '0.1em' }}>{title}</h2>
       </div>
-      <div>
-        <p className="font-display text-xs font-extrabold tracking-wide uppercase mb-1" style={{ color: ink, opacity: 0.85 }}>
-          {label}
-        </p>
-        <p className="font-display font-extrabold text-3xl leading-none" style={{ color: ink }}>{value}</p>
-        <p className="text-xs font-medium mt-1.5" style={{ color: ink, opacity: 0.7 }}>{sub}</p>
+      <Link href={href} className="flex items-center gap-1 text-xs font-bold" style={{ ...DF, color: 'var(--text-muted)' }}>
+        Ouvrir <ArrowRight size={12} />
+      </Link>
+    </div>
+  )
+}
+
+function Kpi({ icon: Icon, label, value, sub, accent, href, progress, valueColor }: {
+  icon: typeof Clock; label: string; value: string; sub: string; accent: string; href: string;
+  progress?: number; valueColor?: string
+}) {
+  return (
+    <Link href={href} className="nb-card nb-press p-4 flex flex-col gap-1.5" style={{ minHeight: 104 }}>
+      <div className="flex items-center gap-2">
+        <span className="flex items-center justify-center" style={{ width: 24, height: 24, borderRadius: 7, background: accent, border: '1.5px solid var(--ink)' }}>
+          <Icon size={13} style={{ color: 'var(--ink-dark)' }} />
+        </span>
+        <span className="text-[10px] font-bold uppercase" style={{ ...DF, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>{label}</span>
       </div>
+      <span className="font-display font-extrabold" style={{ fontSize: 26, lineHeight: 1, color: valueColor ?? 'var(--text)' }}>{value}</span>
+      {progress !== undefined ? (
+        <div style={{ height: 6, borderRadius: 99, background: 'var(--bg-input)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+          <div style={{ width: `${Math.round(progress * 100)}%`, height: '100%', background: accent }} />
+        </div>
+      ) : (
+        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{sub}</span>
+      )}
     </Link>
+  )
+}
+
+function Placeholder() {
+  return (
+    <div className="flex flex-col gap-2 mt-3">
+      {[0, 1, 2].map(i => (
+        <div key={i} style={{ height: 14, borderRadius: 6, background: 'var(--bg-input)', width: `${80 - i * 15}%` }} />
+      ))}
+    </div>
+  )
+}
+
+function Empty({ text }: { text: string }) {
+  return (
+    <p className="text-sm mt-4" style={{ color: 'var(--text-muted)' }}>{text}</p>
   )
 }
