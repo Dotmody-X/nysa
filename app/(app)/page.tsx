@@ -88,26 +88,32 @@ export default function DashboardPage() {
       </header>
 
       {/* ── Bande défilante : le pouls de la journée ──────────────────── */}
-      {!loading && (
-        <div className="marquee nb-tile" style={{ background: 'var(--accent-brand)', padding: '7px 0' }}>
-          {[0, 1].map(i => (
-            <div key={i} className="marquee-track" aria-hidden={i === 1}>
-              {[
-                `${tasks.length - doneTasks} tâche${tasks.length - doneTasks > 1 ? 's' : ''} à faire`,
-                `${events.length} événement${events.length > 1 ? 's' : ''}`,
-                `${fmtSeconds(data?.todaySeconds ?? 0)} tracké aujourd'hui`,
-                `solde ${fmtEur(balance)}`,
-                `${projects.length} projet${projects.length > 1 ? 's' : ''} en cours`,
-              ].map((txt, j) => (
-                <span key={j} className="flex items-center gap-10">
-                  <span className="text-xs font-extrabold uppercase" style={{ ...DF, color: 'var(--ink-dark)', letterSpacing: '0.08em' }}>{txt}</span>
-                  <span style={{ width: 7, height: 7, borderRadius: 2, background: 'var(--ink-dark)', transform: 'rotate(45deg)', flexShrink: 0 }} />
-                </span>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+      {!loading && (() => {
+        const items = [
+          `${tasks.length - doneTasks} tâche${tasks.length - doneTasks > 1 ? 's' : ''} à faire`,
+          `${events.length} événement${events.length > 1 ? 's' : ''}`,
+          `${fmtSeconds(data?.todaySeconds ?? 0)} tracké aujourd'hui`,
+          `solde ${fmtEur(balance)}`,
+          `${projects.length} projet${projects.length > 1 ? 's' : ''} en cours`,
+        ]
+        // Chaque piste contient 3× les items : elle dépasse toujours la
+        // largeur de l'écran, la boucle est continue sans trou.
+        const track = [...items, ...items, ...items]
+        return (
+          <div className="marquee nb-tile" style={{ background: 'var(--accent-brand)', padding: '7px 0' }}>
+            {[0, 1].map(i => (
+              <div key={i} className="marquee-track" aria-hidden={i === 1}>
+                {track.map((txt, j) => (
+                  <span key={j} className="flex items-center gap-10">
+                    <span className="text-xs font-extrabold uppercase" style={{ ...DF, color: 'var(--ink-dark)', letterSpacing: '0.08em' }}>{txt}</span>
+                    <span style={{ width: 7, height: 7, borderRadius: 2, background: 'var(--ink-dark)', transform: 'rotate(45deg)', flexShrink: 0 }} />
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        )
+      })()}
 
       {/* ── KPI compacts : l'essentiel en un scan ─────────────────────── */}
       <div className="kpi-grid grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -157,7 +163,7 @@ export default function DashboardPage() {
             <ul className="flex flex-col gap-1 mt-3">
               {events.slice(0, 6).map(e => (
                 <li key={e.id} className="flex items-center gap-3 py-1.5" style={{ borderBottom: '1px solid var(--border)' }}>
-                  <span className="text-xs font-bold" style={{ ...DF, color: 'var(--accent-calendar)', width: 76, flexShrink: 0 }}>
+                  <span className="text-xs font-bold" style={{ ...DF, color: 'var(--azul)', width: 76, flexShrink: 0 }}>
                     {fmtTime(e.start_at)}–{fmtTime(e.end_at)}
                   </span>
                   <span style={{ width: 3, alignSelf: 'stretch', borderRadius: 2, background: e.color ?? 'var(--accent-calendar)', flexShrink: 0 }} />

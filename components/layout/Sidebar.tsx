@@ -190,25 +190,26 @@ export function Sidebar() {
 
       {/* ── Bottom ───────────────────────────────────────────── */}
       <div className="px-3 pb-4 flex flex-col gap-2" style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-        {/* Profile */}
+        {/* Profile — chips fantômes sombres : la sidebar est TOUJOURS noire,
+            on n'utilise donc jamais --bg-card (blanc en thème clair) ici. */}
         <Link
           href="/compte"
           className="flex items-center gap-2.5 px-2 py-2 rounded-[10px] transition-all"
           style={{
-            background: isActive('/compte') ? 'var(--accent-brand)' : 'var(--bg-card)',
+            background: isActive('/compte') ? 'var(--accent-brand)' : 'rgba(245, 245, 245, 0.07)',
             border: '2px solid var(--ink)',
-            boxShadow: '2px 2px 0 var(--ink)',
+            boxShadow: '2px 2px 0 rgba(245, 245, 245, 0.35)',
           }}
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'var(--accent-brand)', border: '2px solid var(--ink)' }}
+            style={{ background: isActive('/compte') ? '#111111' : 'var(--accent-brand)', border: '2px solid var(--ink)' }}
           >
-            <User size={12} style={{ color: 'var(--ink-dark)' }} />
+            <User size={12} style={{ color: isActive('/compte') ? '#f5f5f5' : 'var(--ink-dark)' }} />
           </div>
           <div className="min-w-0">
-            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: isActive('/compte') ? 'var(--ink-dark)' : 'var(--text)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
-            <p style={{ fontSize: '9px', color: isActive('/compte') ? 'var(--ink-dark)' : 'var(--text-muted)', opacity: isActive('/compte') ? 0.7 : 1 }}>Voir profil</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: isActive('/compte') ? 'var(--ink-dark)' : '#f5f5f5', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+            <p style={{ fontSize: '9px', color: isActive('/compte') ? 'var(--ink-dark)' : 'rgba(245, 245, 245, 0.6)', opacity: isActive('/compte') ? 0.7 : 1 }}>Voir profil</p>
           </div>
         </Link>
 
@@ -218,10 +219,10 @@ export function Sidebar() {
             href="/reglages"
             className="flex-1 flex items-center justify-center py-2 rounded-[10px] transition-all"
             style={{
-              color: isActive('/reglages') ? 'var(--ink-dark)' : 'var(--text-muted)',
-              background: isActive('/reglages') ? 'var(--accent-brand)' : 'var(--bg-card)',
+              color: isActive('/reglages') ? 'var(--ink-dark)' : 'rgba(245, 245, 245, 0.75)',
+              background: isActive('/reglages') ? 'var(--accent-brand)' : 'rgba(245, 245, 245, 0.07)',
               border: '2px solid var(--ink)',
-              boxShadow: '2px 2px 0 var(--ink)',
+              boxShadow: '2px 2px 0 rgba(245, 245, 245, 0.35)',
             }}
           >
             <Settings size={13} />
@@ -233,16 +234,16 @@ export function Sidebar() {
               onClick={() => setThemeOpen(o => !o)}
               className="w-full flex items-center justify-center py-2 rounded-[10px] transition-all"
               style={{
-                color: themeOpen ? 'var(--ink-dark)' : 'var(--text-muted)',
-                background: themeOpen ? 'var(--accent-brand)' : 'var(--bg-card)',
+                color: themeOpen ? 'var(--ink-dark)' : 'rgba(245, 245, 245, 0.75)',
+                background: themeOpen ? 'var(--accent-brand)' : 'rgba(245, 245, 245, 0.07)',
                 border: '2px solid var(--ink)',
-                boxShadow: '2px 2px 0 var(--ink)',
+                boxShadow: '2px 2px 0 rgba(245, 245, 245, 0.35)',
               }}
             >
               <ActiveThemeIcon size={13} />
             </button>
 
-            {/* Popover */}
+            {/* Popover — sombre lui aussi */}
             {themeOpen && (
               <div
                 style={{
@@ -250,13 +251,13 @@ export function Sidebar() {
                   bottom: 'calc(100% + 8px)',
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  background: 'var(--bg-card)',
+                  background: '#111111',
                   border: '2px solid var(--ink)',
                   borderRadius: 'var(--radius-md)',
                   padding: '8px',
                   display: 'flex',
                   gap: 6,
-                  boxShadow: '4px 4px 0 var(--ink)',
+                  boxShadow: '4px 4px 0 rgba(245, 245, 245, 0.35)',
                   zIndex: 100,
                   whiteSpace: 'nowrap',
                 }}
@@ -276,15 +277,15 @@ export function Sidebar() {
                         padding: '7px 8px',
                         borderRadius: 'var(--radius-sm)',
                         border: '2px solid var(--ink)',
-                        background: active ? 'var(--accent-brand)' : 'var(--bg-input)',
-                        boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
+                        background: active ? 'var(--accent-brand)' : 'rgba(245, 245, 245, 0.07)',
+                        boxShadow: active ? '2px 2px 0 rgba(245, 245, 245, 0.35)' : 'none',
                         cursor: 'pointer',
                         transition: 'all 0.12s',
                         minWidth: 42,
                       }}
                     >
-                      <Icon size={14} style={{ color: active ? 'var(--ink-dark)' : 'var(--text-muted)' }} />
-                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--ink-dark)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      <Icon size={14} style={{ color: active ? 'var(--ink-dark)' : 'rgba(245, 245, 245, 0.75)' }} />
+                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--ink-dark)' : 'rgba(245, 245, 245, 0.75)', textTransform: 'uppercase' }}>
                         {label}
                       </span>
                     </button>

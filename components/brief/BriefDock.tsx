@@ -114,12 +114,12 @@ export function BriefDock() {
       {/* Lanceur (masqué quand le panneau est ouvert) */}
       {!open && (
         <button onClick={() => setPersisted(true)} title="Ouvrir le mini-Brief"
-          className="fixed right-4 bottom-24 md:right-6 md:bottom-6 nb-press"
+          className="fixed right-4 bottom-24 md:right-6 md:bottom-6 nb-press sticker-r"
           style={{
             zIndex: 1400, display: 'flex', alignItems: 'center', gap: 7, padding: '10px 16px',
-            borderRadius: 999, background: 'var(--azul)', color: 'var(--ink-light)',
+            borderRadius: 'var(--radius-md)', background: 'var(--azul)', color: 'var(--ink-light)',
             border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer',
-            ...DF, fontWeight: 800, fontSize: 12, letterSpacing: '0.04em',
+            ...DF, fontWeight: 800, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase',
           }}>
           <Sparkles size={15} /> Brief
         </button>
