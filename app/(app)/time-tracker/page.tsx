@@ -643,7 +643,7 @@ export default function TimeTrackerPage() {
 
   /* ── Shared styles ───────────────────────────────────────────────────────── */
   const card = (extra?: React.CSSProperties): React.CSSProperties => ({
-    background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', ...extra,
+    background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', ...extra,
   })
   const tableLabelStyle: React.CSSProperties = {
     fontSize: 8, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', ...DF, fontWeight: 700,
@@ -678,7 +678,7 @@ export default function TimeTrackerPage() {
       <div className="col-span-2" style={{
         height: 300, borderRadius: 'var(--radius-lg)', overflow: 'hidden', position: 'relative',
         background: running ? 'var(--accent-budget)' : 'var(--bg-card)',
-        border: '1px solid var(--border)', boxShadow: 'var(--elev-1)',
+        border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
         display: 'flex', flexDirection: 'column', padding: 22,
         ...(running ? { '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } : {}),
       } as React.CSSProperties}>
@@ -696,7 +696,7 @@ export default function TimeTrackerPage() {
               </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
-              <button onClick={handleStop} className="nb-press" style={{ width: 60, height: 60, borderRadius: '50%', background: 'var(--azul)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'var(--elev-1)' }}>
+              <button onClick={handleStop} className="nb-press" style={{ width: 60, height: 60, borderRadius: '50%', background: 'var(--azul)', border: '2px solid var(--ink)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '4px 4px 0 var(--ink)' }}>
                 <Square size={20} fill="var(--creamy-ivory)" color="var(--creamy-ivory)" />
               </button>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -761,7 +761,7 @@ export default function TimeTrackerPage() {
               </button>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
-              <button onClick={handleStart} disabled={!desc.trim()} className="nb-press" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? 'var(--accent-budget)' : 'var(--bg-input)', color: desc.trim() ? 'var(--chocolate)' : 'var(--text-muted)', border: desc.trim() ? '1px solid var(--border)' : '1px solid var(--border)', boxShadow: desc.trim() ? 'var(--elev-1)' : 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
+              <button onClick={handleStart} disabled={!desc.trim()} className="nb-press" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? 'var(--accent-budget)' : 'var(--bg-input)', color: desc.trim() ? 'var(--chocolate)' : 'var(--text-muted)', border: desc.trim() ? '2px solid var(--ink)' : '1px solid var(--border)', boxShadow: desc.trim() ? '4px 4px 0 var(--ink)' : 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
                 <Play size={13} fill={desc.trim() ? 'var(--chocolate)' : 'var(--text-muted)'} /> Démarrer
               </button>
               <button onClick={() => setManualOpen(true)} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
@@ -799,7 +799,7 @@ export default function TimeTrackerPage() {
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 600 }}>
           <Download size={11} /> Exporter
         </button>
-        <button onClick={() => setManualOpen(true)} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
+        <button onClick={() => setManualOpen(true)} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
           <Plus size={11} /> Nouvelle entrée
         </button>
       </div>
@@ -815,7 +815,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 2 — Moyenne / jour (wheat bg) */}
-      <div style={{ background: 'var(--creamy-ivory)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: 'var(--creamy-ivory)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, height: 280, display: 'flex', flexDirection: 'column' }}>
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(26,10,10,0.55)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Moyenne / jour</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 38, color: '#1A0A0A', lineHeight: 1, marginBottom: 6 }}>{fmtDur(avgSec)}</p>
         <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>{workingDays} jour{workingDays > 1 ? 's' : ''} travaillé{workingDays > 1 ? 's' : ''}</p>
@@ -823,7 +823,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 3 — Projets actifs (orange) */}
-      <div style={{ background: 'var(--accent-budget)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', '--text-rgb': '26, 10, 10', '--text': 'var(--chocolate)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+      <div style={{ background: 'var(--accent-budget)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', '--text-rgb': '26, 10, 10', '--text': 'var(--chocolate)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
         <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.07)', pointerEvents: 'none' }} />
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Projets actifs</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: 'var(--chocolate)', lineHeight: 1, marginBottom: 6 }}>{activeProjs}</p>
@@ -832,7 +832,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 4 — Productivité (teal) */}
-      <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 20, height: 280, display: 'flex', flexDirection: 'column', '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
+      <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, height: 280, display: 'flex', flexDirection: 'column', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Taux facturable</span>
         <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: 'var(--creamy-ivory)', lineHeight: 1, marginBottom: 6 }}>{prodPct}%</p>
         <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginBottom: 'auto' }}>{fmtDur(billableSec)} facturables</p>
@@ -1081,7 +1081,7 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* Évolution du temps — stacked bars */}
-      <div className="col-span-2" style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380, '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, display: 'flex', flexDirection: 'column', minHeight: 380, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Évolution du temps</p>
           <Dropdown<Period>

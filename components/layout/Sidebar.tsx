@@ -27,7 +27,6 @@ const navItems: NavItem[] = [
   { href: '/courses',      label: 'Courses',       color: 'var(--accent-time)' },
   { href: '/budget',       label: 'Budget',        color: 'var(--accent-time)' },
   { href: '/rapports',     label: 'Rapports',      color: 'var(--accent-time)' },
-  { href: '/integrations', label: 'Intégrations',  color: 'var(--accent-time)' },
   // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
 
@@ -131,31 +130,32 @@ export function Sidebar() {
               )}
               <Link
                 href={item.href}
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-[8px] group transition-colors duration-100"
+                className="flex items-center gap-3 px-2 py-2 rounded-[10px] group transition-all duration-100"
                 style={{
-                  background: active ? 'color-mix(in srgb, var(--accent-budget) 12%, transparent)' : 'transparent',
-                  border: '1px solid transparent',
+                  background: active ? 'var(--accent-budget)' : 'transparent',
+                  border: active ? '2px solid var(--ink)' : '2px solid transparent',
+                  boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
                   marginTop: item.accent ? 2 : 0,
                 }}
               >
-                {/* Bullet catégorie */}
+                {/* Square bullet */}
                 <span
                   style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 2,
+                    width: 7,
+                    height: 7,
+                    borderRadius: 1,
                     flexShrink: 0,
-                    background: active ? 'var(--accent-budget)' : item.color ?? 'var(--accent-time)',
-                    opacity: active ? 1 : item.accent ? 0.85 : 0.55,
+                    background: active ? 'var(--chocolate)' : item.color ?? 'var(--accent-time)',
+                    opacity: active ? 1 : item.accent ? 0.85 : 0.6,
                   }}
                 />
                 <span
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontWeight: active ? 700 : item.accent ? 600 : 500,
-                    fontSize: '11.5px',
-                    letterSpacing: '0.04em',
-                    color: active ? 'var(--accent-budget)' : item.accent ? 'var(--accent-budget)' : 'var(--text-muted)',
+                    fontWeight: active ? 800 : item.accent ? 600 : 500,
+                    fontSize: '11px',
+                    letterSpacing: '0.08em',
+                    color: active ? 'var(--chocolate)' : item.accent ? 'var(--accent-budget)' : 'var(--text-muted)',
                     textTransform: 'uppercase',
                   }}
                 >
@@ -175,22 +175,22 @@ export function Sidebar() {
         {/* Profile */}
         <Link
           href="/compte"
-          className="flex items-center gap-2.5 px-2 py-2 rounded-[10px] transition-colors"
+          className="flex items-center gap-2.5 px-2 py-2 rounded-[10px] transition-all"
           style={{
-            background: isActive('/compte') ? 'color-mix(in srgb, var(--accent-budget) 12%, transparent)' : 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--elev-1)',
+            background: isActive('/compte') ? 'var(--accent-budget)' : 'var(--bg-card)',
+            border: '2px solid var(--ink)',
+            boxShadow: '2px 2px 0 var(--ink)',
           }}
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'var(--accent-budget)' }}
+            style={{ background: 'var(--accent-budget)', border: '2px solid var(--ink)' }}
           >
             <User size={12} style={{ color: 'var(--chocolate)' }} />
           </div>
           <div className="min-w-0">
-            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: 'var(--text)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
-            <p style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Voir profil</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: isActive('/compte') ? 'var(--chocolate)' : 'var(--text)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+            <p style={{ fontSize: '9px', color: isActive('/compte') ? 'var(--chocolate)' : 'var(--text-muted)', opacity: isActive('/compte') ? 0.7 : 1 }}>Voir profil</p>
           </div>
         </Link>
 
@@ -198,12 +198,12 @@ export function Sidebar() {
         <div className="flex gap-1 px-1">
           <Link
             href="/reglages"
-            className="flex-1 flex items-center justify-center py-2 rounded-[10px] transition-colors"
+            className="flex-1 flex items-center justify-center py-2 rounded-[10px] transition-all"
             style={{
-              color: isActive('/reglages') ? 'var(--accent-budget)' : 'var(--text-muted)',
-              background: isActive('/reglages') ? 'color-mix(in srgb, var(--accent-budget) 12%, transparent)' : 'var(--bg-card)',
-              border: '1px solid var(--border)',
-              boxShadow: 'var(--elev-1)',
+              color: isActive('/reglages') ? 'var(--chocolate)' : 'var(--text-muted)',
+              background: isActive('/reglages') ? 'var(--accent-budget)' : 'var(--bg-card)',
+              border: '2px solid var(--ink)',
+              boxShadow: '2px 2px 0 var(--ink)',
             }}
           >
             <Settings size={13} />
@@ -213,12 +213,12 @@ export function Sidebar() {
           <div className="flex-1 relative" ref={popoverRef}>
             <button
               onClick={() => setThemeOpen(o => !o)}
-              className="w-full flex items-center justify-center py-2 rounded-[10px] transition-colors"
+              className="w-full flex items-center justify-center py-2 rounded-[10px] transition-all"
               style={{
-                color: themeOpen ? 'var(--accent-budget)' : 'var(--text-muted)',
-                background: themeOpen ? 'color-mix(in srgb, var(--accent-budget) 12%, transparent)' : 'var(--bg-card)',
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--elev-1)',
+                color: themeOpen ? 'var(--chocolate)' : 'var(--text-muted)',
+                background: themeOpen ? 'var(--accent-budget)' : 'var(--bg-card)',
+                border: '2px solid var(--ink)',
+                boxShadow: '2px 2px 0 var(--ink)',
               }}
             >
               <ActiveThemeIcon size={13} />
@@ -233,12 +233,12 @@ export function Sidebar() {
                   left: '50%',
                   transform: 'translateX(-50%)',
                   background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
+                  border: '2px solid var(--ink)',
                   borderRadius: 'var(--radius-md)',
                   padding: '8px',
                   display: 'flex',
                   gap: 6,
-                  boxShadow: 'var(--elev-2)',
+                  boxShadow: '4px 4px 0 var(--ink)',
                   zIndex: 100,
                   whiteSpace: 'nowrap',
                 }}
@@ -257,16 +257,16 @@ export function Sidebar() {
                         gap: 4,
                         padding: '7px 8px',
                         borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--border)',
-                        background: active ? 'color-mix(in srgb, var(--accent-budget) 14%, transparent)' : 'var(--bg-input)',
-                        boxShadow: 'none',
+                        border: '2px solid var(--ink)',
+                        background: active ? 'var(--accent-budget)' : 'var(--bg-input)',
+                        boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
                         cursor: 'pointer',
                         transition: 'all 0.12s',
                         minWidth: 42,
                       }}
                     >
-                      <Icon size={14} style={{ color: active ? 'var(--accent-budget)' : 'var(--text-muted)' }} />
-                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--accent-budget)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      <Icon size={14} style={{ color: active ? 'var(--chocolate)' : 'var(--text-muted)' }} />
+                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--chocolate)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
                         {label}
                       </span>
                     </button>

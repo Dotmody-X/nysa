@@ -81,11 +81,11 @@ export default function AgentPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[12px]" style={{ flex:1, minHeight:0 }}>
         {/* Chat */}
-        <div className="md:col-span-3 flex flex-col" style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', minHeight:500 }}>
+        <div className="md:col-span-3 flex flex-col" style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', minHeight:500 }}>
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'1px solid var(--border)' }}>
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:'2px solid var(--ink)' }}>
             <div className="flex items-center gap-3">
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent-budget),var(--azul))', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent-budget),var(--azul))', border:'2px solid var(--ink)', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Sparkles size={16} style={{ color:'var(--creamy-ivory)' }} />
               </div>
               <div>
@@ -94,7 +94,7 @@ export default function AgentPage() {
               </div>
             </div>
             <button onClick={() => setMessages([{ role:'assistant', content:"Conversation réinitialisée. Comment puis-je t'aider ?" }])} className="nb-press"
-              style={{ color:'var(--text)', padding:8, borderRadius:8, border:'1px solid var(--border)', boxShadow:'var(--elev-1)', background:'var(--bg-card)' }}>
+              style={{ color:'var(--text)', padding:8, borderRadius:8, border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', background:'var(--bg-card)' }}>
               <RotateCcw size={14} />
             </button>
           </div>
@@ -104,17 +104,17 @@ export default function AgentPage() {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role==='user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role==='assistant' && (
-                  <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent-budget),var(--azul))', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginRight:8, marginTop:2 }}>
+                  <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent-budget),var(--azul))', border:'2px solid var(--ink)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginRight:8, marginTop:2 }}>
                     <Sparkles size={12} style={{ color:'var(--creamy-ivory)' }} />
                   </div>
                 )}
                 <div style={(msg.role==='user' ? {
                   maxWidth:'75%', padding:'10px 14px', borderRadius:'14px 14px 4px 14px',
-                  background:'var(--accent-budget)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)',
+                  background:'var(--accent-budget)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)',
                   '--text-rgb':'24, 19, 14', '--text':'var(--chocolate)', '--text-muted':'rgba(24, 19, 14, 0.65)',
                 } : {
                   maxWidth:'75%', padding:'10px 14px', borderRadius:'4px 14px 14px 14px',
-                  background:'var(--bg-input)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)',
+                  background:'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)',
                 }) as React.CSSProperties}>
                   <p style={{ fontSize:13, color:'var(--text)', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{msg.content}</p>
                 </div>
@@ -122,10 +122,10 @@ export default function AgentPage() {
             ))}
             {loading && (
               <div className="flex justify-start items-center gap-3">
-                <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent-budget),var(--azul))', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,var(--accent-budget),var(--azul))', border:'2px solid var(--ink)', display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <Sparkles size={12} style={{ color:'var(--creamy-ivory)' }} />
                 </div>
-                <div style={{ padding:'10px 14px', borderRadius:'4px 14px 14px 14px', background:'var(--bg-input)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)' }}>
+                <div style={{ padding:'10px 14px', borderRadius:'4px 14px 14px 14px', background:'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)' }}>
                   <div className="flex gap-1">
                     {[0,1,2].map(j => (
                       <div key={j} style={{ width:6, height:6, borderRadius:'50%', background:'var(--text-muted)', animation:`bounce 0.8s ${j*0.2}s infinite` }} />
@@ -139,7 +139,7 @@ export default function AgentPage() {
 
           {/* Input */}
           <div className="px-4 pb-4">
-            <div className="flex gap-2" style={{ background:'var(--bg-input)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:'8px 8px 8px 14px' }}>
+            <div className="flex gap-2" style={{ background:'var(--bg-input)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'8px 8px 8px 14px' }}>
               <input
                 value={input}
                 onChange={e=>setInput(e.target.value)}
@@ -151,7 +151,7 @@ export default function AgentPage() {
                 onClick={()=>sendMessage(input)}
                 disabled={!input.trim()||loading}
                 className="nb-press"
-                style={{ width:36, height:36, borderRadius:9, background: input.trim()&&!loading ? 'var(--accent-budget)' : 'var(--bg-card)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s', flexShrink:0 }}>
+                style={{ width:36, height:36, borderRadius:9, background: input.trim()&&!loading ? 'var(--accent-budget)' : 'var(--bg-card)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s', flexShrink:0 }}>
                 <Send size={14} style={{ color: input.trim()&&!loading ? 'var(--chocolate)' : 'var(--text-muted)' }} />
               </button>
             </div>
@@ -160,20 +160,20 @@ export default function AgentPage() {
 
         {/* Right — suggestions */}
         <div className="flex flex-col gap-[12px]">
-          <div style={{ background:'var(--accent-budget)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:20, '--text-rgb':'24, 19, 14', '--text':'var(--chocolate)', '--text-muted':'rgba(24, 19, 14, 0.65)' } as React.CSSProperties}>
+          <div style={{ background:'var(--accent-budget)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:20, '--text-rgb':'24, 19, 14', '--text':'var(--chocolate)', '--text-muted':'rgba(24, 19, 14, 0.65)' } as React.CSSProperties}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--chocolate)', textTransform:'uppercase', marginBottom:12 }}>Suggestions</p>
             <div className="flex flex-col gap-2">
               {SUGGESTIONS.map(s => (
                 <button key={s} onClick={()=>sendMessage(s)}
                   className="text-left px-3 py-2.5 rounded-lg transition-all nb-press"
-                  style={{ background:'var(--creamy-ivory)', color:'var(--chocolate)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', fontSize:12, lineHeight:1.4 }}>
+                  style={{ background:'var(--creamy-ivory)', color:'var(--chocolate)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', fontSize:12, lineHeight:1.4 }}>
                   {s}
                 </button>
               ))}
             </div>
           </div>
 
-          <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:16 }}>
+          <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:16 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--azul)', textTransform:'uppercase', marginBottom:10 }}>Plein Pouvoir</p>
             {[
               '📋 Analyse + Crée tâches',

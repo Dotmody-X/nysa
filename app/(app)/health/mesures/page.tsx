@@ -9,7 +9,7 @@ const TEAL   = 'var(--azul)'
 const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 const STICKER: React.CSSProperties = {
-  border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)',
+  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
 }
 
 function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
@@ -19,8 +19,8 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
       <div onClick={onCancel} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
       {/* Modal */}
       <div style={{ position: 'relative', width: 360, borderRadius: 'var(--radius-xl)', background: 'var(--bg-card)',
-        border: '1px solid var(--border)', padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 20,
-        boxShadow: 'var(--elev-2)' }}>
+        border: '2px solid var(--ink)', padding: '28px 28px 24px', display: 'flex', flexDirection: 'column', gap: 20,
+        boxShadow: '6px 6px 0 var(--ink)' }}>
         {/* Icon */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 12, background: `${ORANGE}18`,
@@ -36,12 +36,12 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onCancel} className="nb-press"
             style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', color: 'var(--text-muted)',
-              border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', fontSize: 12, ...DF, fontWeight: 700, cursor: 'pointer' }}>
+              border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', fontSize: 12, ...DF, fontWeight: 700, cursor: 'pointer' }}>
             Annuler
           </button>
           <button onClick={onConfirm} className="nb-press"
             style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)',
-              border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', fontSize: 12, ...DF, fontWeight: 700, cursor: 'pointer',
+              border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', fontSize: 12, ...DF, fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6 }}>
             <Trash2 size={12} /> Supprimer
           </button>
@@ -206,7 +206,7 @@ export default function MesuresPage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
         <button onClick={() => router.back()} className="nb-press"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36,
-            borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
         </button>
         <div>
@@ -215,7 +215,7 @@ export default function MesuresPage() {
         </div>
         <button onClick={() => { setShowForm(v => !v); setEditId(null) }} className="nb-press"
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <Plus size={12} /> Nouvelle mesure
         </button>
       </div>
@@ -235,11 +235,11 @@ export default function MesuresPage() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+            <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               Enregistrer
             </button>
             <button type="button" onClick={() => setShowForm(false)} className="nb-press"
-              style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '9px 14px', fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+              style={{ background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '9px 14px', fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               Annuler
             </button>
           </div>
@@ -326,11 +326,11 @@ export default function MesuresPage() {
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="submit" className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 5, background: TEAL, color: 'var(--creamy-ivory)', borderRadius: 'var(--radius-lg)', padding: '7px 16px', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+                  <button type="submit" className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 5, background: TEAL, color: 'var(--creamy-ivory)', borderRadius: 'var(--radius-lg)', padding: '7px 16px', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                     <Check size={11} /> Enregistrer
                   </button>
                   <button type="button" onClick={cancelEdit} className="nb-press"
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '7px 12px', fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-input)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '7px 12px', fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                     <X size={11} /> Annuler
                   </button>
                 </div>
@@ -371,12 +371,12 @@ export default function MesuresPage() {
               <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                 <button onClick={() => startEdit(m)} className="nb-press"
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30,
-                    borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+                    borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                   <Pencil size={11} style={{ color: TEAL }} />
                 </button>
                 <button onClick={() => deleteMesure(m.id)} className="nb-press"
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30,
-                    borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+                    borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                   <Trash2 size={11} style={{ color: ORANGE }} />
                 </button>
               </div>

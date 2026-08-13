@@ -12,8 +12,8 @@ import { useDailyNote } from '@/hooks/useDailyNote'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
-  boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
+  boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 
 function fmtDay(d: string): string {
@@ -39,7 +39,7 @@ export function DailyNotes() {
   return (
     <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
       {/* En-tête */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
         <PenLine size={15} style={{ color: 'var(--accent-budget)' }} />
         <span style={{ ...DF, fontSize: 13, fontWeight: 900, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes du jour</span>
         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>· lues par le débrief du soir</span>
@@ -84,7 +84,7 @@ export function DailyNotes() {
             ) : !history || history.length === 0 ? (
               <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucune note antérieure.</p>
             ) : history.map(h => (
-              <div key={h.note_date} style={{ ...card({ boxShadow: 'var(--elev-1)' }), padding: 0 }}>
+              <div key={h.note_date} style={{ ...card({ boxShadow: '2px 2px 0 var(--ink)' }), padding: 0 }}>
                 <div style={{ padding: '7px 12px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)' }}>
                   <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'var(--text)', textTransform: 'capitalize' }}>{fmtDay(h.note_date)}</span>
                 </div>

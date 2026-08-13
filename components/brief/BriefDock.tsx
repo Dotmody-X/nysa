@@ -42,22 +42,22 @@ function BriefPanel({ onClose }: { onClose: () => void }) {
       width: 'min(400px, calc(100vw - 32px))',
       maxHeight: 'min(72vh, 620px)',
       display: 'flex', flexDirection: 'column',
-      background: 'var(--bg-card)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius-lg)', boxShadow: 'var(--elev-2)', overflow: 'hidden',
+      background: 'var(--bg-card)', border: '2px solid var(--ink)',
+      borderRadius: 'var(--radius-lg)', boxShadow: '6px 6px 0 var(--ink)', overflow: 'hidden',
       animation: 'nysa-dock-in 0.16s ease-out',
     }}>
       {/* En-tête */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid var(--border)', background: 'var(--bg)', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '2px solid var(--ink)', background: 'var(--bg)', flexShrink: 0 }}>
         <span style={{ ...DF, fontSize: 12, fontWeight: 900, color: 'var(--text)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Brief</span>
         <div style={{ display: 'flex', gap: 5 }}>
           <button style={tab(view === 'brief', 'var(--azul)')} onClick={() => setView('brief')}><Sun size={12} /> Brief</button>
           <button style={tab(isDebrief, 'var(--accent-budget)')} onClick={() => setView('debrief')}><Moon size={12} /> Débrief</button>
         </div>
         <div style={{ flex: 1 }} />
-        <button onClick={refetch} title="Actualiser" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 7, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', color: 'var(--text)' }}>
+        <button onClick={refetch} title="Actualiser" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 7, background: 'var(--bg-card)', border: '2px solid var(--ink)', cursor: 'pointer', color: 'var(--text)' }}>
           {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
         </button>
-        <button onClick={onClose} title="Fermer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 7, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', color: 'var(--text)' }}>
+        <button onClick={onClose} title="Fermer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 7, background: 'var(--bg-card)', border: '2px solid var(--ink)', cursor: 'pointer', color: 'var(--text)' }}>
           <X size={13} />
         </button>
       </div>
@@ -65,7 +65,7 @@ function BriefPanel({ onClose }: { onClose: () => void }) {
       {/* Corps */}
       <div style={{ padding: 12, overflowY: 'auto', flex: 1 }}>
         {error ? (
-          <div style={{ padding: 14, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--accent-budget)', fontSize: 12 }}>
+          <div style={{ padding: 14, borderRadius: 'var(--radius-md)', border: '2px solid var(--ink)', background: 'var(--bg-card)', color: 'var(--accent-budget)', fontSize: 12 }}>
             Impossible de charger : {error}
           </div>
         ) : loading && !current ? (
@@ -118,7 +118,7 @@ export function BriefDock() {
           style={{
             zIndex: 1400, display: 'flex', alignItems: 'center', gap: 7, padding: '10px 16px',
             borderRadius: 999, background: 'var(--azul)', color: 'var(--creamy-ivory)',
-            border: '1px solid var(--border)', boxShadow: 'var(--elev-2)', cursor: 'pointer',
+            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer',
             ...DF, fontWeight: 800, fontSize: 12, letterSpacing: '0.04em',
           }}>
           <Sparkles size={15} /> Brief

@@ -24,7 +24,6 @@ const DESTINATIONS: Dest[] = [
   { label: 'Inventaire',    href: '/courses/inventaire', emoji: '📦' },
   { label: 'Budget',        href: '/budget',             emoji: '💳', key: 'b' },
   { label: 'Rapports',      href: '/rapports',           emoji: '📊' },
-  { label: 'Intégrations',  href: '/integrations',       emoji: '🔗', key: 'i' },
   { label: 'Réglages',      href: '/reglages',           emoji: '⚙️', key: 's' },
   { label: 'Profil',        href: '/compte',             emoji: '👤' },
 ]
@@ -98,10 +97,10 @@ export function CommandPalette() {
     <div onClick={() => setOpen(false)}
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)', zIndex: 2000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '12vh' }}>
       <div onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 520, background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', boxShadow: 'var(--elev-2)', overflow: 'hidden' }}>
+        style={{ width: '100%', maxWidth: 520, background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '2px solid var(--ink)', boxShadow: '6px 6px 0 var(--ink)', overflow: 'hidden' }}>
         <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={onInputKey}
           placeholder="Aller à… (tape un nom, ↑↓ puis Entrée)"
-          style={{ width: '100%', boxSizing: 'border-box', padding: '16px 18px', background: 'var(--bg-input)', border: 'none', borderBottom: '1px solid var(--border)', color: 'var(--text)', fontSize: 15, outline: 'none', ...DF, fontWeight: 600 }} />
+          style={{ width: '100%', boxSizing: 'border-box', padding: '16px 18px', background: 'var(--bg-input)', border: 'none', borderBottom: '2px solid var(--ink)', color: 'var(--text)', fontSize: 15, outline: 'none', ...DF, fontWeight: 600 }} />
         <div style={{ maxHeight: 360, overflowY: 'auto', padding: 6 }}>
           {results.length === 0 && (
             <p style={{ padding: 18, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>Aucune page</p>
@@ -113,7 +112,7 @@ export function CommandPalette() {
               <span style={{ fontSize: 18 }}>{d.emoji}</span>
               <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{d.label}</span>
               {d.key && (
-                <kbd style={{ ...DF, fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, border: '1px solid var(--border)', background: i === idx ? 'rgba(0,0,0,0.12)' : 'var(--bg-input)', color: i === idx ? 'var(--chocolate)' : 'var(--text-muted)' }}>g {d.key}</kbd>
+                <kbd style={{ ...DF, fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, border: '1.5px solid var(--ink)', background: i === idx ? 'rgba(0,0,0,0.12)' : 'var(--bg-input)', color: i === idx ? 'var(--chocolate)' : 'var(--text-muted)' }}>g {d.key}</kbd>
               )}
             </button>
           ))}

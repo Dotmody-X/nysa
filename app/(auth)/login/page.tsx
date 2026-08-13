@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="flex flex-col items-center mb-10">
         <div
           className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
-          style={{ background: 'var(--creamy-ivory)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}
+          style={{ background: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
         >
           <NysaLogo size={30} color="#1a0708" />
         </div>
@@ -77,11 +77,11 @@ export default function LoginPage() {
             className="w-full px-3 py-2.5 rounded-[10px] text-sm outline-none transition-all duration-150"
             style={{
               background:  'var(--bg-input)',
-              border:      '1px solid var(--border)',
+              border:      '2px solid var(--ink)',
               color:       'var(--text)',
             }}
             onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-budget)')}
-            onBlur={e  => (e.currentTarget.style.borderColor = 'var(--border)')}
+            onBlur={e  => (e.currentTarget.style.borderColor = 'var(--ink)')}
           />
         </div>
 
@@ -107,12 +107,12 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--chocolate)', background: 'var(--danger)', border: '1px solid var(--border)' }}>
+          <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--chocolate)', background: 'var(--danger)', border: '2px solid var(--ink)' }}>
             {error}
           </p>
         )}
         {info && (
-          <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--text)', background: 'var(--bg-input)', border: '1px solid var(--border)' }}>
+          <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--text)', background: 'var(--bg-input)', border: '2px solid var(--ink)' }}>
             {info}
           </p>
         )}
@@ -121,7 +121,7 @@ export default function LoginPage() {
           type="submit"
           disabled={loading}
           className="nb-press w-full py-2.5 rounded-[10px] text-sm font-semibold tracking-wide mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}
+          style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
         >
           {loading ? (mode === 'signup' ? 'Création…' : 'Connexion…') : (mode === 'signup' ? 'Créer mon compte' : 'Se connecter')}
         </button>

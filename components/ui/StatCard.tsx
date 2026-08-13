@@ -45,9 +45,9 @@ export function StatCard({ label, value, unit, sub, icon, accent = 'cyan', trend
             style={{
               background: color,
               color: iconChipText,
-              border: '1px solid var(--border)',
+              border: '2px solid var(--ink)',
               borderRadius: 'var(--radius-md)',
-              boxShadow: 'var(--elev-1)',
+              boxShadow: '2px 2px 0 var(--ink)',
               width: 30,
               height: 30,
             }}

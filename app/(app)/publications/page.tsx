@@ -62,8 +62,8 @@ function fmtMonthYear(d: Date): string {
 }
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
-  boxShadow: 'var(--elev-1)', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
+  boxShadow: '4px 4px 0 var(--ink)', ...extra,
 })
 
 // ── Badges ────────────────────────────────────────────────────────────────────
@@ -161,7 +161,7 @@ function PubModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
       <div style={{ ...card(), width: '100%', maxWidth: 480, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
           <Send size={16} style={{ color: 'var(--accent-budget)' }} />
           <span style={{ ...DF, fontSize: 14, fontWeight: 900, color: 'var(--text)' }}>{isEdit ? 'Modifier la publication' : 'Nouvelle publication'}</span>
           {initial?.featured && (
@@ -242,7 +242,7 @@ function PubModal({
         </div>
 
         {/* Footer */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', borderTop: '1px solid var(--border)', background: 'var(--bg-input)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', borderTop: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
           {isEdit && (
             confirmDel ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -257,9 +257,9 @@ function PubModal({
             )
           )}
           <div style={{ flex: 1 }} />
-          <button onClick={onClose} style={{ ...DF, fontSize: 12, color: 'var(--text-muted)', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={onClose} style={{ ...DF, fontSize: 12, color: 'var(--text-muted)', background: 'var(--bg-card)', border: '2px solid var(--ink)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>Annuler</button>
           <button onClick={submit} disabled={saving || !form.title.trim()} className="nb-press"
-            style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--chocolate)', background: 'var(--accent-budget)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+            style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--chocolate)', background: 'var(--accent-budget)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
             {saving ? '…' : isEdit ? 'Enregistrer' : 'Créer'}
           </button>
         </div>
@@ -340,7 +340,7 @@ export default function PublicationsPage() {
 
   const filterSelect: React.CSSProperties = {
     ...DF, fontSize: 11, fontWeight: 600, background: 'var(--bg-card)', color: 'var(--text)',
-    border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', outline: 'none',
+    border: '2px solid var(--ink)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', outline: 'none',
   }
 
   return (
@@ -348,7 +348,7 @@ export default function PublicationsPage() {
       <PageTitle title="Publications" sub="Calendrier éditorial"
         right={
           <button onClick={() => openCreate(view === 'backlog' ? null : todayStr)} className="nb-press"
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             <Plus size={14} /> Publication
           </button>
         } />
@@ -388,7 +388,7 @@ export default function PublicationsPage() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', padding: '0 4px' }}>
         {CHANNELS.filter(c => c !== 'Autre').map(c => (
           <span key={c} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'var(--text-muted)', ...DF, fontWeight: 600 }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: channelColor(c), border: '1px solid var(--border)', flexShrink: 0 }} /> {c}
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: channelColor(c), border: '1.5px solid var(--ink)', flexShrink: 0 }} /> {c}
           </span>
         ))}
       </div>
@@ -397,12 +397,12 @@ export default function PublicationsPage() {
       {view === 'calendar' && (
         <div style={{ ...card(), overflow: 'hidden' }}>
           {/* Nav mois */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
-            <button onClick={() => setMonthStart(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))} style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '2px solid var(--ink)' }}>
+            <button onClick={() => setMonthStart(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))} style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '2px solid var(--ink)', cursor: 'pointer' }}>
               <ChevronLeft size={14} style={{ color: 'var(--text)' }} />
             </button>
             <span style={{ ...DF, fontSize: 14, fontWeight: 900, color: 'var(--text)', textTransform: 'capitalize' }}>{fmtMonthYear(monthStart)}</span>
-            <button onClick={() => setMonthStart(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))} style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+            <button onClick={() => setMonthStart(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))} style={{ width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '2px solid var(--ink)', cursor: 'pointer' }}>
               <ChevronRight size={14} style={{ color: 'var(--text)' }} />
             </button>
           </div>
@@ -428,7 +428,7 @@ export default function PublicationsPage() {
                         <div key={p.id} onClick={e => { e.stopPropagation(); openEdit(p) }}
                           title={`${p.title ?? ''}${p.brand ? ' — ' + p.brand : ''}${p.channel ? ' · ' + p.channel : ''}`}
                           style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 5px', borderRadius: 5, background: channelColor(p.channel) + '2e', border: '1px solid var(--border)', borderLeft: `3px solid ${channelColor(p.channel)}`, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : p.status === 'published' ? 0.8 : 1 }}>
-                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: brandColor(p.brand ?? ''), border: '1px solid var(--border)', flexShrink: 0 }} />
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: brandColor(p.brand ?? ''), border: '1px solid var(--ink)', flexShrink: 0 }} />
                           <span style={{ fontSize: 10, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {p.title}{p.channel ? ` · ${p.channel}` : ''}
                           </span>
@@ -450,7 +450,7 @@ export default function PublicationsPage() {
             <Tag size={13} style={{ color: 'var(--text-muted)' }} />
             <span style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Idées sans date</span>
             <div style={{ flex: 1 }} />
-            <button onClick={() => openCreate(null)} style={{ display: 'flex', alignItems: 'center', gap: 5, ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', background: 'var(--accent-budget)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>
+            <button onClick={() => openCreate(null)} style={{ display: 'flex', alignItems: 'center', gap: 5, ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', background: 'var(--accent-budget)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>
               <Plus size={12} /> Nouvelle idée
             </button>
           </div>
@@ -462,9 +462,9 @@ export default function PublicationsPage() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
               {backlog.map(p => (
-                <div key={p.id} style={{ ...card({ boxShadow: 'var(--elev-1)' }), borderLeft: `5px solid ${channelColor(p.channel)}`, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.6 : 1 }} onClick={() => openEdit(p)}>
+                <div key={p.id} style={{ ...card({ boxShadow: '3px 3px 0 var(--ink)' }), borderLeft: `5px solid ${channelColor(p.channel)}`, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.6 : 1 }} onClick={() => openEdit(p)}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                    <span title={p.brand ?? undefined} style={{ width: 10, height: 10, borderRadius: '50%', background: brandColor(p.brand ?? ''), border: '1px solid var(--border)', marginTop: 4, flexShrink: 0 }} />
+                    <span title={p.brand ?? undefined} style={{ width: 10, height: 10, borderRadius: '50%', background: brandColor(p.brand ?? ''), border: '1.5px solid var(--ink)', marginTop: 4, flexShrink: 0 }} />
                     <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--text)', lineHeight: 1.3 }}>{p.title}</span>
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
@@ -474,7 +474,7 @@ export default function PublicationsPage() {
                   {p.notes && <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.notes}</p>}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={e => e.stopPropagation()}>
                     <select value={p.status} onChange={e => quickStatus(p, e.target.value as PubStatus)}
-                      style={{ ...DF, fontSize: 10, fontWeight: 700, color: '#fff', background: statusMeta(p.status).color, border: '1px solid var(--border)', borderRadius: 6, padding: '3px 6px', cursor: 'pointer', outline: 'none' }}>
+                      style={{ ...DF, fontSize: 10, fontWeight: 700, color: '#fff', background: statusMeta(p.status).color, border: '1.5px solid var(--ink)', borderRadius: 6, padding: '3px 6px', cursor: 'pointer', outline: 'none' }}>
                       {STATUSES.map(s => <option key={s.key} value={s.key} style={{ color: 'var(--text)', background: 'var(--bg-card)' }}>{s.label}</option>)}
                     </select>
                     {p.link && (

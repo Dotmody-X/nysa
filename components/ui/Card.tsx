@@ -23,8 +23,8 @@ export function Card({ padding = 'md', hover = false, className = '', children, 
       ].join(' ')}
       style={{
         background: 'var(--bg-card)',
-        borderColor: 'var(--border)',
-        boxShadow: 'var(--elev-1)',
+        borderColor: 'var(--ink)',
+        boxShadow: '4px 4px 0 var(--ink)',
       }}
       {...props}
     >

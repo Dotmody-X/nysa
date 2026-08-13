@@ -128,7 +128,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
 
   if (error) {
     return (
-      <div style={{ height, width: '100%', borderRadius, background: '#161616', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
+      <div style={{ height, width: '100%', borderRadius, background: '#161616', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
         <span style={{ fontSize: 24 }}>🗺️</span>
         <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)', fontFamily: 'var(--font-display)' }}>{error}</p>
       </div>
@@ -145,9 +145,9 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         overflow: 'hidden',
         background: '#0C0C0C',
         position: 'relative',
-        '--text-rgb': '244, 243, 240',
-        '--text': '#f4f3f0',
-        '--text-muted': 'rgba(244, 243, 240, 0.72)',
+        '--text-rgb': '245, 241, 237',
+        '--text': '#f5f1ed',
+        '--text-muted': 'rgba(245, 241, 237, 0.72)',
       } as React.CSSProperties}
     />
   )

@@ -54,13 +54,13 @@ export default function ReglagesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[12px]">
         {/* Sidebar nav */}
-        <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:8, height:'fit-content', display:'flex', flexDirection:'column', gap:6 }}>
+        <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:8, height:'fit-content', display:'flex', flexDirection:'column', gap:6 }}>
           {TABS.map(t => {
             const Icon = t.icon
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all nb-press"
-                style={{ background: tab===t.key ? 'var(--accent-budget)' : 'var(--bg-input)', border:'1px solid var(--border)', boxShadow: tab===t.key ? 'var(--elev-1)' : 'none' }}>
+                style={{ background: tab===t.key ? 'var(--accent-budget)' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow: tab===t.key ? '3px 3px 0 var(--ink)' : 'none' }}>
                 <Icon size={14} style={{ color: tab===t.key ? 'var(--chocolate)' : 'var(--text-muted)' }} />
                 <span style={{ ...DF, fontSize:11, fontWeight: tab===t.key ? 800 : 500, color: tab===t.key ? 'var(--chocolate)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{t.label}</span>
               </button>
@@ -83,7 +83,7 @@ export default function ReglagesPage() {
 }
 
 const LBL_F: React.CSSProperties = { fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-display)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }
-const INP_F: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }
+const INP_F: React.CSSProperties = { width:'100%', boxSizing:'border-box', background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'10px 14px', color:'var(--text)', fontSize:13 }
 
 function ProfilTab() {
   const [name, setName]   = useState('')
@@ -116,7 +116,7 @@ function ProfilTab() {
   }
 
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Profil</p>
       <div className="flex flex-col gap-4">
         <div>
@@ -152,7 +152,7 @@ function ProfilTab() {
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:8 }}>
-          <button onClick={save} disabled={saving} className="nb-press" style={{ background:'var(--accent-budget)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          <button onClick={save} disabled={saving} className="nb-press" style={{ background:'var(--accent-budget)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Enregistrement…' : 'Sauvegarder'}
           </button>
           {msg && <span style={{ fontSize:12, color: msg.startsWith('✅') ? 'var(--azul)' : 'var(--accent-budget)' }}>{msg}</span>}
@@ -170,34 +170,34 @@ function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; acce
   ]
   return (
     <div className="flex flex-col gap-[10px]">
-      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:24 }}>
+      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
         <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:16 }}>Thème</p>
         <div className="grid grid-cols-3 gap-3">
           {themes.map(t => (
             <button key={t.key} onClick={() => onTheme(t.key)}
               className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all nb-press"
-              style={{ border:'1px solid var(--border)', boxShadow: theme===t.key ? 'var(--elev-1)' : 'none', background: theme===t.key ? 'var(--accent-budget)' : 'var(--bg-input)' }}>
-              <div style={{ width:48, height:32, borderRadius:6, background:t.bg, border:'1px solid var(--border)' }} />
+              style={{ border:'2px solid var(--ink)', boxShadow: theme===t.key ? '4px 4px 0 var(--ink)' : 'none', background: theme===t.key ? 'var(--accent-budget)' : 'var(--bg-input)' }}>
+              <div style={{ width:48, height:32, borderRadius:6, background:t.bg, border:'2px solid var(--ink)' }} />
               <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? 'var(--chocolate)' : 'var(--text-muted)' }}>{t.label}</span>
             </button>
           ))}
         </div>
       </div>
-      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:24 }}>
+      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
         <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--azul)', textTransform:'uppercase', marginBottom:16 }}>Couleur accent</p>
         <div className="grid grid-cols-4 gap-2 mb-4">
           {ACCENT_PRESETS.map(p => (
             <button key={p.color} onClick={() => onAccent(p.color)}
               className="flex flex-col items-center gap-1.5 p-3 rounded-xl nb-press"
-              style={{ border:'1px solid var(--border)', boxShadow: accent===p.color ? 'var(--elev-1)' : 'none', background:'var(--bg-input)' }}>
-              <div style={{ width:28, height:28, borderRadius:'50%', background:p.color, border:'1px solid var(--border)' }} />
+              style={{ border:'2px solid var(--ink)', boxShadow: accent===p.color ? '4px 4px 0 var(--ink)' : 'none', background:'var(--bg-input)' }}>
+              <div style={{ width:28, height:28, borderRadius:'50%', background:p.color, border:'2px solid var(--ink)' }} />
               <span style={{ fontFamily:'var(--font-display)', fontSize:9, fontWeight:700, color: accent===p.color ? p.color : 'var(--text-muted)', textTransform:'uppercase' }}>{p.label}</span>
             </button>
           ))}
         </div>
         <div className="flex items-center gap-3">
           <input type="color" value={accent} onChange={e => onAccent(e.target.value)}
-            style={{ width:40, height:40, borderRadius:8, border:'1px solid var(--border)', padding:3, cursor:'pointer', background:'var(--bg-input)' }} />
+            style={{ width:40, height:40, borderRadius:8, border:'2px solid var(--ink)', padding:3, cursor:'pointer', background:'var(--bg-input)' }} />
           <span style={{ fontSize:12, color:'var(--text-muted)' }}>Couleur personnalisée</span>
           <code style={{ fontSize:11, color:accent, fontWeight:700 }}>{accent}</code>
         </div>
@@ -209,7 +209,7 @@ function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; acce
 function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} className="nb-press" role="switch" aria-checked={on}
-      style={{ width:46, height:26, borderRadius:99, background: on ? 'var(--azul)' : 'var(--bg-input)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', cursor:'pointer', position:'relative', flexShrink:0, transition:'background 0.2s' }}>
+      style={{ width:46, height:26, borderRadius:99, background: on ? 'var(--azul)' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', cursor:'pointer', position:'relative', flexShrink:0, transition:'background 0.2s' }}>
       <div style={{ width:16, height:16, borderRadius:'50%', background: on ? 'var(--creamy-ivory)' : 'var(--text-muted)', position:'absolute', top:3, left: on ? 24 : 3, transition:'left 0.2s' }} />
     </button>
   )
@@ -244,7 +244,7 @@ function NotifsTab() {
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
       {/* Permission navigateur */}
-      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
         <div>
           <p style={{ fontSize:13, color:'var(--text)', fontWeight:600 }}>Notifications du navigateur</p>
           <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>
@@ -253,14 +253,14 @@ function NotifsTab() {
         </div>
         {perm !== 'granted' && (
           <button onClick={enableBrowser} className="nb-press" disabled={perm === 'denied'}
-            style={{ background: perm==='denied' ? 'var(--bg-input)' : 'var(--accent-budget)', color: perm==='denied' ? 'var(--text-muted)' : 'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:'8px 16px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:11, cursor: perm==='denied' ? 'not-allowed' : 'pointer' }}>
+            style={{ background: perm==='denied' ? 'var(--bg-input)' : 'var(--accent-budget)', color: perm==='denied' ? 'var(--text-muted)' : 'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', padding:'8px 16px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:11, cursor: perm==='denied' ? 'not-allowed' : 'pointer' }}>
             Activer
           </button>
         )}
       </div>
 
       {/* Préférences (sauvegarde immédiate) */}
-      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:'8px 24px 16px' }}>
+      <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'8px 24px 16px' }}>
         <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', margin:'14px 0 4px' }}>Préférences</p>
         {NOTIF_DEFS.map(n => (
           <div key={n.key} className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)' }}>
@@ -314,7 +314,7 @@ function DonneesTab() {
   }
 
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Données & Sauvegardes</p>
       
       {/* Demo Mode Toggle */}
@@ -331,8 +331,8 @@ function DonneesTab() {
               width:50,
               height:28,
               borderRadius:14,
-              border:'1px solid var(--border)',
-              boxShadow:'var(--elev-1)',
+              border:'2px solid var(--ink)',
+              boxShadow:'2px 2px 0 var(--ink)',
               background: demoEnabled ? 'var(--accent-budget)' : 'var(--bg-input)',
               cursor:'pointer',
               display:'flex',
@@ -365,7 +365,7 @@ function DonneesTab() {
             <p style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{a.desc}</p>
           </div>
           <button onClick={() => runExport(a.action)} disabled={busy===a.action} className="nb-press"
-            style={{ fontSize:11, color:'var(--azul)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', background:'var(--bg-card)', cursor: busy===a.action ? 'default':'pointer', opacity: busy===a.action ? 0.6:1 }}>
+            style={{ fontSize:11, color:'var(--azul)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)', cursor: busy===a.action ? 'default':'pointer', opacity: busy===a.action ? 0.6:1 }}>
             {busy===a.action ? '…' : a.btn}
           </button>
         </div>
@@ -378,15 +378,15 @@ function DonneesTab() {
           <p style={{ fontSize:11, color:'var(--text-muted)', flex:1, minWidth:180 }}>Supprimer toutes tes données (tâches, finances, runs, recettes, courses…). Irréversible.</p>
           {!confirmDel ? (
             <button onClick={()=>setConfirmDel(true)} className="nb-press"
-              style={{ fontSize:11, color:'var(--accent-budget)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', background:'var(--bg-card)', cursor:'pointer' }}>
+              style={{ fontSize:11, color:'var(--accent-budget)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)', cursor:'pointer' }}>
               Tout supprimer
             </button>
           ) : (
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <input value={delInput} onChange={e=>setDelInput(e.target.value)} placeholder="SUPPRIMER" autoFocus
-                style={{ width:120, background:'var(--bg-input)', border:'1px solid var(--border)', borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:12 }} />
+                style={{ width:120, background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:12 }} />
               <button disabled={delInput!=='SUPPRIMER' || busy==='delete'} onClick={runDelete} className="nb-press"
-                style={{ fontSize:11, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 12px', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', background: delInput==='SUPPRIMER' ? 'var(--accent-budget)':'var(--bg-input)', color: delInput==='SUPPRIMER' ? 'var(--chocolate)':'var(--text-muted)', cursor: delInput==='SUPPRIMER' ? 'pointer':'not-allowed' }}>
+                style={{ fontSize:11, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 12px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background: delInput==='SUPPRIMER' ? 'var(--accent-budget)':'var(--bg-input)', color: delInput==='SUPPRIMER' ? 'var(--chocolate)':'var(--text-muted)', cursor: delInput==='SUPPRIMER' ? 'pointer':'not-allowed' }}>
                 {busy==='delete' ? '…' : 'Confirmer'}
               </button>
               <button onClick={()=>{setConfirmDel(false);setDelInput('')}} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:12 }}>Annuler</button>
@@ -416,14 +416,14 @@ function RaccourcisTab() {
     { keys:'G S', action:'Réglages' },
   ]
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:8 }}>Raccourcis clavier</p>
       <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:16 }}>Ouvre la palette avec ⌘K (ou Ctrl+K), ou tape « G » puis la touche pour naviguer.</p>
       <div className="grid grid-cols-2 gap-2">
         {shortcuts.map(s => (
-          <div key={s.action} className="flex items-center justify-between px-4 py-3 rounded-lg" style={{ background:'var(--bg-input)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)' }}>
+          <div key={s.action} className="flex items-center justify-between px-4 py-3 rounded-lg" style={{ background:'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)' }}>
             <span style={{ fontSize:12, color:'var(--text-muted)' }}>{s.action}</span>
-            <kbd style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, color:'var(--text)', background:'var(--bg-card)', padding:'2px 8px', borderRadius:4, border:'1px solid var(--border)' }}>{s.keys}</kbd>
+            <kbd style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, color:'var(--text)', background:'var(--bg-card)', padding:'2px 8px', borderRadius:4, border:'2px solid var(--ink)' }}>{s.keys}</kbd>
           </div>
         ))}
       </div>
@@ -433,7 +433,7 @@ function RaccourcisTab() {
 
 function AboutTab() {
   return (
-    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'1px solid var(--border)', boxShadow:'var(--elev-1)', padding:24 }}>
+    <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
       <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>À propos</p>
       <div className="flex flex-col gap-4">
         <div>

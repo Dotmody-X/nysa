@@ -59,7 +59,7 @@ const SHORTCUTS: { category: string; items: { keys: string[]; label: string }[] 
 
 function Kbd({ k }: { k: string }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 26, height: 22, padding: '0 6px', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 5, fontSize: 10, color: 'var(--text)', ...DF, fontWeight: 700, boxShadow: 'var(--elev-1)' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 26, height: 22, padding: '0 6px', background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 5, fontSize: 10, color: 'var(--text)', ...DF, fontWeight: 700, boxShadow: '2px 2px 0 var(--ink)' }}>
       {k}
     </span>
   )
@@ -72,7 +72,7 @@ export default function RaccourcisPage() {
     <div style={{ padding: '28px 32px', maxWidth: 640, margin: '0 auto' }}>
 
       <button onClick={() => router.push('/compte')} className="nb-press"
-        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', cursor: 'pointer', color: 'var(--text)', fontSize: 11, marginBottom: 24, padding: '8px 14px', fontWeight: 700 }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', cursor: 'pointer', color: 'var(--text)', fontSize: 11, marginBottom: 24, padding: '8px 14px', fontWeight: 700 }}>
         <ArrowLeft size={13} /> Retour au profil
       </button>
 
@@ -81,8 +81,8 @@ export default function RaccourcisPage() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {SHORTCUTS.map(cat => (
-          <div key={cat.category} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-            <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)' }}>
+          <div key={cat.category} style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+            <div style={{ padding: '12px 18px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
               <p style={{ ...DF, fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', color: TEAL, textTransform: 'uppercase' }}>{cat.category}</p>
             </div>
             {cat.items.map((item, i) => (

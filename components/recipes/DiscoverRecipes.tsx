@@ -102,14 +102,14 @@ export function DiscoverRecipes({
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     ...DF, fontSize: 12, fontWeight: 800, padding: '8px 16px', borderRadius: 'var(--radius-md)',
-    cursor: 'pointer', border: '1px solid var(--border)',
+    cursor: 'pointer', border: '2px solid var(--ink)',
     background: active ? ORANGE : 'var(--bg-card)', color: active ? 'var(--chocolate)' : 'var(--text-muted)',
-    boxShadow: active ? 'var(--elev-1)' : 'none',
+    boxShadow: active ? '3px 3px 0 var(--ink)' : 'none',
   })
 
   const importBtn = (key: string): React.CSSProperties => ({
     ...DF, fontSize: 10, fontWeight: 800, padding: '6px 10px', borderRadius: 8, cursor: 'pointer',
-    border: '1px solid var(--border)', whiteSpace: 'nowrap',
+    border: '2px solid var(--ink)', whiteSpace: 'nowrap',
     background: done.has(key) ? TEAL : ORANGE, color: done.has(key) ? 'var(--creamy-ivory)' : 'var(--chocolate)',
   })
 
@@ -117,9 +117,9 @@ export function DiscoverRecipes({
     <div onClick={onClose}
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 16 }}>
       <div onClick={e => e.stopPropagation()}
-        style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', boxShadow: 'var(--elev-2)', width: '100%', maxWidth: 820, maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', border: '2px solid var(--ink)', boxShadow: '6px 6px 0 var(--ink)', width: '100%', maxWidth: 820, maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '18px 22px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '18px 22px', borderBottom: '2px solid var(--ink)' }}>
           <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: ORANGE, flex: 1 }}>Découvrir des recettes</p>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: WHEAT, padding: 4 }}>
             <X size={20} />
@@ -136,7 +136,7 @@ export function DiscoverRecipes({
         {/* Recherche (online) */}
         {tab === 'online' && (
           <div style={{ padding: '14px 22px 0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 40, borderRadius: 'var(--radius-md)', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 40, borderRadius: 'var(--radius-md)', background: 'var(--bg-card)', border: '2px solid var(--ink)' }}>
               <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Chercher (en anglais : chicken, pasta, curry…)"
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)' }} />
@@ -157,7 +157,7 @@ export function DiscoverRecipes({
                 <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT, marginBottom: 6 }}>Exporter mes recettes</p>
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Télécharge toutes tes recettes dans un fichier JSON (sauvegarde / partage).</p>
                 <button onClick={downloadExport} disabled={(recipes as unknown[]).length === 0}
-                  style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', background: ORANGE, color: 'var(--chocolate)', cursor: (recipes as unknown[]).length ? 'pointer' : 'default', opacity: (recipes as unknown[]).length ? 1 : 0.5 }}>
+                  style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 'var(--radius-md)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', background: ORANGE, color: 'var(--chocolate)', cursor: (recipes as unknown[]).length ? 'pointer' : 'default', opacity: (recipes as unknown[]).length ? 1 : 0.5 }}>
                   Télécharger ({(recipes as unknown[]).length})
                 </button>
               </div>
@@ -179,16 +179,16 @@ export function DiscoverRecipes({
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Colle le lien d&apos;une recette (Marmiton, 750g, etc.) — lecture du balisage de la page.</p>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" onKeyDown={e => e.key === 'Enter' && importFromUrl()}
-                    style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', fontSize: 12, color: 'var(--text)', outline: 'none' }} />
+                    style={{ flex: 1, background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8, padding: '8px 10px', fontSize: 12, color: 'var(--text)', outline: 'none' }} />
                   <button onClick={importFromUrl} disabled={ioBusy || !url.trim()}
-                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: ORANGE, color: 'var(--chocolate)', cursor: ioBusy || !url.trim() ? 'default' : 'pointer', opacity: ioBusy || !url.trim() ? 0.5 : 1 }}>
+                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: ORANGE, color: 'var(--chocolate)', cursor: ioBusy || !url.trim() ? 'default' : 'pointer', opacity: ioBusy || !url.trim() ? 0.5 : 1 }}>
                     {ioBusy ? '…' : 'Importer'}
                   </button>
                 </div>
               </div>
 
               {ioMsg && (
-                <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'var(--bg-card)', border: '1px solid var(--border)', color: WHEAT, fontSize: 12 }}>{ioMsg}</div>
+                <div style={{ padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'var(--bg-card)', border: '2px solid var(--ink)', color: WHEAT, fontSize: 12 }}>{ioMsg}</div>
               )}
             </div>
           )}
@@ -196,7 +196,7 @@ export function DiscoverRecipes({
           {tab === 'pack' && RECIPE_PACK.map(r => {
             const key = `pack-${r.name}`
             return (
-              <div key={key} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--elev-1)', padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div key={key} style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', borderRadius: 'var(--radius-lg)', boxShadow: '3px 3px 0 var(--ink)', padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT, lineHeight: 1.25 }}>{r.name}</p>
                 <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.4, flex: 1 }}>{r.description}</p>
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -223,8 +223,8 @@ export function DiscoverRecipes({
           {tab === 'online' && results.map(m => {
             const key = `off-${m.id}`
             return (
-              <div key={key} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--elev-1)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                {m.thumb && <img src={m.thumb} alt="" style={{ width: '100%', height: 110, objectFit: 'cover', borderBottom: '1px solid var(--border)' }} />}
+              <div key={key} style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', borderRadius: 'var(--radius-lg)', boxShadow: '3px 3px 0 var(--ink)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                {m.thumb && <img src={m.thumb} alt="" style={{ width: '100%', height: 110, objectFit: 'cover', borderBottom: '2px solid var(--ink)' }} />}
                 <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
                   <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT, lineHeight: 1.25, flex: 1 }}>{m.name}</p>
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>

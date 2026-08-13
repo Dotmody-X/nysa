@@ -15,7 +15,7 @@ const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 
 interface RecipeData {
@@ -176,7 +176,7 @@ export default function RecipeViewPage() {
         <button onClick={() => router.push(`/recettes/${id}/edit`)} className="nb-press"
           style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 'var(--radius-lg)',
-            background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', fontWeight: 700
+            background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
           }}>
           <Edit size={16} /> Modifier
         </button>
@@ -195,7 +195,7 @@ export default function RecipeViewPage() {
               <button onClick={() => setServings(Math.max(1, servings - 1))}
                 style={{
                   width: 36, height: 36, borderRadius: 8, background: ORANGE, color: 'var(--chocolate)',
-                  border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 700, fontSize: 16
+                  border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 700, fontSize: 16
                 }}>
                 <Minus size={16} style={{ margin: 'auto' }} />
               </button>
@@ -205,7 +205,7 @@ export default function RecipeViewPage() {
               <button onClick={() => setServings(servings + 1)}
                 style={{
                   width: 36, height: 36, borderRadius: 8, background: ORANGE, color: 'var(--chocolate)',
-                  border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 700, fontSize: 16
+                  border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 700, fontSize: 16
                 }}>
                 <Plus size={16} style={{ margin: 'auto' }} />
               </button>
@@ -295,7 +295,7 @@ export default function RecipeViewPage() {
                   <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                     <span style={{
                       ...DF, flexShrink: 0, width: 26, height: 26, borderRadius: 8, background: ORANGE,
-                      color: 'var(--chocolate)', border: '1px solid var(--border)', display: 'flex',
+                      color: 'var(--chocolate)', border: '2px solid var(--ink)', display: 'flex',
                       alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12,
                     }}>{i + 1}</span>
                     <p style={{ color: WHEAT, lineHeight: 1.5, fontSize: 13, paddingTop: 3 }}>{step}</p>
@@ -306,7 +306,7 @@ export default function RecipeViewPage() {
           )}
 
           {(scheduleMsg || cookMsg) && (
-            <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', border: '1px solid var(--border)', color: WHEAT, fontSize: 12, fontWeight: 600 }}>
+            <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', border: '2px solid var(--ink)', color: WHEAT, fontSize: 12, fontWeight: 600 }}>
               {cookMsg ?? scheduleMsg}
             </div>
           )}
@@ -316,7 +316,7 @@ export default function RecipeViewPage() {
             <button onClick={() => setShowSchedule(true)} className="nb-press"
               style={{
                 flex: 1, minWidth: 180, padding: '14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)',
-                border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center',
+                border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', gap: 8, fontSize: 14
               }}>
               <Calendar size={18} /> Ajouter au menu
@@ -324,7 +324,7 @@ export default function RecipeViewPage() {
             <button onClick={handleCooked} className="nb-press"
               style={{
                 flex: 1, minWidth: 180, padding: '14px', borderRadius: 'var(--radius-lg)', background: '#5B9F3A', color: 'var(--creamy-ivory)',
-                border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center',
+                border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', gap: 8, fontSize: 14
               }}>
               <Check size={18} /> J&apos;ai cuisiné
@@ -341,7 +341,7 @@ export default function RecipeViewPage() {
         }}>
           <div style={{
             background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', padding: 24, width: '100%', maxWidth: 400,
-            border: '1px solid var(--border)', boxShadow: 'var(--elev-1)'
+            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)'
           }}>
             <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: WHEAT, marginBottom: 20 }}>Ajouter au menu</p>
             
@@ -371,14 +371,14 @@ export default function RecipeViewPage() {
               <button onClick={handleSchedule} className="nb-press"
                 style={{
                   flex: 1, padding: '10px 12px', borderRadius: 'var(--radius-lg)', background: ORANGE,
-                  color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', fontWeight: 700
+                  color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
                 }}>
                 Ajouter
               </button>
               <button onClick={() => setShowSchedule(false)} className="nb-press"
                 style={{
                   flex: 1, padding: '10px 12px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)',
-                  color: WHEAT, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', fontWeight: 700
+                  color: WHEAT, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
                 }}>
                 Annuler
               </button>

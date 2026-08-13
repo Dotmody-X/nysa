@@ -11,7 +11,7 @@ const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 })
 
 export default function AllRecipesPage() {
@@ -51,7 +51,7 @@ export default function AllRecipesPage() {
       {/* Search + Filter */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 44,
-          borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
+          borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
           <Search size={14} style={{ color: 'var(--text-muted)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Chercher une recette…"

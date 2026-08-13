@@ -9,7 +9,7 @@ const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 const RED    = '#ff5050'
 const STICKER: React.CSSProperties = {
-  border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)',
+  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
 }
 
 function fmtDate(d: string) {
@@ -113,7 +113,7 @@ export default function FrequenceCardiaqueePage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
         <button onClick={() => router.back()} className="nb-press"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36,
-            borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <ArrowLeft size={16} style={{ color: 'var(--text-muted)' }} />
         </button>
         <div>

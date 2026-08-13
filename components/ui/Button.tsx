@@ -12,10 +12,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<Variant, string> = {
-  primary:   'nb-press bg-[var(--accent-budget)] text-[var(--chocolate)] border border-[var(--border)] shadow-[var(--elev-1)]',
-  secondary: 'nb-press bg-[var(--bg-card)] text-[var(--text)] border border-[var(--border)] shadow-[var(--elev-1)]',
-  ghost:     'bg-transparent text-[var(--text)] border border-transparent hover:bg-[rgba(var(--text-rgb),0.06)]',
-  danger:    'nb-press bg-[var(--danger)] text-[var(--creamy-ivory)] border border-[var(--border)] shadow-[var(--elev-1)]',
+  primary:   'nb-press bg-[var(--accent-budget)] text-[var(--chocolate)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
+  secondary: 'nb-press bg-[var(--bg-card)] text-[var(--ink)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
+  ghost:     'bg-transparent text-[var(--ink)] border-2 border-transparent hover:bg-[rgba(var(--text-rgb),0.06)]',
+  danger:    'nb-press bg-[var(--danger)] text-[var(--creamy-ivory)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
 }
 
 const sizeStyles: Record<Size, string> = {
