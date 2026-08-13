@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
   { href: '/courses',      label: 'Courses',       color: 'var(--accent-time)' },
   { href: '/budget',       label: 'Budget',        color: 'var(--accent-time)' },
   { href: '/rapports',     label: 'Rapports',      color: 'var(--accent-time)' },
+  { href: '/integrations', label: 'Intégrations',  color: 'var(--accent-time)' },
   // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
 

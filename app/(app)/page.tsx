@@ -210,7 +210,7 @@ export default function DashboardPage() {
 
       {/* ── Automations & progression (interconnecté) ── */}
       <div style={{ gridColumn: 'span 5' }}>
-        <Panel label="Automations & progression" color="var(--accent-rapports)" href="/reglages"
+        <Panel label="Automations & progression" color="var(--accent-rapports)" href="/integrations"
           badge={badgePill('auto', 'var(--accent-rapports)')}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             <AutoTile icon={<Sparkles size={13} />} label="Brief auto" value={latestBrief ? ago(latestBrief.generated_at) : '—'} />
@@ -219,8 +219,8 @@ export default function DashboardPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', paddingTop: 4 }}>
             <Link2 size={13} style={{ color: 'var(--text-muted)' }} />
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Connecté à Claude, Notion et aux tâches programmées</span>
-            <Link href="/reglages" style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-time)', textDecoration: 'none', marginLeft: 'auto', ...DF }}>Gérer →</Link>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Claude, Notion et tâches programmées</span>
+            <Link href="/integrations" style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-time)', textDecoration: 'none', marginLeft: 'auto', ...DF }}>Gérer →</Link>
           </div>
         </Panel>
       </div>
