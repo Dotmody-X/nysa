@@ -1,0 +1,438 @@
+@import "tailwindcss";
+
+/* ============================================================
+   NYSA Design System v3.1 — Earthy Palette (FIXED)
+   
+   STRUCTURE:
+   - General Colors: Backgrounds + Text (used everywhere)
+   - Category Colors: Accent per page (distinct & visible)
+   - Proper hierarchy with good contrast
+   
+   ============================================================ */
+
+/* ============================================================
+   NYSA Design System v4 — Néo-brutalisme ludique
+   Papier + encre, accents vifs, contours + ombres dures.
+   ============================================================ */
+
+/* ── Constantes (indépendantes du thème) ───────────────────── */
+:root {
+  /* Encres fixes pour le texte sur fonds d'accent (sticker) */
+  --creamy-ivory: #f6efe0;   /* encre CLAIRE sur accent foncé */
+  --chocolate:    #18130e;   /* encre FONCÉE sur accent clair */
+  --camel:        #b7ac97;
+
+  /* Accents vifs — IDENTIQUES en clair et sombre (ça doit claquer) */
+  --accent-budget:   #ff5c35;   /* tangerine */
+  --accent-courses:  #ffc23d;   /* jaune soleil */
+  --accent-recettes: #ff4d8d;   /* rose vif */
+  --accent-time:     #2d5bff;   /* cobalt */
+  --accent-sport:    #18b26b;   /* vert gazon */
+  --accent-health:   #12b5a5;   /* turquoise */
+  --accent-rapports: #8b5cf6;   /* violet */
+  --accent-projets:  #6c5ce7;   /* indigo */
+  --accent-calendar: #36c5f0;   /* ciel */
+  --accent-todo:     #ffc23d;   /* jaune soleil */
+  --accent-agent:    #8b5cf6;   /* violet */
+  --azul:            #2d5bff;   /* alias cobalt (ex teal) */
+
+  /* Rayons chunky */
+  --sidebar-width: 220px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+}
+
+/* ── Thème sombre (défaut) ───────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:             #141109;   /* encre chaude profonde */
+  --bg-card:        #1f1a12;
+  --bg-card-hover:  #2a241a;
+  --bg-sidebar:     #100d08;
+  --bg-input:       #1b160f;
+
+  --text:           #fbf3e4;   /* crème */
+  --text-muted:     #b7ac97;
+  --text-subtle:    rgba(251, 243, 228, 0.50);
+  --text-rgb:       251, 243, 228;
+
+  --border:         rgba(251, 243, 228, 0.22);
+  --border-active:  rgba(251, 243, 228, 0.55);
+  --ink:            #fbf3e4;   /* contour + ombre brutalistes (clair sur sombre) */
+
+  --success:        #18b26b;
+  --warning:        #ffc23d;
+  --danger:         #ff5c35;
+  --info:           #2d5bff;
+}
+
+/* ── Thème clair ──────────────────────────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg:             #faf3e3;   /* papier chaud */
+  --bg-card:        #ffffff;
+  --bg-card-hover:  #f2ead6;
+  --bg-sidebar:     #f4ecd9;
+  --bg-input:       #fffdf7;
+
+  --text:           #18130e;   /* encre */
+  --text-muted:     #6e6353;
+  --text-subtle:    rgba(24, 19, 14, 0.50);
+  --text-rgb:       24, 19, 14;
+
+  --border:         rgba(24, 19, 14, 0.18);
+  --border-active:  rgba(24, 19, 14, 0.45);
+  --ink:            #18130e;   /* contour + ombre brutalistes (encre) */
+
+  --success:        #0e9c5e;
+  --warning:        #e0a01f;
+  --danger:         #ff5c35;
+  --info:           #2d5bff;
+}
+
+/* ── Thème système (OS) ───────────────────────────────────── */
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] {
+    color-scheme: light;
+    --bg:             #faf3e3;
+    --bg-card:        #ffffff;
+    --bg-card-hover:  #f2ead6;
+    --bg-sidebar:     #f4ecd9;
+    --bg-input:       #fffdf7;
+    --text:           #18130e;
+    --text-muted:     #6e6353;
+    --text-subtle:    rgba(24, 19, 14, 0.50);
+    --text-rgb:       24, 19, 14;
+    --border:         rgba(24, 19, 14, 0.18);
+    --border-active:  rgba(24, 19, 14, 0.45);
+    --ink:            #18130e;
+    --success:        #0e9c5e;
+    --warning:        #e0a01f;
+    --danger:         #ff5c35;
+    --info:           #2d5bff;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    color-scheme: dark;
+    --bg:             #141109;
+    --bg-card:        #1f1a12;
+    --bg-card-hover:  #2a241a;
+    --bg-sidebar:     #100d08;
+    --bg-input:       #1b160f;
+    --text:           #fbf3e4;
+    --text-muted:     #b7ac97;
+    --text-subtle:    rgba(251, 243, 228, 0.50);
+    --text-rgb:       251, 243, 228;
+    --border:         rgba(251, 243, 228, 0.22);
+    --border-active:  rgba(251, 243, 228, 0.55);
+    --ink:            #fbf3e4;
+    --success:        #18b26b;
+    --warning:        #ffc23d;
+    --danger:         #ff5c35;
+    --info:           #2d5bff;
+  }
+}
+
+/* ============================================================
+   Thème Tailwind v4 (variables custom)
+   ============================================================ */
+@theme inline {
+  --color-bg:             var(--bg);
+  --color-bg-card:        var(--bg-card);
+  --color-bg-card-hover:  var(--bg-card-hover);
+  --color-bg-sidebar:     var(--bg-sidebar);
+  --color-bg-input:       var(--bg-input);
+  --color-border:         var(--border);
+  --color-border-active:  var(--border-active);
+
+  --color-creamy-ivory:   var(--creamy-ivory);
+  --color-camel:          var(--camel);
+  --color-chocolate:      var(--chocolate);
+
+  --color-text:           var(--text);
+  --color-text-muted:     var(--text-muted);
+  --color-text-subtle:    var(--text-subtle);
+
+  --color-success:        var(--success);
+  --color-warning:        var(--warning);
+  --color-danger:         var(--danger);
+  --color-info:           var(--info);
+
+  --color-accent-budget:     var(--accent-budget);
+  --color-accent-courses:    var(--accent-courses);
+  --color-accent-recettes:   var(--accent-recettes);
+  --color-accent-time:       var(--accent-time);
+  --color-accent-sport:      var(--accent-sport);
+  --color-accent-health:     var(--accent-health);
+  --color-accent-rapports:   var(--accent-rapports);
+  --color-accent-projets:    var(--accent-projets);
+  --color-accent-calendar:   var(--accent-calendar);
+  --color-accent-todo:       var(--accent-todo);
+  --color-accent-agent:      var(--accent-agent);
+
+  --font-sans:            var(--font-sora), 'Sora', system-ui, -apple-system, sans-serif;
+  --font-display:         var(--font-saira), 'Saira', system-ui, -apple-system, sans-serif;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark light;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* ============================================================
+   Scrollbar custom
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ============================================================
+   Sélection texte
+   ============================================================ */
+::selection {
+  background: var(--accent-budget);
+  color: var(--bg);
+}
+
+/* ============================================================
+   Focus visible global
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--accent-budget);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   Utilitaires Tailwind pour Couleurs
+   ============================================================ */
+
+/* Text colors */
+.text-primary   { @apply text-[color:var(--text)] }
+.text-muted     { @apply text-[color:var(--text-muted)] }
+.text-subtle    { @apply text-[color:var(--text-subtle)] }
+
+/* Category text accents */
+.text-budget    { @apply text-[color:var(--accent-budget)] }
+.text-courses   { @apply text-[color:var(--accent-courses)] }
+.text-recettes  { @apply text-[color:var(--accent-recettes)] }
+.text-time      { @apply text-[color:var(--accent-time)] }
+.text-sport     { @apply text-[color:var(--accent-sport)] }
+.text-health    { @apply text-[color:var(--accent-health)] }
+.text-rapports  { @apply text-[color:var(--accent-rapports)] }
+.text-projets   { @apply text-[color:var(--accent-projets)] }
+.text-calendar  { @apply text-[color:var(--accent-calendar)] }
+.text-todo      { @apply text-[color:var(--accent-todo)] }
+.text-agent     { @apply text-[color:var(--accent-agent)] }
+
+/* Borders */
+.border-border  { @apply border-[color:var(--border)] }
+
+/* Font display */
+.font-display   { @apply [font-family:var(--font-display)] }
+
+/* ============================================================
+   Brand Utilities
+   ============================================================ */
+
+.nysa-card {
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 4px 4px 0 var(--ink);
+  padding: 1rem;
+}
+
+/* ── Néo-brutalisme : tuiles "sticker" ─────────────────────────
+   .nb-card  : surface neutre, contour + ombre dure.
+   .nb-tile  : variante pour fonds d'accent (contour + ombre encre).
+   .nb-press : effet d'appui au survol/clic. */
+.nb-card {
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.nb-tile {
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.nb-press {
+  transition: transform 0.12s cubic-bezier(0.4,0,0.2,1), box-shadow 0.12s cubic-bezier(0.4,0,0.2,1);
+}
+.nb-press:hover  { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+.nb-press:active { transform: translate(2px, 2px);   box-shadow: 0 0 0 var(--ink); }
+
+/* Surfaces d'accent FONCÉ → encre claire (texte/bordures) dans les 2 thèmes */
+.on-dark {
+  --text-rgb:      246, 239, 224;
+  --text:          #f6efe0;
+  --text-muted:    rgba(246, 239, 224, 0.72);
+  --text-subtle:   rgba(246, 239, 224, 0.50);
+  --border:        rgba(246, 239, 224, 0.22);
+  --border-active: rgba(246, 239, 224, 0.45);
+}
+
+.nysa-transition {
+  transition: all 0.15s ease;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+.page-wrap {
+  padding: 16px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (min-width: 768px) {
+  .page-wrap {
+    padding: 20px 26px;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  .bento-grid {
+    display: grid !important;
+  }
+}
+@media (max-width: 767px) {
+  .bento-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .bento-grid > * {
+    grid-column: unset !important;
+    grid-row: unset !important;
+    min-height: auto !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .md\:grid-cols-3,
+  .md\:col-span-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  h1 {
+    font-size: clamp(28px, 8vw, 52px) !important;
+  }
+  .drawer-mobile {
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border) !important;
+    top: auto !important;
+    bottom: 0 !important;
+    height: 85vh !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+
+  /* ── Mobile : grilles multi-colonnes → une colonne ───────────
+     Cible les grilles de cartes (repeat(3..12)). On préserve
+     volontairement repeat(7) (semaine calendrier) et repeat(2)
+     (paires de stats), qui restent lisibles en petit. */
+  main [style*="repeat(3"],
+  main [style*="repeat(4"],
+  main [style*="repeat(6"],
+  main [style*="repeat(8"],
+  main [style*="repeat(12"],
+  main [style*="grid-cols-4"],
+  main [style*="grid-cols-3"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  main [style*="repeat(3"] > *,
+  main [style*="repeat(4"] > *,
+  main [style*="repeat(6"] > *,
+  main [style*="repeat(8"] > *,
+  main [style*="repeat(12"] > * {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    min-height: auto !important;
+  }
+  /* Racine de page : réduit les gros paddings horizontaux */
+  main > div { max-width: 100vw; padding-left: 14px !important; padding-right: 14px !important; }
+
+  /* Espace pour la barre de navigation mobile fixe */
+  main {
+    padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Barres d'outils / filtres : défilement horizontal plutôt que débordement */
+  .toolbar-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+  }
+  .toolbar-scroll::-webkit-scrollbar { display: none; }
+  .toolbar-scroll > * { flex-shrink: 0; }
+}
+@media (min-width: 768px) {
+  main { padding-bottom: 0; }
+  /* La barre de nav mobile a un display:flex inline → on force le masquage desktop */
+  .bottom-nav { display: none !important; }
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+  .main-scroll {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 768px) {
+  .main-scroll {
+    padding-bottom: 0;
+  }
+}
