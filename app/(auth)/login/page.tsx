@@ -130,7 +130,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--on-accent)', background: 'var(--danger)', border: '2px solid var(--ink)' }}>
+          <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--ink-dark)', background: 'var(--danger)', border: '2px solid var(--ink)' }}>
             {error}
           </p>
         )}
@@ -144,7 +144,7 @@ export default function LoginPage() {
           type="submit"
           disabled={loading}
           className="nb-press w-full py-2.5 rounded-[10px] text-sm font-semibold tracking-wide mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: 'var(--accent-brand)', color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
+          style={{ background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
         >
           {loading ? (mode === 'signup' ? 'Création…' : 'Connexion…') : (mode === 'signup' ? 'Créer mon compte' : 'Se connecter')}
         </button>

@@ -103,14 +103,14 @@ export function DiscoverRecipes({
   const tabBtn = (active: boolean): React.CSSProperties => ({
     ...DF, fontSize: 12, fontWeight: 800, padding: '8px 16px', borderRadius: 'var(--radius-md)',
     cursor: 'pointer', border: '2px solid var(--ink)',
-    background: active ? ORANGE : 'var(--bg-card)', color: active ? 'var(--on-accent)' : 'var(--text-muted)',
+    background: active ? ORANGE : 'var(--bg-card)', color: active ? 'var(--ink-dark)' : 'var(--text-muted)',
     boxShadow: active ? '3px 3px 0 var(--ink)' : 'none',
   })
 
   const importBtn = (key: string): React.CSSProperties => ({
     ...DF, fontSize: 10, fontWeight: 800, padding: '6px 10px', borderRadius: 8, cursor: 'pointer',
     border: '2px solid var(--ink)', whiteSpace: 'nowrap',
-    background: done.has(key) ? TEAL : ORANGE, color: done.has(key) ? 'var(--ink-light)' : 'var(--on-accent)',
+    background: done.has(key) ? TEAL : ORANGE, color: done.has(key) ? 'var(--ink-light)' : 'var(--ink-dark)',
   })
 
   return (
@@ -157,7 +157,7 @@ export function DiscoverRecipes({
                 <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT, marginBottom: 6 }}>Exporter mes recettes</p>
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Télécharge toutes tes recettes dans un fichier JSON (sauvegarde / partage).</p>
                 <button onClick={downloadExport} disabled={(recipes as unknown[]).length === 0}
-                  style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 'var(--radius-md)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', background: ORANGE, color: 'var(--on-accent)', cursor: (recipes as unknown[]).length ? 'pointer' : 'default', opacity: (recipes as unknown[]).length ? 1 : 0.5 }}>
+                  style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 'var(--radius-md)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', background: ORANGE, color: 'var(--ink-dark)', cursor: (recipes as unknown[]).length ? 'pointer' : 'default', opacity: (recipes as unknown[]).length ? 1 : 0.5 }}>
                   Télécharger ({(recipes as unknown[]).length})
                 </button>
               </div>
@@ -181,7 +181,7 @@ export function DiscoverRecipes({
                   <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" onKeyDown={e => e.key === 'Enter' && importFromUrl()}
                     style={{ flex: 1, background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8, padding: '8px 10px', fontSize: 12, color: 'var(--text)', outline: 'none' }} />
                   <button onClick={importFromUrl} disabled={ioBusy || !url.trim()}
-                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: ORANGE, color: 'var(--on-accent)', cursor: ioBusy || !url.trim() ? 'default' : 'pointer', opacity: ioBusy || !url.trim() ? 0.5 : 1 }}>
+                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: ORANGE, color: 'var(--ink-dark)', cursor: ioBusy || !url.trim() ? 'default' : 'pointer', opacity: ioBusy || !url.trim() ? 0.5 : 1 }}>
                     {ioBusy ? '…' : 'Importer'}
                   </button>
                 </div>

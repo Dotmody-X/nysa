@@ -176,7 +176,7 @@ export default function RecipeViewPage() {
         <button onClick={() => router.push(`/recettes/${id}/edit`)} className="nb-press"
           style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 'var(--radius-lg)',
-            background: ORANGE, color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
+            background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
           }}>
           <Edit size={16} /> Modifier
         </button>
@@ -194,7 +194,7 @@ export default function RecipeViewPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <button onClick={() => setServings(Math.max(1, servings - 1))}
                 style={{
-                  width: 36, height: 36, borderRadius: 8, background: ORANGE, color: 'var(--on-accent)',
+                  width: 36, height: 36, borderRadius: 8, background: ORANGE, color: 'var(--ink-dark)',
                   border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 700, fontSize: 16
                 }}>
                 <Minus size={16} style={{ margin: 'auto' }} />
@@ -204,7 +204,7 @@ export default function RecipeViewPage() {
               </span>
               <button onClick={() => setServings(servings + 1)}
                 style={{
-                  width: 36, height: 36, borderRadius: 8, background: ORANGE, color: 'var(--on-accent)',
+                  width: 36, height: 36, borderRadius: 8, background: ORANGE, color: 'var(--ink-dark)',
                   border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 700, fontSize: 16
                 }}>
                 <Plus size={16} style={{ margin: 'auto' }} />
@@ -295,7 +295,7 @@ export default function RecipeViewPage() {
                   <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                     <span style={{
                       ...DF, flexShrink: 0, width: 26, height: 26, borderRadius: 8, background: ORANGE,
-                      color: 'var(--on-accent)', border: '2px solid var(--ink)', display: 'flex',
+                      color: 'var(--ink-dark)', border: '2px solid var(--ink)', display: 'flex',
                       alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12,
                     }}>{i + 1}</span>
                     <p style={{ color: WHEAT, lineHeight: 1.5, fontSize: 13, paddingTop: 3 }}>{step}</p>
@@ -315,7 +315,7 @@ export default function RecipeViewPage() {
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button onClick={() => setShowSchedule(true)} className="nb-press"
               style={{
-                flex: 1, minWidth: 180, padding: '14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)',
+                flex: 1, minWidth: 180, padding: '14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)',
                 border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', gap: 8, fontSize: 14
               }}>
@@ -371,7 +371,7 @@ export default function RecipeViewPage() {
               <button onClick={handleSchedule} className="nb-press"
                 style={{
                   flex: 1, padding: '10px 12px', borderRadius: 'var(--radius-lg)', background: ORANGE,
-                  color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
+                  color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
                 }}>
                 Ajouter
               </button>

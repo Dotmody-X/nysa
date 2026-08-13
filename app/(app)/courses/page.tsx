@@ -40,7 +40,7 @@ const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-  '--text-rgb': '255, 255, 255', '--text': '#1a0a0a', '--text-muted': 'rgba(255, 255, 255, 0.65)', ...extra,
+  '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', ...extra,
 } as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: DARK, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
@@ -225,7 +225,7 @@ function StoreSelectorModal({
               Annuler
             </button>
             <button onClick={selectChainOnly} className="nb-press"
-              style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--on-accent)', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
+              style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--ink-dark)', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
               Utiliser {selectedChain.name} {city ? `— ${city}` : '(sans localisation)'}
             </button>
           </div>
@@ -549,7 +549,7 @@ export default function CoursesPage() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="crs-btn nb-press" onClick={() => setShowNewList(v => !v)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                background: ORANGE, color: 'var(--on-accent)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               <Plus size={11} /> Nouvelle liste
             </button>
             <button className="crs-btn nb-press" onClick={() => setShowSearch(v => !v)}
@@ -634,7 +634,7 @@ export default function CoursesPage() {
             placeholder="Nom de la liste (ex: Semaine du 5 mai)…" autoFocus
             style={{ ...inp, flex: 1 }} />
           <button onClick={handleCreateList} disabled={creatingList} className="nb-press"
-            style={{ padding: '7px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: '7px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
             {creatingList ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Créer
           </button>
           <button onClick={() => setShowNewList(false)}
@@ -692,7 +692,7 @@ export default function CoursesPage() {
                   </div>
                   <button onClick={() => handleAddProduct(product)} disabled={!activeListId || addingId === product.code}
                     style={{ width: 24, height: 24, borderRadius: '50%', background: ORANGE, border: '2px solid var(--ink)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: !activeListId ? 0.4 : 1 }}>
-                    {addingId === product.code ? <Loader2 size={9} className="animate-spin" style={{ color: 'var(--on-accent)' }} /> : <Plus size={9} style={{ color: 'var(--on-accent)' }} />}
+                    {addingId === product.code ? <Loader2 size={9} className="animate-spin" style={{ color: 'var(--ink-dark)' }} /> : <Plus size={9} style={{ color: 'var(--ink-dark)' }} />}
                   </button>
                 </div>
               ))}
@@ -797,7 +797,7 @@ export default function CoursesPage() {
                 )}
               </select>
               <input type="number" value={manualPrice} onChange={e => setManualPrice(e.target.value)} placeholder="Prix €" style={{ ...inp, width: 75 }} />
-              <button onClick={handleManualAdd} className="nb-press" style={{ padding: '7px 14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
+              <button onClick={handleManualAdd} className="nb-press" style={{ padding: '7px 14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
                 Ajouter
               </button>
             </div>
@@ -1002,7 +1002,7 @@ export default function CoursesPage() {
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <p style={{ ...DF, fontSize: 14, fontWeight: 900, color: WHEAT }}>{p.price.toFixed(2)} €</p>
                     {pct != null && (
-                      <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: ORANGE, color: 'var(--on-accent)', border: '1px solid var(--ink)' }}>
+                      <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: ORANGE, color: 'var(--ink-dark)', border: '1px solid var(--ink)' }}>
                         {pct > 0 ? '+' : ''}{pct}%
                       </span>
                     )}
@@ -1203,7 +1203,7 @@ export default function CoursesPage() {
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
-            <ShoppingCart size={18} style={{ color: 'var(--on-accent)' }} />
+            <ShoppingCart size={18} style={{ color: 'var(--ink-dark)' }} />
           </div>
           {/* Interconnexion Courses → Budget */}
           <button className="crs-btn nb-press" onClick={saveAsExpense} disabled={basketTotal <= 0 || savingExpense || expenseSaved}

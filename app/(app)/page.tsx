@@ -43,7 +43,7 @@ export default function DashboardPage() {
   const doneTasks   = data?.todayTasks.filter(t => t.status === 'done').length ?? 0
   const totalTasks  = data?.todayTasks.length ?? 0
 
-  const INK = 'var(--on-accent)'
+  const INK = 'var(--ink-dark)'
   const CREAM = 'var(--ink-light)'
 
   return (

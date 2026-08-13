@@ -909,7 +909,7 @@ export default function BudgetPage() {
           </p>
         </div>
         {/* Résumé du mois */}
-        <div style={{ background:ORANGE, borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'14px 20px', display:'flex', gap:0, flexShrink:0, flexWrap:'wrap', width:'100%', maxWidth:500, '--text-rgb':'26, 10, 10', '--text':'var(--on-accent)', '--text-muted':'rgba(255, 255, 255, 0.65)' } as React.CSSProperties}>
+        <div style={{ background:ORANGE, borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'14px 20px', display:'flex', gap:0, flexShrink:0, flexWrap:'wrap', width:'100%', maxWidth:500, '--text-rgb':'26, 10, 10', '--text':'var(--ink-dark)', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
           <div style={{ flex:1, paddingRight:20 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <span style={{ ...LBL, fontSize:9, color:'rgba(var(--text-rgb),0.8)' }}>RÉSUMÉ DU MOIS</span>
@@ -926,7 +926,7 @@ export default function BudgetPage() {
               ].map((kpi,i) => (
                 <div key={i} style={{ borderLeft:i>0?'1px solid rgba(var(--text-rgb),0.22)':undefined, paddingLeft:i>0?18:undefined, paddingRight:18 }}>
                   <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginBottom:3 }}>{kpi.l}</p>
-                  <p style={{ ...DF, fontSize:22, fontWeight:900, color:'var(--on-accent)', lineHeight:1 }}>{kpi.v}</p>
+                  <p style={{ ...DF, fontSize:22, fontWeight:900, color:'var(--ink-dark)', lineHeight:1 }}>{kpi.v}</p>
                   {!cur.loading && <p style={{ fontSize:9, color:kpi.pos?'rgba(var(--text-rgb),0.9)':'rgba(255,220,200,0.9)', marginTop:2 }}>{fmtEur(Math.abs(kpi.d),true)} vs préc.</p>}
                 </div>
               ))}
@@ -934,7 +934,7 @@ export default function BudgetPage() {
           </div>
           <div style={{ borderLeft:'1px solid rgba(var(--text-rgb),0.22)', paddingLeft:18, display:'flex', flexDirection:'column', justifyContent:'center', minWidth:110 }}>
             <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginBottom:4 }}>Solde</p>
-            <p style={{ ...DF, fontSize:28, fontWeight:900, color:'var(--on-accent)', lineHeight:1 }}>{fmtEur(cur.balance)}</p>
+            <p style={{ ...DF, fontSize:28, fontWeight:900, color:'var(--ink-dark)', lineHeight:1 }}>{fmtEur(cur.balance)}</p>
             <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginTop:3 }}>{cur.balance>=0?'✓ Excédent':'⚠ Déficit'}</p>
           </div>
         </div>
@@ -964,7 +964,7 @@ export default function BudgetPage() {
           <BarChart2 size={13}/> Prix & magasins
         </button>
         <button onClick={()=>setShowTxModal(true)} className="nb-press"
-          style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 20px', borderRadius:10, background:ORANGE, color:'var(--on-accent)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer' }}>
+          style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 20px', borderRadius:10, background:ORANGE, color:'var(--ink-dark)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer' }}>
           <Plus size={14}/> + TRANSACTION
         </button>
       </div>

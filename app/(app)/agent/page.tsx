@@ -111,7 +111,7 @@ export default function AgentPage() {
                 <div style={(msg.role==='user' ? {
                   maxWidth:'75%', padding:'10px 14px', borderRadius:'14px 14px 4px 14px',
                   background:'var(--accent-brand)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)',
-                  '--text-rgb':'17, 17, 17', '--text':'var(--on-accent)', '--text-muted':'rgba(17, 17, 17, 0.65)',
+                  '--text-rgb':'17, 17, 17', '--text':'var(--ink-dark)', '--text-muted':'rgba(17, 17, 17, 0.65)',
                 } : {
                   maxWidth:'75%', padding:'10px 14px', borderRadius:'4px 14px 14px 14px',
                   background:'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)',
@@ -152,7 +152,7 @@ export default function AgentPage() {
                 disabled={!input.trim()||loading}
                 className="nb-press"
                 style={{ width:36, height:36, borderRadius:9, background: input.trim()&&!loading ? 'var(--accent-brand)' : 'var(--bg-card)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s', flexShrink:0 }}>
-                <Send size={14} style={{ color: input.trim()&&!loading ? 'var(--on-accent)' : 'var(--text-muted)' }} />
+                <Send size={14} style={{ color: input.trim()&&!loading ? 'var(--ink-dark)' : 'var(--text-muted)' }} />
               </button>
             </div>
           </div>
@@ -160,8 +160,8 @@ export default function AgentPage() {
 
         {/* Right — suggestions */}
         <div className="flex flex-col gap-[12px]">
-          <div style={{ background:'var(--accent-brand)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:20, '--text-rgb':'17, 17, 17', '--text':'var(--on-accent)', '--text-muted':'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
-            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--on-accent)', textTransform:'uppercase', marginBottom:12 }}>Suggestions</p>
+          <div style={{ background:'var(--accent-brand)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:20, '--text-rgb':'17, 17, 17', '--text':'var(--ink-dark)', '--text-muted':'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
+            <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:'var(--ink-dark)', textTransform:'uppercase', marginBottom:12 }}>Suggestions</p>
             <div className="flex flex-col gap-2">
               {SUGGESTIONS.map(s => (
                 <button key={s} onClick={()=>sendMessage(s)}

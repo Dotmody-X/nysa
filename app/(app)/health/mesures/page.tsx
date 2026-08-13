@@ -40,7 +40,7 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
             Annuler
           </button>
           <button onClick={onConfirm} className="nb-press"
-            style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)',
+            style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)',
               border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', fontSize: 12, ...DF, fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6 }}>
             <Trash2 size={12} /> Supprimer
@@ -215,7 +215,7 @@ export default function MesuresPage() {
         </div>
         <button onClick={() => { setShowForm(v => !v); setEditId(null) }} className="nb-press"
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <Plus size={12} /> Nouvelle mesure
         </button>
       </div>
@@ -235,7 +235,7 @@ export default function MesuresPage() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--on-accent)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+            <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               Enregistrer
             </button>
             <button type="button" onClick={() => setShowForm(false)} className="nb-press"

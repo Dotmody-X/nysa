@@ -1,27 +1,37 @@
 @import "tailwindcss";
 
 /* ============================================================
-   NYSA Design System v6 — Éditorial
-   Blanc/noir neutres, UN accent de marque (outremer), encres
-   profondes désaturées par catégorie. La hiérarchie vient de la
-   typo ; la couleur est rare et toujours porteuse de sens.
-   Ossature néo-brutaliste conservée : contours + ombres dures.
+   NYSA Design System v5 — Néo-brutalisme neutre
+   Blanc + noir neutres, accents vifs, contours + ombres dures.
    ============================================================ */
 
 /* ── Constantes (indépendantes du thème) ───────────────────── */
 :root {
-  /* Encres fixes */
-  --ink-light: #ffffff;      /* encre claire (chips noirs, on-dark) */
-  --ink-dark:  #111111;      /* encre foncée (chips blancs) */
+  /* Encres fixes pour le texte sur fonds d'accent (sticker) */
+  --ink-light: #ffffff;      /* encre CLAIRE sur accent foncé */
+  --ink-dark:  #111111;      /* encre FONCÉE sur accent clair */
 
-  /* Texte posé sur TOUTE surface colorée : les accents sont
-     profonds dans les 2 thèmes, donc l'encre est toujours claire */
-  --on-accent: #ffffff;
-
-  /* Alias hérités (dépréciés) */
+  /* Alias hérités du v4 (à migrer vers --ink-light / --ink-dark) */
   --creamy-ivory: var(--ink-light);
   --chocolate:    var(--ink-dark);
   --camel:        #9a9a9a;
+
+  /* Accent de marque — LA couleur NYSA (nav, CTA, focus, sélection) */
+  --accent-brand:    #ff5c35;   /* tangerine */
+
+  /* Accents vifs — IDENTIQUES en clair et sombre (ça doit claquer) */
+  --accent-budget:   #ff5c35;   /* tangerine */
+  --accent-courses:  #ffc23d;   /* jaune soleil */
+  --accent-recettes: #ff4d8d;   /* rose vif */
+  --accent-time:     #2d5bff;   /* cobalt */
+  --accent-sport:    #18b26b;   /* vert gazon */
+  --accent-health:   #12b5a5;   /* turquoise */
+  --accent-rapports: #8b5cf6;   /* violet */
+  --accent-projets:  #6c5ce7;   /* indigo */
+  --accent-calendar: #36c5f0;   /* ciel */
+  --accent-todo:     #ffc23d;   /* jaune soleil */
+  --accent-agent:    #8b5cf6;   /* violet */
+  --azul:            #2d5bff;   /* alias cobalt (ex teal) */
 
   /* Rayons chunky */
   --sidebar-width: 220px;
@@ -51,25 +61,10 @@
   --border-active:  rgba(245, 245, 245, 0.55);
   --ink:            #f5f5f5;   /* contour + ombre brutalistes (clair sur sombre) */
 
-  /* Accents — versions éclaircies et calmes pour fond sombre */
-  --accent-brand:    #5a63f5;   /* outremer lumineux */
-  --accent-budget:   #c96a3e;   /* rouille claire */
-  --accent-courses:  #c29222;   /* ocre clair */
-  --accent-recettes: #c75f85;   /* framboise claire */
-  --accent-time:     #6b79c7;   /* indigo doux */
-  --accent-sport:    #5c9464;   /* mousse claire */
-  --accent-health:   #3f9c8a;   /* pin clair */
-  --accent-rapports: #8a68b3;   /* prune claire */
-  --accent-projets:  #7681d6;   /* indigo clair */
-  --accent-calendar: #5b9dc0;   /* pétrole clair */
-  --accent-todo:     #c29222;   /* = courses */
-  --accent-agent:    #8a68b3;   /* = rapports */
-  --azul:            #6b79c7;   /* alias time */
-
-  --success:        #4dae7c;
-  --warning:        #d2a12f;
-  --danger:         #d95c3d;
-  --info:           #5a63f5;
+  --success:        #18b26b;
+  --warning:        #ffc23d;
+  --danger:         #ff5c35;
+  --info:           #2d5bff;
 }
 
 /* ── Thème clair ──────────────────────────────────────────── */
@@ -91,25 +86,10 @@
   --border-active:  rgba(17, 17, 17, 0.45);
   --ink:            #111111;   /* contour + ombre brutalistes (encre) */
 
-  /* Accents — encres profondes, lisibles en texte sur blanc (AA) */
-  --accent-brand:    #2733e0;   /* outremer */
-  --accent-budget:   #a34c24;   /* rouille */
-  --accent-courses:  #946a08;   /* ocre */
-  --accent-recettes: #a13a5e;   /* framboise sourde */
-  --accent-time:     #232e63;   /* indigo nuit */
-  --accent-sport:    #38663d;   /* mousse */
-  --accent-health:   #1f6b5c;   /* pin */
-  --accent-rapports: #5a3d78;   /* prune */
-  --accent-projets:  #3d47a3;   /* indigo */
-  --accent-calendar: #2e6f8e;   /* pétrole */
-  --accent-todo:     #946a08;   /* = courses */
-  --accent-agent:    #5a3d78;   /* = rapports */
-  --azul:            #232e63;   /* alias time */
-
-  --success:        #1f7a4a;
-  --warning:        #97690a;
-  --danger:         #c23a1c;
-  --info:           #2733e0;
+  --success:        #0e9c5e;
+  --warning:        #e0a01f;
+  --danger:         #e04b1f;   /* assombri : lisible en texte sur blanc (AA) */
+  --info:           #2d5bff;
 }
 
 /* ── Thème système (OS) ───────────────────────────────────── */
@@ -128,23 +108,10 @@
     --border:         rgba(17, 17, 17, 0.16);
     --border-active:  rgba(17, 17, 17, 0.45);
     --ink:            #111111;
-    --accent-brand:    #2733e0;
-    --accent-budget:   #a34c24;
-    --accent-courses:  #946a08;
-    --accent-recettes: #a13a5e;
-    --accent-time:     #232e63;
-    --accent-sport:    #38663d;
-    --accent-health:   #1f6b5c;
-    --accent-rapports: #5a3d78;
-    --accent-projets:  #3d47a3;
-    --accent-calendar: #2e6f8e;
-    --accent-todo:     #946a08;
-    --accent-agent:    #5a3d78;
-    --azul:            #232e63;
-    --success:        #1f7a4a;
-    --warning:        #97690a;
-    --danger:         #c23a1c;
-    --info:           #2733e0;
+    --success:        #0e9c5e;
+    --warning:        #e0a01f;
+    --danger:         #e04b1f;
+    --info:           #2d5bff;
   }
 }
 
@@ -163,23 +130,10 @@
     --border:         rgba(245, 245, 245, 0.22);
     --border-active:  rgba(245, 245, 245, 0.55);
     --ink:            #f5f5f5;
-    --accent-brand:    #5a63f5;
-    --accent-budget:   #c96a3e;
-    --accent-courses:  #c29222;
-    --accent-recettes: #c75f85;
-    --accent-time:     #6b79c7;
-    --accent-sport:    #5c9464;
-    --accent-health:   #3f9c8a;
-    --accent-rapports: #8a68b3;
-    --accent-projets:  #7681d6;
-    --accent-calendar: #5b9dc0;
-    --accent-todo:     #c29222;
-    --accent-agent:    #8a68b3;
-    --azul:            #6b79c7;
-    --success:        #4dae7c;
-    --warning:        #d2a12f;
-    --danger:         #d95c3d;
-    --info:           #5a63f5;
+    --success:        #18b26b;
+    --warning:        #ffc23d;
+    --danger:         #ff5c35;
+    --info:           #2d5bff;
   }
 }
 
@@ -197,7 +151,6 @@
 
   --color-ink-light:      var(--ink-light);
   --color-ink-dark:       var(--ink-dark);
-  --color-on-accent:      var(--on-accent);
   --color-creamy-ivory:   var(--creamy-ivory);
   --color-camel:          var(--camel);
   --color-chocolate:      var(--chocolate);
@@ -298,7 +251,7 @@ h3 { font-size: 16px; }
    ============================================================ */
 ::selection {
   background: var(--accent-brand);
-  color: var(--on-accent);
+  color: var(--ink-dark);
 }
 
 /* ============================================================

@@ -103,7 +103,7 @@ export default function SauvegardePage() {
   const btnStyle = (status: ExportStatus, color: string): React.CSSProperties => {
     const bg = status === 'done' ? TEAL : status === 'error' ? ORANGE : color
     // cobalt/azul (TEAL) is a DARK accent → cream ink; tangerine ORANGE → dark ink
-    const ink = bg === TEAL ? 'var(--ink-light)' : 'var(--on-accent)'
+    const ink = bg === TEAL ? 'var(--ink-light)' : 'var(--ink-dark)'
     return {
       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       width: '100%', background: bg,

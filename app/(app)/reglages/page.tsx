@@ -61,8 +61,8 @@ export default function ReglagesPage() {
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all nb-press"
                 style={{ background: tab===t.key ? 'var(--accent-brand)' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow: tab===t.key ? '3px 3px 0 var(--ink)' : 'none' }}>
-                <Icon size={14} style={{ color: tab===t.key ? 'var(--on-accent)' : 'var(--text-muted)' }} />
-                <span style={{ ...DF, fontSize:11, fontWeight: tab===t.key ? 800 : 500, color: tab===t.key ? 'var(--on-accent)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{t.label}</span>
+                <Icon size={14} style={{ color: tab===t.key ? 'var(--ink-dark)' : 'var(--text-muted)' }} />
+                <span style={{ ...DF, fontSize:11, fontWeight: tab===t.key ? 800 : 500, color: tab===t.key ? 'var(--ink-dark)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{t.label}</span>
               </button>
             )
           })}
@@ -152,7 +152,7 @@ function ProfilTab() {
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:8 }}>
-          <button onClick={save} disabled={saving} className="nb-press" style={{ background:'var(--accent-brand)', color:'var(--on-accent)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          <button onClick={save} disabled={saving} className="nb-press" style={{ background:'var(--accent-brand)', color:'var(--ink-dark)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Enregistrement…' : 'Sauvegarder'}
           </button>
           {msg && <span style={{ fontSize:12, color: msg.startsWith('✅') ? 'var(--azul)' : 'var(--accent-brand)' }}>{msg}</span>}
@@ -178,7 +178,7 @@ function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; acce
               className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all nb-press"
               style={{ border:'2px solid var(--ink)', boxShadow: theme===t.key ? '4px 4px 0 var(--ink)' : 'none', background: theme===t.key ? 'var(--accent-brand)' : 'var(--bg-input)' }}>
               <div style={{ width:48, height:32, borderRadius:6, background:t.bg, border:'2px solid var(--ink)' }} />
-              <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? 'var(--on-accent)' : 'var(--text-muted)' }}>{t.label}</span>
+              <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? 'var(--ink-dark)' : 'var(--text-muted)' }}>{t.label}</span>
             </button>
           ))}
         </div>
@@ -253,7 +253,7 @@ function NotifsTab() {
         </div>
         {perm !== 'granted' && (
           <button onClick={enableBrowser} className="nb-press" disabled={perm === 'denied'}
-            style={{ background: perm==='denied' ? 'var(--bg-input)' : 'var(--accent-brand)', color: perm==='denied' ? 'var(--text-muted)' : 'var(--on-accent)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', padding:'8px 16px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:11, cursor: perm==='denied' ? 'not-allowed' : 'pointer' }}>
+            style={{ background: perm==='denied' ? 'var(--bg-input)' : 'var(--accent-brand)', color: perm==='denied' ? 'var(--text-muted)' : 'var(--ink-dark)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', padding:'8px 16px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:11, cursor: perm==='denied' ? 'not-allowed' : 'pointer' }}>
             Activer
           </button>
         )}
@@ -386,7 +386,7 @@ function DonneesTab() {
               <input value={delInput} onChange={e=>setDelInput(e.target.value)} placeholder="SUPPRIMER" autoFocus
                 style={{ width:120, background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:12 }} />
               <button disabled={delInput!=='SUPPRIMER' || busy==='delete'} onClick={runDelete} className="nb-press"
-                style={{ fontSize:11, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 12px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background: delInput==='SUPPRIMER' ? 'var(--accent-brand)':'var(--bg-input)', color: delInput==='SUPPRIMER' ? 'var(--on-accent)':'var(--text-muted)', cursor: delInput==='SUPPRIMER' ? 'pointer':'not-allowed' }}>
+                style={{ fontSize:11, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 12px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background: delInput==='SUPPRIMER' ? 'var(--accent-brand)':'var(--bg-input)', color: delInput==='SUPPRIMER' ? 'var(--ink-dark)':'var(--text-muted)', cursor: delInput==='SUPPRIMER' ? 'pointer':'not-allowed' }}>
                 {busy==='delete' ? '…' : 'Confirmer'}
               </button>
               <button onClick={()=>{setConfirmDel(false);setDelInput('')}} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:12 }}>Annuler</button>
