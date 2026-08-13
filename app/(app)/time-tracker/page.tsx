@@ -294,7 +294,7 @@ function LabelPickerDropdown({ labels, selected, onSelect, onAdd, onClose }: {
             onKeyDown={e => { if (e.key === 'Enter' && newCat.trim()) { onAdd(newCat.trim()); setNewCat('') } }}
             style={{ flex: 1, background: 'rgba(var(--text-rgb),0.08)', border: '1px solid rgba(var(--text-rgb),0.15)', borderRadius: 6, padding: '5px 8px', color: '#fff', fontSize: 11, outline: 'none' }} />
           <button onClick={() => { if (newCat.trim()) { onAdd(newCat.trim()); setNewCat('') } }}
-            style={{ padding: '0 10px', borderRadius: 6, background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 11 }}>+</button>
+            style={{ padding: '0 10px', borderRadius: 6, background: 'var(--accent-brand)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 11 }}>+</button>
         </div>
       )}
     </div>
@@ -680,7 +680,7 @@ export default function TimeTrackerPage() {
         background: running ? 'var(--accent-brand)' : 'var(--bg-card)',
         border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
         display: 'flex', flexDirection: 'column', padding: 22,
-        ...(running ? { '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)' } : {}),
+        ...(running ? { '--text-rgb': '255, 255, 255', '--text': '#1a0a0a', '--text-muted': 'rgba(255, 255, 255, 0.65)' } : {}),
       } as React.CSSProperties}>
         {running ? (
           <>
@@ -700,19 +700,19 @@ export default function TimeTrackerPage() {
                 <Square size={20} fill="var(--ink-light)" color="var(--ink-light)" />
               </button>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ ...DF, fontSize: 17, fontWeight: 800, color: 'var(--ink-dark)', lineHeight: 1.15, marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <p style={{ ...DF, fontSize: 17, fontWeight: 800, color: 'var(--on-accent)', lineHeight: 1.15, marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {running.description || 'Session de travail'}
                 </p>
                 <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', marginBottom: 10 }}>
                   {runningProj?.name ?? 'Sans projet'}{running.category ? ` • ${running.category}` : ''}
                 </p>
-                <p style={{ ...DF, fontWeight: 900, fontSize: 34, color: 'var(--ink-dark)', letterSpacing: '0.06em', lineHeight: 1 }}>
+                <p style={{ ...DF, fontWeight: 900, fontSize: 34, color: 'var(--on-accent)', letterSpacing: '0.06em', lineHeight: 1 }}>
                   {fmtSec(elapsed)}
                 </p>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>Aujourd'hui</p>
-                <p style={{ ...DF, fontWeight: 900, fontSize: 26, color: 'var(--ink-dark)', lineHeight: 1 }}>{fmtDur(todaySec + elapsed)}</p>
+                <p style={{ ...DF, fontWeight: 900, fontSize: 26, color: 'var(--on-accent)', lineHeight: 1 }}>{fmtDur(todaySec + elapsed)}</p>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 16, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -761,8 +761,8 @@ export default function TimeTrackerPage() {
               </button>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
-              <button onClick={handleStart} disabled={!desc.trim()} className="nb-press" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? 'var(--accent-brand)' : 'var(--bg-input)', color: desc.trim() ? 'var(--ink-dark)' : 'var(--text-muted)', border: desc.trim() ? '2px solid var(--ink)' : '1px solid var(--border)', boxShadow: desc.trim() ? '4px 4px 0 var(--ink)' : 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
-                <Play size={13} fill={desc.trim() ? 'var(--ink-dark)' : 'var(--text-muted)'} /> Démarrer
+              <button onClick={handleStart} disabled={!desc.trim()} className="nb-press" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? 'var(--accent-brand)' : 'var(--bg-input)', color: desc.trim() ? 'var(--on-accent)' : 'var(--text-muted)', border: desc.trim() ? '2px solid var(--ink)' : '1px solid var(--border)', boxShadow: desc.trim() ? '4px 4px 0 var(--ink)' : 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
+                <Play size={13} fill={desc.trim() ? 'var(--on-accent)' : 'var(--text-muted)'} /> Démarrer
               </button>
               <button onClick={() => setManualOpen(true)} style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--bg-input)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
                 <PenLine size={14} />
@@ -799,7 +799,7 @@ export default function TimeTrackerPage() {
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 600 }}>
           <Download size={11} /> Exporter
         </button>
-        <button onClick={() => setManualOpen(true)} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
+        <button onClick={() => setManualOpen(true)} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: 'var(--accent-brand)', color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', cursor: 'pointer', fontSize: 11, ...DF, fontWeight: 700, letterSpacing: '0.05em' }}>
           <Plus size={11} /> Nouvelle entrée
         </button>
       </div>
@@ -823,10 +823,10 @@ export default function TimeTrackerPage() {
       </div>
 
       {/* KPI 3 — Projets actifs (orange) */}
-      <div style={{ background: 'var(--accent-brand)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', '--text-rgb': '26, 10, 10', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+      <div style={{ background: 'var(--accent-brand)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 20, height: 280, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', '--text-rgb': '255, 255, 255', '--text': 'var(--on-accent)', '--text-muted': 'rgba(255, 255, 255, 0.65)' } as React.CSSProperties}>
         <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.07)', pointerEvents: 'none' }} />
         <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.75)', textTransform: 'uppercase', ...DF, fontWeight: 700, marginBottom: 6 }}>Projets actifs</span>
-        <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: 'var(--ink-dark)', lineHeight: 1, marginBottom: 6 }}>{activeProjs}</p>
+        <p style={{ ...DF, fontWeight: 900, fontSize: 56, color: 'var(--on-accent)', lineHeight: 1, marginBottom: 6 }}>{activeProjs}</p>
         <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)' }}>{PERIOD_LABELS[period]}</p>
         <MiniBarChart values={secPerDay} color="rgba(var(--text-rgb),0.65)" />
       </div>

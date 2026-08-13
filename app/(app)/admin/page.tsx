@@ -6,7 +6,7 @@ import { type SiteConfig, type ThemeConfig, type ThemePreset, type Plan } from '
 
 // Presets de thème intégrés (points de départ rapides)
 const BUILTIN_PRESETS: { name: string; theme: ThemeConfig }[] = [
-  { name: 'Néo-brutaliste (défaut)', theme: { accent: '#ff5c35', secondary: '#2d5bff', ink: '#111111', bg: '#ffffff', card: '#ffffff', text: '#111111', radius: 16 } },
+  { name: 'Éditorial (défaut)', theme: { accent: '#2733e0', secondary: '#232e63', ink: '#111111', bg: '#ffffff', card: '#ffffff', text: '#111111', radius: 16 } },
   { name: 'Minuit', theme: { accent: '#8b5cf6', secondary: '#36c5f0', ink: '#000000', bg: '#0c0c14', card: '#15151f', text: '#ffffff', radius: 14 } },
   { name: 'Forêt', theme: { accent: '#18b26b', secondary: '#737a4e', ink: '#10231a', bg: '#f1f5ec', card: '#ffffff', text: '#10231a', radius: 12 } },
   { name: 'Rose bonbon', theme: { accent: '#ff4d8d', secondary: '#6c5ce7', ink: '#2a0a1a', bg: '#fff0f6', card: '#ffffff', text: '#2a0a1a', radius: 20 } },
@@ -45,7 +45,7 @@ const THEME_FIELDS: { key: keyof Omit<ThemeConfig, 'radius'>; label: string }[] 
   { key: 'card', label: 'Fond des cartes' }, { key: 'text', label: 'Texte' },
 ]
 const DEFAULT_HEX: Record<string, string> = {
-  accent: '#ff5c35', secondary: '#2d5bff', ink: '#111111', bg: '#ffffff', card: '#ffffff', text: '#111111',
+  accent: '#2733e0', secondary: '#232e63', ink: '#111111', bg: '#ffffff', card: '#ffffff', text: '#111111',
 }
 const rid = () => Math.random().toString(36).slice(2)
 
@@ -133,7 +133,7 @@ export default function AdminPage() {
 
   const tabBtn = (k: typeof tab, label: string): React.CSSProperties => ({
     ...DF, fontSize: 12, fontWeight: 800, padding: '8px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer',
-    border: '2px solid var(--ink)', background: tab === k ? ORANGE : 'var(--bg-card)', color: tab === k ? 'var(--ink-dark)' : 'var(--text-muted)', boxShadow: tab === k ? '3px 3px 0 var(--ink)' : 'none',
+    border: '2px solid var(--ink)', background: tab === k ? ORANGE : 'var(--bg-card)', color: tab === k ? 'var(--on-accent)' : 'var(--text-muted)', boxShadow: tab === k ? '3px 3px 0 var(--ink)' : 'none',
   })
   const inp: React.CSSProperties = { background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, width: '100%', boxSizing: 'border-box' }
 
@@ -199,7 +199,7 @@ export default function AdminPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
                 <button onClick={() => openView(u.id)} title="Voir les données (support)" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Eye size={14} /></button>
                 {confirmDel === u.id ? (
-                  <button onClick={() => deleteUser(u.id)} title="Confirmer la suppression" style={{ background: ORANGE, border: 'none', borderRadius: 6, cursor: 'pointer', color: 'var(--ink-dark)', padding: '4px 6px' }}><Check size={13} /></button>
+                  <button onClick={() => deleteUser(u.id)} title="Confirmer la suppression" style={{ background: ORANGE, border: 'none', borderRadius: 6, cursor: 'pointer', color: 'var(--on-accent)', padding: '4px 6px' }}><Check size={13} /></button>
                 ) : (
                   <button onClick={() => setConfirmDel(u.id)} title="Supprimer ce compte" style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE }}><Trash2 size={14} /></button>
                 )}
@@ -289,7 +289,7 @@ export default function AdminPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={saveConfig} disabled={savingCfg} className="nb-press"
-              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               {savingCfg ? 'Application…' : 'Appliquer le thème'}
             </button>
             {cfgMsg && <span style={{ fontSize: 12, color: cfgMsg.startsWith('✅') ? TEAL : ORANGE }}>{cfgMsg}</span>}
@@ -319,7 +319,7 @@ export default function AdminPage() {
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={saveConfig} disabled={savingCfg} className="nb-press"
-              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               {savingCfg ? 'Enregistrement…' : 'Enregistrer les plans'}
             </button>
             {cfgMsg && <span style={{ fontSize: 12, color: cfgMsg.startsWith('✅') ? TEAL : ORANGE }}>{cfgMsg}</span>}
@@ -366,7 +366,7 @@ export default function AdminPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={saveConfig} disabled={savingCfg} className="nb-press"
-              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
               {savingCfg ? 'Enregistrement…' : 'Enregistrer les réglages'}
             </button>
             {cfgMsg && <span style={{ fontSize: 12, color: cfgMsg.startsWith('✅') ? TEAL : ORANGE }}>{cfgMsg}</span>}

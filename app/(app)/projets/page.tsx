@@ -571,10 +571,10 @@ export default function ProjetsPage() {
       </div>
 
       {/* VUE GLOBALE — 4 marques avec temps semaine */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--accent-brand)', border: '2px solid var(--ink)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--accent-brand)', border: '2px solid var(--ink)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '17, 17, 17', '--text': 'var(--on-accent)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--ink-dark)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
-          <button onClick={() => setShowGroupes(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.25)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 800, color: 'var(--ink-dark)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--on-accent)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
+          <button onClick={() => setShowGroupes(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.25)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 800, color: 'var(--on-accent)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             <Pencil size={10} /> Gérer
           </button>
         </div>
@@ -602,7 +602,7 @@ export default function ProjetsPage() {
                     <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.85)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{g.value}</span>
                   </div>
                   <div>
-                    <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--ink-dark)', lineHeight: 1 }}>
+                    <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--on-accent)', lineHeight: 1 }}>
                       {sec > 0 ? fmtHours(sec) : '—'}
                     </p>
                     <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)', marginTop: 3 }}>
@@ -638,7 +638,7 @@ export default function ProjetsPage() {
         />
         <div style={{ flex: 1 }} />
         <button onClick={() => setCreateModal(true)} className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-brand)', color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           <Plus size={13} /> NOUVEAU PROJET
         </button>
       </div>
@@ -1179,7 +1179,7 @@ function GroupesModal({
             onKeyDown={e => { if (e.key === 'Enter' && name.trim()) { onAdd(name); setName('') } }}
             style={{ ...inp, flex: 1 }} />
           <button onClick={() => { if (name.trim()) { onAdd(name); setName('') } }} disabled={!name.trim()} className="nb-press"
-            style={{ background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '8px 14px', cursor: name.trim() ? 'pointer' : 'default', ...DF, fontWeight: 800, fontSize: 11, opacity: name.trim() ? 1 : 0.5 }}>
+            style={{ background: 'var(--accent-brand)', color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '8px 14px', cursor: name.trim() ? 'pointer' : 'default', ...DF, fontWeight: 800, fontSize: 11, opacity: name.trim() ? 1 : 0.5 }}>
             + Ajouter
           </button>
         </div>

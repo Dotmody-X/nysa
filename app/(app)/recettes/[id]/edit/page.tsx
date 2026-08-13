@@ -348,7 +348,7 @@ export default function RecipeEditPage() {
             </select>
             <button onClick={() => setShowNewCategory(!showNewCategory)}
               style={{
-                padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--ink-dark)',
+                padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--on-accent)',
                 border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
               }}>
               <Plus size={14} />
@@ -363,7 +363,7 @@ export default function RecipeEditPage() {
                 }} />
               <button onClick={addCategory}
                 style={{
-                  padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--ink-dark)',
+                  padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--on-accent)',
                   border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
                 }}>
                 Créer
@@ -423,7 +423,7 @@ export default function RecipeEditPage() {
             </select>
             <button onClick={addIngredient}
               style={{
-                padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--ink-dark)',
+                padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--on-accent)',
                 border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
               }}>
               <Plus size={14} />
@@ -442,7 +442,7 @@ export default function RecipeEditPage() {
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <span style={{
                 ...DF, flexShrink: 0, width: 28, height: 38, borderRadius: 8, background: ORANGE,
-                color: 'var(--ink-dark)', border: '2px solid var(--ink)', display: 'flex',
+                color: 'var(--on-accent)', border: '2px solid var(--ink)', display: 'flex',
                 alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13,
               }}>{i + 1}</span>
               <textarea value={step} onChange={e => updateStep(i, e.target.value)} rows={2}
@@ -472,7 +472,7 @@ export default function RecipeEditPage() {
       <div style={{ display: 'flex', gap: 12 }}>
         <button onClick={handleSave} disabled={saving || !recipe.name.trim()} className="nb-press"
           style={{
-            flex: 1, padding: '12px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)',
+            flex: 1, padding: '12px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)',
             border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: saving ? 'default' : 'pointer', fontWeight: 700, opacity: saving || !recipe.name.trim() ? 0.5 : 1
           }}>
           {saving ? 'Sauvegarde...' : 'Sauvegarder'}

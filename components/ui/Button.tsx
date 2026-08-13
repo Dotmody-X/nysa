@@ -12,7 +12,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<Variant, string> = {
-  primary:   'nb-press bg-[var(--accent-brand)] text-[var(--ink-dark)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
+  primary:   'nb-press bg-[var(--accent-brand)] text-[var(--on-accent)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
   secondary: 'nb-press bg-[var(--bg-card)] text-[var(--ink)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',
   ghost:     'bg-transparent text-[var(--ink)] border-2 border-transparent hover:bg-[rgba(var(--text-rgb),0.06)]',
   danger:    'nb-press bg-[var(--danger)] text-[var(--ink-light)] border-2 border-[var(--ink)] shadow-[3px_3px_0_var(--ink)]',

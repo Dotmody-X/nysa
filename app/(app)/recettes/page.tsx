@@ -27,7 +27,7 @@ const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: TEAL_BG, '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: ORANGE, '--text-rgb': '255, 255, 255', '--text': '#1a0a0a', '--text-muted': 'rgba(255, 255, 255, 0.65)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
@@ -290,7 +290,7 @@ export default function RecettesPage() {
             <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
               <button className="rec-btn nb-press" onClick={() => router.push('/recettes/new/edit')}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                  background: ORANGE, color: 'var(--on-accent)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Plus size={11} /> Nouvelle recette
               </button>
               <button className="rec-btn nb-press" onClick={() => setDiscoverTab('pack')}
@@ -533,7 +533,7 @@ export default function RecettesPage() {
             <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 10 }}>Actions rapides</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {[
-                { l: '+ Recette', bg: ORANGE, color: 'var(--ink-dark)', onClick: () => router.push('/recettes/new/edit') },
+                { l: '+ Recette', bg: ORANGE, color: 'var(--on-accent)', onClick: () => router.push('/recettes/new/edit') },
                 { l: 'Importer', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setDiscoverTab('io') },
                 { l: 'Favoris', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setFilter('Toutes') },
                 { l: 'Exporter', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setDiscoverTab('io') },
@@ -820,7 +820,7 @@ export default function RecettesPage() {
                 <p style={{ fontSize: 13, color: 'rgba(var(--text-rgb),0.7)' }}>Aucune recette — crée une recette d&apos;abord</p>
                 <button onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new/edit') }} className="nb-press"
                   style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 'var(--radius-lg)',
-                    background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                    background: ORANGE, color: 'var(--on-accent)', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                   <Plus size={12} /> Nouvelle recette
                 </button>
               </div>

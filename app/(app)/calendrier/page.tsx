@@ -1049,7 +1049,7 @@ function CalendrierContent() {
             const active = calView === v
             return (
               <button key={v} onClick={() => setCalView(v)}
-                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? 'var(--accent-brand)' : 'transparent', color: active ? 'var(--ink-dark)' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? 'var(--accent-brand)' : 'transparent', color: active ? 'var(--on-accent)' : 'var(--text-muted)', transition: 'all 0.15s' }}>
                 {label}
               </button>
             )
@@ -1075,7 +1075,7 @@ function CalendrierContent() {
         {/* + Événement */}
         <button onClick={() => setModalDate((calView === 'day' ? dayStart : today).toISOString().slice(0, 10))}
           className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 'var(--radius-lg)', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: 'var(--accent-brand)', color: 'var(--ink-dark)', cursor: 'pointer', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', letterSpacing: '0.04em' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 'var(--radius-lg)', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: 'var(--accent-brand)', color: 'var(--on-accent)', cursor: 'pointer', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', letterSpacing: '0.04em' }}>
           <Plus size={13} /> ÉVÉNEMENT
         </button>
       </div>
@@ -1461,10 +1461,10 @@ function CalendrierContent() {
         </div>
 
         {/* RAPPELS — orange */}
-        <div style={{ ...card({ background: 'var(--accent-brand)' }), display: 'flex', flexDirection: 'column', '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
+        <div style={{ ...card({ background: 'var(--accent-brand)' }), display: 'flex', flexDirection: 'column', '--text-rgb': '17, 17, 17', '--text': 'var(--on-accent)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
           <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Bell size={11} color="rgba(var(--text-rgb),0.9)" />
-            <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--ink-dark)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Rappels</p>
+            <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--on-accent)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Rappels</p>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {reminders.length === 0 ? (
@@ -1473,7 +1473,7 @@ function CalendrierContent() {
               <div key={ev.id} style={{ padding: '8px 16px', borderBottom: '1px solid rgba(var(--text-rgb),0.12)', display: 'flex', gap: 10, alignItems: 'center' }}>
                 <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(var(--text-rgb),0.7)', flexShrink: 0 }} />
                 <div>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-dark)' }}>{ev.title}</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--on-accent)' }}>{ev.title}</p>
                   <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)', marginTop: 1 }}>{fmtTime(ev.start_at)}</p>
                 </div>
               </div>
@@ -1481,7 +1481,7 @@ function CalendrierContent() {
           </div>
           <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(var(--text-rgb),0.2)' }}>
             <button onClick={() => setShowAllReminders(v => !v)}
-              style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink-dark)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, display: 'flex', alignItems: 'center', gap: 6 }}>
+              style={{ fontSize: 10, fontWeight: 700, color: 'var(--on-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, display: 'flex', alignItems: 'center', gap: 6 }}>
               {showAllReminders ? 'Réduire' : `Voir tous les rappels (${reminders.length})`} <ChevronRight size={12} style={{ transform: showAllReminders ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
             </button>
           </div>

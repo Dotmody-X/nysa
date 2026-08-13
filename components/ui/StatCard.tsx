@@ -30,7 +30,7 @@ const accentIsDark: Record<AccentColor, boolean> = {
 
 export function StatCard({ label, value, unit, sub, icon, accent = 'cyan', trend }: StatCardProps) {
   const color = accentColor[accent]
-  const iconChipText = accentIsDark[accent] ? 'var(--ink-light)' : 'var(--ink-dark)'
+  const iconChipText = accentIsDark[accent] ? 'var(--ink-light)' : 'var(--on-accent)'
 
   return (
     <Card className="flex flex-col gap-3 min-w-0">

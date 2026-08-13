@@ -127,7 +127,7 @@ export function ImportReceipt({
                   style={{ ...inp, resize: 'vertical', fontFamily: 'monospace' }} />
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                   <button onClick={() => applyParsed(pasteText)} disabled={!pasteText.trim()}
-                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: ORANGE, color: 'var(--ink-dark)', cursor: pasteText.trim() ? 'pointer' : 'default', opacity: pasteText.trim() ? 1 : 0.5 }}>
+                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: ORANGE, color: 'var(--on-accent)', cursor: pasteText.trim() ? 'pointer' : 'default', opacity: pasteText.trim() ? 1 : 0.5 }}>
                     Analyser le texte
                   </button>
                   <button onClick={() => { setRows([{ key: rid(), name: '', quantity: 1, total: 0 }]); setStep('review') }}
@@ -199,7 +199,7 @@ export function ImportReceipt({
           <div style={{ display: 'flex', gap: 10, padding: '14px 22px', borderTop: '2px solid var(--ink)' }}>
             <button onClick={() => setStep('input')} style={{ ...DF, fontSize: 12, fontWeight: 700, padding: '10px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', color: WHEAT, cursor: 'pointer' }}>← Retour</button>
             <button onClick={confirm} disabled={busy || rows.every(r => !r.name.trim())} className="nb-press"
-              style={{ ...DF, flex: 1, fontSize: 12, fontWeight: 800, padding: '10px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--ink-dark)', cursor: busy ? 'default' : 'pointer', opacity: busy || rows.every(r => !r.name.trim()) ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              style={{ ...DF, flex: 1, fontSize: 12, fontWeight: 800, padding: '10px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--on-accent)', cursor: busy ? 'default' : 'pointer', opacity: busy || rows.every(r => !r.name.trim()) ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               {busy ? <Loader2 size={14} className="spin" /> : <Check size={14} />} Valider l'import
             </button>
           </div>

@@ -142,7 +142,7 @@ export default function GeneralPage() {
       {/* Save */}
       {msg && <p style={{ fontSize: 11, color: msg.startsWith('✅') ? TEAL : ORANGE, marginBottom: 8 }}>{msg}</p>}
       <button onClick={saveProfile} disabled={saving} className="nb-press"
-        style={{ width: '100%', background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '12px 0', ...DF, fontWeight: 800, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: saving ? 0.6 : 1, marginBottom: 16 }}>
+        style={{ width: '100%', background: ORANGE, color: 'var(--on-accent)', borderRadius: 'var(--radius-lg)', padding: '12px 0', ...DF, fontWeight: 800, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: saving ? 0.6 : 1, marginBottom: 16 }}>
         {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
       </button>
 

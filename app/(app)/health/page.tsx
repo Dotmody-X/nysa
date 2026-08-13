@@ -112,7 +112,7 @@ const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: ORANGE, overflow: 'hidden', ...STICKER,
   // Fond tangerine (clair-moyen) → encre foncée dans les deux thèmes
-  '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)',
+  '--text-rgb': '17, 17, 17', '--text': 'var(--on-accent)', '--text-muted': 'rgba(17, 17, 17, 0.65)',
   ...extra,
 } as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
@@ -274,7 +274,7 @@ export default function HealthPage() {
           <input type="date" value={wForm.date} onChange={e => setWForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
           <input type="number" step="0.1" value={wForm.weight} onChange={e => setWForm(f => ({ ...f, weight: e.target.value }))}
             placeholder="Poids (kg)" autoFocus style={{ ...inputStyle, flex: 1 }} />
-          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--on-accent)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Enregistrer
           </button>
           <button type="button" onClick={() => setShowWForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
@@ -291,7 +291,7 @@ export default function HealthPage() {
             placeholder="Durée (h:mm)" style={{ ...inputStyle, width: 110 }} />
           <input type="text" value={rForm.notes} onChange={e => setRForm(f => ({ ...f, notes: e.target.value }))}
             placeholder="Notes…" style={{ ...inputStyle, flex: 2, minWidth: 140 }} />
-          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--on-accent)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Ajouter
           </button>
           <button type="button" onClick={() => setShowRForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
@@ -325,7 +325,7 @@ export default function HealthPage() {
               </button>
               <button className="nb-press" onClick={() => setShowRForm(v => !v)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                  background: ORANGE, color: 'var(--on-accent)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Activity size={11} /> + Run
               </button>
             </div>
@@ -821,7 +821,7 @@ export default function HealthPage() {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center' }}>
               <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.5)' }}>Aucun objectif défini</p>
               <button onClick={() => router.push('/health/objectifs')} className="nb-press"
-                style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--ink-dark)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', cursor: 'pointer' }}>
+                style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--on-accent)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', cursor: 'pointer' }}>
                 + Ajoute un objectif
               </button>
             </div>

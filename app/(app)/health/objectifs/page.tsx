@@ -50,7 +50,7 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
             Annuler
           </button>
           <button onClick={onConfirm} className="nb-press"
-            style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+            style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
               fontSize: 12, fontFamily: 'var(--font-display)', fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6 }}>
             <Trash2 size={12} /> Supprimer
@@ -151,7 +151,7 @@ function FormPanel({
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="submit" className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, background: isEdit ? TEAL : ORANGE, color: isEdit ? 'var(--ink-light)' : 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: isEdit ? TEAL : ORANGE, color: isEdit ? 'var(--ink-light)' : 'var(--on-accent)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           {isEdit ? <><Check size={12} /> Enregistrer</> : <><Plus size={12} /> Créer l&apos;objectif</>}
         </button>
         <button type="button" onClick={onCancel} className="nb-press"
@@ -292,7 +292,7 @@ export default function ObjectifsPage() {
         </div>
         <button onClick={() => { setShowForm(v => !v); setEditId(null); setForm(EMPTY_FORM) }} className="nb-press"
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--on-accent)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <Plus size={12} /> Ajouter un objectif
         </button>
       </div>
@@ -374,7 +374,7 @@ export default function ObjectifsPage() {
           <p style={{ ...DF, fontSize: 16, fontWeight: 700, color: 'var(--text-muted)' }}>Aucun objectif défini</p>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Crée ton premier objectif pour suivre ta progression.</p>
           <button onClick={() => setShowForm(true)} className="nb-press"
-            style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '10px 24px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', marginTop: 8 }}>
+            style={{ background: ORANGE, color: 'var(--on-accent)', borderRadius: 'var(--radius-lg)', padding: '10px 24px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', marginTop: 8 }}>
             + Créer un objectif
           </button>
         </div>

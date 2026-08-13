@@ -75,7 +75,7 @@ function ConfirmModal({ name, onConfirm, onCancel }: { name: string; onConfirm: 
           <button onClick={onCancel} style={{ padding: '8px 20px', borderRadius: 8, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Annuler
           </button>
-          <button onClick={onConfirm} className="nb-press" style={{ padding: '8px 20px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--ink-dark)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
+          <button onClick={onConfirm} className="nb-press" style={{ padding: '8px 20px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--on-accent)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Supprimer
           </button>
         </div>
@@ -342,7 +342,7 @@ function EditPanel({
           <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Annuler
           </button>
-          <button onClick={handleSave} className="nb-press" style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--ink-dark)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 12 }}>
+          <button onClick={handleSave} className="nb-press" style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--on-accent)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 12 }}>
             {isNew ? '+ Ajouter' : 'Enregistrer'}
           </button>
         </div>
@@ -466,7 +466,7 @@ export default function InventairePage() {
         </div>
         {itemToBuy > 0 && (
           <button onClick={addToCourses} disabled={pushingToCourses} className="nb-press"
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--ink-dark)', ...DF, fontWeight: 800, fontSize: 12, opacity: pushingToCourses ? 0.6 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--on-accent)', ...DF, fontWeight: 800, fontSize: 12, opacity: pushingToCourses ? 0.6 : 1 }}>
             {pushingToCourses ? <Loader2 size={13} className="animate-spin" /> : <ShoppingCart size={13} />} Ajouter {itemToBuy} article{itemToBuy > 1 ? 's' : ''} aux courses
           </button>
         )}
@@ -584,7 +584,7 @@ export default function InventairePage() {
             </p>
           </div>
           <button onClick={addToCourses} disabled={pushingToCourses} className="nb-press"
-            style={{ padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--ink-dark)', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', opacity: pushingToCourses ? 0.6 : 1 }}>
+            style={{ padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--on-accent)', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', opacity: pushingToCourses ? 0.6 : 1 }}>
             → Ajouter aux courses
           </button>
         </div>

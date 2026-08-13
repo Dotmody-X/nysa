@@ -269,7 +269,7 @@ export default function TodoPage() {
         right={
           <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 px-4 py-2 nb-press"
-            style={{ background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', ...DF, fontWeight: 700, fontSize: 12 }}>
+            style={{ background: 'var(--accent-brand)', color: 'var(--on-accent)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', ...DF, fontWeight: 700, fontSize: 12 }}>
             <Plus size={14} /> Ajouter une tâche
           </button>
         }
@@ -295,7 +295,7 @@ export default function TodoPage() {
               style={{
                 padding: '8px 18px', borderRadius: 'var(--radius-lg)', cursor: 'pointer',
                 background: active ? col : 'var(--bg-card)',
-                color:      active ? (darkTab ? 'var(--ink-light)' : 'var(--ink-dark)') : 'var(--text-muted)',
+                color:      active ? (darkTab ? 'var(--ink-light)' : 'var(--on-accent)') : 'var(--text-muted)',
                 border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
                 ...DF, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
               }}>
@@ -333,7 +333,7 @@ export default function TodoPage() {
             {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
           <button type="submit" className="nb-press"
-            style={{ background: 'var(--accent-brand)', color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+            style={{ background: 'var(--accent-brand)', color: 'var(--on-accent)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Créer
           </button>
         </form>
@@ -479,8 +479,8 @@ export default function TodoPage() {
           </div>
 
           {/* Filtres rapides */}
-          <div style={{ background: 'var(--accent-brand)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
-            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--ink-dark)', textTransform: 'uppercase', marginBottom: 10 }}>Filtres rapides</p>
+          <div style={{ background: 'var(--accent-brand)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, '--text-rgb': '17, 17, 17', '--text': 'var(--on-accent)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--on-accent)', textTransform: 'uppercase', marginBottom: 10 }}>Filtres rapides</p>
             {[
               { label: 'Sans projet', count: tasks.filter(t => !t.project_id && t.status !== 'done').length },
               { label: 'Avec date',   count: tasks.filter(t => t.due_date   && t.status !== 'done').length },
@@ -634,7 +634,7 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
             <span key={i} style={{
               fontSize: 10, padding: '3px 2px', borderRadius: 4,
               background: isToday ? 'var(--accent-brand)' : 'transparent',
-              color: isToday ? 'var(--ink-dark)' : hasTasks ? 'var(--azul)' : 'var(--text-muted)',
+              color: isToday ? 'var(--on-accent)' : hasTasks ? 'var(--azul)' : 'var(--text-muted)',
               fontWeight: isToday || hasTasks ? 700 : 400,
             }}>{d}</span>
           )
