@@ -67,7 +67,7 @@ export function MobileNav() {
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 60, backdropFilter: 'blur(4px)' }} />
           <div className="md:hidden" style={{
             position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
-            background: 'var(--bg-card)', borderTop: '2px solid var(--ink)',
+            background: 'var(--bg-card)', borderTop: '1px solid var(--border)', boxShadow: 'var(--elev-2)',
             borderRadius: '20px 20px 0 0', padding: '20px 16px calc(96px + env(safe-area-inset-bottom, 0px))',
             maxHeight: '85vh', overflowY: 'auto',
           }}>
@@ -82,13 +82,13 @@ export function MobileNav() {
                   <Link key={label} href={href} onClick={() => setMenuOpen(false)}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      padding: '16px 8px', borderRadius: 14, textDecoration: 'none',
-                      background: active ? 'var(--accent-budget)' : 'var(--bg-input)',
-                      border: '2px solid var(--ink)',
-                      boxShadow: '3px 3px 0 var(--ink)',
+                      padding: '16px 8px', borderRadius: 12, textDecoration: 'none',
+                      background: active ? 'color-mix(in srgb, var(--accent-budget) 12%, transparent)' : 'var(--bg-input)',
+                      border: '1px solid var(--border)',
+                      boxShadow: 'var(--elev-1)',
                     }}>
-                    <Icon size={22} style={{ color: active ? 'var(--chocolate)' : 'var(--text)' }} />
-                    <span style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, textAlign: 'center', color: active ? 'var(--chocolate)' : 'var(--text-muted)' }}>{label}</span>
+                    <Icon size={22} style={{ color: active ? 'var(--accent-budget)' : 'var(--text)' }} />
+                    <span style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, textAlign: 'center', color: active ? 'var(--accent-budget)' : 'var(--text-muted)' }}>{label}</span>
                   </Link>
                 )
               })}
@@ -109,7 +109,7 @@ export function MobileNav() {
               const txt = isLight ? 'var(--chocolate)' : 'var(--creamy-ivory)'
               return (
                 <Link key={l.href} href={l.href} onClick={() => setQuickOpen(false)}
-                  style={{ background: l.color, borderRadius: 14, border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 2, textDecoration: 'none' }}>
+                  style={{ background: l.color, borderRadius: 12, border: '1px solid rgba(0,0,0,0.10)', boxShadow: 'var(--elev-2)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 2, textDecoration: 'none' }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 800, color: txt, letterSpacing: '0.06em' }}>{l.label}</span>
                   <span style={{ fontSize: 10, color: txt, opacity: 0.8 }}>Ouvrir →</span>
                 </Link>
@@ -123,7 +123,7 @@ export function MobileNav() {
       <nav className="md:hidden bottom-nav"
         style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 62,
-          background: 'var(--bg-sidebar)', borderTop: '2px solid var(--ink)',
+          background: 'var(--bg-sidebar)', borderTop: '1px solid var(--border)', boxShadow: '0 -1px 8px rgba(0,0,0,0.05)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 12px',
         }}>
         {tab('/', 'Accueil', Home)}
@@ -132,9 +132,9 @@ export function MobileNav() {
         <button onClick={() => { setQuickOpen(o => !o); setMenuOpen(false) }}
           aria-label="Ajout rapide"
           style={{
-            width: 54, height: 54, borderRadius: 99, background: 'var(--accent-budget)', border: '2px solid var(--ink)',
+            width: 54, height: 54, borderRadius: 99, background: 'var(--accent-budget)', border: 'none',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '3px 3px 0 var(--ink)', flexShrink: 0,
+            boxShadow: 'var(--elev-2)', flexShrink: 0,
             transform: quickOpen ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s cubic-bezier(0.4,0,0.2,1)',
           }}>
           <Plus size={24} style={{ color: 'var(--chocolate)' }} />

@@ -140,6 +140,30 @@
   }
 }
 
+/* ── Élévations (ombres douces — style productivité) ───────── */
+:root,
+[data-theme="dark"] {
+  --stroke:  var(--border);
+  --elev-1:  0 1px 2px rgba(0,0,0,.45);
+  --elev-2:  0 10px 28px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.4);
+}
+[data-theme="light"] {
+  --elev-1:  0 1px 2px rgba(20,18,12,.06), 0 1px 3px rgba(20,18,12,.05);
+  --elev-2:  0 8px 22px rgba(20,18,12,.10), 0 2px 6px rgba(20,18,12,.06);
+}
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] {
+    --elev-1:  0 1px 2px rgba(20,18,12,.06), 0 1px 3px rgba(20,18,12,.05);
+    --elev-2:  0 8px 22px rgba(20,18,12,.10), 0 2px 6px rgba(20,18,12,.06);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --elev-1:  0 1px 2px rgba(0,0,0,.45);
+    --elev-2:  0 10px 28px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.4);
+  }
+}
+
 /* ============================================================
    Thème Tailwind v4 (variables custom)
    ============================================================ */
@@ -278,32 +302,32 @@ h1, h2, h3, h4, h5, h6 {
 
 .nysa-card {
   background: var(--bg-card);
-  border: 2px solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-1);
   padding: 1rem;
 }
 
-/* ── Néo-brutalisme : tuiles "sticker" ─────────────────────────
-   .nb-card  : surface neutre, contour + ombre dure.
-   .nb-tile  : variante pour fonds d'accent (contour + ombre encre).
-   .nb-press : effet d'appui au survol/clic. */
+/* ── Cartes "productivité" ─────────────────────────────────────
+   .nb-card  : surface neutre, bord fin + ombre douce.
+   .nb-tile  : variante sans fond (pour cartes d'accent colorées).
+   .nb-press : léger lift au survol, retour à plat au clic. */
 .nb-card {
   background: var(--bg-card);
-  border: 2px solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-1);
 }
 .nb-tile {
-  border: 2px solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-1);
 }
 .nb-press {
   transition: transform 0.12s cubic-bezier(0.4,0,0.2,1), box-shadow 0.12s cubic-bezier(0.4,0,0.2,1);
 }
-.nb-press:hover  { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
-.nb-press:active { transform: translate(2px, 2px);   box-shadow: 0 0 0 var(--ink); }
+.nb-press:hover  { transform: translateY(-1px); box-shadow: var(--elev-2); }
+.nb-press:active { transform: translateY(0);    box-shadow: var(--elev-1); }
 
 /* Surfaces d'accent FONCÉ → encre claire (texte/bordures) dans les 2 thèmes */
 .on-dark {
