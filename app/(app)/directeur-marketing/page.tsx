@@ -10,8 +10,8 @@ import { brandColor } from '@/lib/digestStyle'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-  boxShadow: '4px 4px 0 var(--ink)', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
+  boxShadow: 'var(--elev-1)', ...extra,
 })
 
 function fmtDate(d?: string | null): string {
@@ -24,7 +24,7 @@ function ProgressBar({ done, total, color }: { done: number; total: number; colo
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-      <div style={{ flex: 1, minWidth: 160, height: 12, borderRadius: 20, background: 'var(--bg-input)', border: '2px solid var(--ink)', overflow: 'hidden' }}>
+      <div style={{ flex: 1, minWidth: 160, height: 12, borderRadius: 20, background: 'var(--bg-input)', border: '1px solid var(--border)', overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: color, transition: 'width 0.3s' }} />
       </div>
       <span style={{ ...DF, fontSize: 13, fontWeight: 900, color: 'var(--text)', whiteSpace: 'nowrap' }}>{done} / {total}</span>
@@ -38,8 +38,8 @@ function CheckBox({ checked, onToggle }: { checked: boolean; onToggle: () => voi
     <button onClick={onToggle} title={checked ? 'Marquer à faire' : 'Marquer fait'}
       style={{
         width: 26, height: 26, borderRadius: 7, flexShrink: 0, cursor: 'pointer',
-        border: '2px solid var(--ink)', background: checked ? '#16a34a' : 'var(--bg-card)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '2px 2px 0 var(--ink)',
+        border: '1px solid var(--border)', background: checked ? '#16a34a' : 'var(--bg-card)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--elev-1)',
       }}>
       {checked && <Check size={15} style={{ color: '#fff' }} />}
     </button>
@@ -50,7 +50,7 @@ function CheckBox({ checked, onToggle }: { checked: boolean; onToggle: () => voi
 function MilestoneCard({ m, onToggle }: { m: FormationMilestone; onToggle: () => void }) {
   const done = m.status === 'done'
   return (
-    <div style={{ ...card({ boxShadow: '3px 3px 0 var(--ink)' }), padding: 16, display: 'flex', gap: 12, opacity: done ? 0.85 : 1 }}>
+    <div style={{ ...card({ boxShadow: 'var(--elev-1)' }), padding: 16, display: 'flex', gap: 12, opacity: done ? 0.85 : 1 }}>
       <CheckBox checked={done} onToggle={onToggle} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
@@ -88,8 +88,8 @@ function PrincipleRow({ p, isNext, expanded, onExpand }: { p: MktPrinciple; isNe
   const apps = Array.isArray(p.applications) ? p.applications : []
   return (
     <div style={{
-      ...card({ boxShadow: '2px 2px 0 var(--ink)' }),
-      borderColor: isNext ? 'var(--azul)' : 'var(--ink)',
+      ...card({ boxShadow: 'var(--elev-1)' }),
+      borderColor: isNext ? 'var(--azul)' : 'var(--border)',
       opacity: done ? 1 : isNext ? 1 : 0.55,
     }}>
       <button onClick={done ? onExpand : undefined}
@@ -149,7 +149,7 @@ export default function DirecteurMarketingPage() {
 
       {/* ── SECTION 1 : Parcours de formation ── */}
       <div style={{ ...card(), padding: 0, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 18px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <Award size={16} style={{ color: 'var(--accent-budget)' }} />
           <span style={{ ...DF, fontSize: 14, fontWeight: 900, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Parcours de formation</span>
           <div style={{ flex: 1, minWidth: 140 }}><ProgressBar done={doneM} total={6} color="var(--accent-budget)" /></div>
@@ -171,7 +171,7 @@ export default function DirecteurMarketingPage() {
 
       {/* ── SECTION 2 : Programme des principes ── */}
       <div style={{ ...card(), padding: 0, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 18px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <Target size={16} style={{ color: 'var(--azul)' }} />
           <span style={{ ...DF, fontSize: 14, fontWeight: 900, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Programme des principes</span>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Lecture seule · mis à jour chaque lundi</span>

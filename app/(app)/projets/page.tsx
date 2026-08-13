@@ -531,8 +531,8 @@ export default function ProjetsPage() {
   // ── Styles ─────────────────────────────────────────────────────────────────
   const card: React.CSSProperties = {
     background: 'var(--bg-card)',
-    border: '2px solid var(--ink)',
-    boxShadow: '4px 4px 0 var(--ink)',
+    border: '1px solid var(--border)',
+    boxShadow: 'var(--elev-1)',
     borderRadius: 'var(--radius-lg)',
   }
   const sectionLabel: React.CSSProperties = {
@@ -571,7 +571,7 @@ export default function ProjetsPage() {
       </div>
 
       {/* VUE GLOBALE — 4 marques avec temps semaine */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--accent-budget)', border: '2px solid var(--ink)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--accent-budget)', border: '1px solid var(--border)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' } as React.CSSProperties}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
           <button onClick={() => setShowGroupes(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.25)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 800, color: 'var(--chocolate)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -581,7 +581,7 @@ export default function ProjetsPage() {
         {groupes.length === 0 ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 20, textAlign: 'center' }}>
             <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.75)', maxWidth: 220 }}>Aucune marque. Crée tes catégories de projets (ex. clients, activités…).</p>
-            <button onClick={() => setShowGroupes(true)} className="nb-press" style={{ background: 'var(--chocolate)', color: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '7px 16px', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11 }}>
+            <button onClick={() => setShowGroupes(true)} className="nb-press" style={{ background: 'var(--chocolate)', color: 'var(--creamy-ivory)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-md)', padding: '7px 16px', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11 }}>
               + Ajouter une marque
             </button>
           </div>
@@ -638,7 +638,7 @@ export default function ProjetsPage() {
         />
         <div style={{ flex: 1 }} />
         <button onClick={() => setCreateModal(true)} className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           <Plus size={13} /> NOUVEAU PROJET
         </button>
       </div>
@@ -690,7 +690,7 @@ export default function ProjetsPage() {
                           style={{
                             flexShrink: 0, width: 210, padding: 14, borderRadius: 'var(--radius-lg)', cursor: 'pointer',
                             background: isActive ? `${p.color}15` : 'var(--bg)',
-                            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+                            border: '1px solid var(--border)', boxShadow: 'var(--elev-1)',
                             display: 'flex', flexDirection: 'column', gap: 8, transition: 'all 0.15s',
                           }}>
                           {/* Badge + ⋮ */}
@@ -1012,7 +1012,7 @@ export default function ProjetsPage() {
       {/* ── ROW 6 : RÉPARTITION PAR MARQUE (teal, col-span-2) + ACTIVITÉ + LIENS */}
 
       {/* RÉPARTITION PAR MARQUE */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '2px solid var(--ink)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '1px solid var(--border)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
         <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition par marque</p>
           <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>
@@ -1179,7 +1179,7 @@ function GroupesModal({
             onKeyDown={e => { if (e.key === 'Enter' && name.trim()) { onAdd(name); setName('') } }}
             style={{ ...inp, flex: 1 }} />
           <button onClick={() => { if (name.trim()) { onAdd(name); setName('') } }} disabled={!name.trim()} className="nb-press"
-            style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '8px 14px', cursor: name.trim() ? 'pointer' : 'default', ...DF, fontWeight: 800, fontSize: 11, opacity: name.trim() ? 1 : 0.5 }}>
+            style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-md)', padding: '8px 14px', cursor: name.trim() ? 'pointer' : 'default', ...DF, fontWeight: 800, fontSize: 11, opacity: name.trim() ? 1 : 0.5 }}>
             + Ajouter
           </button>
         </div>

@@ -10,8 +10,8 @@ const BRIEF_COLOR = 'var(--azul)'
 const DEBRIEF_COLOR = 'var(--accent-budget)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-  boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
+  boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 })
 
 const kindMeta = (kind: string) => kind === 'debrief'
@@ -25,7 +25,7 @@ function fmtDateTime(iso: string): string {
 /* ── Pastille marque ── */
 function BrandDot({ brand }: { brand?: string }) {
   if (!brand) return null
-  return <span title={brand} style={{ width: 9, height: 9, borderRadius: '50%', background: brandColor(brand), border: '1.5px solid var(--ink)', flexShrink: 0, display: 'inline-block' }} />
+  return <span title={brand} style={{ width: 9, height: 9, borderRadius: '50%', background: brandColor(brand), border: '1px solid var(--border)', flexShrink: 0, display: 'inline-block' }} />
 }
 function BrandBadge({ brand }: { brand?: string }) {
   if (!brand) return null
@@ -37,7 +37,7 @@ function BrandBadge({ brand }: { brand?: string }) {
 function StatTile({ stat }: { stat: DigestStat }) {
   const c = toneColor(stat.tone)
   return (
-    <div style={{ ...card(), padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4, boxShadow: '3px 3px 0 var(--ink)' }}>
+    <div style={{ ...card(), padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4, boxShadow: 'var(--elev-1)' }}>
       <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{stat.label}</span>
       <span style={{ ...DF, fontSize: 24, fontWeight: 900, color: c, lineHeight: 1 }}>{String(stat.value)}</span>
     </div>
@@ -48,7 +48,7 @@ function StatTile({ stat }: { stat: DigestStat }) {
 function PriorityCard({ p }: { p: DigestPriority }) {
   const pc = priorityColor(p.priority)
   return (
-    <div style={{ ...card(), padding: 14, borderLeft: `5px solid ${pc}`, display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '3px 3px 0 var(--ink)' }}>
+    <div style={{ ...card(), padding: 14, borderLeft: `5px solid ${pc}`, display: 'flex', flexDirection: 'column', gap: 8, boxShadow: 'var(--elev-1)' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <p style={{ fontSize: 13, fontWeight: 700, color: WHEAT, lineHeight: 1.3 }}>{p.title}</p>
         {p.priority && (
@@ -85,8 +85,8 @@ function ItemRow({ item }: { item: DigestItem }) {
 function SectionCard({ s }: { s: DigestSection }) {
   const Icon = digestIcon(s.icon)
   return (
-    <div style={{ ...card(), padding: 0, boxShadow: '3px 3px 0 var(--ink)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
+    <div style={{ ...card(), padding: 0, boxShadow: 'var(--elev-1)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)' }}>
         <Icon size={15} style={{ color: 'var(--accent-budget)' }} />
         <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.title}</span>
       </div>
@@ -158,9 +158,9 @@ function MarkdownFallback({ content }: { content: string }) {
         const title = m ? m[1].trim() : null
         const body = (m ? block.slice(m[0].length) : block).trim()
         return (
-          <div key={i} style={{ ...card(), padding: 0, boxShadow: '3px 3px 0 var(--ink)' }}>
+          <div key={i} style={{ ...card(), padding: 0, boxShadow: 'var(--elev-1)' }}>
             {title && (
-              <div style={{ padding: '10px 14px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
+              <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)' }}>
                 <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT }}>{title}</span>
               </div>
             )}
@@ -184,7 +184,7 @@ export function DigestCard({ digest }: { digest: Digest }) {
         <m.Icon size={18} style={{ color: 'var(--creamy-ivory)' }} />
         <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'var(--creamy-ivory)', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.85 }}>{m.label}</span>
         <span style={{ ...DF, fontSize: 15, fontWeight: 900, color: 'var(--creamy-ivory)', flex: 1, minWidth: 120 }}>{title}</span>
-        <span style={{ fontSize: 11, color: 'rgba(245,241,237,0.9)', textTransform: 'capitalize' }}>{dateStr}</span>
+        <span style={{ fontSize: 11, color: 'rgba(244, 243, 240,0.9)', textTransform: 'capitalize' }}>{dateStr}</span>
       </div>
       {p ? <PayloadBody p={p} /> : <MarkdownFallback content={digest.content} />}
     </div>

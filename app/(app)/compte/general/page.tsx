@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
 const inp: React.CSSProperties = {
-  background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8,
+  background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8,
   padding: '9px 12px', color: 'var(--text)', fontSize: 12, outline: 'none', width: '100%',
 }
 
@@ -79,7 +79,7 @@ export default function GeneralPage() {
 
       {/* Back */}
       <button onClick={() => router.push('/compte')} className="nb-press"
-        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', cursor: 'pointer', color: 'var(--text)', fontSize: 11, marginBottom: 24, padding: '8px 14px', fontWeight: 700 }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', cursor: 'pointer', color: 'var(--text)', fontSize: 11, marginBottom: 24, padding: '8px 14px', fontWeight: 700 }}>
         <ArrowLeft size={13} /> Retour au profil
       </button>
 
@@ -87,7 +87,7 @@ export default function GeneralPage() {
       <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 28 }}>Paramètres généraux du compte</p>
 
       {/* ── Identité ── */}
-      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
         {section('Identité')}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
@@ -107,7 +107,7 @@ export default function GeneralPage() {
       </div>
 
       {/* ── Localisation ── */}
-      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
         {section('Localisation & Préférences')}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
@@ -142,12 +142,12 @@ export default function GeneralPage() {
       {/* Save */}
       {msg && <p style={{ fontSize: 11, color: msg.startsWith('✅') ? TEAL : ORANGE, marginBottom: 8 }}>{msg}</p>}
       <button onClick={saveProfile} disabled={saving} className="nb-press"
-        style={{ width: '100%', background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '12px 0', ...DF, fontWeight: 800, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: saving ? 0.6 : 1, marginBottom: 16 }}>
+        style={{ width: '100%', background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '12px 0', ...DF, fontWeight: 800, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: saving ? 0.6 : 1, marginBottom: 16 }}>
         {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
       </button>
 
       {/* ── Mot de passe ── */}
-      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
         {section('Mot de passe')}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ position: 'relative' }}>
@@ -165,7 +165,7 @@ export default function GeneralPage() {
           </div>
           {pwdMsg && <p style={{ fontSize: 11, color: pwdMsg.startsWith('✅') ? TEAL : ORANGE }}>{pwdMsg}</p>}
           <button onClick={changePassword} disabled={pwdSaving || !newPwd} className="nb-press"
-            style={{ background: newPwd ? TEAL : 'var(--bg-input)', color: newPwd ? 'var(--creamy-ivory)' : 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: newPwd ? 'pointer' : 'not-allowed', width: '100%', opacity: pwdSaving ? 0.6 : 1 }}>
+            style={{ background: newPwd ? TEAL : 'var(--bg-input)', color: newPwd ? 'var(--creamy-ivory)' : 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: newPwd ? 'pointer' : 'not-allowed', width: '100%', opacity: pwdSaving ? 0.6 : 1 }}>
             {pwdSaving ? 'Enregistrement…' : 'Changer le mot de passe'}
           </button>
         </div>

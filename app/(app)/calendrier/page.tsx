@@ -970,8 +970,8 @@ function CalendrierContent() {
   // ── Card style helper
   const card = (extra?: React.CSSProperties): React.CSSProperties => ({
     background: 'var(--bg-card)',
-    border: '2px solid var(--ink)',
-    boxShadow: '4px 4px 0 var(--ink)',
+    border: '1px solid var(--border)',
+    boxShadow: 'var(--elev-1)',
     borderRadius: 'var(--radius-lg)',
     ...extra,
   })
@@ -1011,7 +1011,7 @@ function CalendrierContent() {
       </div>
 
       {/* À VENIR — col-span-2, teal, 300px, liste verticale */}
-      <div className="col-span-2" style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden', '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden', '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
           <span style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', fontWeight: 600 }}>{upcoming.length}</span>
@@ -1075,7 +1075,7 @@ function CalendrierContent() {
         {/* + Événement */}
         <button onClick={() => setModalDate((calView === 'day' ? dayStart : today).toISOString().slice(0, 10))}
           className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 'var(--radius-lg)', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: 'var(--accent-budget)', color: 'var(--chocolate)', cursor: 'pointer', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', letterSpacing: '0.04em' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 'var(--radius-lg)', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: 'var(--accent-budget)', color: 'var(--chocolate)', cursor: 'pointer', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', letterSpacing: '0.04em' }}>
           <Plus size={13} /> ÉVÉNEMENT
         </button>
       </div>
@@ -1123,7 +1123,7 @@ function CalendrierContent() {
                     return (
                       <div key={ev.id}
                         onClick={e => { e.stopPropagation(); setSelected(ev) }}
-                        style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, marginBottom: 2, background: color + '22', color, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', border: '2px solid var(--ink)' }}>
+                        style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, marginBottom: 2, background: color + '22', color, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', border: '1px solid var(--border)' }}>
                         {ev.title}
                       </div>
                     )
@@ -1183,7 +1183,7 @@ function CalendrierContent() {
                     return (
                       <div key={ev.id}
                         onClick={() => setSelected(ev)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4, background: color + '22', border: '2px solid var(--ink)', cursor: 'pointer', maxWidth: '100%', overflow: 'hidden' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4, background: color + '22', border: '1px solid var(--border)', cursor: 'pointer', maxWidth: '100%', overflow: 'hidden' }}
                         onMouseEnter={e => (e.currentTarget.style.background = color + '44')}
                         onMouseLeave={e => (e.currentTarget.style.background = color + '22')}>
                         <div style={{ width: 5, height: 5, borderRadius: '50%', background: color, flexShrink: 0 }} />
@@ -1290,7 +1290,7 @@ function CalendrierContent() {
                             position: 'absolute', top, height, left: 2, right: 2,
                             borderRadius: 6, padding: '3px 6px',
                             background: color + (isDraggingThis ? '0A' : '1A'),
-                            border: '2px solid var(--ink)',
+                            border: '1px solid var(--border)',
                             borderLeft: `4px solid ${color}`,
                             zIndex: 10,
                             cursor: isDraggingThis ? 'grabbing' : 'grab',
@@ -1436,7 +1436,7 @@ function CalendrierContent() {
       <div className="col-span-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, paddingBottom: 10 }}>
 
         {/* VUE D'ENSEMBLE — teal */}
-        <div style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12, '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', padding: '16px 20px', gap: 12, '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <div>
             <p style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'rgba(var(--text-rgb),0.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue d'ensemble</p>
             <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', marginTop: 3 }}>{fmtShortDate(weekStart)} – {fmtShortDate(addDays(weekStart, 6))}</p>

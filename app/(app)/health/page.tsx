@@ -98,7 +98,7 @@ function WeekBars({ data, labels, color = ORANGE, max: maxProp }:
 
 /* ─── Card style shortcuts ──────────────────────────────────── */
 const STICKER: React.CSSProperties = {
-  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
+  border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)',
 }
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', overflow: 'hidden', ...STICKER, ...extra,
@@ -106,7 +106,7 @@ const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: TEAL_BG, overflow: 'hidden', ...STICKER,
   // Fond foncé fixe (cobalt) → encre claire dans les deux thèmes
-  '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)',
+  '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)',
   ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
@@ -274,10 +274,10 @@ export default function HealthPage() {
           <input type="date" value={wForm.date} onChange={e => setWForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
           <input type="number" step="0.1" value={wForm.weight} onChange={e => setWForm(f => ({ ...f, weight: e.target.value }))}
             placeholder="Poids (kg)" autoFocus style={{ ...inputStyle, flex: 1 }} />
-          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
             Enregistrer
           </button>
-          <button type="button" onClick={() => setShowWForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <button type="button" onClick={() => setShowWForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
             ×
           </button>
         </form>
@@ -291,10 +291,10 @@ export default function HealthPage() {
             placeholder="Durée (h:mm)" style={{ ...inputStyle, width: 110 }} />
           <input type="text" value={rForm.notes} onChange={e => setRForm(f => ({ ...f, notes: e.target.value }))}
             placeholder="Notes…" style={{ ...inputStyle, flex: 2, minWidth: 140 }} />
-          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
             Ajouter
           </button>
-          <button type="button" onClick={() => setShowRForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <button type="button" onClick={() => setShowRForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
             ×
           </button>
         </form>
@@ -320,12 +320,12 @@ export default function HealthPage() {
             <div className="toolbar-scroll" style={{ display: 'flex', gap: 8 }}>
               <button className="nb-press" onClick={() => setShowWForm(v => !v)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
                 <Scale size={11} /> + Poids
               </button>
               <button className="nb-press" onClick={() => setShowRForm(v => !v)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
                 <Activity size={11} /> + Run
               </button>
             </div>
@@ -541,7 +541,7 @@ export default function HealthPage() {
                 <div key={a.id} className="health-row nb-press" onClick={() => router.push(`/sport/${a.id}`)}
                   style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 'var(--radius-lg)',
                     background: isToday ? `rgba(242,84,45,0.15)` : 'rgba(var(--text-rgb),0.04)',
-                    border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+                    border: '1px solid var(--border)', boxShadow: 'var(--elev-1)',
                     cursor: 'pointer' }}>
                   <div style={{ width: 36, height: 36, borderRadius: 8, background: isToday ? ORANGE : 'rgba(var(--text-rgb),0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -753,7 +753,7 @@ export default function HealthPage() {
               { icon: <Heart size={18} />,     name: 'Garmin',      desc: 'Montres & capteurs',         status: 'soon', color: '#007DC3' },
             ].map(s => (
               <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 'var(--radius-lg)',
-                background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+                background: 'var(--bg-input)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
                 <div style={{ color: s.color, flexShrink: 0 }}>{s.icon}</div>
                 <div style={{ flex: 1 }}>
                   <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--text)' }}>{s.name}</p>
@@ -796,7 +796,7 @@ export default function HealthPage() {
                 { l: 'IMC',              v: mesures.imc        != null ? String(mesures.imc)        : '—', delta: mesures.imc != null && mesures.imc < 25 ? 'Normal' : mesures.imc != null ? 'Surpoids' : '', up: null, color: WHEAT  },
               ]
             })().map(s => (
-              <div key={s.l} style={{ padding: '16px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+              <div key={s.l} style={{ padding: '16px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
                 <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{s.l}</p>
                 <p style={{ ...DF, fontSize: 22, fontWeight: 900, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.v}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -821,7 +821,7 @@ export default function HealthPage() {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center' }}>
               <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.5)' }}>Aucun objectif défini</p>
               <button onClick={() => router.push('/health/objectifs')} className="nb-press"
-                style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', cursor: 'pointer' }}>
+                style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', cursor: 'pointer' }}>
                 + Ajoute un objectif
               </button>
             </div>

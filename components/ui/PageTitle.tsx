@@ -10,14 +10,14 @@ const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 export function PageTitle({ title, sub, right }: PageTitleProps) {
   return (
-    <div className="flex items-end justify-between" style={{ marginBottom: 20 }}>
+    <div className="flex items-end justify-between" style={{ marginBottom: 18, gap: 16, flexWrap: 'wrap' }}>
       <div>
-        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--accent-budget)', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1 }}>
+        <h1 style={{ ...DF, fontWeight: 800, fontSize: 'clamp(24px, 3.2vw, 34px)', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1.05 }}>
           {title}<span style={{ color: 'var(--accent-budget)' }}>.</span>
         </h1>
-        {sub && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.05em' }}>{sub}</p>}
+        {sub && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, letterSpacing: '0.02em' }}>{sub}</p>}
       </div>
-      {right && <div>{right}</div>}
+      {right && <div className="flex items-center gap-2" style={{ flexWrap: 'wrap' }}>{right}</div>}
     </div>
   )
 }

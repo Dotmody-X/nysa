@@ -18,9 +18,9 @@
 /* ── Constantes (indépendantes du thème) ───────────────────── */
 :root {
   /* Encres fixes pour le texte sur fonds d'accent (sticker) */
-  --creamy-ivory: #f6efe0;   /* encre CLAIRE sur accent foncé */
-  --chocolate:    #18130e;   /* encre FONCÉE sur accent clair */
-  --camel:        #b7ac97;
+  --creamy-ivory: #f4f3f0;   /* off-white NEUTRE sur accent foncé (ex-crème) */
+  --chocolate:    #1b1a18;   /* encre FONCÉE sur accent clair */
+  --camel:        #a6a29b;   /* gris neutre (ex-beige) */
 
   /* Accents vifs — IDENTIQUES en clair et sombre (ça doit claquer) */
   --accent-budget:   #ff5c35;   /* tangerine */
@@ -49,20 +49,20 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:             #141109;   /* encre chaude profonde */
-  --bg-card:        #1f1a12;
-  --bg-card-hover:  #2a241a;
-  --bg-sidebar:     #100d08;
-  --bg-input:       #1b160f;
+  --bg:             #16161a;   /* charbon neutre (ex-brun chaud) */
+  --bg-card:        #1e1e23;
+  --bg-card-hover:  #282830;
+  --bg-sidebar:     #121216;
+  --bg-input:       #1f1f25;
 
-  --text:           #fbf3e4;   /* crème */
-  --text-muted:     #b7ac97;
-  --text-subtle:    rgba(251, 243, 228, 0.50);
-  --text-rgb:       251, 243, 228;
+  --text:           #f3f3f1;   /* off-white neutre */
+  --text-muted:     #a2a09a;
+  --text-subtle:    rgba(243, 243, 241, 0.50);
+  --text-rgb:       243, 243, 241;
 
-  --border:         rgba(251, 243, 228, 0.22);
-  --border-active:  rgba(251, 243, 228, 0.55);
-  --ink:            #fbf3e4;   /* contour + ombre brutalistes (clair sur sombre) */
+  --border:         rgba(243, 243, 241, 0.16);
+  --border-active:  rgba(243, 243, 241, 0.42);
+  --ink:            #f3f3f1;   /* contour + ombre (clair sur sombre) */
 
   --success:        #18b26b;
   --warning:        #ffc23d;
@@ -70,28 +70,28 @@
   --info:           #2d5bff;
 }
 
-/* ── Thème clair ──────────────────────────────────────────── */
+/* ── Thème clair (focus principal) ────────────────────────── */
 [data-theme="light"] {
   color-scheme: light;
 
-  --bg:             #faf3e3;   /* papier chaud */
+  --bg:             #f6f5f2;   /* blanc cassé légèrement chaud (zéro beige) */
   --bg-card:        #ffffff;
-  --bg-card-hover:  #f2ead6;
-  --bg-sidebar:     #f4ecd9;
-  --bg-input:       #fffdf7;
+  --bg-card-hover:  #efeee9;
+  --bg-sidebar:     #fbfaf8;
+  --bg-input:       #f3f2ef;
 
-  --text:           #18130e;   /* encre */
-  --text-muted:     #6e6353;
-  --text-subtle:    rgba(24, 19, 14, 0.50);
-  --text-rgb:       24, 19, 14;
+  --text:           #1b1a18;   /* encre neutre */
+  --text-muted:     #6c6862;
+  --text-subtle:    rgba(27, 26, 24, 0.48);
+  --text-rgb:       27, 26, 24;
 
-  --border:         rgba(24, 19, 14, 0.18);
-  --border-active:  rgba(24, 19, 14, 0.45);
-  --ink:            #18130e;   /* contour + ombre brutalistes (encre) */
+  --border:         rgba(27, 26, 24, 0.13);
+  --border-active:  rgba(27, 26, 24, 0.32);
+  --ink:            #1b1a18;   /* contour + ombre (encre) */
 
   --success:        #0e9c5e;
-  --warning:        #e0a01f;
-  --danger:         #ff5c35;
+  --warning:        #d9902a;
+  --danger:         #e5484d;
   --info:           #2d5bff;
 }
 
@@ -99,21 +99,21 @@
 @media (prefers-color-scheme: light) {
   [data-theme="system"] {
     color-scheme: light;
-    --bg:             #faf3e3;
+    --bg:             #f6f5f2;
     --bg-card:        #ffffff;
-    --bg-card-hover:  #f2ead6;
-    --bg-sidebar:     #f4ecd9;
-    --bg-input:       #fffdf7;
-    --text:           #18130e;
-    --text-muted:     #6e6353;
-    --text-subtle:    rgba(24, 19, 14, 0.50);
-    --text-rgb:       24, 19, 14;
-    --border:         rgba(24, 19, 14, 0.18);
-    --border-active:  rgba(24, 19, 14, 0.45);
-    --ink:            #18130e;
+    --bg-card-hover:  #efeee9;
+    --bg-sidebar:     #fbfaf8;
+    --bg-input:       #f3f2ef;
+    --text:           #1b1a18;
+    --text-muted:     #6c6862;
+    --text-subtle:    rgba(27, 26, 24, 0.48);
+    --text-rgb:       27, 26, 24;
+    --border:         rgba(27, 26, 24, 0.13);
+    --border-active:  rgba(27, 26, 24, 0.32);
+    --ink:            #1b1a18;
     --success:        #0e9c5e;
-    --warning:        #e0a01f;
-    --danger:         #ff5c35;
+    --warning:        #d9902a;
+    --danger:         #e5484d;
     --info:           #2d5bff;
   }
 }
@@ -121,22 +121,46 @@
 @media (prefers-color-scheme: dark) {
   [data-theme="system"] {
     color-scheme: dark;
-    --bg:             #141109;
-    --bg-card:        #1f1a12;
-    --bg-card-hover:  #2a241a;
-    --bg-sidebar:     #100d08;
-    --bg-input:       #1b160f;
-    --text:           #fbf3e4;
-    --text-muted:     #b7ac97;
-    --text-subtle:    rgba(251, 243, 228, 0.50);
-    --text-rgb:       251, 243, 228;
-    --border:         rgba(251, 243, 228, 0.22);
-    --border-active:  rgba(251, 243, 228, 0.55);
-    --ink:            #fbf3e4;
+    --bg:             #16161a;
+    --bg-card:        #1e1e23;
+    --bg-card-hover:  #282830;
+    --bg-sidebar:     #121216;
+    --bg-input:       #1f1f25;
+    --text:           #f3f3f1;
+    --text-muted:     #a2a09a;
+    --text-subtle:    rgba(243, 243, 241, 0.50);
+    --text-rgb:       243, 243, 241;
+    --border:         rgba(243, 243, 241, 0.16);
+    --border-active:  rgba(243, 243, 241, 0.42);
+    --ink:            #f3f3f1;
     --success:        #18b26b;
     --warning:        #ffc23d;
     --danger:         #ff5c35;
     --info:           #2d5bff;
+  }
+}
+
+/* ── Élévations (ombres douces — style productivité) ───────── */
+:root,
+[data-theme="dark"] {
+  --stroke:  var(--border);
+  --elev-1:  0 1px 2px rgba(0,0,0,.45);
+  --elev-2:  0 10px 28px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.4);
+}
+[data-theme="light"] {
+  --elev-1:  0 1px 2px rgba(20,18,12,.06), 0 1px 3px rgba(20,18,12,.05);
+  --elev-2:  0 8px 22px rgba(20,18,12,.10), 0 2px 6px rgba(20,18,12,.06);
+}
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] {
+    --elev-1:  0 1px 2px rgba(20,18,12,.06), 0 1px 3px rgba(20,18,12,.05);
+    --elev-2:  0 8px 22px rgba(20,18,12,.10), 0 2px 6px rgba(20,18,12,.06);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --elev-1:  0 1px 2px rgba(0,0,0,.45);
+    --elev-2:  0 10px 28px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.4);
   }
 }
 
@@ -278,41 +302,41 @@ h1, h2, h3, h4, h5, h6 {
 
 .nysa-card {
   background: var(--bg-card);
-  border: 2px solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-1);
   padding: 1rem;
 }
 
-/* ── Néo-brutalisme : tuiles "sticker" ─────────────────────────
-   .nb-card  : surface neutre, contour + ombre dure.
-   .nb-tile  : variante pour fonds d'accent (contour + ombre encre).
-   .nb-press : effet d'appui au survol/clic. */
+/* ── Cartes "productivité" ─────────────────────────────────────
+   .nb-card  : surface neutre, bord fin + ombre douce.
+   .nb-tile  : variante sans fond (pour cartes d'accent colorées).
+   .nb-press : léger lift au survol, retour à plat au clic. */
 .nb-card {
   background: var(--bg-card);
-  border: 2px solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-1);
 }
 .nb-tile {
-  border: 2px solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-1);
 }
 .nb-press {
   transition: transform 0.12s cubic-bezier(0.4,0,0.2,1), box-shadow 0.12s cubic-bezier(0.4,0,0.2,1);
 }
-.nb-press:hover  { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
-.nb-press:active { transform: translate(2px, 2px);   box-shadow: 0 0 0 var(--ink); }
+.nb-press:hover  { transform: translateY(-1px); box-shadow: var(--elev-2); }
+.nb-press:active { transform: translateY(0);    box-shadow: var(--elev-1); }
 
 /* Surfaces d'accent FONCÉ → encre claire (texte/bordures) dans les 2 thèmes */
 .on-dark {
-  --text-rgb:      246, 239, 224;
-  --text:          #f6efe0;
-  --text-muted:    rgba(246, 239, 224, 0.72);
-  --text-subtle:   rgba(246, 239, 224, 0.50);
-  --border:        rgba(246, 239, 224, 0.22);
-  --border-active: rgba(246, 239, 224, 0.45);
+  --text-rgb:      244, 243, 240;
+  --text:          #f4f3f0;
+  --text-muted:    rgba(244, 243, 240, 0.72);
+  --text-subtle:   rgba(244, 243, 240, 0.50);
+  --border:        rgba(244, 243, 240, 0.22);
+  --border-active: rgba(244, 243, 240, 0.45);
 }
 
 .nysa-transition {

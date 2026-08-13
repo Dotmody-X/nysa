@@ -51,7 +51,7 @@ type PanelType  = 'activite'|'repartition'|'tt'|'sante'|'finances'|'equilibre'|'
 // ── Shared card style ──────────────────────────────────────────────────────
 const CARD: React.CSSProperties = {
   background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)',
-  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
+  border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden',
   display: 'flex', flexDirection: 'column',
 }
 const LBL: React.CSSProperties = {
@@ -627,8 +627,8 @@ export default function RapportsPage() {
               <button key={t.key} onClick={() => setActivePeriod(t.key)} className="nb-press"
                 style={{
                   padding: '8px 16px', borderRadius: 8,
-                  border: activePeriod === t.key ? '2px solid var(--ink)' : '2px solid var(--border)',
-                  boxShadow: activePeriod === t.key ? '3px 3px 0 var(--ink)' : 'none',
+                  border: activePeriod === t.key ? '1px solid var(--border)' : '2px solid var(--border)',
+                  boxShadow: activePeriod === t.key ? 'var(--elev-1)' : 'none',
                   background: activePeriod === t.key ? ORANGE : 'var(--bg-card)',
                   color: activePeriod === t.key ? 'var(--chocolate)' : 'var(--text-muted)',
                   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', cursor: 'pointer',
@@ -640,7 +640,7 @@ export default function RapportsPage() {
         </div>
 
         {/* ── R1 C3-4 : VUE D'ENSEMBLE ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '3/5', gridRow: '1/2', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '26, 10, 10', '--text': 'var(--chocolate)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn: '3/5', gridRow: '1/2', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', '--text-rgb': '26, 10, 10', '--text': 'var(--chocolate)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
           <div style={{ ...HDR, borderBottom: '1px solid rgba(var(--text-rgb),0.2)', padding: '16px 22px 12px' }}>
             <span style={{ ...LBL, color: 'rgba(var(--text-rgb),0.9)' }}>Vue d'ensemble</span>
             <TrendingUp size={14} style={{ color: 'rgba(var(--text-rgb),0.7)' }} />
@@ -703,7 +703,7 @@ export default function RapportsPage() {
         ))}
 
         {/* ── R3 C1-2 : Aperçu activité ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <CH label="Aperçu de l'activité" color={WHEAT}
             right={
               <div style={{ display: 'flex', gap: 12 }}>
@@ -935,7 +935,7 @@ export default function RapportsPage() {
         </div>
 
         {/* ── R6 : Insight IA ─────────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <div style={{ flex: 1.2, padding: '20px 28px', borderRight: '1px solid rgba(14,149,148,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(14,149,148,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -977,7 +977,7 @@ export default function RapportsPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', borderLeft: '1px solid rgba(14,149,148,0.2)' }}>
             <button onClick={() => setPanel('ia')} className="nb-press"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 10, background: TEAL, color: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 10, background: TEAL, color: 'var(--creamy-ivory)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Voir tout <ArrowRight size={12} />
             </button>
           </div>

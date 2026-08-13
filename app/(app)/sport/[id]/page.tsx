@@ -12,7 +12,7 @@ import { SegmentDetails } from '@/components/sport/SegmentDetails'
 // Import Leaflet uniquement côté client
 const ActivityMap = dynamic(
   () => import('@/components/sport/ActivityMap').then(m => m.ActivityMap),
-  { ssr: false, loading: () => <div style={{ height: 360, background: '#0C0C0C', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Chargement de la carte…</span></div> }
+  { ssr: false, loading: () => <div style={{ height: 360, background: '#0C0C0C', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Chargement de la carte…</span></div> }
 )
 
 // Error boundary léger pour éviter le crash total de la page
@@ -22,7 +22,7 @@ class SafeMap extends Component<{ children: ReactNode }, { hasError: boolean }> 
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ height: 360, background: '#161616', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ height: 360, background: '#161616', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
           <span style={{ fontSize: 28 }}>🗺️</span>
           <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)', fontFamily: 'var(--font-display)' }}>Carte non disponible</p>
         </div>
@@ -220,7 +220,7 @@ export default function ActivityDetailPage() {
           { label: 'Allure',    value: pace ? `${fmtPace(pace)}/km` : '—',               color: 'var(--azul)', icon: <Zap size={14} /> },
           { label: 'Vitesse',   value: speed ? `${speed.toFixed(1)} km/h` : '—',         color: 'var(--text-muted)', icon: <TrendingUp size={14} /> },
         ].map(stat => (
-          <div key={stat.label} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+          <div key={stat.label} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
             <div className="flex items-center gap-1.5 mb-2" style={{ color: stat.color }}>
               {stat.icon}
               <span style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{stat.label}</span>
@@ -235,32 +235,32 @@ export default function ActivityDetailPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {gpxData && (
             <>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
                 <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>D+</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>+{Math.round(gpxData.elevationGain)}m</p>
               </div>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
                 <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>D−</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>-{Math.round(gpxData.elevationLoss)}m</p>
               </div>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
                 <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Altitude max</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>{Math.round(gpxData.elevationMax)}m</p>
               </div>
-              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
                 <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Splits</p>
                 <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>{gpxData.kmSplits.length} km</p>
               </div>
             </>
           )}
           {!gpxData && activity.elevation_m && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
               <p style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Dénivelé +</p>
               <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--text)' }}>+{activity.elevation_m}m</p>
             </div>
           )}
           {activity.heart_rate_avg && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
               <div className="flex items-center gap-1.5 mb-2" style={{ color: 'var(--accent-budget)' }}>
                 <Flame size={14} />
                 <span style={{ ...DF, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>FC moy.</span>
@@ -285,7 +285,7 @@ export default function ActivityDetailPage() {
           {gpxData && (
             <div className="flex flex-col gap-4">
               {/* Profil d'élévation */}
-              <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, flex: 1, '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+              <div style={{ background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16, flex: 1, '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' } as React.CSSProperties}>
                 <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                   Profil d'élévation
                 </p>
@@ -304,7 +304,7 @@ export default function ActivityDetailPage() {
 
               {/* Allure par km */}
               {gpxData.kmSplits.length > 0 && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
                   <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent-budget)', textTransform: 'uppercase', marginBottom: 8 }}>
                     Allure par km
                   </p>
@@ -319,7 +319,7 @@ export default function ActivityDetailPage() {
 
           {/* Détails Strava km-par-km (depuis activity_segments) */}
           {segments && segments.length > 0 && !segmentsLoading && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16, marginTop: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16, marginTop: 16 }}>
               <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--accent-budget)', textTransform: 'uppercase', marginBottom: 16 }}>
                 ⚡ Détails Strava (km-par-km)
               </p>
@@ -329,7 +329,7 @@ export default function ActivityDetailPage() {
         </div>
       ) : (
         /* Saisie manuelle — pas de carte */
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 24, textAlign: 'center' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 24, textAlign: 'center' }}>
           <MapPin size={28} style={{ color: 'var(--text-subtle)', margin: '0 auto 8px' }} />
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Saisie manuelle — pas de trace GPS</p>
           <p style={{ fontSize: 11, color: 'var(--text-subtle)', marginTop: 4 }}>Synchronise depuis Strava pour afficher la carte</p>
@@ -338,7 +338,7 @@ export default function ActivityDetailPage() {
 
       {/* ── Tableau des splits — GPX uniquement ── */}
       {gpxData && gpxData.kmSplits.length > 0 && (
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
           <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
             <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--azul)', textTransform: 'uppercase' }}>
               Splits détaillés
@@ -384,7 +384,7 @@ export default function ActivityDetailPage() {
 
       {/* ── Notes ── */}
       {activity.notes && (
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', padding: 16 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', padding: 16 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>Notes</p>
           <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{activity.notes}</p>
         </div>

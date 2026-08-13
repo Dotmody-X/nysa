@@ -12,7 +12,7 @@ const ORANGE = 'var(--accent-budget)'
 const WHEAT   = 'var(--text)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 })
 
 interface RecipeData {
@@ -349,7 +349,7 @@ export default function RecipeEditPage() {
             <button onClick={() => setShowNewCategory(!showNewCategory)}
               style={{
                 padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--chocolate)',
-                border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
+                border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 600, fontSize: 12
               }}>
               <Plus size={14} />
             </button>
@@ -364,7 +364,7 @@ export default function RecipeEditPage() {
               <button onClick={addCategory}
                 style={{
                   padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--chocolate)',
-                  border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
+                  border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 600, fontSize: 12
                 }}>
                 Créer
               </button>
@@ -424,7 +424,7 @@ export default function RecipeEditPage() {
             <button onClick={addIngredient}
               style={{
                 padding: '8px 14px', borderRadius: 8, background: ORANGE, color: 'var(--chocolate)',
-                border: '2px solid var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: 12
+                border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 600, fontSize: 12
               }}>
               <Plus size={14} />
             </button>
@@ -442,14 +442,14 @@ export default function RecipeEditPage() {
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <span style={{
                 ...DF, flexShrink: 0, width: 28, height: 38, borderRadius: 8, background: ORANGE,
-                color: 'var(--chocolate)', border: '2px solid var(--ink)', display: 'flex',
+                color: 'var(--chocolate)', border: '1px solid var(--border)', display: 'flex',
                 alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13,
               }}>{i + 1}</span>
               <textarea value={step} onChange={e => updateStep(i, e.target.value)} rows={2}
                 placeholder={`Étape ${i + 1}…`}
                 style={{
                   flex: 1, padding: '8px 12px', borderRadius: 8, background: 'var(--bg-input)',
-                  border: '2px solid var(--ink)', color: WHEAT, boxSizing: 'border-box', resize: 'vertical', minHeight: 38,
+                  border: '1px solid var(--border)', color: WHEAT, boxSizing: 'border-box', resize: 'vertical', minHeight: 38,
                 }} />
               <button onClick={() => removeStep(i)} aria-label="Supprimer l'étape"
                 style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, padding: 6 }}>
@@ -462,7 +462,7 @@ export default function RecipeEditPage() {
           style={{
             marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
             borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', color: WHEAT,
-            border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', cursor: 'pointer', fontWeight: 700, fontSize: 12,
+            border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', fontWeight: 700, fontSize: 12,
           }}>
           <Plus size={14} /> Ajouter une étape
         </button>
@@ -473,7 +473,7 @@ export default function RecipeEditPage() {
         <button onClick={handleSave} disabled={saving || !recipe.name.trim()} className="nb-press"
           style={{
             flex: 1, padding: '12px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)',
-            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: saving ? 'default' : 'pointer', fontWeight: 700, opacity: saving || !recipe.name.trim() ? 0.5 : 1
+            border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: saving ? 'default' : 'pointer', fontWeight: 700, opacity: saving || !recipe.name.trim() ? 0.5 : 1
           }}>
           {saving ? 'Sauvegarde...' : 'Sauvegarder'}
         </button>
@@ -481,7 +481,7 @@ export default function RecipeEditPage() {
           <button onClick={handleDelete} className="nb-press"
             style={{
               padding: '12px 20px', borderRadius: 'var(--radius-lg)', background: 'transparent', color: ORANGE,
-              border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', fontWeight: 700
+              border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', fontWeight: 700
             }}>
             <Trash2 size={18} />
           </button>

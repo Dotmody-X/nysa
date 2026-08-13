@@ -21,7 +21,7 @@ const WHEAT   = 'var(--text)'
 const TEAL_BG = 'var(--azul)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
@@ -75,7 +75,7 @@ function ConfirmModal({ name, onConfirm, onCancel }: { name: string; onConfirm: 
           <button onClick={onCancel} style={{ padding: '8px 20px', borderRadius: 8, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Annuler
           </button>
-          <button onClick={onConfirm} className="nb-press" style={{ padding: '8px 20px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--chocolate)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
+          <button onClick={onConfirm} className="nb-press" style={{ padding: '8px 20px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', color: 'var(--chocolate)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Supprimer
           </button>
         </div>
@@ -178,7 +178,7 @@ function ItemRow({
             <option value="ml">ml</option><option value="cl">cl</option><option value="l">l</option>
           </select>
           <button onClick={doConsume}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: '#5B9F3A', color: '#fff', border: '2px solid var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: '#5B9F3A', color: '#fff', border: '1px solid var(--border)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
             <Check size={12} /> Retirer du stock
           </button>
           <button onClick={() => setConsuming(false)}
@@ -342,7 +342,7 @@ function EditPanel({
           <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             Annuler
           </button>
-          <button onClick={handleSave} className="nb-press" style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--chocolate)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 12 }}>
+          <button onClick={handleSave} className="nb-press" style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', color: 'var(--chocolate)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 12 }}>
             {isNew ? '+ Ajouter' : 'Enregistrer'}
           </button>
         </div>
@@ -455,7 +455,7 @@ export default function InventairePage() {
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
         <button onClick={() => router.push('/courses')} className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '7px 12px', cursor: 'pointer', color: 'var(--text)', fontSize: 11 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: '7px 12px', cursor: 'pointer', color: 'var(--text)', fontSize: 11 }}>
           <ChevronLeft size={13} /> Courses
         </button>
         <div style={{ flex: 1 }}>
@@ -466,12 +466,12 @@ export default function InventairePage() {
         </div>
         {itemToBuy > 0 && (
           <button onClick={addToCourses} disabled={pushingToCourses} className="nb-press"
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--chocolate)', ...DF, fontWeight: 800, fontSize: 12, opacity: pushingToCourses ? 0.6 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', color: 'var(--chocolate)', ...DF, fontWeight: 800, fontSize: 12, opacity: pushingToCourses ? 0.6 : 1 }}>
             {pushingToCourses ? <Loader2 size={13} className="animate-spin" /> : <ShoppingCart size={13} />} Ajouter {itemToBuy} article{itemToBuy > 1 ? 's' : ''} aux courses
           </button>
         )}
         <button onClick={() => setEditItem('new')} className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 'var(--radius-lg)', background: TEAL_BG, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 800, fontSize: 12 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 'var(--radius-lg)', background: TEAL_BG, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 800, fontSize: 12 }}>
           <Plus size={13} /> Ajouter un article
         </button>
       </div>
@@ -484,7 +484,7 @@ export default function InventairePage() {
           { l: 'Stock faible',      v: String(countByStatus('low')), color: ORANGE },
           { l: 'À racheter',        v: String(countByStatus('buy')), color: '#EF4444' },
         ].map(k => (
-          <div key={k.l} style={{ padding: '14px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+          <div key={k.l} style={{ padding: '14px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{k.l}</p>
             <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: k.color, lineHeight: 1 }}>{k.v}</p>
           </div>
@@ -493,7 +493,7 @@ export default function InventairePage() {
 
       {/* ── Rappels de péremption ── */}
       {reminders.length > 0 && (
-        <div style={{ marginBottom: 16, padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: expiredCount > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+        <div style={{ marginBottom: 16, padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: expiredCount > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <AlertTriangle size={18} style={{ color: expiredCount > 0 ? '#EF4444' : '#F59E0B', flexShrink: 0 }} />
             <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: expiredCount > 0 ? '#EF4444' : '#F59E0B' }}>
@@ -516,7 +516,7 @@ export default function InventairePage() {
       {/* ── Filters ── */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
         {/* Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 200, padding: '0 12px', height: 40, borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 200, padding: '0 12px', height: 40, borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
           <Search size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Chercher un article…"
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)' }} />
@@ -535,7 +535,7 @@ export default function InventairePage() {
         </div>
         {/* Category filter */}
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
-          style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '6px 12px', color: 'var(--text)', fontSize: 11, cursor: 'pointer', outline: 'none' }}>
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: '6px 12px', color: 'var(--text)', fontSize: 11, cursor: 'pointer', outline: 'none' }}>
           <option>Toutes</option>
           {CATEGORIES.map(c => <option key={c}>{c}</option>)}
         </select>
@@ -575,7 +575,7 @@ export default function InventairePage() {
 
       {/* ── Alert banner: items à racheter ── */}
       {countByStatus('buy') > 0 && (
-        <div style={{ marginTop: 16, padding: '14px 20px', borderRadius: 'var(--radius-lg)', background: 'rgba(239,68,68,0.08)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ marginTop: 16, padding: '14px 20px', borderRadius: 'var(--radius-lg)', background: 'rgba(239,68,68,0.08)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', display: 'flex', alignItems: 'center', gap: 12 }}>
           <AlertTriangle size={18} style={{ color: '#EF4444', flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
             <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: '#EF4444' }}>{countByStatus('buy')} article{countByStatus('buy') > 1 ? 's' : ''} à racheter</p>
@@ -584,7 +584,7 @@ export default function InventairePage() {
             </p>
           </div>
           <button onClick={addToCourses} disabled={pushingToCourses} className="nb-press"
-            style={{ padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--chocolate)', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', opacity: pushingToCourses ? 0.6 : 1 }}>
+            style={{ padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', color: 'var(--chocolate)', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap', opacity: pushingToCourses ? 0.6 : 1 }}>
             → Ajouter aux courses
           </button>
         </div>

@@ -379,18 +379,18 @@ function SportPageInner() {
 
   /* ── Card style helpers ──────────────────────────────── */
   const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+    background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
+    boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
   })
   const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-    '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)',
+    background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
+    boxShadow: 'var(--elev-1)', overflow: 'hidden',
+    '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)',
     ...extra,
   } as React.CSSProperties)
   const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
+    background: ORANGE, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
+    boxShadow: 'var(--elev-1)', overflow: 'hidden',
     '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)',
     ...extra,
   } as React.CSSProperties)
@@ -432,7 +432,7 @@ function SportPageInner() {
         <form onSubmit={handleManual} style={{
           display: 'flex', gap: 12, flexWrap: 'wrap', padding: 16,
           borderRadius: 'var(--radius-lg)', marginBottom: 16,
-          background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+          background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)',
         }}>
           {[
             { type: 'date',   value: form.date,     key: 'date',     ph: '',                  w: 'auto' },
@@ -448,7 +448,7 @@ function SportPageInner() {
                 padding: '8px 12px', color: 'var(--text)', fontSize: 12, minWidth: 100 }} />
           ))}
           <button type="submit" className="nb-press"
-            style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+            style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
             Enregistrer
           </button>
         </form>
@@ -479,7 +479,7 @@ function SportPageInner() {
             <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a href={typeof window !== 'undefined' ? stravaAuthUrl() : '#'} className="nb-press"
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+                  border: '1px solid var(--border)', boxShadow: 'var(--elev-1)',
                   background: STRAVA_ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, textDecoration: 'none' }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff">
                   <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0 4 13.828h4.17"/>
@@ -487,19 +487,19 @@ function SportPageInner() {
                 Strava
               </a>
               <button onClick={handleStravaSync} disabled={syncing} className="nb-press"
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)',
                   background: 'rgba(var(--text-rgb),0.08)', color: syncing ? 'rgba(var(--text-rgb),0.4)' : WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
                 <RefreshCw size={11} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
                 {syncing ? 'Sync…' : 'Synchroniser'}
               </button>
-              <label className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+              <label className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)',
                 background: 'rgba(var(--text-rgb),0.08)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
                 <input ref={fileRef} type="file" accept=".gpx" style={{ display: 'none' }} onChange={handleGpxFile} />
                 <Upload size={11} /> {importing ? 'Import…' : 'GPX'}
               </label>
               <button onClick={() => setShowManual(v => !v)} className="nb-press"
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
                 <Plus size={11} /> Ajouter
               </button>
             </div>
@@ -567,11 +567,11 @@ function SportPageInner() {
           { l: 'Dénivelé / semaine', v: `+${elevWeek}`, unit: 'm', sub: `obj. ${Math.ceil(OBJ_ELEV_DYNAMIC)}m`, pct: pctElev, color: '#5B6F3A', dark: true },
         ].map((kpi, i) => (
           <div key={i} style={{
-            background: kpi.color, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-            boxShadow: '4px 4px 0 var(--ink)', padding: '22px 22px 18px',
+            background: kpi.color, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
+            boxShadow: 'var(--elev-1)', padding: '22px 22px 18px',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden',
             ...(kpi.dark
-              ? { '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' }
+              ? { '--text-rgb': '244, 243, 240', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(244, 243, 240, 0.72)' }
               : { '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' }),
           } as React.CSSProperties}>
             <div>
@@ -630,7 +630,7 @@ function SportPageInner() {
                 <button onClick={() => setShowPlanForm(true)} className="nb-press"
                   style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 'var(--radius-lg)',
                     background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 10,
-                    border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                    border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
                   <Plus size={10} /> Planifier
                 </button>
               )}
@@ -677,12 +677,12 @@ function SportPageInner() {
                   <button type="submit" disabled={planSaving || !planForm.distance} className="nb-press"
                     style={{ flex: 1, background: planForm.distance ? ORANGE : 'var(--border)', color: planForm.distance ? 'var(--chocolate)' : 'var(--text-muted)',
                       borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12,
-                      border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: planForm.distance ? 'pointer' : 'default', transition: 'background .2s' }}>
+                      border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: planForm.distance ? 'pointer' : 'default', transition: 'background .2s' }}>
                     {planSaving ? 'Enregistrement…' : 'Planifier cette sortie'}
                   </button>
                   <button type="button" onClick={() => setShowPlanForm(false)} className="nb-press"
                     style={{ padding: '9px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)',
-                      border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                      border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
                     Annuler
                   </button>
                 </div>
@@ -949,7 +949,7 @@ function SportPageInner() {
             <div key={dist} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '12px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)',
-              border: '2px solid var(--ink)',
+              border: '1px solid var(--border)',
             }}>
               <div>
                 <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: 'var(--text-muted)' }}>{dist}</p>
