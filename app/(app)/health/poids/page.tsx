@@ -7,7 +7,7 @@ import { useHealth } from '@/hooks/useHealth'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL    = 'var(--azul)'
 const TEAL_BG = 'var(--azul)'
-const ORANGE  = 'var(--accent-budget)'
+const ORANGE  = 'var(--accent-brand)'
 const WHEAT   = 'var(--text)'
 const STICKER: React.CSSProperties = {
   border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
@@ -114,7 +114,7 @@ export default function PoidsPage() {
         </div>
         <button onClick={() => setShowForm(v => !v)} className="nb-press"
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 'var(--radius-lg)', background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: TEAL_BG, color: 'var(--ink-light)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <Plus size={12} /> Ajouter une mesure
         </button>
       </div>
@@ -128,7 +128,7 @@ export default function PoidsPage() {
           <input type="number" step="0.1" value={form.weight} onChange={e => setForm(f => ({ ...f, weight: e.target.value }))}
             placeholder="Poids en kg" autoFocus
             style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13 }} />
-          <button type="submit" className="nb-press" style={{ background: TEAL_BG, color: 'var(--creamy-ivory)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <button type="submit" className="nb-press" style={{ background: TEAL_BG, color: 'var(--ink-light)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Enregistrer
           </button>
           <button type="button" onClick={() => setShowForm(false)} className="nb-press"

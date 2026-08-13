@@ -5,7 +5,7 @@ import { ArrowLeft, Download, AlertTriangle, X, Shield, Eye, EyeOff, Lock } from
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
+const TEAL = 'var(--azul)', ORANGE = 'var(--accent-brand)', WHEAT = 'var(--text)'
 
 function PrivacyRow({ icon: Icon, label, sub, value, onChange }: {
   icon: React.ElementType; label: string; sub: string; value: boolean; onChange: (v: boolean) => void
@@ -109,7 +109,7 @@ export default function ConfidentialitePage() {
           Cette action est <strong style={{ color: ORANGE }}>irréversible</strong>. Toutes vos données seront définitivement supprimées.
         </p>
         <button onClick={() => setShowDelete(true)} className="nb-press"
-          style={{ width: '100%', background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          style={{ width: '100%', background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           Supprimer mon compte
         </button>
       </div>
@@ -130,7 +130,7 @@ export default function ConfidentialitePage() {
             <input value={deleteInput} onChange={e => setDeleteInput(e.target.value)} placeholder="SUPPRIMER"
               style={{ width: '100%', background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, marginBottom: 12 }} />
             <button disabled={deleteInput !== 'SUPPRIMER'} onClick={deleteAccount} className="nb-press"
-              style={{ width: '100%', background: deleteInput === 'SUPPRIMER' ? ORANGE : 'var(--bg-input)', color: deleteInput === 'SUPPRIMER' ? 'var(--chocolate)' : 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '10px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: deleteInput === 'SUPPRIMER' ? 'pointer' : 'not-allowed' }}>
+              style={{ width: '100%', background: deleteInput === 'SUPPRIMER' ? ORANGE : 'var(--bg-input)', color: deleteInput === 'SUPPRIMER' ? 'var(--ink-dark)' : 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '10px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: deleteInput === 'SUPPRIMER' ? 'pointer' : 'not-allowed' }}>
               Supprimer définitivement
             </button>
           </div>

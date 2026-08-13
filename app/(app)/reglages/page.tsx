@@ -14,7 +14,7 @@ import { useTimeCategories } from '@/hooks/useTimeCategories'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 const ACCENT_PRESETS = [
-  { label: 'Fiery',    color: 'var(--accent-budget)' },
+  { label: 'Fiery',    color: 'var(--accent-brand)' },
   { label: 'Cyan',     color: 'var(--azul)' },
   { label: 'Violet',   color: '#7C3AED' },
   { label: 'Rose',     color: '#EC4899' },
@@ -36,11 +36,11 @@ const TABS = [
 export default function ReglagesPage() {
   const [tab, setTab] = useState('profil')
   const [theme, setTheme] = useState<ThemeMode>('dark')
-  const [accent, setAccent] = useState('var(--accent-budget)')
+  const [accent, setAccent] = useState('var(--accent-brand)')
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('nysa-theme') as ThemeMode : 'dark'
-    const storedAccent = typeof window !== 'undefined' ? localStorage.getItem('nysa-accent') ?? 'var(--accent-budget)' : 'var(--accent-budget)'
+    const storedAccent = typeof window !== 'undefined' ? localStorage.getItem('nysa-accent') ?? 'var(--accent-brand)' : 'var(--accent-brand)'
     setTheme(stored ?? 'dark')
     setAccent(storedAccent)
   }, [])
@@ -60,9 +60,9 @@ export default function ReglagesPage() {
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all nb-press"
-                style={{ background: tab===t.key ? 'var(--accent-budget)' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow: tab===t.key ? '3px 3px 0 var(--ink)' : 'none' }}>
-                <Icon size={14} style={{ color: tab===t.key ? 'var(--chocolate)' : 'var(--text-muted)' }} />
-                <span style={{ ...DF, fontSize:11, fontWeight: tab===t.key ? 800 : 500, color: tab===t.key ? 'var(--chocolate)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{t.label}</span>
+                style={{ background: tab===t.key ? 'var(--accent-brand)' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow: tab===t.key ? '3px 3px 0 var(--ink)' : 'none' }}>
+                <Icon size={14} style={{ color: tab===t.key ? 'var(--ink-dark)' : 'var(--text-muted)' }} />
+                <span style={{ ...DF, fontSize:11, fontWeight: tab===t.key ? 800 : 500, color: tab===t.key ? 'var(--ink-dark)' : 'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{t.label}</span>
               </button>
             )
           })}
@@ -117,7 +117,7 @@ function ProfilTab() {
 
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Profil</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-brand)', textTransform:'uppercase', marginBottom:20 }}>Profil</p>
       <div className="flex flex-col gap-4">
         <div>
           <p style={LBL_F}>Nom</p>
@@ -152,10 +152,10 @@ function ProfilTab() {
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:8 }}>
-          <button onClick={save} disabled={saving} className="nb-press" style={{ background:'var(--accent-budget)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          <button onClick={save} disabled={saving} className="nb-press" style={{ background:'var(--accent-brand)', color:'var(--ink-dark)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'10px 24px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:12, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Enregistrement…' : 'Sauvegarder'}
           </button>
-          {msg && <span style={{ fontSize:12, color: msg.startsWith('✅') ? 'var(--azul)' : 'var(--accent-budget)' }}>{msg}</span>}
+          {msg && <span style={{ fontSize:12, color: msg.startsWith('✅') ? 'var(--azul)' : 'var(--accent-brand)' }}>{msg}</span>}
         </div>
       </div>
     </div>
@@ -171,14 +171,14 @@ function ThemeTab({ theme, accent, onTheme, onAccent }: { theme: ThemeMode; acce
   return (
     <div className="flex flex-col gap-[10px]">
       <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
-        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:16 }}>Thème</p>
+        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-brand)', textTransform:'uppercase', marginBottom:16 }}>Thème</p>
         <div className="grid grid-cols-3 gap-3">
           {themes.map(t => (
             <button key={t.key} onClick={() => onTheme(t.key)}
               className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all nb-press"
-              style={{ border:'2px solid var(--ink)', boxShadow: theme===t.key ? '4px 4px 0 var(--ink)' : 'none', background: theme===t.key ? 'var(--accent-budget)' : 'var(--bg-input)' }}>
+              style={{ border:'2px solid var(--ink)', boxShadow: theme===t.key ? '4px 4px 0 var(--ink)' : 'none', background: theme===t.key ? 'var(--accent-brand)' : 'var(--bg-input)' }}>
               <div style={{ width:48, height:32, borderRadius:6, background:t.bg, border:'2px solid var(--ink)' }} />
-              <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? 'var(--chocolate)' : 'var(--text-muted)' }}>{t.label}</span>
+              <span style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:700, color: theme===t.key ? 'var(--ink-dark)' : 'var(--text-muted)' }}>{t.label}</span>
             </button>
           ))}
         </div>
@@ -210,7 +210,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} className="nb-press" role="switch" aria-checked={on}
       style={{ width:46, height:26, borderRadius:99, background: on ? 'var(--azul)' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow:'2px 2px 0 var(--ink)', cursor:'pointer', position:'relative', flexShrink:0, transition:'background 0.2s' }}>
-      <div style={{ width:16, height:16, borderRadius:'50%', background: on ? 'var(--creamy-ivory)' : 'var(--text-muted)', position:'absolute', top:3, left: on ? 24 : 3, transition:'left 0.2s' }} />
+      <div style={{ width:16, height:16, borderRadius:'50%', background: on ? 'var(--ink-light)' : 'var(--text-muted)', position:'absolute', top:3, left: on ? 24 : 3, transition:'left 0.2s' }} />
     </button>
   )
 }
@@ -253,7 +253,7 @@ function NotifsTab() {
         </div>
         {perm !== 'granted' && (
           <button onClick={enableBrowser} className="nb-press" disabled={perm === 'denied'}
-            style={{ background: perm==='denied' ? 'var(--bg-input)' : 'var(--accent-budget)', color: perm==='denied' ? 'var(--text-muted)' : 'var(--chocolate)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', padding:'8px 16px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:11, cursor: perm==='denied' ? 'not-allowed' : 'pointer' }}>
+            style={{ background: perm==='denied' ? 'var(--bg-input)' : 'var(--accent-brand)', color: perm==='denied' ? 'var(--text-muted)' : 'var(--ink-dark)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', padding:'8px 16px', fontFamily:'var(--font-display)', fontWeight:800, fontSize:11, cursor: perm==='denied' ? 'not-allowed' : 'pointer' }}>
             Activer
           </button>
         )}
@@ -261,7 +261,7 @@ function NotifsTab() {
 
       {/* Préférences (sauvegarde immédiate) */}
       <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'8px 24px 16px' }}>
-        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', margin:'14px 0 4px' }}>Préférences</p>
+        <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-brand)', textTransform:'uppercase', margin:'14px 0 4px' }}>Préférences</p>
         {NOTIF_DEFS.map(n => (
           <div key={n.key} className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)' }}>
             <div>
@@ -315,7 +315,7 @@ function DonneesTab() {
 
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>Données & Sauvegardes</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-brand)', textTransform:'uppercase', marginBottom:20 }}>Données & Sauvegardes</p>
       
       {/* Demo Mode Toggle */}
       {hydrated && (
@@ -333,7 +333,7 @@ function DonneesTab() {
               borderRadius:14,
               border:'2px solid var(--ink)',
               boxShadow:'2px 2px 0 var(--ink)',
-              background: demoEnabled ? 'var(--accent-budget)' : 'var(--bg-input)',
+              background: demoEnabled ? 'var(--accent-brand)' : 'var(--bg-input)',
               cursor:'pointer',
               display:'flex',
               alignItems:'center',
@@ -372,13 +372,13 @@ function DonneesTab() {
       ))}
 
       {/* Zone dangereuse (en bas, avec confirmation) */}
-      <div style={{ marginTop:18, padding:'14px 16px', borderRadius:'var(--radius-lg)', border:'2px solid var(--accent-budget)', background:'rgba(242,84,45,0.06)' }}>
-        <p style={{ fontSize:12, color:'var(--accent-budget)', ...({fontFamily:'var(--font-display)'} as React.CSSProperties), fontWeight:800 }}>Zone dangereuse</p>
+      <div style={{ marginTop:18, padding:'14px 16px', borderRadius:'var(--radius-lg)', border:'2px solid var(--accent-brand)', background:'rgba(242,84,45,0.06)' }}>
+        <p style={{ fontSize:12, color:'var(--accent-brand)', ...({fontFamily:'var(--font-display)'} as React.CSSProperties), fontWeight:800 }}>Zone dangereuse</p>
         <div className="flex items-center justify-between" style={{ marginTop:8, gap:12, flexWrap:'wrap' }}>
           <p style={{ fontSize:11, color:'var(--text-muted)', flex:1, minWidth:180 }}>Supprimer toutes tes données (tâches, finances, runs, recettes, courses…). Irréversible.</p>
           {!confirmDel ? (
             <button onClick={()=>setConfirmDel(true)} className="nb-press"
-              style={{ fontSize:11, color:'var(--accent-budget)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)', cursor:'pointer' }}>
+              style={{ fontSize:11, color:'var(--accent-brand)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)', cursor:'pointer' }}>
               Tout supprimer
             </button>
           ) : (
@@ -386,7 +386,7 @@ function DonneesTab() {
               <input value={delInput} onChange={e=>setDelInput(e.target.value)} placeholder="SUPPRIMER" autoFocus
                 style={{ width:120, background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'6px 10px', color:'var(--text)', fontSize:12 }} />
               <button disabled={delInput!=='SUPPRIMER' || busy==='delete'} onClick={runDelete} className="nb-press"
-                style={{ fontSize:11, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 12px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background: delInput==='SUPPRIMER' ? 'var(--accent-budget)':'var(--bg-input)', color: delInput==='SUPPRIMER' ? 'var(--chocolate)':'var(--text-muted)', cursor: delInput==='SUPPRIMER' ? 'pointer':'not-allowed' }}>
+                style={{ fontSize:11, fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 12px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background: delInput==='SUPPRIMER' ? 'var(--accent-brand)':'var(--bg-input)', color: delInput==='SUPPRIMER' ? 'var(--ink-dark)':'var(--text-muted)', cursor: delInput==='SUPPRIMER' ? 'pointer':'not-allowed' }}>
                 {busy==='delete' ? '…' : 'Confirmer'}
               </button>
               <button onClick={()=>{setConfirmDel(false);setDelInput('')}} style={{ background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:12 }}>Annuler</button>
@@ -394,7 +394,7 @@ function DonneesTab() {
           )}
         </div>
       </div>
-      {msg && <p style={{ fontSize:12, marginTop:10, color: msg.startsWith('✅') ? 'var(--azul)':'var(--accent-budget)' }}>{msg}</p>}
+      {msg && <p style={{ fontSize:12, marginTop:10, color: msg.startsWith('✅') ? 'var(--azul)':'var(--accent-brand)' }}>{msg}</p>}
     </div>
   )
 }
@@ -417,7 +417,7 @@ function RaccourcisTab() {
   ]
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:8 }}>Raccourcis clavier</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-brand)', textTransform:'uppercase', marginBottom:8 }}>Raccourcis clavier</p>
       <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:16 }}>Ouvre la palette avec ⌘K (ou Ctrl+K), ou tape « G » puis la touche pour naviguer.</p>
       <div className="grid grid-cols-2 gap-2">
         {shortcuts.map(s => (
@@ -434,7 +434,7 @@ function RaccourcisTab() {
 function AboutTab() {
   return (
     <div style={{ background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:24 }}>
-      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-budget)', textTransform:'uppercase', marginBottom:20 }}>À propos</p>
+      <p style={{ fontFamily:'var(--font-display)', fontSize:11, fontWeight:800, letterSpacing:'0.15em', color:'var(--accent-brand)', textTransform:'uppercase', marginBottom:20 }}>À propos</p>
       <div className="flex flex-col gap-4">
         <div>
           <p style={{ fontFamily:'var(--font-display)', fontWeight:900, fontSize:32, color:'var(--text)' }}>NYSA</p>

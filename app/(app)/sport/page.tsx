@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const STRAVA_ORANGE = '#FC4C02'
 const TEAL          = 'var(--azul)'
-const ORANGE        = 'var(--accent-budget)'
+const ORANGE        = 'var(--accent-brand)'
 const WHEAT   = 'var(--text)'
 
 /* ─── Helpers ────────────────────────────────────────────── */
@@ -385,13 +385,13 @@ function SportPageInner() {
   const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
     background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
     boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-    '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)',
+    '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)',
     ...extra,
   } as React.CSSProperties)
   const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
     background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
     boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-    '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)',
+    '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)',
     ...extra,
   } as React.CSSProperties)
   const label = (color = ORANGE): React.CSSProperties => ({
@@ -448,7 +448,7 @@ function SportPageInner() {
                 padding: '8px 12px', color: 'var(--text)', fontSize: 12, minWidth: 100 }} />
           ))}
           <button type="submit" className="nb-press"
-            style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+            style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Enregistrer
           </button>
         </form>
@@ -499,7 +499,7 @@ function SportPageInner() {
               </label>
               <button onClick={() => setShowManual(v => !v)} className="nb-press"
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                  background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                 <Plus size={11} /> Ajouter
               </button>
             </div>
@@ -571,8 +571,8 @@ function SportPageInner() {
             boxShadow: '4px 4px 0 var(--ink)', padding: '22px 22px 18px',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden',
             ...(kpi.dark
-              ? { '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' }
-              : { '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' }),
+              ? { '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)' }
+              : { '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)' }),
           } as React.CSSProperties}>
             <div>
               <p style={{ fontSize: 9, color: kpi.dark ? 'rgba(var(--text-rgb),0.5)' : 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>{kpi.l}</p>
@@ -629,7 +629,7 @@ function SportPageInner() {
               {!showPlanForm && (
                 <button onClick={() => setShowPlanForm(true)} className="nb-press"
                   style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 'var(--radius-lg)',
-                    background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 10,
+                    background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 10,
                     border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
                   <Plus size={10} /> Planifier
                 </button>
@@ -675,7 +675,7 @@ function SportPageInner() {
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                   <button type="submit" disabled={planSaving || !planForm.distance} className="nb-press"
-                    style={{ flex: 1, background: planForm.distance ? ORANGE : 'var(--border)', color: planForm.distance ? 'var(--chocolate)' : 'var(--text-muted)',
+                    style={{ flex: 1, background: planForm.distance ? ORANGE : 'var(--border)', color: planForm.distance ? 'var(--ink-dark)' : 'var(--text-muted)',
                       borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12,
                       border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: planForm.distance ? 'pointer' : 'default', transition: 'background .2s' }}>
                     {planSaving ? 'Enregistrement…' : 'Planifier cette sortie'}
@@ -691,7 +691,7 @@ function SportPageInner() {
               /* ── Affiché depuis le Calendrier (label Running) ── */
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 10, background: TEAL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Calendar size={22} style={{ color: 'var(--creamy-ivory)' }} />
+                  <Calendar size={22} style={{ color: 'var(--ink-light)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>
@@ -723,7 +723,7 @@ function SportPageInner() {
             ) : nextRun ? (
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 10, background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Activity size={22} style={{ color: 'var(--creamy-ivory)' }} />
+                  <Activity size={22} style={{ color: 'var(--ink-light)' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>
@@ -795,7 +795,7 @@ function SportPageInner() {
             ) : activities.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 40, gap: 10 }}>
                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Activity size={20} style={{ color: 'var(--creamy-ivory)' }} />
+                  <Activity size={20} style={{ color: 'var(--ink-light)' }} />
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune sortie enregistrée</p>
               </div>
@@ -806,7 +806,7 @@ function SportPageInner() {
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
                     borderBottom: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
                   <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {hasGpx ? <Zap size={16} style={{ color: ORANGE }} /> : <Activity size={16} style={{ color: 'var(--creamy-ivory)' }} />}
+                    {hasGpx ? <Zap size={16} style={{ color: ORANGE }} /> : <Activity size={16} style={{ color: 'var(--ink-light)' }} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>

@@ -9,12 +9,12 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 // Each variant → vivid accent fill. Cream text on DARK accents (cobalt),
 // ink text on light accents (tangerine/sunny/turquoise).
 const variantStyle: Record<BadgeVariant, { bg: string; text: string }> = {
-  fiery:    { bg: 'var(--accent-budget)',   text: 'var(--chocolate)' },     // tangerine
-  cyan:     { bg: 'var(--azul)',            text: 'var(--creamy-ivory)' },  // cobalt (dark)
-  teal:     { bg: 'var(--accent-health)',   text: 'var(--chocolate)' },     // turquoise
-  wheat:    { bg: 'var(--accent-courses)',  text: 'var(--chocolate)' },     // sunny
-  espresso: { bg: 'var(--accent-rapports)', text: 'var(--creamy-ivory)' },  // violet (dark)
-  default:  { bg: 'var(--accent-courses)',  text: 'var(--chocolate)' },     // sunny
+  fiery:    { bg: 'var(--accent-brand)',   text: 'var(--ink-dark)' },     // tangerine
+  cyan:     { bg: 'var(--azul)',            text: 'var(--ink-light)' },  // cobalt (dark)
+  teal:     { bg: 'var(--accent-health)',   text: 'var(--ink-dark)' },     // turquoise
+  wheat:    { bg: 'var(--accent-courses)',  text: 'var(--ink-dark)' },     // sunny
+  espresso: { bg: 'var(--accent-rapports)', text: 'var(--ink-light)' },  // violet (dark)
+  default:  { bg: 'var(--accent-courses)',  text: 'var(--ink-dark)' },     // sunny
 }
 
 export function Badge({ variant = 'default', className = '', children, ...props }: BadgeProps) {

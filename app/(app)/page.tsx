@@ -43,8 +43,8 @@ export default function DashboardPage() {
   const doneTasks   = data?.todayTasks.filter(t => t.status === 'done').length ?? 0
   const totalTasks  = data?.todayTasks.length ?? 0
 
-  const INK = '#18130e'
-  const CREAM = '#f6efe0'
+  const INK = 'var(--ink-dark)'
+  const CREAM = 'var(--ink-light)'
 
   return (
     <div className="bento-grid md:grid md:grid-cols-4 gap-4 p-4 md:p-7 min-h-full">
@@ -54,7 +54,7 @@ export default function DashboardPage() {
       {/* Hero — col-span-2 */}
       <div className="col-span-2 flex flex-col justify-between p-2 md:p-4">
         <div>
-          <span className="font-display inline-block text-xs font-extrabold tracking-wider uppercase mb-3 nb-tile" style={{ background: 'var(--accent-budget)', color: INK, padding: '4px 12px' }}>
+          <span className="font-display inline-block text-xs font-extrabold tracking-wider uppercase mb-3 nb-tile" style={{ background: 'var(--accent-brand)', color: INK, padding: '4px 12px' }}>
             {greeting}
           </span>
           <h1 className="font-display font-extrabold text-5xl md:text-6xl lg:text-7xl leading-[0.95]" style={{ color: 'var(--text)', letterSpacing: '-0.02em' }}>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Agent IA — col-span-2, tangerine sticker */}
-      <div className="nb-tile col-span-2 flex flex-col justify-between p-5 md:p-6" style={{ background: 'var(--accent-budget)' }}>
+      <div className="nb-tile col-span-2 flex flex-col justify-between p-5 md:p-6" style={{ background: 'var(--accent-brand)' }}>
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={16} style={{ color: INK }} />

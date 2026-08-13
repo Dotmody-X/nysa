@@ -5,7 +5,7 @@ import { ArrowLeft, Download, Upload, Check, AlertTriangle } from '@/components/
 import { createClient } from '@/lib/supabase/client'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
+const TEAL = 'var(--azul)', ORANGE = 'var(--accent-brand)', WHEAT = 'var(--text)'
 
 type ExportStatus = 'idle' | 'loading' | 'done' | 'error'
 
@@ -103,7 +103,7 @@ export default function SauvegardePage() {
   const btnStyle = (status: ExportStatus, color: string): React.CSSProperties => {
     const bg = status === 'done' ? TEAL : status === 'error' ? ORANGE : color
     // cobalt/azul (TEAL) is a DARK accent → cream ink; tangerine ORANGE → dark ink
-    const ink = bg === TEAL ? 'var(--creamy-ivory)' : 'var(--chocolate)'
+    const ink = bg === TEAL ? 'var(--ink-light)' : 'var(--ink-dark)'
     return {
       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       width: '100%', background: bg,

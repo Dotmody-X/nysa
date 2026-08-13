@@ -28,7 +28,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       {config.announcement.active && config.announcement.text && (
-        <div style={{ padding: '10px 18px', background: 'var(--accent-budget)', color: 'var(--chocolate)', borderBottom: '2px solid var(--ink)', ...DF, fontWeight: 700, fontSize: 12, textAlign: 'center' }}>
+        <div style={{ padding: '10px 18px', background: 'var(--accent-brand)', color: 'var(--ink-dark)', borderBottom: '2px solid var(--ink)', ...DF, fontWeight: 700, fontSize: 12, textAlign: 'center' }}>
           📣 {config.announcement.text}
         </div>
       )}

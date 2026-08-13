@@ -15,7 +15,7 @@ import type { DayStat, ProjectStat } from '@/hooks/useRapports'
 import type { MonthSummary } from '@/hooks/useBudget'
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const ORANGE  = 'var(--accent-budget)'
+const ORANGE  = 'var(--accent-brand)'
 const TEAL    = 'var(--azul)'
 const WHEAT   = 'var(--text)'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -297,7 +297,7 @@ export default function RapportsPage() {
 
   // ── Donut segments ──────────────────────────────────────────────────────
   const donutSegments = useMemo(() => {
-    const PALETTE = ['var(--azul)','var(--accent-budget)','#9B72CF','#E8A838','#3ABCB8','#C45E3E','#7C6FAF','#5E9C8F']
+    const PALETTE = ['var(--azul)','var(--accent-brand)','#9B72CF','#E8A838','#3ABCB8','#C45E3E','#7C6FAF','#5E9C8F']
     return (data?.projectStats ?? []).slice(0, 8).map((p, i) => ({
       color: p.color !== '#888' ? p.color : PALETTE[i % PALETTE.length],
       value: p.total_seconds,
@@ -630,7 +630,7 @@ export default function RapportsPage() {
                   border: activePeriod === t.key ? '2px solid var(--ink)' : '2px solid var(--border)',
                   boxShadow: activePeriod === t.key ? '3px 3px 0 var(--ink)' : 'none',
                   background: activePeriod === t.key ? ORANGE : 'var(--bg-card)',
-                  color: activePeriod === t.key ? 'var(--chocolate)' : 'var(--text-muted)',
+                  color: activePeriod === t.key ? 'var(--ink-dark)' : 'var(--text-muted)',
                   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', cursor: 'pointer',
                 }}>
                 {t.label}
@@ -640,7 +640,7 @@ export default function RapportsPage() {
         </div>
 
         {/* ── R1 C3-4 : VUE D'ENSEMBLE ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '3/5', gridRow: '1/2', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '26, 10, 10', '--text': 'var(--chocolate)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn: '3/5', gridRow: '1/2', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '26, 10, 10', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
           <div style={{ ...HDR, borderBottom: '1px solid rgba(var(--text-rgb),0.2)', padding: '16px 22px 12px' }}>
             <span style={{ ...LBL, color: 'rgba(var(--text-rgb),0.9)' }}>Vue d'ensemble</span>
             <TrendingUp size={14} style={{ color: 'rgba(var(--text-rgb),0.7)' }} />
@@ -655,7 +655,7 @@ export default function RapportsPage() {
               <div key={i} style={{ padding: '18px 22px', borderRight: i % 2 === 0 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none', borderBottom: i < 2 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none' }}>
                 <div style={{ color: 'rgba(var(--text-rgb),0.7)', marginBottom: 6 }}>{s.icon}</div>
                 <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.75)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</p>
-                <p style={{ ...DF, fontSize: 30, fontWeight: 900, color: 'var(--chocolate)', lineHeight: 1 }}>{loading ? '—' : `${s.value}%`}</p>
+                <p style={{ ...DF, fontSize: 30, fontWeight: 900, color: 'var(--ink-dark)', lineHeight: 1 }}>{loading ? '—' : `${s.value}%`}</p>
                 <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginTop: 3 }}>vs objectif</p>
               </div>
             ))}
@@ -703,7 +703,7 @@ export default function RapportsPage() {
         ))}
 
         {/* ── R3 C1-2 : Aperçu activité ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
           <CH label="Aperçu de l'activité" color={WHEAT}
             right={
               <div style={{ display: 'flex', gap: 12 }}>
@@ -935,7 +935,7 @@ export default function RapportsPage() {
         </div>
 
         {/* ── R6 : Insight IA ─────────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
           <div style={{ flex: 1.2, padding: '20px 28px', borderRight: '1px solid rgba(14,149,148,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(14,149,148,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -977,7 +977,7 @@ export default function RapportsPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', borderLeft: '1px solid rgba(14,149,148,0.2)' }}>
             <button onClick={() => setPanel('ia')} className="nb-press"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 10, background: TEAL, color: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 10, background: TEAL, color: 'var(--ink-light)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Voir tout <ArrowRight size={12} />
             </button>
           </div>

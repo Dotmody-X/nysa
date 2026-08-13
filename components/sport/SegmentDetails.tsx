@@ -5,7 +5,7 @@ import { TrendingUp, Zap, Activity } from '@/components/ui/icons'
 import type { ActivitySegment } from '@/hooks/useActivitySegments'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const ORANGE = 'var(--accent-budget)'
+const ORANGE = 'var(--accent-brand)'
 const TEAL = 'var(--azul)'
 
 function fmtPace(sec: number) {

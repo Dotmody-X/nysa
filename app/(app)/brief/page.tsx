@@ -10,7 +10,7 @@ import { DailyNotes } from '@/components/brief/DailyNotes'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const WHEAT = 'var(--text)'
 const BRIEF_COLOR = 'var(--azul)'
-const DEBRIEF_COLOR = 'var(--accent-budget)'
+const DEBRIEF_COLOR = 'var(--accent-brand)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
@@ -46,7 +46,7 @@ export default function BriefPage() {
     ...DF, fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
     border: `2px solid ${active ? color : 'var(--border)'}`,
     background: active ? color : 'var(--bg-card)',
-    color: active ? 'var(--creamy-ivory)' : 'var(--text-muted)',
+    color: active ? 'var(--ink-light)' : 'var(--text-muted)',
   })
 
   return (
@@ -55,7 +55,7 @@ export default function BriefPage() {
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button onClick={toggleDock} className="nb-press" title="Ouvrir/fermer la mini-fenêtre Brief (dispo sur toutes les pages)"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 12 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--ink-light)', ...DF, fontWeight: 700, fontSize: 12 }}>
               <ExternalLink size={13} /> Mini-fenêtre
             </button>
             <button onClick={refetch} className="nb-press"
@@ -66,7 +66,7 @@ export default function BriefPage() {
         } />
 
       {error && (
-        <div style={{ ...card(), padding: '12px 16px', color: 'var(--accent-budget)', fontSize: 12 }}>
+        <div style={{ ...card(), padding: '12px 16px', color: 'var(--accent-brand)', fontSize: 12 }}>
           Impossible de charger les briefs : {error}
         </div>
       )}

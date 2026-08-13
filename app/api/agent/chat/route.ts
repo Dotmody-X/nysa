@@ -1,9 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Client créé à la demande : évite de lire les env au chargement du module
+// (fait échouer `next build` quand SUPABASE_SERVICE_ROLE_KEY n'est pas défini).
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 const openclawGateway = process.env.OPENCLAW_GATEWAY_URL || 'http://192.168.1.100:18789' // Pi5 IP
 const openclawToken = process.env.OPENCLAW_TOKEN
 
@@ -39,6 +44,8 @@ export async function POST(request: NextRequest) {
 }
 
 async function loadUserContext(userId: string) {
+  const supabase = getSupabase()
+
   // Tasks
   const { data: tasks } = await supabase
     .from('tasks')

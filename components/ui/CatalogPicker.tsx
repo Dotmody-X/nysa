@@ -134,7 +134,7 @@ export function CatalogPicker({
           {/* Action OpenFoodFacts */}
           {enableOFF && (
             <button onClick={runOff} disabled={offLoading}
-              style={{ ...rowStyle, borderTop: '1px solid var(--border)', color: 'var(--accent-budget)', ...DF, fontWeight: 700, fontSize: 11 }}>
+              style={{ ...rowStyle, borderTop: '1px solid var(--border)', color: 'var(--accent-brand)', ...DF, fontWeight: 700, fontSize: 11 }}>
               {offLoading ? <Loader2 size={13} className="spin" /> : <Search size={13} />}
               {offLoading ? 'Recherche en ligne…' : `Rechercher sur ${offSourceLabel(offSource)}`}
             </button>

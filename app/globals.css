@@ -1,26 +1,23 @@
 @import "tailwindcss";
 
 /* ============================================================
-   NYSA Design System v3.1 — Earthy Palette (FIXED)
-   
-   STRUCTURE:
-   - General Colors: Backgrounds + Text (used everywhere)
-   - Category Colors: Accent per page (distinct & visible)
-   - Proper hierarchy with good contrast
-   
-   ============================================================ */
-
-/* ============================================================
-   NYSA Design System v4 — Néo-brutalisme ludique
-   Papier + encre, accents vifs, contours + ombres dures.
+   NYSA Design System v5 — Néo-brutalisme neutre
+   Blanc + noir neutres, accents vifs, contours + ombres dures.
    ============================================================ */
 
 /* ── Constantes (indépendantes du thème) ───────────────────── */
 :root {
   /* Encres fixes pour le texte sur fonds d'accent (sticker) */
-  --creamy-ivory: #f6efe0;   /* encre CLAIRE sur accent foncé */
-  --chocolate:    #18130e;   /* encre FONCÉE sur accent clair */
-  --camel:        #b7ac97;
+  --ink-light: #ffffff;      /* encre CLAIRE sur accent foncé */
+  --ink-dark:  #111111;      /* encre FONCÉE sur accent clair */
+
+  /* Alias hérités du v4 (à migrer vers --ink-light / --ink-dark) */
+  --creamy-ivory: var(--ink-light);
+  --chocolate:    var(--ink-dark);
+  --camel:        #9a9a9a;
+
+  /* Accent de marque — LA couleur NYSA (nav, CTA, focus, sélection) */
+  --accent-brand:    #ff5c35;   /* tangerine */
 
   /* Accents vifs — IDENTIQUES en clair et sombre (ça doit claquer) */
   --accent-budget:   #ff5c35;   /* tangerine */
@@ -49,20 +46,20 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:             #141109;   /* encre chaude profonde */
-  --bg-card:        #1f1a12;
-  --bg-card-hover:  #2a241a;
-  --bg-sidebar:     #100d08;
-  --bg-input:       #1b160f;
+  --bg:             #111111;   /* noir neutre */
+  --bg-card:        #1a1a1a;
+  --bg-card-hover:  #242424;
+  --bg-sidebar:     #0d0d0d;
+  --bg-input:       #171717;
 
-  --text:           #fbf3e4;   /* crème */
-  --text-muted:     #b7ac97;
-  --text-subtle:    rgba(251, 243, 228, 0.50);
-  --text-rgb:       251, 243, 228;
+  --text:           #f5f5f5;   /* blanc neutre */
+  --text-muted:     #a3a3a3;
+  --text-subtle:    rgba(245, 245, 245, 0.50);
+  --text-rgb:       245, 245, 245;
 
-  --border:         rgba(251, 243, 228, 0.22);
-  --border-active:  rgba(251, 243, 228, 0.55);
-  --ink:            #fbf3e4;   /* contour + ombre brutalistes (clair sur sombre) */
+  --border:         rgba(245, 245, 245, 0.22);
+  --border-active:  rgba(245, 245, 245, 0.55);
+  --ink:            #f5f5f5;   /* contour + ombre brutalistes (clair sur sombre) */
 
   --success:        #18b26b;
   --warning:        #ffc23d;
@@ -74,24 +71,24 @@
 [data-theme="light"] {
   color-scheme: light;
 
-  --bg:             #faf3e3;   /* papier chaud */
+  --bg:             #ffffff;   /* blanc neutre */
   --bg-card:        #ffffff;
-  --bg-card-hover:  #f2ead6;
-  --bg-sidebar:     #f4ecd9;
-  --bg-input:       #fffdf7;
+  --bg-card-hover:  #f2f2f2;
+  --bg-sidebar:     #f7f7f7;
+  --bg-input:       #fafafa;
 
-  --text:           #18130e;   /* encre */
-  --text-muted:     #6e6353;
-  --text-subtle:    rgba(24, 19, 14, 0.50);
-  --text-rgb:       24, 19, 14;
+  --text:           #111111;   /* encre neutre */
+  --text-muted:     #6b6b6b;
+  --text-subtle:    rgba(17, 17, 17, 0.50);
+  --text-rgb:       17, 17, 17;
 
-  --border:         rgba(24, 19, 14, 0.18);
-  --border-active:  rgba(24, 19, 14, 0.45);
-  --ink:            #18130e;   /* contour + ombre brutalistes (encre) */
+  --border:         rgba(17, 17, 17, 0.16);
+  --border-active:  rgba(17, 17, 17, 0.45);
+  --ink:            #111111;   /* contour + ombre brutalistes (encre) */
 
   --success:        #0e9c5e;
   --warning:        #e0a01f;
-  --danger:         #ff5c35;
+  --danger:         #e04b1f;   /* assombri : lisible en texte sur blanc (AA) */
   --info:           #2d5bff;
 }
 
@@ -99,21 +96,21 @@
 @media (prefers-color-scheme: light) {
   [data-theme="system"] {
     color-scheme: light;
-    --bg:             #faf3e3;
+    --bg:             #ffffff;
     --bg-card:        #ffffff;
-    --bg-card-hover:  #f2ead6;
-    --bg-sidebar:     #f4ecd9;
-    --bg-input:       #fffdf7;
-    --text:           #18130e;
-    --text-muted:     #6e6353;
-    --text-subtle:    rgba(24, 19, 14, 0.50);
-    --text-rgb:       24, 19, 14;
-    --border:         rgba(24, 19, 14, 0.18);
-    --border-active:  rgba(24, 19, 14, 0.45);
-    --ink:            #18130e;
+    --bg-card-hover:  #f2f2f2;
+    --bg-sidebar:     #f7f7f7;
+    --bg-input:       #fafafa;
+    --text:           #111111;
+    --text-muted:     #6b6b6b;
+    --text-subtle:    rgba(17, 17, 17, 0.50);
+    --text-rgb:       17, 17, 17;
+    --border:         rgba(17, 17, 17, 0.16);
+    --border-active:  rgba(17, 17, 17, 0.45);
+    --ink:            #111111;
     --success:        #0e9c5e;
     --warning:        #e0a01f;
-    --danger:         #ff5c35;
+    --danger:         #e04b1f;
     --info:           #2d5bff;
   }
 }
@@ -121,18 +118,18 @@
 @media (prefers-color-scheme: dark) {
   [data-theme="system"] {
     color-scheme: dark;
-    --bg:             #141109;
-    --bg-card:        #1f1a12;
-    --bg-card-hover:  #2a241a;
-    --bg-sidebar:     #100d08;
-    --bg-input:       #1b160f;
-    --text:           #fbf3e4;
-    --text-muted:     #b7ac97;
-    --text-subtle:    rgba(251, 243, 228, 0.50);
-    --text-rgb:       251, 243, 228;
-    --border:         rgba(251, 243, 228, 0.22);
-    --border-active:  rgba(251, 243, 228, 0.55);
-    --ink:            #fbf3e4;
+    --bg:             #111111;
+    --bg-card:        #1a1a1a;
+    --bg-card-hover:  #242424;
+    --bg-sidebar:     #0d0d0d;
+    --bg-input:       #171717;
+    --text:           #f5f5f5;
+    --text-muted:     #a3a3a3;
+    --text-subtle:    rgba(245, 245, 245, 0.50);
+    --text-rgb:       245, 245, 245;
+    --border:         rgba(245, 245, 245, 0.22);
+    --border-active:  rgba(245, 245, 245, 0.55);
+    --ink:            #f5f5f5;
     --success:        #18b26b;
     --warning:        #ffc23d;
     --danger:         #ff5c35;
@@ -152,6 +149,8 @@
   --color-border:         var(--border);
   --color-border-active:  var(--border-active);
 
+  --color-ink-light:      var(--ink-light);
+  --color-ink-dark:       var(--ink-dark);
   --color-creamy-ivory:   var(--creamy-ivory);
   --color-camel:          var(--camel);
   --color-chocolate:      var(--chocolate);
@@ -165,6 +164,7 @@
   --color-danger:         var(--danger);
   --color-info:           var(--info);
 
+  --color-accent-brand:      var(--accent-brand);
   --color-accent-budget:     var(--accent-budget);
   --color-accent-courses:    var(--accent-courses);
   --color-accent-recettes:   var(--accent-recettes);
@@ -198,6 +198,8 @@ body {
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
+  /* Chiffres à chasse fixe : les KPI et colonnes de montants restent alignés */
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -207,6 +209,23 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 800;
   color: var(--text);
+  line-height: 1.15;
+}
+
+/* Échelle par défaut (les pages peuvent surcharger) — hiérarchie ~2:1 titre/texte */
+h1 { font-size: 28px; letter-spacing: -0.02em; }
+h2 { font-size: 20px; letter-spacing: -0.01em; }
+h3 { font-size: 16px; }
+
+/* ── Accessibilité : animations réduites ─────────────────────
+   Respecte le réglage OS ; les effets d'appui deviennent instantanés. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .nb-press:hover, .nb-press:active { transform: none; }
 }
 
 /* ============================================================
@@ -231,15 +250,15 @@ h1, h2, h3, h4, h5, h6 {
    Sélection texte
    ============================================================ */
 ::selection {
-  background: var(--accent-budget);
-  color: var(--bg);
+  background: var(--accent-brand);
+  color: var(--ink-dark);
 }
 
 /* ============================================================
    Focus visible global
    ============================================================ */
 :focus-visible {
-  outline: 2px solid var(--accent-budget);
+  outline: 2px solid var(--accent-brand);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -252,6 +271,9 @@ h1, h2, h3, h4, h5, h6 {
 .text-primary   { @apply text-[color:var(--text)] }
 .text-muted     { @apply text-[color:var(--text-muted)] }
 .text-subtle    { @apply text-[color:var(--text-subtle)] }
+
+/* Brand accent */
+.text-brand     { @apply text-[color:var(--accent-brand)] }
 
 /* Category text accents */
 .text-budget    { @apply text-[color:var(--accent-budget)] }
@@ -307,16 +329,36 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Surfaces d'accent FONCÉ → encre claire (texte/bordures) dans les 2 thèmes */
 .on-dark {
-  --text-rgb:      246, 239, 224;
-  --text:          #f6efe0;
-  --text-muted:    rgba(246, 239, 224, 0.72);
-  --text-subtle:   rgba(246, 239, 224, 0.50);
-  --border:        rgba(246, 239, 224, 0.22);
-  --border-active: rgba(246, 239, 224, 0.45);
+  --text-rgb:      255, 255, 255;
+  --text:          #ffffff;
+  --text-muted:    rgba(255, 255, 255, 0.72);
+  --text-subtle:   rgba(255, 255, 255, 0.50);
+  --border:        rgba(255, 255, 255, 0.22);
+  --border-active: rgba(255, 255, 255, 0.45);
 }
 
 .nysa-transition {
   transition: all 0.15s ease;
+}
+
+/* ── Navigation ────────────────────────────────────────────── */
+
+/* Survol des items inactifs (ne pas poser de background inline
+   sur l'état inactif, sinon cette règle ne s'applique pas) */
+.nav-item:hover {
+  background: rgba(var(--text-rgb), 0.06);
+}
+
+/* Libellé de groupe dans la sidebar (loi de Hick : sections courtes) */
+.nav-group-label {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  padding: 10px 8px 4px;
+  user-select: none;
 }
 
 /* ============================================================
@@ -332,8 +374,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 @media (min-width: 768px) {
   .page-wrap {
-    padding: 20px 26px;
+    padding: 24px 32px;
     gap: 12px;
+  }
+}
+
+/* Ultra-large : borne la largeur de lecture, centre le contenu */
+@media (min-width: 1800px) {
+  main > div {
+    max-width: 1720px;
+    margin-inline: auto;
   }
 }
 

@@ -8,7 +8,7 @@ import { useHealth } from '@/hooks/useHealth'
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL    = 'var(--azul)'
 const TEAL_BG = 'var(--azul)'
-const ORANGE  = 'var(--accent-budget)'
+const ORANGE  = 'var(--accent-brand)'
 const WHEAT   = 'var(--text)'
 const STICKER: React.CSSProperties = {
   border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
@@ -50,7 +50,7 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
             Annuler
           </button>
           <button onClick={onConfirm} className="nb-press"
-            style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+            style={{ padding: '9px 18px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
               fontSize: 12, fontFamily: 'var(--font-display)', fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6 }}>
             <Trash2 size={12} /> Supprimer
@@ -151,7 +151,7 @@ function FormPanel({
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="submit" className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, background: isEdit ? TEAL : ORANGE, color: isEdit ? 'var(--creamy-ivory)' : 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: isEdit ? TEAL : ORANGE, color: isEdit ? 'var(--ink-light)' : 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '9px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           {isEdit ? <><Check size={12} /> Enregistrer</> : <><Plus size={12} /> Créer l&apos;objectif</>}
         </button>
         <button type="button" onClick={onCancel} className="nb-press"
@@ -292,7 +292,7 @@ export default function ObjectifsPage() {
         </div>
         <button onClick={() => { setShowForm(v => !v); setEditId(null); setForm(EMPTY_FORM) }} className="nb-press"
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+            borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
           <Plus size={12} /> Ajouter un objectif
         </button>
       </div>
@@ -326,7 +326,7 @@ export default function ObjectifsPage() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                       <span style={{ padding: '2px 8px', borderRadius: 4, background: CATEGORY_COLORS[obj.category] || 'var(--border)',
-                        color: 'var(--creamy-ivory)', fontSize: 8, ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        color: 'var(--ink-light)', fontSize: 8, ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         {obj.category}
                       </span>
                       <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{PERIOD_LABELS[obj.period]}</span>
@@ -374,7 +374,7 @@ export default function ObjectifsPage() {
           <p style={{ ...DF, fontSize: 16, fontWeight: 700, color: 'var(--text-muted)' }}>Aucun objectif défini</p>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Crée ton premier objectif pour suivre ta progression.</p>
           <button onClick={() => setShowForm(true)} className="nb-press"
-            style={{ background: ORANGE, color: 'var(--chocolate)', borderRadius: 'var(--radius-lg)', padding: '10px 24px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', marginTop: 8 }}>
+            style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '10px 24px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', marginTop: 8 }}>
             + Créer un objectif
           </button>
         </div>

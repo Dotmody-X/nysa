@@ -34,7 +34,7 @@ function BriefPanel({ onClose }: { onClose: () => void }) {
     display: 'flex', alignItems: 'center', gap: 5,
     border: `2px solid ${active ? color : 'var(--border)'}`,
     background: active ? color : 'var(--bg-card)',
-    color: active ? 'var(--creamy-ivory)' : 'var(--text-muted)',
+    color: active ? 'var(--ink-light)' : 'var(--text-muted)',
   })
 
   return (
@@ -51,7 +51,7 @@ function BriefPanel({ onClose }: { onClose: () => void }) {
         <span style={{ ...DF, fontSize: 12, fontWeight: 900, color: 'var(--text)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Brief</span>
         <div style={{ display: 'flex', gap: 5 }}>
           <button style={tab(view === 'brief', 'var(--azul)')} onClick={() => setView('brief')}><Sun size={12} /> Brief</button>
-          <button style={tab(isDebrief, 'var(--accent-budget)')} onClick={() => setView('debrief')}><Moon size={12} /> Débrief</button>
+          <button style={tab(isDebrief, 'var(--accent-brand)')} onClick={() => setView('debrief')}><Moon size={12} /> Débrief</button>
         </div>
         <div style={{ flex: 1 }} />
         <button onClick={refetch} title="Actualiser" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 7, background: 'var(--bg-card)', border: '2px solid var(--ink)', cursor: 'pointer', color: 'var(--text)' }}>
@@ -65,7 +65,7 @@ function BriefPanel({ onClose }: { onClose: () => void }) {
       {/* Corps */}
       <div style={{ padding: 12, overflowY: 'auto', flex: 1 }}>
         {error ? (
-          <div style={{ padding: 14, borderRadius: 'var(--radius-md)', border: '2px solid var(--ink)', background: 'var(--bg-card)', color: 'var(--accent-budget)', fontSize: 12 }}>
+          <div style={{ padding: 14, borderRadius: 'var(--radius-md)', border: '2px solid var(--ink)', background: 'var(--bg-card)', color: 'var(--accent-brand)', fontSize: 12 }}>
             Impossible de charger : {error}
           </div>
         ) : loading && !current ? (
@@ -117,7 +117,7 @@ export function BriefDock() {
           className="fixed right-4 bottom-24 md:right-6 md:bottom-6 nb-press"
           style={{
             zIndex: 1400, display: 'flex', alignItems: 'center', gap: 7, padding: '10px 16px',
-            borderRadius: 999, background: 'var(--azul)', color: 'var(--creamy-ivory)',
+            borderRadius: 999, background: 'var(--azul)', color: 'var(--ink-light)',
             border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer',
             ...DF, fontWeight: 800, fontSize: 12, letterSpacing: '0.04em',
           }}>

@@ -40,7 +40,7 @@ export function DailyNotes() {
     <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
       {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
-        <PenLine size={15} style={{ color: 'var(--accent-budget)' }} />
+        <PenLine size={15} style={{ color: 'var(--accent-brand)' }} />
         <span style={{ ...DF, fontSize: 13, fontWeight: 900, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes du jour</span>
         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>· lues par le débrief du soir</span>
         <div style={{ flex: 1 }} />
@@ -67,7 +67,7 @@ export function DailyNotes() {
           }}
         />
         {error && (
-          <p style={{ fontSize: 11, color: 'var(--accent-budget)' }}>Sauvegarde impossible : {error}</p>
+          <p style={{ fontSize: 11, color: 'var(--accent-brand)' }}>Sauvegarde impossible : {error}</p>
         )}
 
         {/* Historique repliable */}

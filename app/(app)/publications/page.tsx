@@ -162,10 +162,10 @@ function PubModal({
       <div style={{ ...card(), width: '100%', maxWidth: 480, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
-          <Send size={16} style={{ color: 'var(--accent-budget)' }} />
+          <Send size={16} style={{ color: 'var(--accent-brand)' }} />
           <span style={{ ...DF, fontSize: 14, fontWeight: 900, color: 'var(--text)' }}>{isEdit ? 'Modifier la publication' : 'Nouvelle publication'}</span>
           {initial?.featured && (
-            <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 20, color: 'var(--chocolate)', background: 'var(--accent-budget)', whiteSpace: 'nowrap' }} title="Mix de la semaine (lecture seule)">
+            <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 20, color: 'var(--ink-dark)', background: 'var(--accent-brand)', whiteSpace: 'nowrap' }} title="Mix de la semaine (lecture seule)">
               ★ {initial.featured}
             </span>
           )}
@@ -238,7 +238,7 @@ function PubModal({
             <textarea rows={3} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notes…" style={{ ...field, resize: 'vertical', minHeight: 70, lineHeight: 1.5 }} />
           </div>
 
-          {error && <p style={{ fontSize: 11, color: 'var(--accent-budget)' }}>{error}</p>}
+          {error && <p style={{ fontSize: 11, color: 'var(--accent-brand)' }}>{error}</p>}
         </div>
 
         {/* Footer */}
@@ -259,7 +259,7 @@ function PubModal({
           <div style={{ flex: 1 }} />
           <button onClick={onClose} style={{ ...DF, fontSize: 12, color: 'var(--text-muted)', background: 'var(--bg-card)', border: '2px solid var(--ink)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>Annuler</button>
           <button onClick={submit} disabled={saving || !form.title.trim()} className="nb-press"
-            style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--chocolate)', background: 'var(--accent-budget)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+            style={{ ...DF, fontSize: 12, fontWeight: 700, color: 'var(--ink-dark)', background: 'var(--accent-brand)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
             {saving ? '…' : isEdit ? 'Enregistrer' : 'Créer'}
           </button>
         </div>
@@ -348,13 +348,13 @@ export default function PublicationsPage() {
       <PageTitle title="Publications" sub="Calendrier éditorial"
         right={
           <button onClick={() => openCreate(view === 'backlog' ? null : todayStr)} className="nb-press"
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
             <Plus size={14} /> Publication
           </button>
         } />
 
       {error && (
-        <div style={{ ...card(), padding: '12px 16px', color: 'var(--accent-budget)', fontSize: 12 }}>Erreur : {error}</div>
+        <div style={{ ...card(), padding: '12px 16px', color: 'var(--accent-brand)', fontSize: 12 }}>Erreur : {error}</div>
       )}
 
       {/* Barre : bascule vue + filtres */}
@@ -362,7 +362,7 @@ export default function PublicationsPage() {
         <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', borderRadius: 8, padding: 3, border: '1px solid var(--border)' }}>
           {([['calendar', 'Calendrier'], ['backlog', 'Backlog']] as [PubView, string][]).map(([v, lbl]) => (
             <button key={v} onClick={() => setView(v)}
-              style={{ ...DF, padding: '5px 14px', borderRadius: 6, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer', border: 'none', background: view === v ? 'var(--accent-budget)' : 'transparent', color: view === v ? 'var(--chocolate)' : 'var(--text-muted)' }}>
+              style={{ ...DF, padding: '5px 14px', borderRadius: 6, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer', border: 'none', background: view === v ? 'var(--accent-brand)' : 'transparent', color: view === v ? 'var(--ink-dark)' : 'var(--text-muted)' }}>
               {lbl}{v === 'backlog' && backlog.length > 0 ? ` (${backlog.length})` : ''}
             </button>
           ))}
@@ -423,7 +423,7 @@ export default function PublicationsPage() {
                   return (
                     <div key={i} onClick={() => openCreate(dStr)}
                       style={{ minHeight: 96, padding: 6, borderRight: '1px solid var(--border)', borderBottom: '1px solid var(--border)', background: inMonth ? 'transparent' : 'var(--bg-input)', opacity: inMonth ? 1 : 0.5, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <span style={{ fontSize: 11, fontWeight: isToday ? 900 : 600, color: isToday ? 'var(--accent-budget)' : 'var(--text-muted)', ...DF }}>{day.getDate()}</span>
+                      <span style={{ fontSize: 11, fontWeight: isToday ? 900 : 600, color: isToday ? 'var(--accent-brand)' : 'var(--text-muted)', ...DF }}>{day.getDate()}</span>
                       {pubs.map(p => (
                         <div key={p.id} onClick={e => { e.stopPropagation(); openEdit(p) }}
                           title={`${p.title ?? ''}${p.brand ? ' — ' + p.brand : ''}${p.channel ? ' · ' + p.channel : ''}`}
@@ -450,7 +450,7 @@ export default function PublicationsPage() {
             <Tag size={13} style={{ color: 'var(--text-muted)' }} />
             <span style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Idées sans date</span>
             <div style={{ flex: 1 }} />
-            <button onClick={() => openCreate(null)} style={{ display: 'flex', alignItems: 'center', gap: 5, ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', background: 'var(--accent-budget)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>
+            <button onClick={() => openCreate(null)} style={{ display: 'flex', alignItems: 'center', gap: 5, ...DF, fontSize: 11, fontWeight: 700, color: 'var(--ink-dark)', background: 'var(--accent-brand)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' }}>
               <Plus size={12} /> Nouvelle idée
             </button>
           </div>

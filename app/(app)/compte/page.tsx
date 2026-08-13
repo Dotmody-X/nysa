@@ -15,7 +15,7 @@ import { saveTheme, loadTheme, type ThemeMode } from '@/lib/theme'
 import { setActiveUser } from '@/lib/userStore'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
-const TEAL = 'var(--azul)', TEAL_BG = 'var(--azul)', ORANGE = 'var(--accent-budget)', WHEAT = 'var(--text)'
+const TEAL = 'var(--azul)', TEAL_BG = 'var(--azul)', ORANGE = 'var(--accent-brand)', WHEAT = 'var(--text)'
 
 function fmtH(sec: number) {
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60)
@@ -264,7 +264,7 @@ export default function ComptePage() {
             <input value={deleteInput} onChange={e=>setDeleteInput(e.target.value)} placeholder="SUPPRIMER"
               style={{ width:'100%', background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'8px 12px', color:'var(--text)', fontSize:13, marginBottom:12 }} />
             <button disabled={deleteInput !== 'SUPPRIMER'} onClick={deleteAccount} className="nb-press"
-              style={{ width:'100%', background: deleteInput==='SUPPRIMER' ? ORANGE : 'var(--bg-input)', color: deleteInput==='SUPPRIMER' ? 'var(--chocolate)' : 'var(--text-muted)', borderRadius:'var(--radius-lg)', padding:'10px 16px', ...DF, fontWeight:700, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor: deleteInput==='SUPPRIMER' ? 'pointer' : 'not-allowed' }}>
+              style={{ width:'100%', background: deleteInput==='SUPPRIMER' ? ORANGE : 'var(--bg-input)', color: deleteInput==='SUPPRIMER' ? 'var(--ink-dark)' : 'var(--text-muted)', borderRadius:'var(--radius-lg)', padding:'10px 16px', ...DF, fontWeight:700, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor: deleteInput==='SUPPRIMER' ? 'pointer' : 'not-allowed' }}>
               Supprimer définitivement
             </button>
           </div>
@@ -301,7 +301,7 @@ export default function ComptePage() {
               </div>
               <p style={{ fontSize:12, color:'var(--text-muted)', lineHeight:1.7, marginBottom:20 }}>{info.desc}</p>
               {info.action === 'oauth' && !app.connected && (
-                <a href={info.href} className="nb-press" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', background:ORANGE, color:'var(--chocolate)', borderRadius:'var(--radius-lg)', padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', textDecoration:'none', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+                <a href={info.href} className="nb-press" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', background:ORANGE, color:'var(--ink-dark)', borderRadius:'var(--radius-lg)', padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', textDecoration:'none', textTransform:'uppercase', letterSpacing:'0.08em' }}>
                   {info.actionLabel}
                 </a>
               )}
@@ -357,7 +357,7 @@ export default function ComptePage() {
         <div style={{ ...card('var(--bg-card)'), padding:22, display:'flex', flexDirection:'column', gap:14 }}>
           <div style={{ display:'flex', alignItems:'flex-start', gap:16 }}>
             <div style={{ width:80, height:80, borderRadius:'50%', background:`linear-gradient(135deg,${ORANGE},${TEAL})`, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <span style={{ ...DF, fontWeight:900, fontSize:32, color:'var(--creamy-ivory)' }}>{displayName.charAt(0).toUpperCase()}</span>
+              <span style={{ ...DF, fontWeight:900, fontSize:32, color:'var(--ink-light)' }}>{displayName.charAt(0).toUpperCase()}</span>
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               {editMode ? (
@@ -375,7 +375,7 @@ export default function ComptePage() {
               ) : null}
             </div>
             <button onClick={()=>editMode ? saveProfile() : setEditMode(true)} className="nb-press"
-              style={{ background: editMode ? TEAL : 'var(--bg-input)', color: editMode ? 'var(--creamy-ivory)' : 'var(--text)', borderRadius:'var(--radius-lg)', padding:'6px 12px', ...DF, fontWeight:700, fontSize:10, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer', flexShrink:0 }}>
+              style={{ background: editMode ? TEAL : 'var(--bg-input)', color: editMode ? 'var(--ink-light)' : 'var(--text)', borderRadius:'var(--radius-lg)', padding:'6px 12px', ...DF, fontWeight:700, fontSize:10, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer', flexShrink:0 }}>
               {editMode ? 'Enregistrer' : 'Modifier le profil'}
             </button>
           </div>
@@ -409,7 +409,7 @@ export default function ComptePage() {
               <div style={{ display:'flex', gap:6, marginTop:4 }}>
                 {(['dark','light','system'] as ThemeMode[]).map(t => (
                   <button key={t} onClick={()=>applyTheme(t)} className="nb-press"
-                    style={{ flex:1, padding:'5px 0', borderRadius:7, border:'2px solid var(--ink)', boxShadow: theme===t ? '3px 3px 0 var(--ink)' : 'none', background: theme===t ? ORANGE : 'var(--bg-input)', color: theme===t ? 'var(--chocolate)' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:9, cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+                    style={{ flex:1, padding:'5px 0', borderRadius:7, border:'2px solid var(--ink)', boxShadow: theme===t ? '3px 3px 0 var(--ink)' : 'none', background: theme===t ? ORANGE : 'var(--bg-input)', color: theme===t ? 'var(--ink-dark)' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:9, cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                     {t === 'dark' ? 'Sombre' : t === 'light' ? 'Clair' : 'Système'}
                   </button>
                 ))}
@@ -419,7 +419,7 @@ export default function ComptePage() {
         </div>
 
         {/* Stats globales */}
-        <div style={{ ...card(TEAL_BG), padding:22, '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+        <div style={{ ...card(TEAL_BG), padding:22, '--text-rgb':'255, 255, 255', '--text':'#ffffff', '--text-muted':'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
           <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase', marginBottom:18 }}>Vos statistiques globales</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
             {[
@@ -479,7 +479,7 @@ export default function ComptePage() {
             <div style={{ display:'flex', gap:4 }}>
               {(['week','month'] as const).map(p => (
                 <button key={p} onClick={()=>setPeriod(p)} className="nb-press"
-                  style={{ padding:'4px 10px', borderRadius:6, border:'2px solid var(--ink)', boxShadow: period===p ? '2px 2px 0 var(--ink)' : 'none', background: period===p ? ORANGE : 'var(--bg-input)', color: period===p ? 'var(--chocolate)' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:9, cursor:'pointer' }}>
+                  style={{ padding:'4px 10px', borderRadius:6, border:'2px solid var(--ink)', boxShadow: period===p ? '2px 2px 0 var(--ink)' : 'none', background: period===p ? ORANGE : 'var(--bg-input)', color: period===p ? 'var(--ink-dark)' : 'var(--text-muted)', ...DF, fontWeight:700, fontSize:9, cursor:'pointer' }}>
                   {p==='week' ? 'Cette semaine' : 'Ce mois'}
                 </button>
               ))}
@@ -530,7 +530,7 @@ export default function ComptePage() {
           <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
             {streakDays.map((active, i) => (
               <div key={i} style={{ width:20, height:20, borderRadius:5, background: active ? ORANGE : 'var(--bg-input)', border:'2px solid var(--ink)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                {active && <Check size={10} style={{ color:'var(--chocolate)' }} />}
+                {active && <Check size={10} style={{ color:'var(--ink-dark)' }} />}
               </div>
             ))}
           </div>
@@ -631,7 +631,7 @@ export default function ComptePage() {
                 <>
                   <input type="password" value={newPwd} onChange={e=>setNewPwd(e.target.value)} placeholder="Nouveau mot de passe" autoFocus
                     style={{ flex:1, background:'var(--bg-input)', border:'2px solid var(--ink)', borderRadius:8, padding:'7px 12px', color:'var(--text)', fontSize:12 }} />
-                  <button onClick={changePassword} className="nb-press" style={{ background:TEAL, color:'var(--creamy-ivory)', borderRadius:'var(--radius-lg)', padding:'7px 12px', ...DF, fontWeight:700, fontSize:11, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer' }}>OK</button>
+                  <button onClick={changePassword} className="nb-press" style={{ background:TEAL, color:'var(--ink-light)', borderRadius:'var(--radius-lg)', padding:'7px 12px', ...DF, fontWeight:700, fontSize:11, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer' }}>OK</button>
                   <button onClick={()=>{setShowPwd(false);setNewPwd('')}} className="nb-press" style={{ background:'var(--bg-card)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', borderRadius:'var(--radius-lg)', padding:'7px 10px', color:'var(--text)', cursor:'pointer' }}><X size={12}/></button>
                 </>
               ) : (
@@ -652,14 +652,14 @@ export default function ComptePage() {
               <option value="GBP">Livre (£)</option>
             </select>
           </div>
-          <button onClick={saveProfile} className="nb-press" style={{ marginTop:16, width:'100%', background:ORANGE, color:'var(--chocolate)', borderRadius:'var(--radius-lg)', padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+          <button onClick={saveProfile} className="nb-press" style={{ marginTop:16, width:'100%', background:ORANGE, color:'var(--ink-dark)', borderRadius:'var(--radius-lg)', padding:'10px 0', ...DF, fontWeight:800, fontSize:12, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
             Enregistrer les modifications
           </button>
         </div>
 
         {/* Abonnement + Export + Supprimer */}
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-          <div style={{ ...card(TEAL_BG), padding:20, flex:1, '--text-rgb':'245, 241, 237', '--text':'#f5f1ed', '--text-muted':'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+          <div style={{ ...card(TEAL_BG), padding:20, flex:1, '--text-rgb':'255, 255, 255', '--text':'#ffffff', '--text-muted':'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.14em', color:WHEAT, textTransform:'uppercase' }}>Abonnement</p>
               <span style={{ padding:'3px 8px', borderRadius:99, background:'rgba(14,149,148,0.3)', color:WHEAT, fontSize:9, ...DF, fontWeight:700 }}>Actif</span>
@@ -672,7 +672,7 @@ export default function ComptePage() {
                 <p style={{ fontSize:11, color:'rgba(var(--text-rgb),0.8)' }}>{f}</p>
               </div>
             ))}
-            <button className="nb-press" style={{ marginTop:12, width:'100%', background:'var(--creamy-ivory)', color:'var(--chocolate)', borderRadius:'var(--radius-lg)', padding:'8px 0', ...DF, fontWeight:800, fontSize:10, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
+            <button className="nb-press" style={{ marginTop:12, width:'100%', background:'var(--ink-light)', color:'var(--ink-dark)', borderRadius:'var(--radius-lg)', padding:'8px 0', ...DF, fontWeight:800, fontSize:10, border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.08em' }}>
               Gérer mon abonnement <ChevronRight size={10} style={{ display:'inline' }}/>
             </button>
           </div>
@@ -696,7 +696,7 @@ export default function ComptePage() {
           <div style={{ ...card('var(--bg-card)'), padding:16 }}>
             <p style={{ ...DF, fontSize:11, fontWeight:800, letterSpacing:'0.12em', color:ORANGE, textTransform:'uppercase', marginBottom:6 }}>Supprimer mon compte</p>
             <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:10, lineHeight:1.5 }}>Cette action est irréversible. Toutes vos données seront supprimées définitivement.</p>
-            <button onClick={()=>setShowDelete(true)} className="nb-press" style={{ width:'100%', background:ORANGE, color:'var(--chocolate)', borderRadius:'var(--radius-lg)', padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer' }}>
+            <button onClick={()=>setShowDelete(true)} className="nb-press" style={{ width:'100%', background:ORANGE, color:'var(--ink-dark)', borderRadius:'var(--radius-lg)', padding:'8px 0', ...DF, fontWeight:700, fontSize:11, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', cursor:'pointer' }}>
               Supprimer mon compte
             </button>
           </div>

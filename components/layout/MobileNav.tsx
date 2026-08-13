@@ -29,10 +29,10 @@ const ALL_SECTIONS = [
 ]
 
 const QUICK_LINKS = [
-  { href: '/todo',         label: 'Tâche',  color: 'var(--accent-budget)' },
-  { href: '/time-tracker', label: 'Timer',  color: 'var(--azul)' },
-  { href: '/budget',       label: 'Budget', color: '#9B72CF' },
-  { href: '/projets',      label: 'Projet', color: '#E8A838' },
+  { href: '/todo',         label: 'Tâche',  color: 'var(--accent-brand)',    lightBg: true  },
+  { href: '/time-tracker', label: 'Timer',  color: 'var(--azul)',            lightBg: false },
+  { href: '/budget',       label: 'Budget', color: 'var(--accent-rapports)', lightBg: false },
+  { href: '/projets',      label: 'Projet', color: 'var(--accent-todo)',     lightBg: true  },
 ]
 
 export function MobileNav() {
@@ -48,11 +48,12 @@ export function MobileNav() {
     const active = !onClick && isActive(href)
     const inner = (
       <>
-        <Icon size={21} style={{ color: active ? 'var(--accent-budget)' : 'var(--text-muted)' }} />
-        <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? 'var(--accent-budget)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
+        <Icon size={21} style={{ color: active ? 'var(--accent-brand)' : 'var(--text-muted)' }} />
+        <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: active ? 700 : 500, color: active ? 'var(--accent-brand)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
       </>
     )
-    const style: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, minWidth: 52, textDecoration: 'none', padding: '4px 0', background: 'none', border: 'none', cursor: 'pointer' }
+    // minHeight 48 + minWidth 52 : cible tactile ≥ 44px (loi de Fitts / WCAG)
+    const style: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, minWidth: 52, minHeight: 48, textDecoration: 'none', padding: '4px 0', background: 'none', border: 'none', cursor: 'pointer' }
     return onClick
       ? <button key={label} onClick={onClick} style={style}>{inner}</button>
       : <Link key={label} href={href} style={style}>{inner}</Link>
@@ -83,12 +84,12 @@ export function MobileNav() {
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
                       padding: '16px 8px', borderRadius: 14, textDecoration: 'none',
-                      background: active ? 'var(--accent-budget)' : 'var(--bg-input)',
+                      background: active ? 'var(--accent-brand)' : 'var(--bg-input)',
                       border: '2px solid var(--ink)',
                       boxShadow: '3px 3px 0 var(--ink)',
                     }}>
-                    <Icon size={22} style={{ color: active ? 'var(--chocolate)' : 'var(--text)' }} />
-                    <span style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, textAlign: 'center', color: active ? 'var(--chocolate)' : 'var(--text-muted)' }}>{label}</span>
+                    <Icon size={22} style={{ color: active ? 'var(--ink-dark)' : 'var(--text)' }} />
+                    <span style={{ fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 700, textAlign: 'center', color: active ? 'var(--ink-dark)' : 'var(--text-muted)' }}>{label}</span>
                   </Link>
                 )
               })}
@@ -104,9 +105,7 @@ export function MobileNav() {
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 59, backdropFilter: 'blur(4px)' }} />
           <div className="md:hidden" style={{ position: 'fixed', bottom: 96, left: '50%', transform: 'translateX(-50%)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, zIndex: 60, width: 240 }}>
             {QUICK_LINKS.map(l => {
-              // Tangerine is a light accent → ink text; the rest are dark → cream.
-              const isLight = l.color === 'var(--accent-budget)'
-              const txt = isLight ? 'var(--chocolate)' : 'var(--creamy-ivory)'
+              const txt = l.lightBg ? 'var(--ink-dark)' : 'var(--ink-light)'
               return (
                 <Link key={l.href} href={l.href} onClick={() => setQuickOpen(false)}
                   style={{ background: l.color, borderRadius: 14, border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 2, textDecoration: 'none' }}>
@@ -132,12 +131,12 @@ export function MobileNav() {
         <button onClick={() => { setQuickOpen(o => !o); setMenuOpen(false) }}
           aria-label="Ajout rapide"
           style={{
-            width: 54, height: 54, borderRadius: 99, background: 'var(--accent-budget)', border: '2px solid var(--ink)',
+            width: 54, height: 54, borderRadius: 99, background: 'var(--accent-brand)', border: '2px solid var(--ink)',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '3px 3px 0 var(--ink)', flexShrink: 0,
             transform: quickOpen ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s cubic-bezier(0.4,0,0.2,1)',
           }}>
-          <Plus size={24} style={{ color: 'var(--chocolate)' }} />
+          <Plus size={24} style={{ color: 'var(--ink-dark)' }} />
         </button>
 
         {tab('/rapports', 'Rapports', BarChart2)}

@@ -108,11 +108,11 @@ export function CommandPalette() {
           {results.map((d, i) => (
             <button key={d.href} onClick={() => go(d.href)} onMouseEnter={() => setIdx(i)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 'var(--radius-md)', border: 'none', cursor: 'pointer', textAlign: 'left',
-                background: i === idx ? 'var(--accent-budget)' : 'transparent', color: i === idx ? 'var(--chocolate)' : 'var(--text)' }}>
+                background: i === idx ? 'var(--accent-brand)' : 'transparent', color: i === idx ? 'var(--ink-dark)' : 'var(--text)' }}>
               <span style={{ fontSize: 18 }}>{d.emoji}</span>
               <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{d.label}</span>
               {d.key && (
-                <kbd style={{ ...DF, fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, border: '1.5px solid var(--ink)', background: i === idx ? 'rgba(0,0,0,0.12)' : 'var(--bg-input)', color: i === idx ? 'var(--chocolate)' : 'var(--text-muted)' }}>g {d.key}</kbd>
+                <kbd style={{ ...DF, fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, border: '1.5px solid var(--ink)', background: i === idx ? 'rgba(0,0,0,0.12)' : 'var(--bg-input)', color: i === idx ? 'var(--ink-dark)' : 'var(--text-muted)' }}>g {d.key}</kbd>
               )}
             </button>
           ))}

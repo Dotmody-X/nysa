@@ -10,23 +10,25 @@ import type { ThemeMode } from '@/lib/theme'
 import { createClient } from '@/lib/supabase/client'
 import { useAppConfig, useIsAdmin } from '@/hooks/useAppConfig'
 
-type NavItem = { href: string; label: string; color?: string; accent?: boolean }
+type NavItem = { href: string; label: string; color?: string; accent?: boolean; group?: string }
 
+// Sections courtes (loi de Hick) : regroupement par proximité plutôt
+// qu'une liste plate de 14 entrées.
 const navItems: NavItem[] = [
-  { href: '/',             label: 'Accueil',       color: 'var(--accent-budget)' },
+  { href: '/',             label: 'Accueil',       color: 'var(--accent-brand)' },
   { href: '/brief',        label: 'Brief',         color: 'var(--accent-time)' },
-  { href: '/calendrier',   label: 'Calendrier',    color: 'var(--accent-time)' },
-  { href: '/publications', label: 'Publications',  color: 'var(--accent-time)' },
-  { href: '/directeur-marketing', label: 'Marketing', color: 'var(--accent-time)' },
-  { href: '/time-tracker', label: 'Time Trackers', color: 'var(--accent-time)' },
-  { href: '/projets',      label: 'Projets',       color: 'var(--accent-time)' },
-  { href: '/todo',         label: 'To Do List',    color: 'var(--accent-time)' },
-  { href: '/sport',        label: 'Running',       color: 'var(--accent-time)' },
-  { href: '/health',       label: 'Health',        color: 'var(--accent-time)' },
-  { href: '/recettes',     label: 'Recettes',      color: 'var(--accent-time)' },
-  { href: '/courses',      label: 'Courses',       color: 'var(--accent-time)' },
-  { href: '/budget',       label: 'Budget',        color: 'var(--accent-time)' },
-  { href: '/rapports',     label: 'Rapports',      color: 'var(--accent-time)' },
+  { href: '/calendrier',   label: 'Calendrier',    color: 'var(--accent-time)', group: 'Organiser' },
+  { href: '/time-tracker', label: 'Time Trackers', color: 'var(--accent-time)', group: 'Organiser' },
+  { href: '/projets',      label: 'Projets',       color: 'var(--accent-time)', group: 'Organiser' },
+  { href: '/todo',         label: 'To Do List',    color: 'var(--accent-time)', group: 'Organiser' },
+  { href: '/publications', label: 'Publications',  color: 'var(--accent-time)', group: 'Organiser' },
+  { href: '/directeur-marketing', label: 'Marketing', color: 'var(--accent-time)', group: 'Organiser' },
+  { href: '/sport',        label: 'Running',       color: 'var(--accent-time)', group: 'Quotidien' },
+  { href: '/health',       label: 'Health',        color: 'var(--accent-time)', group: 'Quotidien' },
+  { href: '/recettes',     label: 'Recettes',      color: 'var(--accent-time)', group: 'Quotidien' },
+  { href: '/courses',      label: 'Courses',       color: 'var(--accent-time)', group: 'Quotidien' },
+  { href: '/budget',       label: 'Budget',        color: 'var(--accent-time)', group: 'Analyser' },
+  { href: '/rapports',     label: 'Rapports',      color: 'var(--accent-time)', group: 'Analyser' },
   // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
 
@@ -103,7 +105,7 @@ export function Sidebar() {
         className="flex flex-col items-center justify-center gap-2 py-6"
         style={{ borderBottom: '1px solid var(--border)' }}
       >
-        <NysaLogo size={52} color="var(--accent-budget)" />
+        <NysaLogo size={52} color="var(--accent-brand)" />
         <p
           style={{
             color: 'var(--text)',
@@ -123,16 +125,20 @@ export function Sidebar() {
           const active = isActive(item.href)
           const prevItem = visibleNav[idx - 1]
           const showSep = item.accent && prevItem && !prevItem.accent
+          const showGroup = item.group && item.group !== prevItem?.group
           return (
             <div key={item.href}>
               {showSep && (
                 <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />
               )}
+              {showGroup && <p className="nav-group-label">{item.group}</p>}
               <Link
                 href={item.href}
-                className="flex items-center gap-3 px-2 py-2 rounded-[10px] group transition-all duration-100"
+                className="nav-item flex items-center gap-3 px-2 py-2 rounded-[10px] group transition-all duration-100"
                 style={{
-                  background: active ? 'var(--accent-budget)' : 'transparent',
+                  // Pas de background inline à l'état inactif : le survol
+                  // est géré par .nav-item:hover dans globals.css.
+                  background: active ? 'var(--accent-brand)' : undefined,
                   border: active ? '2px solid var(--ink)' : '2px solid transparent',
                   boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
                   marginTop: item.accent ? 2 : 0,
@@ -145,7 +151,7 @@ export function Sidebar() {
                     height: 7,
                     borderRadius: 1,
                     flexShrink: 0,
-                    background: active ? 'var(--chocolate)' : item.color ?? 'var(--accent-time)',
+                    background: active ? 'var(--ink-dark)' : item.color ?? 'var(--accent-time)',
                     opacity: active ? 1 : item.accent ? 0.85 : 0.6,
                   }}
                 />
@@ -155,14 +161,14 @@ export function Sidebar() {
                     fontWeight: active ? 800 : item.accent ? 600 : 500,
                     fontSize: '11px',
                     letterSpacing: '0.08em',
-                    color: active ? 'var(--chocolate)' : item.accent ? 'var(--accent-budget)' : 'var(--text-muted)',
+                    color: active ? 'var(--ink-dark)' : item.accent ? 'var(--accent-brand)' : 'var(--text-muted)',
                     textTransform: 'uppercase',
                   }}
                 >
                   {item.label}
                 </span>
                 {item.accent && !active && (
-                  <span style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: 'var(--accent-budget)', opacity: 0.7, flexShrink: 0 }} />
+                  <span style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: '50%', background: 'var(--accent-brand)', opacity: 0.7, flexShrink: 0 }} />
                 )}
               </Link>
             </div>
@@ -177,20 +183,20 @@ export function Sidebar() {
           href="/compte"
           className="flex items-center gap-2.5 px-2 py-2 rounded-[10px] transition-all"
           style={{
-            background: isActive('/compte') ? 'var(--accent-budget)' : 'var(--bg-card)',
+            background: isActive('/compte') ? 'var(--accent-brand)' : 'var(--bg-card)',
             border: '2px solid var(--ink)',
             boxShadow: '2px 2px 0 var(--ink)',
           }}
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'var(--accent-budget)', border: '2px solid var(--ink)' }}
+            style={{ background: 'var(--accent-brand)', border: '2px solid var(--ink)' }}
           >
-            <User size={12} style={{ color: 'var(--chocolate)' }} />
+            <User size={12} style={{ color: 'var(--ink-dark)' }} />
           </div>
           <div className="min-w-0">
-            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: isActive('/compte') ? 'var(--chocolate)' : 'var(--text)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
-            <p style={{ fontSize: '9px', color: isActive('/compte') ? 'var(--chocolate)' : 'var(--text-muted)', opacity: isActive('/compte') ? 0.7 : 1 }}>Voir profil</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '11px', color: isActive('/compte') ? 'var(--ink-dark)' : 'var(--text)', letterSpacing: '0.05em', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+            <p style={{ fontSize: '9px', color: isActive('/compte') ? 'var(--ink-dark)' : 'var(--text-muted)', opacity: isActive('/compte') ? 0.7 : 1 }}>Voir profil</p>
           </div>
         </Link>
 
@@ -200,8 +206,8 @@ export function Sidebar() {
             href="/reglages"
             className="flex-1 flex items-center justify-center py-2 rounded-[10px] transition-all"
             style={{
-              color: isActive('/reglages') ? 'var(--chocolate)' : 'var(--text-muted)',
-              background: isActive('/reglages') ? 'var(--accent-budget)' : 'var(--bg-card)',
+              color: isActive('/reglages') ? 'var(--ink-dark)' : 'var(--text-muted)',
+              background: isActive('/reglages') ? 'var(--accent-brand)' : 'var(--bg-card)',
               border: '2px solid var(--ink)',
               boxShadow: '2px 2px 0 var(--ink)',
             }}
@@ -215,8 +221,8 @@ export function Sidebar() {
               onClick={() => setThemeOpen(o => !o)}
               className="w-full flex items-center justify-center py-2 rounded-[10px] transition-all"
               style={{
-                color: themeOpen ? 'var(--chocolate)' : 'var(--text-muted)',
-                background: themeOpen ? 'var(--accent-budget)' : 'var(--bg-card)',
+                color: themeOpen ? 'var(--ink-dark)' : 'var(--text-muted)',
+                background: themeOpen ? 'var(--accent-brand)' : 'var(--bg-card)',
                 border: '2px solid var(--ink)',
                 boxShadow: '2px 2px 0 var(--ink)',
               }}
@@ -258,15 +264,15 @@ export function Sidebar() {
                         padding: '7px 8px',
                         borderRadius: 'var(--radius-sm)',
                         border: '2px solid var(--ink)',
-                        background: active ? 'var(--accent-budget)' : 'var(--bg-input)',
+                        background: active ? 'var(--accent-brand)' : 'var(--bg-input)',
                         boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
                         cursor: 'pointer',
                         transition: 'all 0.12s',
                         minWidth: 42,
                       }}
                     >
-                      <Icon size={14} style={{ color: active ? 'var(--chocolate)' : 'var(--text-muted)' }} />
-                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--chocolate)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      <Icon size={14} style={{ color: active ? 'var(--ink-dark)' : 'var(--text-muted)' }} />
+                      <span style={{ fontSize: 9, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', color: active ? 'var(--ink-dark)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
                         {label}
                       </span>
                     </button>

@@ -72,7 +72,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
 
         // Route orange NYSA
         L.polyline(latlngs, {
-          color:    'var(--accent-budget)',
+          color:    'var(--accent-brand)',
           weight:   3.5,
           opacity:  0.92,
           lineCap:  'round',
@@ -90,7 +90,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         // Marqueur arrivée — orange
         L.marker(latlngs[latlngs.length - 1], {
           icon: L.divIcon({
-            html: '<div style="width:12px;height:12px;border-radius:50%;background:var(--accent-budget);border:2px solid var(--text);box-shadow:0 0 8px rgba(242,84,45,0.6)"></div>',
+            html: '<div style="width:12px;height:12px;border-radius:50%;background:var(--accent-brand);border:2px solid var(--text);box-shadow:0 0 8px rgba(242,84,45,0.6)"></div>',
             className: '', iconAnchor: [6, 6],
           }),
         }).addTo(map)
@@ -128,7 +128,7 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
 
   if (error) {
     return (
-      <div style={{ height, width: '100%', borderRadius, background: '#161616', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '245, 241, 237', '--text': '#f5f1ed', '--text-muted': 'rgba(245, 241, 237, 0.72)' } as React.CSSProperties}>
+      <div style={{ height, width: '100%', borderRadius, background: '#161616', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
         <span style={{ fontSize: 24 }}>🗺️</span>
         <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)', fontFamily: 'var(--font-display)' }}>{error}</p>
       </div>
@@ -145,9 +145,9 @@ export function ActivityMap({ points, height = 320, borderRadius = 12 }: Props) 
         overflow: 'hidden',
         background: '#0C0C0C',
         position: 'relative',
-        '--text-rgb': '245, 241, 237',
-        '--text': '#f5f1ed',
-        '--text-muted': 'rgba(245, 241, 237, 0.72)',
+        '--text-rgb': '255, 255, 255',
+        '--text': '#ffffff',
+        '--text-muted': 'rgba(255, 255, 255, 0.72)',
       } as React.CSSProperties}
     />
   )

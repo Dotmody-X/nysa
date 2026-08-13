@@ -1,218 +1,124 @@
-# 🎨 Design System NYSA v2.0 — Palette Nathan
+# Design System NYSA v5 — Néo-brutalisme neutre
 
-**Date:** 7 mai 2026  
-**Palette:** 6 couleurs exclusives  
-**Standards:** WCAG AA/AAA accessible, colorblind-friendly  
+**Date :** 13 août 2026
+**Source de vérité :** [`app/globals.css`](app/globals.css) — ce document décrit, le CSS décide.
 
----
-
-## 📊 Analyse des Couleurs
-
-### Palette Exclusive (6 couleurs)
-| Nom | Hex | RGB | HSL | L% | Usage |
-|-----|-----|-----|-----|----|----|
-| **Cloud** | #cdd0db | (205,208,219) | H227°S16% | 83% | BG light, text dark mode |
-| **Azul** | #9197aa | (145,151,170) | H226°S13% | 62% | Accent secondary, text dark |
-| **Mimosa** | #f7b557 | (247,181,87) | H35°S91% | 65% | Warning, accent light |
-| **Orange** | #e27921 | (226,121,33) | H27°S77% | 51% | Accent primary, interactive |
-| **Aperol** | #c1521e | (193,82,30) | H19°S73% | 44% | Danger, accent dark |
-| **Green Leaves** | #60693a | (96,105,58) | H71°S29% | 32% | Success, text light mode |
+Langage visuel : fond **blanc/noir neutre**, encre franche, accents vifs,
+contours 2px et ombres dures « sticker ». L'ancienne palette earthy (v3) et le
+papier crème (v4) sont abandonnés — l'historique git conserve les anciennes docs
+(`DESIGN_SYSTEM_V3.md`, `CATEGORY_COLORS.md`, …) et le tag `style-backup-2026-08-13`.
 
 ---
 
-## ♿ Accessibilité WCAG
+## 1. Tokens
 
-### Contraste Avec Backgrounds
+### Fonds & texte (par thème)
 
-**Mode Dark (#0C0C0C — noir)**
-| Couleur | Contraste | WCAG | Usage |
-|---------|-----------|------|-------|
-| Cloud | 13.64:1 | ✅ AAA | Texte principal |
-| Azul | 7.21:1 | ✅ AA | Texte secondaire |
-| Mimosa | 11.70:1 | ✅ AAA | Warning, accents |
-| Orange | 6.99:1 | ✅ AA | Accents, interactive |
-| Aperol | 4.49:1 | ⚠️ AA | (Limité en dark) |
-| Green Leaves | 3.58:1 | ❌ | (Ne pas utiliser pour texte) |
+| Token | Dark (défaut) | Light | Usage |
+|---|---|---|---|
+| `--bg` | `#111111` | `#ffffff` | fond de page |
+| `--bg-card` | `#1a1a1a` | `#ffffff` | surfaces / cartes |
+| `--bg-card-hover` | `#242424` | `#f2f2f2` | hover de surface |
+| `--bg-sidebar` | `#0d0d0d` | `#f7f7f7` | sidebar + bottom nav |
+| `--bg-input` | `#171717` | `#fafafa` | champs de saisie |
+| `--text` | `#f5f5f5` | `#111111` | texte principal |
+| `--text-muted` | `#a3a3a3` | `#6b6b6b` | texte secondaire |
+| `--text-subtle` | texte @ 50% | texte @ 50% | texte tertiaire |
+| `--border` | blanc @ 22% | noir @ 16% | séparateurs fins |
+| `--ink` | `#f5f5f5` | `#111111` | **contours + ombres brutalistes** |
 
-**Mode Light (#F5F4F0 — blanc-ish)**
-| Couleur | Contraste | WCAG | Usage |
-|---------|-----------|------|-------|
-| Cloud | 1.54:1 | ❌ | (Ne pas utiliser) |
-| Azul | 2.91:1 | ❌ | (Ne pas utiliser) |
-| Mimosa | 1.79:1 | ❌ | (Ne pas utiliser) |
-| Orange | 3.00:1 | ❌ | (Accents seulement) |
-| Aperol | 4.67:1 | ✅ AA | Texte principal |
-| Green Leaves | 5.87:1 | ✅ AA | Texte secondaire |
+Le thème `system` suit `prefers-color-scheme` avec les mêmes valeurs.
 
----
+### Encres fixes (indépendantes du thème)
 
-## 🌓 Système Dark/Light
+À utiliser pour le texte posé **sur un fond d'accent** :
 
-### Dark Mode (Défaut)
-```css
-[data-theme="dark"] {
-  /* Backgrounds */
-  --bg: #0C0C0C;           /* Pure noir */
-  --bg-card: #161616;      /* Charcoal */
-  --bg-sidebar: #111111;   /* Near-black */
-  --bg-input: #1A1A1A;     /* Input dark */
+| Token | Valeur | Usage |
+|---|---|---|
+| `--ink-dark` | `#111111` | texte sur accent clair (tangerine, jaune, ciel) |
+| `--ink-light` | `#ffffff` | texte sur accent foncé (cobalt, violet, indigo) |
 
-  /* Text (dans l'ordre de priorité) */
-  --text: #cdd0db;         /* Cloud — texte principal */
-  --text-muted: #9197aa;   /* Azul — texte secondaire */
-  --text-subtle: #9197aa;  /* Azul @ 60% opacity */
-  
-  /* Accents & Colors */
-  --accent: #e27921;       /* Orange — boutons, interactive */
-  --accent-light: #f7b557; /* Mimosa — warning, highlights */
-  --accent-dark: #c1521e;  /* Aperol — danger, important */
-  
-  --success: #60693a;      /* Green Leaves (limited) */
-  --warning: #f7b557;      /* Mimosa */
-  --danger: #c1521e;       /* Aperol */
-  --info: #9197aa;         /* Azul */
-  
-  /* Borders & Dividers */
-  --border: rgba(205, 208, 219, 0.12);  /* Cloud @ 12% */
-  --border-active: rgba(226, 121, 33, 0.4); /* Orange @ 40% */
-}
-```
+`--chocolate` et `--creamy-ivory` sont des **alias dépréciés** de ces deux
+tokens (conservés pour compat, ne plus les utiliser).
 
-### Light Mode
-```css
-[data-theme="light"] {
-  /* Backgrounds */
-  --bg: #F5F4F0;           /* Beige-white */
-  --bg-card: #FFFFFF;      /* White */
-  --bg-sidebar: #ECEAE4;   /* Light beige */
-  --bg-input: #F5F4F0;     /* Input light */
+### Accents
 
-  /* Text (inversion pour contraste) */
-  --text: #60693a;         /* Green Leaves — texte principal */
-  --text-muted: #c1521e;   /* Aperol — texte secondaire */
-  --text-subtle: #c1521e;  /* Aperol @ 55% opacity */
-  
-  /* Accents & Colors (darker/saturated) */
-  --accent: #c1521e;       /* Aperol — boutons, interactive */
-  --accent-light: #e27921; /* Orange — warning, highlights */
-  --accent-dark: #60693a;  /* Green Leaves — danger, important */
-  
-  --success: #60693a;      /* Green Leaves */
-  --warning: #e27921;      /* Orange */
-  --danger: #c1521e;       /* Aperol */
-  --info: #9197aa;         /* Azul (less contrast but ok) */
-  
-  /* Borders & Dividers */
-  --border: rgba(96, 105, 58, 0.15);  /* Green Leaves @ 15% */
-  --border-active: rgba(193, 82, 30, 0.5); /* Aperol @ 50% */
-}
-```
+**Accent de marque** : `--accent-brand` (`#ff5c35`, tangerine). C'est LA couleur
+NYSA — navigation active, CTA, FAB, focus, sélection de texte. Décision v5 :
+l'app utilise **un accent de marque unique** ; les accents de catégorie servent
+uniquement à colorer ponctuellement une surface (stickers, graphes, badges).
+
+| Token | Valeur | Note |
+|---|---|---|
+| `--accent-brand` | `#ff5c35` | tangerine — marque |
+| `--accent-budget` | `#ff5c35` | réservé à la page Budget |
+| `--accent-courses` / `--accent-todo` | `#ffc23d` | jaune soleil (fond clair → `--ink-dark`) |
+| `--accent-recettes` | `#ff4d8d` | rose vif |
+| `--accent-time` / `--azul` | `#2d5bff` | cobalt |
+| `--accent-sport` | `#18b26b` | vert gazon |
+| `--accent-health` | `#12b5a5` | turquoise |
+| `--accent-rapports` / `--accent-agent` | `#8b5cf6` | violet |
+| `--accent-projets` | `#6c5ce7` | indigo |
+| `--accent-calendar` | `#36c5f0` | ciel |
+
+Statuts : `--success #18b26b` (light : `#0e9c5e`), `--warning #ffc23d`
+(light : `#e0a01f`), `--danger #ff5c35`, `--info #2d5bff`.
+
+### Typo & rayons
+
+- Display (titres, labels uppercase) : `--font-display` → **Bricolage Grotesque**
+  (⚠️ la variable Next s'appelle `--font-saira` pour raison historique).
+- Texte : `--font-sans` → **Hanken Grotesk** (variable Next : `--font-sora`).
+- Rayons : `--radius-sm 8px` · `--radius-md 14px` · `--radius-lg 18px` · `--radius-xl 24px`.
 
 ---
 
-## 🎯 Usage Guidelines
+## 2. API de composants (officielle)
 
-### Texte Principal
-- **Dark mode:** Cloud (#cdd0db)
-- **Light mode:** Green Leaves (#60693a)
-- ✅ Both WCAG AAA
+### Classes CSS (globals.css) — à privilégier
 
-### Texte Secondaire
-- **Dark mode:** Azul (#9197aa) ou Cloud @ 70%
-- **Light mode:** Aperol (#c1521e)
-- ✅ Both WCAG AA
+| Classe | Rôle |
+|---|---|
+| `.nb-card` | surface neutre : `--bg-card` + contour 2px `--ink` + ombre `4px 4px 0` |
+| `.nb-tile` | même contour/ombre, sans fond (pour surfaces d'accent) |
+| `.nb-press` | effet d'appui : hover translate(-2,-2)+ombre 6px, active translate(2,2)+ombre 0 |
+| `.on-dark` | à poser sur une surface d'accent foncé : bascule texte/bordures en encre claire |
+| `.text-brand`, `.text-{catégorie}` | couleurs de texte accent |
+| `.toolbar-scroll` | barre d'outils scrollable horizontalement en mobile |
 
-### Interactive Elements (Boutons, Links)
-- **Dark mode:** Orange (#e27921) ou Aperol (#c1521e)
-- **Light mode:** Aperol (#c1521e)
-- ✅ Clear affordance
+### Composants React (`components/ui/`)
 
-### Accents & Highlights
-- **Warning:** Mimosa (#f7b557) [dark] ou Orange (#e27921) [light]
-- **Danger:** Aperol (#c1521e) [both]
-- **Success:** Green Leaves (#60693a) [both]
+- `Button` — variants `primary` (brand), `secondary`, `ghost`, `danger` ; sizes `sm/md/lg` ; prop `loading`.
+- `Card` — `padding sm/md/lg/none`, `hover` (ajoute `nb-press`).
+- `Badge`, `StatCard`, `EmptyState`, `PageTitle`, `NysaLogo`, `icons`.
 
-### Backgrounds
-- **Never use:** Cloud, Azul, Mimosa, Orange for main text in light mode
-- **Never use:** Green Leaves, Aperol for main text in dark mode
-- **Exception:** These can be used for accents/icons with sufficient opacity
+**Règle v5 :** tout nouveau code passe par ces classes/composants — plus de
+`style={{ border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}`
+recopié à la main, plus aucun hex en dur (uniquement des `var(--…)`).
 
----
+### Texte sur accent — règle rapide
 
-## 🔍 Colorblind-Friendly Design
-
-### Protanopia (Red-Blind)
-**Issue:** Red/Orange appear brownish
-**Solution:** Always pair color with icons/text labels. Use shape/pattern in charts.
-
-### Deuteranopia (Green-Blind)
-**Issue:** Green appears grayish
-**Solution:** Green Leaves (#60693a) actually works ok (it's dark, not pure green)
-
-### Tritanopia (Blue-Blind)
-**Issue:** Blue/Yellow appear different
-**Solution:** Our "Azul" is blue-gray (not pure blue), Mimosa has enough orange
-
-### Achromopsia (Complete Color Blindness)
-**Issue:** Only grayscale visible
-**Solution:** Ensure sufficient lightness difference (L%) between colors:
-- Green Leaves (L=32%) vs Cloud (L=83%) = 51% difference ✅
-
-### Recommendation
-- Always use icons alongside colors
-- In charts: combine color + pattern (stripes, dots)
-- Test with tools: Color Oracle, Coblis
+- Accent clair (tangerine, jaune, ciel) → `color: var(--ink-dark)`.
+- Accent foncé (cobalt, violet, indigo, gazon) → `color: var(--ink-light)` ou classe `.on-dark` sur le conteneur.
 
 ---
 
-## 📐 Implementation Strategy
+## 3. Principes UX appliqués (v5.1)
 
-### Phase 1: Update globals.css
-- Replace all color variables with new system
-- Test dark/light mode thoroughly
+- **Chiffres tabulaires** (`font-variant-numeric: tabular-nums` sur `body`) : KPI et colonnes de montants alignés.
+- **Hiérarchie typo par défaut** : `h1 28px / h2 20px / h3 16px`, interlignage 1.15 (ratio ~2:1 titre/texte).
+- **Navigation groupée** (loi de Hick) : sidebar en sections Organiser / Quotidien / Analyser via `group` sur les items ; libellés `.nav-group-label`.
+- **Survol explicite** : `.nav-item:hover` (ne jamais poser de `background` inline sur l'état inactif, sinon la règle est court-circuitée).
+- **Cibles tactiles ≥ 44px** en nav mobile (loi de Fitts / WCAG).
+- **`prefers-reduced-motion`** : transitions et effets d'appui désactivés.
+- **Ultra-large** : contenu borné à 1720px et centré au-delà de 1800px de viewport.
+- **Contraste AA** : en thème clair, `--danger` assombri (#e04b1f) pour rester lisible en texte sur blanc.
 
-### Phase 2: Replace hardcoded colors
-- Scan for #F2542D, #0E9594, etc. (old colors)
-- Replace with `var(--*)` from new system
+## 4. Chantier restant (migration progressive)
 
-### Phase 3: Update components
-- Review Button.tsx, Card.tsx, etc.
-- Ensure they use new color system
-- Test accessibility in Lighthouse
-
-### Phase 4: Testing
-- ✅ WCAG AA contrast on all text
-- ✅ Colorblind simulator (Chrome DevTools)
-- ✅ Dark/Light mode switching
-- ✅ Mobile + desktop
-
----
-
-## 🔄 Color Mapping (Old → New)
-
-| Old | New (Dark) | New (Light) | Notes |
-|-----|-----------|-----------|-------|
-| #F2542D (orange) | Orange | Aperol | Primary accent |
-| #0E9594 (cyan) | Azul | Azul | Secondary accent |
-| #F5DFBB (wheat) | Cloud | Green Leaves | Text |
-| #F0E4CC (cream) | Azul | Aperol | Text secondary |
-| #11686A (teal) | Azul | Azul | Accent |
-| #562C2C (espresso) | Cloud | Green Leaves | Dark text |
-
----
-
-## ✅ Checklist
-
-- [ ] Update `globals.css` with new system
-- [ ] Test dark mode: all text readable
-- [ ] Test light mode: all text readable
-- [ ] Run Lighthouse accessibility audit
-- [ ] Test colorblind modes (Chrome)
-- [ ] Update component styles
-- [ ] Update CHANGELOG
-- [ ] Commit & push to GitHub
-
----
-
-**Status:** Ready for implementation 🚀
-
+1. Remplacer les styles inline des pages par `.nb-*` / composants `ui/`
+   (page par page ; les pages font 600–1600 lignes, découper en composants au passage).
+2. Supprimer ensuite les hacks responsive `main [style*="repeat(3"]` de
+   globals.css, remplacés par de vraies classes de grille responsives.
+3. Renommer les variables de police `--font-saira` / `--font-sora` vers des noms
+   neutres (`--font-display-src` / `--font-sans-src`).

@@ -7,7 +7,7 @@ import type { Digest, DigestPayload, DigestStat, DigestPriority, DigestSection, 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const WHEAT = 'var(--text)'
 const BRIEF_COLOR = 'var(--azul)'
-const DEBRIEF_COLOR = 'var(--accent-budget)'
+const DEBRIEF_COLOR = 'var(--accent-brand)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
@@ -87,7 +87,7 @@ function SectionCard({ s }: { s: DigestSection }) {
   return (
     <div style={{ ...card(), padding: 0, boxShadow: '3px 3px 0 var(--ink)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
-        <Icon size={15} style={{ color: 'var(--accent-budget)' }} />
+        <Icon size={15} style={{ color: 'var(--accent-brand)' }} />
         <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.title}</span>
       </div>
       <div style={{ padding: '4px 14px 10px' }}>
@@ -181,9 +181,9 @@ export function DigestCard({ digest }: { digest: Digest }) {
   return (
     <div style={{ ...card(), padding: 0 }}>
       <div style={{ background: m.color, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <m.Icon size={18} style={{ color: 'var(--creamy-ivory)' }} />
-        <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'var(--creamy-ivory)', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.85 }}>{m.label}</span>
-        <span style={{ ...DF, fontSize: 15, fontWeight: 900, color: 'var(--creamy-ivory)', flex: 1, minWidth: 120 }}>{title}</span>
+        <m.Icon size={18} style={{ color: 'var(--ink-light)' }} />
+        <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'var(--ink-light)', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.85 }}>{m.label}</span>
+        <span style={{ ...DF, fontSize: 15, fontWeight: 900, color: 'var(--ink-light)', flex: 1, minWidth: 120 }}>{title}</span>
         <span style={{ fontSize: 11, color: 'rgba(245,241,237,0.9)', textTransform: 'capitalize' }}>{dateStr}</span>
       </div>
       {p ? <PayloadBody p={p} /> : <MarkdownFallback content={digest.content} />}

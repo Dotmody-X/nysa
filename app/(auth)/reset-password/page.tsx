@@ -43,9 +43,9 @@ export default function ResetPasswordPage() {
       <div className="flex flex-col items-center mb-10">
         <div
           className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
-          style={{ background: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
+          style={{ background: 'var(--ink-light)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
         >
-          <NysaLogo size={30} color="#1a0708" />
+          <NysaLogo size={30} color='var(--ink-dark)' />
         </div>
         <h1 className="text-2xl font-bold tracking-widest uppercase" style={{ color: 'var(--text)' }}>NYSA</h1>
         <p className="text-xs tracking-widest mt-1 uppercase" style={{ color: 'var(--text-muted)' }}>Nouveau mot de passe</p>
@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
                 type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
                 className="w-full px-3 py-2.5 rounded-[10px] text-sm outline-none transition-all duration-150"
                 style={{ background: 'var(--bg-input)', border: '2px solid var(--ink)', color: 'var(--text)' }}
-                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-budget)')}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-brand)')}
                 onBlur={e  => (e.currentTarget.style.borderColor = 'var(--ink)')}
               />
             </div>
@@ -81,13 +81,13 @@ export default function ResetPasswordPage() {
                 type="password" required value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="••••••••"
                 className="w-full px-3 py-2.5 rounded-[10px] text-sm outline-none transition-all duration-150"
                 style={{ background: 'var(--bg-input)', border: '2px solid var(--ink)', color: 'var(--text)' }}
-                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-budget)')}
+                onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-brand)')}
                 onBlur={e  => (e.currentTarget.style.borderColor = 'var(--ink)')}
               />
             </div>
 
             {error && (
-              <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--chocolate)', background: 'var(--danger)', border: '2px solid var(--ink)' }}>
+              <p className="text-xs px-3 py-2 rounded-[8px]" style={{ color: 'var(--ink-dark)', background: 'var(--danger)', border: '2px solid var(--ink)' }}>
                 {error}
               </p>
             )}
@@ -95,7 +95,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit" disabled={loading || !ready}
               className="nb-press w-full py-2.5 rounded-[10px] text-sm font-semibold tracking-wide mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
+              style={{ background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
             >
               {loading ? 'Mise à jour…' : 'Définir le mot de passe'}
             </button>

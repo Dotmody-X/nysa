@@ -14,7 +14,7 @@ interface StatCardProps {
 }
 
 const accentColor: Record<AccentColor, string> = {
-  fiery: 'var(--accent-budget)',
+  fiery: 'var(--accent-brand)',
   cyan:  'var(--azul)',
   teal:  'var(--accent-health)',
   wheat: 'var(--accent-courses)',
@@ -30,7 +30,7 @@ const accentIsDark: Record<AccentColor, boolean> = {
 
 export function StatCard({ label, value, unit, sub, icon, accent = 'cyan', trend }: StatCardProps) {
   const color = accentColor[accent]
-  const iconChipText = accentIsDark[accent] ? 'var(--creamy-ivory)' : 'var(--chocolate)'
+  const iconChipText = accentIsDark[accent] ? 'var(--ink-light)' : 'var(--ink-dark)'
 
   return (
     <Card className="flex flex-col gap-3 min-w-0">
@@ -80,7 +80,7 @@ export function StatCard({ label, value, unit, sub, icon, accent = 'cyan', trend
           {trend !== undefined && (
             <span
               className="text-xs font-medium"
-              style={{ color: trend >= 0 ? 'var(--azul)' : 'var(--accent-budget)' }}
+              style={{ color: trend >= 0 ? 'var(--azul)' : 'var(--accent-brand)' }}
             >
               {trend >= 0 ? '+' : ''}{trend}%
             </span>

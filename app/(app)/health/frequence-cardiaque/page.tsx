@@ -5,7 +5,7 @@ import { useHealth } from '@/hooks/useHealth'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL   = 'var(--azul)'
-const ORANGE = 'var(--accent-budget)'
+const ORANGE = 'var(--accent-brand)'
 const WHEAT   = 'var(--text)'
 const RED    = '#ff5050'
 const STICKER: React.CSSProperties = {

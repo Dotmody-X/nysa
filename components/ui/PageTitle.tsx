@@ -12,8 +12,8 @@ export function PageTitle({ title, sub, right }: PageTitleProps) {
   return (
     <div className="flex items-end justify-between" style={{ marginBottom: 20 }}>
       <div>
-        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--accent-budget)', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1 }}>
-          {title}<span style={{ color: 'var(--accent-budget)' }}>.</span>
+        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(28px, 4vw, 44px)', color: 'var(--accent-brand)', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1 }}>
+          {title}<span style={{ color: 'var(--accent-brand)' }}>.</span>
         </h1>
         {sub && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, letterSpacing: '0.05em' }}>{sub}</p>}
       </div>
@@ -42,7 +42,7 @@ export function KpiCard({
   )
 }
 
-export function SectionCard({ children, title, titleColor = 'var(--accent-budget)', bg = 'var(--bg-card)', action, style }: {
+export function SectionCard({ children, title, titleColor = 'var(--accent-brand)', bg = 'var(--bg-card)', action, style }: {
   children: React.ReactNode; title?: string; titleColor?: string
   bg?: string; action?: React.ReactNode; style?: React.CSSProperties
 }) {

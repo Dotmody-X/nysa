@@ -37,7 +37,7 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
 const PRIORITY_META: Record<string, { label: string; color: string }> = {
   low:    { label: 'Basse',   color: '#6B7280' },
   medium: { label: 'Moyenne', color: '#D97706' },
-  high:   { label: 'Haute',   color: 'var(--accent-budget)' },
+  high:   { label: 'Haute',   color: 'var(--accent-brand)' },
   urgent: { label: 'Urgente', color: '#DC2626' },
 }
 
@@ -102,7 +102,7 @@ function Dropdown<T extends string>({
         <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
           {options.map(o => (
             <button key={o.value} onClick={() => { onChange(o.value); setOpen(false) }}
-              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 11, color: o.value === value ? 'var(--accent-budget)' : 'var(--text)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: o.value === value ? 700 : 400 }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 14px', fontSize: 11, color: o.value === value ? 'var(--accent-brand)' : 'var(--text)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: o.value === value ? 700 : 400 }}
               onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
               {o.label}
@@ -277,7 +277,7 @@ function ProjectModal({
         <div className="flex gap-2 justify-between items-center">
           {isEdit && onDelete && !confirm && (
             <button onClick={() => setConfirm(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent-budget)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent-brand)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <Trash2 size={11} /> Supprimer
             </button>
           )}
@@ -286,7 +286,7 @@ function ProjectModal({
               <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Confirmer ?</span>
               <button onClick={() => setConfirm(false)} style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Non</button>
               <button onClick={async () => { await onDelete!(project!.id); onClose() }}
-                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent-budget)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
+                style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--accent-brand)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>
                 Oui
               </button>
             </div>
@@ -298,7 +298,7 @@ function ProjectModal({
               Annuler
             </button>
             <button onClick={submit} disabled={saving || !form.name.trim()}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent-budget)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent-brand)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
               {saving ? '…' : isEdit ? 'Sauvegarder' : 'Créer'}
             </button>
           </div>
@@ -559,7 +559,7 @@ export default function ProjetsPage() {
 
       {/* Hero */}
       <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 300, padding: '10px 0 20px 0' }}>
-        <p style={{ fontSize: 11, ...DF, fontWeight: 700, color: 'var(--accent-budget)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
+        <p style={{ fontSize: 11, ...DF, fontWeight: 700, color: 'var(--accent-brand)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
           Projets
         </p>
         <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 1, color: 'var(--text)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
@@ -571,17 +571,17 @@ export default function ProjetsPage() {
       </div>
 
       {/* VUE GLOBALE — 4 marques avec temps semaine */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--accent-budget)', border: '2px solid var(--ink)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '24, 19, 14', '--text': 'var(--chocolate)', '--text-muted': 'rgba(24, 19, 14, 0.65)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--accent-brand)', border: '2px solid var(--ink)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--chocolate)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
-          <button onClick={() => setShowGroupes(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.25)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 800, color: 'var(--chocolate)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--ink-dark)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
+          <button onClick={() => setShowGroupes(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.25)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 800, color: 'var(--ink-dark)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             <Pencil size={10} /> Gérer
           </button>
         </div>
         {groupes.length === 0 ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 20, textAlign: 'center' }}>
             <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.75)', maxWidth: 220 }}>Aucune marque. Crée tes catégories de projets (ex. clients, activités…).</p>
-            <button onClick={() => setShowGroupes(true)} className="nb-press" style={{ background: 'var(--chocolate)', color: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '7px 16px', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11 }}>
+            <button onClick={() => setShowGroupes(true)} className="nb-press" style={{ background: 'var(--ink-dark)', color: 'var(--ink-light)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '7px 16px', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11 }}>
               + Ajouter une marque
             </button>
           </div>
@@ -602,7 +602,7 @@ export default function ProjetsPage() {
                     <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.85)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{g.value}</span>
                   </div>
                   <div>
-                    <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--chocolate)', lineHeight: 1 }}>
+                    <p style={{ ...DF, fontWeight: 900, fontSize: 22, color: 'var(--ink-dark)', lineHeight: 1 }}>
                       {sec > 0 ? fmtHours(sec) : '—'}
                     </p>
                     <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.65)', marginTop: 3 }}>
@@ -638,7 +638,7 @@ export default function ProjetsPage() {
         />
         <div style={{ flex: 1 }} />
         <button onClick={() => setCreateModal(true)} className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           <Plus size={13} /> NOUVEAU PROJET
         </button>
       </div>
@@ -655,7 +655,7 @@ export default function ProjetsPage() {
         ) : filtered.length === 0 ? (
           <div style={{ padding: '30px 20px', textAlign: 'center' }}>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>Aucun projet</p>
-            <button onClick={() => setCreateModal(true)} style={{ color: 'var(--accent-budget)', fontSize: 12, ...DF, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>+ Créer un projet</button>
+            <button onClick={() => setCreateModal(true)} style={{ color: 'var(--accent-brand)', fontSize: 12, ...DF, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>+ Créer un projet</button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -896,7 +896,7 @@ export default function ProjetsPage() {
                 }}>
                 <input type="file" id="file-upload" style={{ display: 'none' }} onChange={(e) => { if (e.target.files?.[0]) uploadFile(e.target.files[0]) }} />
                 <label htmlFor="file-upload" style={{ cursor: 'pointer', display: 'block' }}>
-                  <FileUp size={20} style={{ margin: '0 auto 8px', color: 'var(--accent-budget)' }} />
+                  <FileUp size={20} style={{ margin: '0 auto 8px', color: 'var(--accent-brand)' }} />
                   <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Glissez des fichiers ici ou cliquez pour sélectionner</p>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Max 50 MB par fichier</p>
                 </label>
@@ -913,7 +913,7 @@ export default function ProjetsPage() {
                         <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{(f.file_size / 1024 / 1024).toFixed(2)} MB · {new Date(f.created_at).toLocaleDateString('fr-FR')}</p>
                       </div>
                       <div style={{ display: 'flex', gap: 8, marginLeft: 12 }}>
-                        <a href={getDownloadUrl(f.file_path)} download={f.filename} style={{ color: 'var(--accent-budget)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <a href={getDownloadUrl(f.file_path)} download={f.filename} style={{ color: 'var(--accent-brand)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <Download size={14} />
                         </a>
                         <button onClick={() => removeFile(f.id, f.file_path)} style={{ color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -1012,7 +1012,7 @@ export default function ProjetsPage() {
       {/* ── ROW 6 : RÉPARTITION PAR MARQUE (teal, col-span-2) + ACTIVITÉ + LIENS */}
 
       {/* RÉPARTITION PAR MARQUE */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '2px solid var(--ink)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '246, 239, 224', '--text': 'var(--creamy-ivory)', '--text-muted': 'rgba(246, 239, 224, 0.72)' } as React.CSSProperties}>
+      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '2px solid var(--ink)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
         <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0 }}>
           <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition par marque</p>
           <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>
@@ -1113,7 +1113,7 @@ export default function ProjetsPage() {
               { label: 'Supprimer',    icon: <Trash2 size={11} />,       danger: true,  action: async () => { await remove(proj.id); setContextMenu(null); if (selected === proj.id) setSelected(null) } },
             ].map(item => (
               <button key={item.label} onClick={item.action}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 14px', fontSize: 11, color: item.danger ? 'var(--accent-budget)' : 'var(--text)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', ...DF, fontWeight: 600 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 14px', fontSize: 11, color: item.danger ? 'var(--accent-brand)' : 'var(--text)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', ...DF, fontWeight: 600 }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
                 {item.icon} {item.label}
@@ -1167,7 +1167,7 @@ function GroupesModal({
                 style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid var(--border)', padding: 3, cursor: 'pointer', background: 'var(--bg)', flexShrink: 0 }} />
               <input value={g.value} onChange={e => onUpdate(g.value, { value: e.target.value })} style={{ ...inp, flex: 1 }} />
               <button onClick={() => onRemove(g.value)} title="Supprimer"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-budget)', padding: 4 }}>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-brand)', padding: 4 }}>
                 <Trash2 size={14} />
               </button>
             </div>
@@ -1179,7 +1179,7 @@ function GroupesModal({
             onKeyDown={e => { if (e.key === 'Enter' && name.trim()) { onAdd(name); setName('') } }}
             style={{ ...inp, flex: 1 }} />
           <button onClick={() => { if (name.trim()) { onAdd(name); setName('') } }} disabled={!name.trim()} className="nb-press"
-            style={{ background: 'var(--accent-budget)', color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '8px 14px', cursor: name.trim() ? 'pointer' : 'default', ...DF, fontWeight: 800, fontSize: 11, opacity: name.trim() ? 1 : 0.5 }}>
+            style={{ background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', padding: '8px 14px', cursor: name.trim() ? 'pointer' : 'default', ...DF, fontWeight: 800, fontSize: 11, opacity: name.trim() ? 1 : 0.5 }}>
             + Ajouter
           </button>
         </div>

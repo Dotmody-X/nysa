@@ -72,8 +72,8 @@ function MilestoneCard({ m, onToggle }: { m: FormationMilestone; onToggle: () =>
           </p>
         )}
         {m.deliverable && (
-          <div style={{ marginTop: 2, padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', borderLeft: '4px solid var(--accent-budget)' }}>
-            <span style={{ ...DF, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--accent-budget)', display: 'block', marginBottom: 3 }}>Livrable</span>
+          <div style={{ marginTop: 2, padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', borderLeft: '4px solid var(--accent-brand)' }}>
+            <span style={{ ...DF, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--accent-brand)', display: 'block', marginBottom: 3 }}>Livrable</span>
             <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 600, lineHeight: 1.4 }}>{m.deliverable}</span>
           </div>
         )}
@@ -97,7 +97,7 @@ function PrincipleRow({ p, isNext, expanded, onExpand }: { p: MktPrinciple; isNe
         <span style={{ ...DF, fontSize: 11, fontWeight: 900, color: done ? '#16a34a' : isNext ? 'var(--azul)' : 'var(--text-muted)', width: 24, flexShrink: 0 }}>{String(p.seq).padStart(2, '0')}</span>
         <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{p.principle}</span>
         {isNext && !done && (
-          <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 20, color: 'var(--creamy-ivory)', background: 'var(--azul)', whiteSpace: 'nowrap' }}>À venir cette semaine</span>
+          <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 20, color: 'var(--ink-light)', background: 'var(--azul)', whiteSpace: 'nowrap' }}>À venir cette semaine</span>
         )}
         {done && <ChevronRight size={14} style={{ color: 'var(--text-muted)', transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />}
       </button>
@@ -150,12 +150,12 @@ export default function DirecteurMarketingPage() {
       {/* ── SECTION 1 : Parcours de formation ── */}
       <div style={{ ...card(), padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '14px 18px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <Award size={16} style={{ color: 'var(--accent-budget)' }} />
+          <Award size={16} style={{ color: 'var(--accent-brand)' }} />
           <span style={{ ...DF, fontSize: 14, fontWeight: 900, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Parcours de formation</span>
-          <div style={{ flex: 1, minWidth: 140 }}><ProgressBar done={doneM} total={6} color="var(--accent-budget)" /></div>
+          <div style={{ flex: 1, minWidth: 140 }}><ProgressBar done={doneM} total={6} color="var(--accent-brand)" /></div>
         </div>
         <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {errM && <p style={{ fontSize: 12, color: 'var(--accent-budget)' }}>Erreur : {errM}</p>}
+          {errM && <p style={{ fontSize: 12, color: 'var(--accent-brand)' }}>Erreur : {errM}</p>}
           {loadingM ? (
             <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: 12, textAlign: 'center' }}>Chargement…</p>
           ) : milestones.length === 0 ? (
@@ -178,7 +178,7 @@ export default function DirecteurMarketingPage() {
           <div style={{ flex: 1, minWidth: 140 }}><ProgressBar done={doneP} total={24} color="var(--azul)" /></div>
         </div>
         <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {errP && <p style={{ fontSize: 12, color: 'var(--accent-budget)' }}>Erreur : {errP}</p>}
+          {errP && <p style={{ fontSize: 12, color: 'var(--accent-brand)' }}>Erreur : {errP}</p>}
           {loadingP ? (
             <p style={{ fontSize: 12, color: 'var(--text-muted)', padding: 12, textAlign: 'center' }}>Chargement…</p>
           ) : principles.length === 0 ? (
