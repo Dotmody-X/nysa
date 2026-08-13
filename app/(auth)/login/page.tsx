@@ -44,6 +44,18 @@ export default function LoginPage() {
     router.refresh()
   }
 
+  async function handleForgot() {
+    setError(null); setInfo(null)
+    if (!email) { setError('Entre ton email ci-dessus, puis clique sur « Mot de passe oublié ».'); return }
+    setLoading(true)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    setLoading(false)
+    if (error) setError(error.message)
+    else setInfo('Email de réinitialisation envoyé. Vérifie ta boîte de réception (et les spams).')
+  }
+
   return (
     <div className="w-full max-w-sm mx-auto px-4">
       {/* Logo */}
@@ -104,6 +116,17 @@ export default function LoginPage() {
             onFocus={e => (e.currentTarget.style.borderColor = 'rgba(242,84,45,0.4)')}
             onBlur={e  => (e.currentTarget.style.borderColor = 'var(--border)')}
           />
+          {mode === 'login' && (
+            <button
+              type="button"
+              onClick={handleForgot}
+              disabled={loading}
+              className="text-xs self-end mt-1 disabled:opacity-50"
+              style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Mot de passe oublié ?
+            </button>
+          )}
         </div>
 
         {error && (
