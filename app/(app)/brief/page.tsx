@@ -13,8 +13,8 @@ const BRIEF_COLOR = 'var(--azul)'
 const DEBRIEF_COLOR = 'var(--accent-budget)'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-  boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)',
+  boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 })
 
 const dayKey = (iso: string) => {
@@ -55,11 +55,11 @@ export default function BriefPage() {
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button onClick={toggleDock} className="nb-press" title="Ouvrir/fermer la mini-fenêtre Brief (dispo sur toutes les pages)"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 12 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 12 }}>
               <ExternalLink size={13} /> Mini-fenêtre
             </button>
             <button onClick={refetch} className="nb-press"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 700, fontSize: 12 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 700, fontSize: 12 }}>
               {loading ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />} Actualiser
             </button>
           </div>
@@ -89,7 +89,7 @@ export default function BriefPage() {
         <button style={chip(typeFilter === 'debrief', DEBRIEF_COLOR)} onClick={() => setTypeFilter('debrief')}>Débriefs</button>
         <div style={{ flex: 1 }} />
         <input type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)}
-          style={{ background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontSize: 12 }} />
+          style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontSize: 12 }} />
         {dateFilter && (
           <button onClick={() => setDateFilter('')} style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Toutes les dates</button>
         )}

@@ -49,7 +49,7 @@ const DEFAULT_HEX: Record<string, string> = {
 }
 const rid = () => Math.random().toString(36).slice(2)
 
-const card: React.CSSProperties = { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }
+const card: React.CSSProperties = { background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }
 const fmtDate = (s?: string | null) => s ? new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
 export default function AdminPage() {
@@ -133,9 +133,9 @@ export default function AdminPage() {
 
   const tabBtn = (k: typeof tab, label: string): React.CSSProperties => ({
     ...DF, fontSize: 12, fontWeight: 800, padding: '8px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer',
-    border: '2px solid var(--ink)', background: tab === k ? ORANGE : 'var(--bg-card)', color: tab === k ? 'var(--chocolate)' : 'var(--text-muted)', boxShadow: tab === k ? '3px 3px 0 var(--ink)' : 'none',
+    border: '1px solid var(--border)', background: tab === k ? ORANGE : 'var(--bg-card)', color: tab === k ? 'var(--chocolate)' : 'var(--text-muted)', boxShadow: tab === k ? 'var(--elev-1)' : 'none',
   })
-  const inp: React.CSSProperties = { background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, width: '100%', boxSizing: 'border-box' }
+  const inp: React.CSSProperties = { background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, width: '100%', boxSizing: 'border-box' }
 
   return (
     <div style={{ padding: '26px 30px', display: 'flex', flexDirection: 'column', gap: 16, minHeight: '100%' }}>
@@ -182,7 +182,7 @@ export default function AdminPage() {
       {/* ── Utilisateurs ── */}
       {tab === 'users' && (
         <div style={{ ...card, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.9fr 0.9fr 1fr 66px', padding: '10px 16px', background: 'var(--bg-input)', borderBottom: '2px solid var(--ink)', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.9fr 0.9fr 1fr 66px', padding: '10px 16px', background: 'var(--bg-input)', borderBottom: '1px solid var(--border)', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             <span>Email</span><span>Nom</span><span>Créé</span><span>Dern. connexion</span><span>Abonnement</span><span />
           </div>
           {users.map(u => (
@@ -226,7 +226,7 @@ export default function AdminPage() {
                   <span style={{ flex: 1, fontSize: 12, color: WHEAT }}>{f.label}</span>
                   {set && <button onClick={() => setTheme({ [f.key]: undefined })} title="Réinitialiser" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={13} /></button>}
                   <input type="color" value={config.theme[f.key] || DEFAULT_HEX[f.key]} onChange={e => setTheme({ [f.key]: e.target.value })}
-                    style={{ width: 40, height: 30, borderRadius: 7, border: '2px solid var(--ink)', padding: 2, cursor: 'pointer', background: 'var(--bg-input)', opacity: set ? 1 : 0.55 }} />
+                    style={{ width: 40, height: 30, borderRadius: 7, border: '1px solid var(--border)', padding: 2, cursor: 'pointer', background: 'var(--bg-input)', opacity: set ? 1 : 0.55 }} />
                 </div>
               )
             })}
@@ -244,7 +244,7 @@ export default function AdminPage() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
               {BUILTIN_PRESETS.map(p => (
                 <button key={p.name} onClick={() => setConfig(c => c && ({ ...c, theme: p.theme }))}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, border: '2px solid var(--ink)', background: 'var(--bg-input)', cursor: 'pointer', ...DF, fontSize: 11, fontWeight: 700, color: WHEAT }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg-input)', cursor: 'pointer', ...DF, fontSize: 11, fontWeight: 700, color: WHEAT }}>
                   <span style={{ width: 12, height: 12, borderRadius: '50%', background: p.theme.accent }} />{p.name}
                 </button>
               ))}
@@ -261,7 +261,7 @@ export default function AdminPage() {
             )}
             <div style={{ display: 'flex', gap: 8 }}>
               <input value={presetName} onChange={e => setPresetName(e.target.value)} placeholder="Nom du preset à enregistrer…" style={{ ...inp, flex: 1 }} />
-              <button onClick={saveAsPreset} disabled={!presetName.trim()} style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: 'var(--bg-card)', color: WHEAT, cursor: presetName.trim() ? 'pointer' : 'default', opacity: presetName.trim() ? 1 : 0.5 }}>Enregistrer</button>
+              <button onClick={saveAsPreset} disabled={!presetName.trim()} style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-card)', color: WHEAT, cursor: presetName.trim() ? 'pointer' : 'default', opacity: presetName.trim() ? 1 : 0.5 }}>Enregistrer</button>
             </div>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 6 }}>Enregistre le thème courant comme preset (sauvegardé avec « Appliquer »).</p>
           </div>
@@ -289,7 +289,7 @@ export default function AdminPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={saveConfig} disabled={savingCfg} className="nb-press"
-              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
               {savingCfg ? 'Application…' : 'Appliquer le thème'}
             </button>
             {cfgMsg && <span style={{ fontSize: 12, color: cfgMsg.startsWith('✅') ? TEAL : ORANGE }}>{cfgMsg}</span>}
@@ -319,7 +319,7 @@ export default function AdminPage() {
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={saveConfig} disabled={savingCfg} className="nb-press"
-              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
               {savingCfg ? 'Enregistrement…' : 'Enregistrer les plans'}
             </button>
             {cfgMsg && <span style={{ fontSize: 12, color: cfgMsg.startsWith('✅') ? TEAL : ORANGE }}>{cfgMsg}</span>}
@@ -366,7 +366,7 @@ export default function AdminPage() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={saveConfig} disabled={savingCfg} className="nb-press"
-              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+              style={{ ...DF, fontWeight: 800, fontSize: 12, padding: '10px 22px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
               {savingCfg ? 'Enregistrement…' : 'Enregistrer les réglages'}
             </button>
             {cfgMsg && <span style={{ fontSize: 12, color: cfgMsg.startsWith('✅') ? TEAL : ORANGE }}>{cfgMsg}</span>}
@@ -378,7 +378,7 @@ export default function AdminPage() {
       {(view || viewLoading) && (
         <div onClick={() => setView(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '8vh' }}>
           <div onClick={e => e.stopPropagation()} style={{ ...card, width: '100%', maxWidth: 560, maxHeight: '82vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '2px solid var(--ink)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
               <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT }}>{viewLoading ? 'Chargement…' : view?.user.email}</p>
               <button onClick={() => setView(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
             </div>

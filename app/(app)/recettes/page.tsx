@@ -21,16 +21,16 @@ const TEAL_BG = 'var(--azul)'
 
 /* ─── Card helpers ───────────────────────────────────────────── */
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: TEAL_BG, '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: ORANGE, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: 'var(--bg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
@@ -290,18 +290,18 @@ export default function RecettesPage() {
             <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
               <button className="rec-btn nb-press" onClick={() => router.push('/recettes/new/edit')}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                  background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
                 <Plus size={11} /> Nouvelle recette
               </button>
               <button className="rec-btn nb-press" onClick={() => setDiscoverTab('pack')}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                  background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
                 <Zap size={11} /> Découvrir des recettes
               </button>
             </div>
             {/* Search */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 40,
-              borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', marginBottom: 12 }}>
+              borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', marginBottom: 12 }}>
               <Search size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Chercher une recette…"
@@ -392,7 +392,7 @@ export default function RecettesPage() {
               <span style={{ fontSize: 38 }}>{r.emoji}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 {r.grade && (
-                  <span style={{ ...DF, fontSize: 11, fontWeight: 900, width: 20, height: 20, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: r.gradeColor as string, border: '1.5px solid var(--ink)' }} title="Nutri-Score (estimation)">{r.grade}</span>
+                  <span style={{ ...DF, fontSize: 11, fontWeight: 900, width: 20, height: 20, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: r.gradeColor as string, border: '1px solid var(--border)' }} title="Nutri-Score (estimation)">{r.grade}</span>
                 )}
                 <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
                   background: 'rgba(242,84,45,0.12)', color: ORANGE }}>{r.time} min</span>
@@ -791,10 +791,10 @@ export default function RecettesPage() {
                 <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Hydratation</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button onClick={() => addWater(-1)} aria-label="Retirer un verre"
-                    style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--ink)', background: 'var(--bg-card)', color: WHEAT, cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>–</button>
+                    style={{ width: 20, height: 20, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-card)', color: WHEAT, cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>–</button>
                   <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: water >= WATER_GOAL ? '#3B82F6' : WHEAT, lineHeight: 1 }}>{water}<span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.4)' }}>/{WATER_GOAL}</span></p>
                   <button onClick={() => addWater(1)} aria-label="Ajouter un verre"
-                    style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--ink)', background: '#3B82F6', color: '#fff', cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>+</button>
+                    style={{ width: 20, height: 20, borderRadius: 6, border: '1px solid var(--border)', background: '#3B82F6', color: '#fff', cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>+</button>
                 </div>
                 <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 4 }}>verres d&apos;eau</p>
               </div>
@@ -813,14 +813,14 @@ export default function RecettesPage() {
       {selectedMealSlot && (
         <div onClick={() => setSelectedMealSlot(null)}
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
             <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, marginBottom: 16 }}>{selectedMealSlot.dayLabel} - {selectedMealSlot.mealLabel}</p>
             {allRecipes.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'center', textAlign: 'center', padding: '12px 0' }}>
                 <p style={{ fontSize: 13, color: 'rgba(var(--text-rgb),0.7)' }}>Aucune recette — crée une recette d&apos;abord</p>
                 <button onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new/edit') }} className="nb-press"
                   style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 'var(--radius-lg)',
-                    background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                    background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
                   <Plus size={12} /> Nouvelle recette
                 </button>
               </div>

@@ -97,9 +97,9 @@ export function ImportReceipt({
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', border: '2px solid var(--ink)', boxShadow: '6px 6px 0 var(--ink)', width: '100%', maxWidth: 760, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', boxShadow: 'var(--elev-2)', width: '100%', maxWidth: 760, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 22px', borderBottom: '2px solid var(--ink)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 22px', borderBottom: '1px solid var(--border)' }}>
           <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, flex: 1 }}>Importer un ticket</p>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: WHEAT, padding: 4 }}><X size={18} /></button>
         </div>
@@ -112,7 +112,7 @@ export function ImportReceipt({
                 onDragOver={e => e.preventDefault()}
                 onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) onFile(f) }}
                 onClick={() => fileRef.current?.click()}
-                style={{ border: '2px dashed var(--ink)', borderRadius: 'var(--radius-lg)', padding: '30px 20px', textAlign: 'center', cursor: 'pointer', background: 'var(--bg-card)' }}>
+                style={{ border: '1px dashed var(--border)', borderRadius: 'var(--radius-lg)', padding: '30px 20px', textAlign: 'center', cursor: 'pointer', background: 'var(--bg-card)' }}>
                 {busy ? <Loader2 size={26} className="spin" style={{ color: ORANGE }} /> : <Upload size={26} style={{ color: ORANGE }} />}
                 <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT, marginTop: 10 }}>Glisse un PDF ici, ou clique pour choisir</p>
                 <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>PDF texte (facture / e-ticket). Photo scannée → utilise le collage ci-dessous.</p>
@@ -127,11 +127,11 @@ export function ImportReceipt({
                   style={{ ...inp, resize: 'vertical', fontFamily: 'monospace' }} />
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                   <button onClick={() => applyParsed(pasteText)} disabled={!pasteText.trim()}
-                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: ORANGE, color: 'var(--chocolate)', cursor: pasteText.trim() ? 'pointer' : 'default', opacity: pasteText.trim() ? 1 : 0.5 }}>
+                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: ORANGE, color: 'var(--chocolate)', cursor: pasteText.trim() ? 'pointer' : 'default', opacity: pasteText.trim() ? 1 : 0.5 }}>
                     Analyser le texte
                   </button>
                   <button onClick={() => { setRows([{ key: rid(), name: '', quantity: 1, total: 0 }]); setStep('review') }}
-                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '2px solid var(--ink)', background: 'var(--bg-card)', color: WHEAT, cursor: 'pointer' }}>
+                    style={{ ...DF, fontSize: 11, fontWeight: 800, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-card)', color: WHEAT, cursor: 'pointer' }}>
                     Saisie manuelle
                   </button>
                 </div>
@@ -196,10 +196,10 @@ export function ImportReceipt({
 
         {/* Footer */}
         {step === 'review' && (
-          <div style={{ display: 'flex', gap: 10, padding: '14px 22px', borderTop: '2px solid var(--ink)' }}>
-            <button onClick={() => setStep('input')} style={{ ...DF, fontSize: 12, fontWeight: 700, padding: '10px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', color: WHEAT, cursor: 'pointer' }}>← Retour</button>
+          <div style={{ display: 'flex', gap: 10, padding: '14px 22px', borderTop: '1px solid var(--border)' }}>
+            <button onClick={() => setStep('input')} style={{ ...DF, fontSize: 12, fontWeight: 700, padding: '10px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '1px solid var(--border)', color: WHEAT, cursor: 'pointer' }}>← Retour</button>
             <button onClick={confirm} disabled={busy || rows.every(r => !r.name.trim())} className="nb-press"
-              style={{ ...DF, flex: 1, fontSize: 12, fontWeight: 800, padding: '10px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--chocolate)', cursor: busy ? 'default' : 'pointer', opacity: busy || rows.every(r => !r.name.trim()) ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              style={{ ...DF, flex: 1, fontSize: 12, fontWeight: 800, padding: '10px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', color: 'var(--chocolate)', cursor: busy ? 'default' : 'pointer', opacity: busy || rows.every(r => !r.name.trim()) ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               {busy ? <Loader2 size={14} className="spin" /> : <Check size={14} />} Valider l'import
             </button>
           </div>

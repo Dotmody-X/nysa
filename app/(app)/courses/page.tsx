@@ -32,18 +32,18 @@ function fmtEur(n: number) { return n.toLocaleString('fr-BE', { style: 'currency
 
 /* ─── Card helpers ───────────────────────────────────────────── */
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 })
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
+  background: TEAL_BG, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden',
   '--text-rgb': '244, 243, 240', '--text': '#f4f3f0', '--text-muted': 'rgba(244, 243, 240, 0.72)', ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
+  background: ORANGE, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden',
   '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', ...extra,
 } as React.CSSProperties)
 const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: DARK, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
+  background: DARK, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', overflow: 'hidden', ...extra,
 })
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
@@ -146,7 +146,7 @@ function StoreSelectorModal({
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', width: 560, maxWidth: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', width: 560, maxWidth: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 22px', borderBottom: '1px solid var(--border)' }}>
           <div>
@@ -203,7 +203,7 @@ function StoreSelectorModal({
                   {nearbyStores.map(store => (
                     <button key={store.id} onClick={() => selectStore(store)} className="nb-press"
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--radius-lg)',
-                        background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', textAlign: 'left' }}>
+                        background: 'var(--bg-input)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', textAlign: 'left' }}>
                       <MapPin size={14} style={{ color: selectedChain.color, flexShrink: 0 }} />
                       <div style={{ flex: 1 }}>
                         <p style={{ ...DF2, fontSize: 12, fontWeight: 700, color: WHEAT }}>{store.name || selectedChain.name}</p>
@@ -225,7 +225,7 @@ function StoreSelectorModal({
               Annuler
             </button>
             <button onClick={selectChainOnly} className="nb-press"
-              style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--chocolate)', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
+              style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', color: 'var(--chocolate)', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
               Utiliser {selectedChain.name} {city ? `— ${city}` : '(sans localisation)'}
             </button>
           </div>
@@ -549,17 +549,17 @@ export default function CoursesPage() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="crs-btn nb-press" onClick={() => setShowNewList(v => !v)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                background: ORANGE, color: 'var(--chocolate)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
               <Plus size={11} /> Nouvelle liste
             </button>
             <button className="crs-btn nb-press" onClick={() => setShowSearch(v => !v)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                background: TEAL_BG, color: 'var(--creamy-ivory)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
               <Search size={11} /> Rechercher
             </button>
             <button className="crs-btn nb-press"
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                background: 'var(--bg-card)', color: 'var(--text)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+                background: 'var(--bg-card)', color: 'var(--text)', ...DF, fontWeight: 700, fontSize: 11, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
               <Barcode size={11} /> Code-barres
             </button>
           </div>
@@ -634,7 +634,7 @@ export default function CoursesPage() {
             placeholder="Nom de la liste (ex: Semaine du 5 mai)…" autoFocus
             style={{ ...inp, flex: 1 }} />
           <button onClick={handleCreateList} disabled={creatingList} className="nb-press"
-            style={{ padding: '7px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: '7px 16px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
             {creatingList ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Créer
           </button>
           <button onClick={() => setShowNewList(false)}
@@ -691,7 +691,7 @@ export default function CoursesPage() {
                     </div>
                   </div>
                   <button onClick={() => handleAddProduct(product)} disabled={!activeListId || addingId === product.code}
-                    style={{ width: 24, height: 24, borderRadius: '50%', background: ORANGE, border: '2px solid var(--ink)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: !activeListId ? 0.4 : 1 }}>
+                    style={{ width: 24, height: 24, borderRadius: '50%', background: ORANGE, border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: !activeListId ? 0.4 : 1 }}>
                     {addingId === product.code ? <Loader2 size={9} className="animate-spin" style={{ color: 'var(--chocolate)' }} /> : <Plus size={9} style={{ color: 'var(--chocolate)' }} />}
                   </button>
                 </div>
@@ -721,7 +721,7 @@ export default function CoursesPage() {
           </button>
         ))}
         <button onClick={() => setShowReceipt(true)} className="nb-press"
-          style={{ marginLeft: 'auto', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-md)', background: TEAL, color: 'var(--creamy-ivory)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>
+          style={{ marginLeft: 'auto', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-md)', background: TEAL, color: 'var(--creamy-ivory)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>
           <Upload size={13} /> Importer un ticket
         </button>
       </div>
@@ -797,7 +797,7 @@ export default function CoursesPage() {
                 )}
               </select>
               <input type="number" value={manualPrice} onChange={e => setManualPrice(e.target.value)} placeholder="Prix €" style={{ ...inp, width: 75 }} />
-              <button onClick={handleManualAdd} className="nb-press" style={{ padding: '7px 14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
+              <button onClick={handleManualAdd} className="nb-press" style={{ padding: '7px 14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
                 Ajouter
               </button>
             </div>
@@ -1002,7 +1002,7 @@ export default function CoursesPage() {
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <p style={{ ...DF, fontSize: 14, fontWeight: 900, color: WHEAT }}>{p.price.toFixed(2)} €</p>
                     {pct != null && (
-                      <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--ink)' }}>
+                      <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: ORANGE, color: 'var(--chocolate)', border: '1px solid var(--border)' }}>
                         {pct > 0 ? '+' : ''}{pct}%
                       </span>
                     )}
@@ -1202,17 +1202,17 @@ export default function CoursesPage() {
               {cheapestStore ? <> &nbsp;·&nbsp; 🏪 {cheapestStore.store} ~{fmtEur(cheapestStore.total)}</> : null}
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: '50%', background: ORANGE, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)' }}>
             <ShoppingCart size={18} style={{ color: 'var(--chocolate)' }} />
           </div>
           {/* Interconnexion Courses → Budget */}
           <button className="crs-btn nb-press" onClick={saveAsExpense} disabled={basketTotal <= 0 || savingExpense || expenseSaved}
-            style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: basketTotal <= 0 ? 'default' : 'pointer', color: ORANGE, ...DF, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, opacity: basketTotal <= 0 ? 0.5 : 1 }}>
+            style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: basketTotal <= 0 ? 'default' : 'pointer', color: ORANGE, ...DF, fontWeight: 800, fontSize: 12, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6, opacity: basketTotal <= 0 ? 0.5 : 1 }}>
             {savingExpense ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
             {expenseSaved ? 'Dépense enregistrée' : 'Enregistrer comme dépense'}
           </button>
           <button className="crs-btn nb-press" onClick={() => activeListId && validateList(activeListId)}
-            style={{ padding: '14px 28px', borderRadius: 'var(--radius-lg)', background: TEAL_BG, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
+            style={{ padding: '14px 28px', borderRadius: 'var(--radius-lg)', background: TEAL_BG, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', color: 'var(--creamy-ivory)', ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
             Valider ma liste
           </button>
         </div>
@@ -1226,7 +1226,7 @@ export default function CoursesPage() {
         <div onClick={() => setReceiptMsg(null)}
           style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, maxWidth: 480,
             padding: '12px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', color: 'var(--creamy-ivory)',
-            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
+            border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
           {receiptMsg}
         </div>
       )}

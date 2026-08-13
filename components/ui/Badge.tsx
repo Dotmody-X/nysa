@@ -28,7 +28,7 @@ export function Badge({ variant = 'default', className = '', children, ...props 
       style={{
         background: bg,
         color: text,
-        border: '2px solid var(--ink)',
+        border: '1px solid var(--border)',
       }}
       {...props}
     >

@@ -108,7 +108,7 @@ export default function SauvegardePage() {
       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       width: '100%', background: bg,
       color: ink, borderRadius: 'var(--radius-lg)', padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12,
-      border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: status === 'loading' ? 'not-allowed' : 'pointer', opacity: status === 'loading' ? 0.7 : 1,
+      border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: status === 'loading' ? 'not-allowed' : 'pointer', opacity: status === 'loading' ? 0.7 : 1,
     }
   }
 
@@ -116,7 +116,7 @@ export default function SauvegardePage() {
     <div style={{ padding: '28px 32px', maxWidth: 600, margin: '0 auto' }}>
 
       <button onClick={() => router.push('/compte')} className="nb-press"
-        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', cursor: 'pointer', color: 'var(--text)', fontSize: 11, marginBottom: 24, padding: '8px 14px', fontWeight: 700 }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', cursor: 'pointer', color: 'var(--text)', fontSize: 11, marginBottom: 24, padding: '8px 14px', fontWeight: 700 }}>
         <ArrowLeft size={13} /> Retour au profil
       </button>
 
@@ -124,9 +124,9 @@ export default function SauvegardePage() {
       <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 28 }}>Exporter et importer vos données</p>
 
       {/* Export JSON */}
-      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(14,149,148,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--ink)' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(14,149,148,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
             <Download size={16} style={{ color: TEAL }} />
           </div>
           <div>
@@ -140,9 +140,9 @@ export default function SauvegardePage() {
       </div>
 
       {/* Export CSV */}
-      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(242,84,45,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--ink)' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(242,84,45,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
             <Download size={16} style={{ color: ORANGE }} />
           </div>
           <div>
@@ -156,9 +156,9 @@ export default function SauvegardePage() {
       </div>
 
       {/* Import */}
-      <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(var(--text-rgb),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--ink)' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(var(--text-rgb),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
             <Upload size={16} style={{ color: WHEAT }} />
           </div>
           <div>
@@ -166,13 +166,13 @@ export default function SauvegardePage() {
             <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Fichier JSON généré par NYSA</p>
           </div>
         </div>
-        <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', background: 'rgba(242,84,45,0.06)', border: '2px solid var(--ink)', display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
+        <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', background: 'rgba(242,84,45,0.06)', border: '1px solid var(--border)', display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
           <AlertTriangle size={13} style={{ color: ORANGE, flexShrink: 0, marginTop: 1 }} />
           <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>L'importation remplace les données existantes. Assurez-vous d'avoir fait un export avant d'importer.</p>
         </div>
         <input ref={fileRef} type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
         <button onClick={() => fileRef.current?.click()} className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: 'var(--bg-input)', color: 'var(--text)', borderRadius: 'var(--radius-lg)', padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: 'var(--bg-input)', color: 'var(--text)', borderRadius: 'var(--radius-lg)', padding: '10px 0', ...DF, fontWeight: 700, fontSize: 12, border: '1px solid var(--border)', boxShadow: 'var(--elev-1)', cursor: 'pointer' }}>
           <Upload size={13} /> Sélectionner un fichier JSON
         </button>
         {importMsg && (
