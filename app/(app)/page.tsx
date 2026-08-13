@@ -63,36 +63,58 @@ export default function DashboardPage() {
   return (
     <div className="page-wrap" style={{ gap: 16 }}>
 
-      {/* ── En-tête : salutation + alertes + date ─────────────────────── */}
+      {/* ── En-tête : salutation géante + alertes stickers ────────────── */}
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.12em' }}>
+          <p className="text-xs font-bold uppercase" style={{ ...DF, color: 'var(--accent-brand)', letterSpacing: '0.14em' }}>
             {todayCapitalized}
           </p>
-          <h1 className="font-display font-extrabold" style={{ fontSize: 'clamp(26px, 4vw, 38px)', letterSpacing: '-0.02em' }}>
-            {getGreeting()} 👋
+          <h1 className="font-display font-extrabold" style={{ fontSize: 'clamp(34px, 5.5vw, 56px)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            <span className="text-outline">{getGreeting()}</span> 👋
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {!loading && (data?.lateTasks ?? 0) > 0 && (
-            <span className="nb-tile px-3 py-1 text-xs font-bold" style={{ ...DF, background: 'var(--danger)', color: 'var(--ink-light)' }}>
+            <span className="sticker-l nb-tile px-3 py-1.5 text-xs font-extrabold uppercase" style={{ ...DF, background: 'var(--danger)', color: 'var(--ink-light)', letterSpacing: '0.06em' }}>
               {data!.lateTasks} en retard
             </span>
           )}
           {!loading && (data?.urgentTasks ?? 0) > 0 && (
-            <span className="nb-tile px-3 py-1 text-xs font-bold" style={{ ...DF, background: 'var(--warning)', color: 'var(--ink-dark)' }}>
+            <span className="sticker-r nb-tile px-3 py-1.5 text-xs font-extrabold uppercase" style={{ ...DF, background: 'var(--warning)', color: 'var(--ink-dark)', letterSpacing: '0.06em' }}>
               {data!.urgentTasks} urgente{data!.urgentTasks > 1 ? 's' : ''}
             </span>
           )}
         </div>
       </header>
 
+      {/* ── Bande défilante : le pouls de la journée ──────────────────── */}
+      {!loading && (
+        <div className="marquee nb-tile" style={{ background: 'var(--accent-brand)', padding: '7px 0' }}>
+          {[0, 1].map(i => (
+            <div key={i} className="marquee-track" aria-hidden={i === 1}>
+              {[
+                `${tasks.length - doneTasks} tâche${tasks.length - doneTasks > 1 ? 's' : ''} à faire`,
+                `${events.length} événement${events.length > 1 ? 's' : ''}`,
+                `${fmtSeconds(data?.todaySeconds ?? 0)} tracké aujourd'hui`,
+                `solde ${fmtEur(balance)}`,
+                `${projects.length} projet${projects.length > 1 ? 's' : ''} en cours`,
+              ].map((txt, j) => (
+                <span key={j} className="flex items-center gap-10">
+                  <span className="text-xs font-extrabold uppercase" style={{ ...DF, color: 'var(--ink-dark)', letterSpacing: '0.08em' }}>{txt}</span>
+                  <span style={{ width: 7, height: 7, borderRadius: 2, background: 'var(--ink-dark)', transform: 'rotate(45deg)', flexShrink: 0 }} />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── KPI compacts : l'essentiel en un scan ─────────────────────── */}
       <div className="kpi-grid grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Kpi icon={Clock}       label="Temps aujourd'hui" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub={loading ? '' : `${fmtSeconds(data?.weekSeconds ?? 0)} cette semaine`} accent="var(--accent-time)" href="/time-tracker" />
+        <Kpi icon={Clock}       label="Temps aujourd'hui" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub={loading ? '' : `${fmtSeconds(data?.weekSeconds ?? 0)} cette semaine`} accent="var(--accent-time)" href="/time-tracker" iconInk="var(--ink-light)" />
         <Kpi icon={CheckSquare} label="Tâches du jour"    value={loading ? '…' : `${doneTasks}/${tasks.length}`}       sub={loading ? '' : tasks.length === 0 ? 'journée libre' : `${tasks.length - doneTasks} restante${tasks.length - doneTasks > 1 ? 's' : ''}`} accent="var(--accent-todo)" href="/todo"
              progress={tasks.length > 0 ? doneTasks / tasks.length : undefined} />
-        <Kpi icon={FolderKanban} label="Projets actifs"   value={loading ? '…' : String(projects.length)}              sub={nextDeadline ? `Échéance : ${new Date(nextDeadline.deadline!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : 'aucune échéance'} accent="var(--accent-projets)" href="/projets" />
+        <Kpi icon={FolderKanban} label="Projets actifs"   value={loading ? '…' : String(projects.length)}              sub={nextDeadline ? `Échéance : ${new Date(nextDeadline.deadline!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : 'aucune échéance'} accent="var(--accent-projets)" href="/projets" iconInk="var(--ink-light)" />
         <Kpi icon={Wallet}      label="Solde du mois"     value={loading ? '…' : fmtEur(balance)}                      sub={loading ? '' : `${fmtEur(data?.monthIncome ?? 0)} in · ${fmtEur(data?.monthExpense ?? 0)} out`} accent="var(--accent-budget)" href="/budget"
              valueColor={balance < 0 ? 'var(--danger)' : undefined} />
       </div>
@@ -102,7 +124,7 @@ export default function DashboardPage() {
 
         {/* Tâches */}
         <section className="nb-card p-5 flex flex-col" style={{ minHeight: 220 }}>
-          <SectionHead icon={CheckSquare} title="À faire aujourd'hui" accent="var(--accent-todo)" href="/todo" />
+          <SectionHead num="01" icon={CheckSquare} title="À faire aujourd'hui" accent="var(--accent-todo)" href="/todo" />
           {loading ? <Placeholder /> : openTasks.length === 0 ? (
             <Empty text={tasks.length > 0 ? 'Tout est fait. Bien joué ✔' : "Rien de prévu aujourd'hui."} />
           ) : (
@@ -128,7 +150,7 @@ export default function DashboardPage() {
 
         {/* Agenda */}
         <section className="nb-card p-5 flex flex-col" style={{ minHeight: 220 }}>
-          <SectionHead icon={Calendar} title="Agenda du jour" accent="var(--accent-calendar)" href="/calendrier" />
+          <SectionHead num="02" icon={Calendar} title="Agenda du jour" accent="var(--accent-calendar)" href="/calendrier" />
           {loading ? <Placeholder /> : events.length === 0 ? (
             <Empty text="Aucun événement aujourd'hui." />
           ) : (
@@ -150,7 +172,7 @@ export default function DashboardPage() {
       {/* ── Projets en cours (progression) ────────────────────────────── */}
       {!loading && projects.length > 0 && (
         <section className="nb-card p-5">
-          <SectionHead icon={FolderKanban} title="Projets en cours" accent="var(--accent-projets)" href="/projets" />
+          <SectionHead num="03" icon={FolderKanban} title="Projets en cours" accent="var(--accent-projets)" href="/projets" iconInk="var(--ink-light)" />
           <div className="grid md:grid-cols-2 gap-x-8 gap-y-3 mt-3">
             {projects.slice(0, 6).map(p => (
               <div key={p.id} className="flex items-center gap-3">
@@ -180,11 +202,16 @@ export default function DashboardPage() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function SectionHead({ icon: Icon, title, accent, href }: { icon: typeof Clock; title: string; accent: string; href: string }) {
+function SectionHead({ num, icon: Icon, title, accent, href, iconInk = 'var(--ink-dark)' }: { num: string; icon: typeof Clock; title: string; accent: string; href: string; iconInk?: string }) {
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Icon size={15} style={{ color: accent }} />
+      <div className="flex items-center gap-2.5">
+        <span className="font-display font-extrabold text-outline" style={{ fontSize: 24, lineHeight: 1, WebkitTextStrokeWidth: '1.5px' }}>
+          {num}
+        </span>
+        <span className="flex items-center justify-center" style={{ width: 22, height: 22, borderRadius: 6, background: accent, border: '1.5px solid var(--ink)' }}>
+          <Icon size={12} style={{ color: iconInk }} />
+        </span>
         <h2 className="font-display text-xs font-extrabold uppercase" style={{ letterSpacing: '0.1em' }}>{title}</h2>
       </div>
       <Link href={href} className="flex items-center gap-1 text-xs font-bold" style={{ ...DF, color: 'var(--text-muted)' }}>
@@ -194,15 +221,15 @@ function SectionHead({ icon: Icon, title, accent, href }: { icon: typeof Clock; 
   )
 }
 
-function Kpi({ icon: Icon, label, value, sub, accent, href, progress, valueColor }: {
+function Kpi({ icon: Icon, label, value, sub, accent, href, progress, valueColor, iconInk = 'var(--ink-dark)' }: {
   icon: typeof Clock; label: string; value: string; sub: string; accent: string; href: string;
-  progress?: number; valueColor?: string
+  progress?: number; valueColor?: string; iconInk?: string
 }) {
   return (
     <Link href={href} className="nb-card nb-press p-4 flex flex-col gap-1.5" style={{ minHeight: 104 }}>
       <div className="flex items-center gap-2">
         <span className="flex items-center justify-center" style={{ width: 24, height: 24, borderRadius: 7, background: accent, border: '1.5px solid var(--ink)' }}>
-          <Icon size={13} style={{ color: 'var(--ink-dark)' }} />
+          <Icon size={13} style={{ color: iconInk }} />
         </span>
         <span className="text-[10px] font-bold uppercase" style={{ ...DF, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>{label}</span>
       </div>

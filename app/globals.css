@@ -194,6 +194,9 @@ html {
 
 body {
   background-color: var(--bg);
+  /* Papier technique : grille pointillée, signature visuelle NYSA */
+  background-image: radial-gradient(rgba(var(--text-rgb), 0.10) 1px, transparent 1px);
+  background-size: 22px 22px;
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -339,6 +342,43 @@ h3 { font-size: 16px; }
 
 .nysa-transition {
   transition: all 0.15s ease;
+}
+
+/* ── Signature « collage » ─────────────────────────────────── */
+
+/* Stickers inclinés — à poser sur badges, tuiles, cartes clés */
+.sticker-l { transform: rotate(-2deg); }
+.sticker-r { transform: rotate(1.4deg); }
+.sticker-l.nb-press:hover { transform: rotate(-2deg) translate(-2px, -2px); }
+.sticker-r.nb-press:hover { transform: rotate(1.4deg) translate(-2px, -2px); }
+
+/* Texte au contour (gros titres décoratifs) */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+}
+
+/* Filet épais façon print */
+.rule-thick { height: 3px; background: var(--ink); border-radius: 2px; }
+
+/* Bande défilante (marquee) — statique si prefers-reduced-motion */
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+}
+.marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5rem;
+  padding-right: 2.5rem;
+  flex-shrink: 0;
+  min-width: 100%;
+  animation: marquee 22s linear infinite;
+}
+@keyframes marquee {
+  to { transform: translateX(-100%); }
 }
 
 /* ── Navigation ────────────────────────────────────────────── */

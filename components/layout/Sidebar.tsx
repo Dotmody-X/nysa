@@ -101,26 +101,37 @@ export function Sidebar() {
 
   return (
     <aside
-      className="hidden md:flex flex-col h-full shrink-0"
-      style={{ width: '190px', background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)' }}
+      className="hidden md:flex flex-col h-full shrink-0 on-dark"
+      style={{
+        width: '200px',
+        // Zone marque : encre noire dans les DEUX thèmes (signature NYSA)
+        background: '#111111',
+        borderRight: '2px solid rgba(245, 245, 245, 0.18)',
+        '--ink': '#f5f5f5',
+        '--bg-card-hover': 'rgba(245, 245, 245, 0.08)',
+      } as React.CSSProperties}
     >
-      {/* ── Logo ─────────────────────────────────────────────── */}
-      <div
-        className="flex flex-col items-center justify-center gap-2 py-6"
-        style={{ borderBottom: '1px solid var(--border)' }}
-      >
-        <NysaLogo size={52} color="var(--accent-brand)" />
+      {/* ── Logo : sticker tangerine incliné ─────────────────── */}
+      <div className="flex flex-col items-center justify-center gap-3 py-6">
+        <div
+          className="sticker-l nb-tile flex items-center justify-center"
+          style={{ width: 64, height: 64, background: 'var(--accent-brand)', boxShadow: '3px 3px 0 var(--ink)' }}
+        >
+          <NysaLogo size={44} color="#111111" />
+        </div>
         <p
           style={{
-            color: 'var(--text)',
+            color: '#f5f5f5',
             fontFamily: 'var(--font-display)',
             fontWeight: 800,
-            fontSize: '13px',
-            letterSpacing: '0.3em',
+            fontSize: '14px',
+            letterSpacing: '0.32em',
+            marginLeft: '0.32em',
           }}
         >
           NYSA
         </p>
+        <div className="rule-thick" style={{ width: 44, background: 'var(--accent-brand)' }} />
       </div>
 
       {/* ── Nav ──────────────────────────────────────────────── */}
@@ -145,6 +156,7 @@ export function Sidebar() {
                   background: active ? 'var(--accent-brand)' : undefined,
                   border: active ? '2px solid var(--ink)' : '2px solid transparent',
                   boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
+                  transform: active ? 'rotate(-1.2deg)' : undefined,
                   marginTop: item.accent ? 2 : 0,
                 }}
               >
