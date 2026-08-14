@@ -458,11 +458,14 @@ export default function InventairePage() {
           style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '7px 12px', cursor: 'pointer', color: 'var(--text)', fontSize: 11 }}>
           <ChevronLeft size={13} /> Courses
         </button>
-        <div style={{ flex: 1 }}>
-          <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>INVENTAIRE MAISON</p>
-          <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 3 }}>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <p className="text-[10px] font-extrabold uppercase" style={{ ...DF, color: 'var(--text-muted)', letterSpacing: '0.14em', marginBottom: 4 }}>
             Gérez vos stocks · Évitez le gaspillage
           </p>
+          <p className="text-outline" style={{ ...DF, fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 900, lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
+            Inventaire
+          </p>
+          <div className="rule-thick" style={{ width: 48, background: 'var(--accent-courses)', marginTop: 7 }} />
         </div>
         {itemToBuy > 0 && (
           <button onClick={addToCourses} disabled={pushingToCourses} className="nb-press"

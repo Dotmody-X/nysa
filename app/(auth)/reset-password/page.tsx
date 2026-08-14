@@ -42,16 +42,16 @@ export default function ResetPasswordPage() {
     <div className="w-full max-w-sm mx-auto px-4">
       <div className="flex flex-col items-center mb-10">
         <div
-          className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
-          style={{ background: 'var(--ink-light)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)' }}
+          className="sticker-l w-16 h-16 rounded-xl flex items-center justify-center mb-4"
+          style={{ background: 'var(--accent-brand)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}
         >
-          <NysaLogo size={30} color='var(--ink-dark)' />
+          <NysaLogo size={36} color='var(--ink-dark)' />
         </div>
-        <h1 className="text-2xl font-bold tracking-widest uppercase" style={{ color: 'var(--text)' }}>NYSA</h1>
-        <p className="text-xs tracking-widest mt-1 uppercase" style={{ color: 'var(--text-muted)' }}>Nouveau mot de passe</p>
+        <h1 className="font-display text-3xl font-extrabold tracking-widest uppercase text-outline" style={{ WebkitTextStrokeWidth: '1.5px' }}>NYSA</h1>
+        <p className="text-xs font-bold tracking-widest mt-1 uppercase" style={{ color: 'var(--text-muted)' }}>Nouveau mot de passe</p>
       </div>
 
-      <form onSubmit={submit} className="nb-card flex flex-col gap-4 p-6">
+      <form onSubmit={submit} className="nb-card sticker-r flex flex-col gap-4 p-6">
         {done ? (
           <p className="text-sm text-center py-4" style={{ color: 'var(--text)' }}>
             Mot de passe mis à jour. Redirection…

@@ -1,10 +1,11 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import {
-  Plus, Search, MoreVertical, X, Pencil, Trash2,
+  Plus, Search, MoreVertical, X, Pencil, Trash2, FolderKanban,
   CheckSquare, ChevronRight, Link2, Users, Calendar,
-  FileUp, Trash, Download, Edit2, Save,
+  FileUp, Trash, Download, Edit2,
 } from '@/components/ui/icons'
+import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useProjects }    from '@/hooks/useProjects'
 import { useTasks }       from '@/hooks/useTasks'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
@@ -529,6 +530,8 @@ export default function ProjetsPage() {
   }
 
   // ── Styles ─────────────────────────────────────────────────────────────────
+  // Équivalent inline de la classe .nb-card (pour les blocs qui composent
+  // leur style via spread plutôt que par className).
   const card: React.CSSProperties = {
     background: 'var(--bg-card)',
     border: '2px solid var(--ink)',
@@ -553,28 +556,43 @@ export default function ProjetsPage() {
   // Empty state for demo mode
 
   return (
-    <div style={{ padding: 30, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, alignContent: 'start' }}>
+    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* ── ROW 1 : Hero (2 cols) + VUE GLOBALE marques (2 cols) — 300px ──── */}
+      <PageTitle
+        title="Projets"
+        sub="Marques · Tâches · Livraisons"
+        accent="var(--accent-projets)"
+        icon={FolderKanban}
+        iconInk="var(--ink-light)"
+        right={
+          <StickerButton onClick={() => setCreateModal(true)} accent="var(--accent-projets)" ink="var(--ink-light)">
+            <Plus size={14} /> Nouveau projet
+          </StickerButton>
+        }
+      />
 
-      {/* Hero */}
-      <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 300, padding: '10px 0 20px 0' }}>
-        <p style={{ fontSize: 11, ...DF, fontWeight: 700, color: 'var(--accent-brand)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
-          Projets
-        </p>
-        <h1 style={{ ...DF, fontWeight: 900, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 1, color: 'var(--text)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
-          Gérez.<br />Livrez.
-        </h1>
-        <p style={{ ...DF, fontSize: 12, fontWeight: 500, color: 'var(--azul)', marginTop: 12 }}>
-          {projects.length} projet{projects.length !== 1 ? 's' : ''} · {tasks.length} tâche{tasks.length !== 1 ? 's' : ''}
-        </p>
-      </div>
+      {/* ── KPI ────────────────────────────────────────────────────────────── */}
+      <KpiGrid>
+        <KpiCard label="Projets actifs" value={String(activeProjects.length)} sub={`${projects.length} au total`} accent="var(--accent-projets)" />
+        <KpiCard label="Tâches en cours" value={String(activeTasks.length)}   sub={`${tasks.length} au total`}    accent="var(--accent-projets)" />
+        <KpiCard label="Temps semaine"   value={totalSec > 0 ? fmtHours(totalSec) : '—'} sub="toutes marques"     accent="var(--azul)" color="var(--azul)" />
+        <KpiCard
+          label={selectedProject ? `Avancement · ${selectedProject.name}` : 'Avancement'}
+          value={`${pct}%`}
+          accent="var(--accent-brand)"
+          color="var(--accent-brand)"
+          progress={pct / 100}
+        />
+      </KpiGrid>
 
-      {/* VUE GLOBALE — 4 marques avec temps semaine */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--accent-brand)', border: '2px solid var(--ink)', height: 300, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
-        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--ink-dark)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Vue par marque</p>
-          <button onClick={() => setShowGroupes(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.25)', borderRadius: 7, padding: '4px 10px', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 800, color: 'var(--ink-dark)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      {/* VUE GLOBALE — marques avec temps semaine */}
+      <div className="nb-card" style={{ background: 'var(--accent-brand)', maxHeight: 340, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)' } as React.CSSProperties}>
+        <div style={{ padding: '16px 20px 12px', borderBottom: '2px solid var(--ink)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <span className="text-outline" style={{ ...DF, fontWeight: 900, fontSize: 20, lineHeight: 1, WebkitTextStrokeWidth: '1.5px' }}>01</span>
+            <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--ink-dark)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>Vue par marque</p>
+          </div>
+          <button onClick={() => setShowGroupes(true)} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 5, minHeight: 40, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.25)', borderRadius: 7, padding: '4px 12px', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 800, color: 'var(--ink-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
             <Pencil size={10} /> Gérer
           </button>
         </div>
@@ -586,14 +604,14 @@ export default function ProjetsPage() {
             </button>
           </div>
         ) : (
-          <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start' }}>
-            {groupes.map((g, i) => {
+          <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', alignContent: 'start' }}>
+            {groupes.map(g => {
               const sec       = timeByGroupe[g.value]?.sec ?? 0
               const projCount = projects.filter(p => p.groupe === g.value && p.status === 'active').length
               return (
                 <div key={g.value} style={{
                   padding: '14px 18px', minHeight: 92,
-                  borderRight:  i % 2 === 0 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none',
+                  borderRight:  '1px solid rgba(var(--text-rgb),0.2)',
                   borderBottom: '1px solid rgba(var(--text-rgb),0.2)',
                   display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
                 }}>
@@ -616,9 +634,9 @@ export default function ProjetsPage() {
         )}
       </div>
 
-      {/* ── ROW 2 : Barre de filtres ────────────────────────────────────────── */}
-      <div className="col-span-4" style={{ ...card, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', flex: 1, minWidth: 160 }}>
+      {/* ── Barre de filtres ────────────────────────────────────────────────── */}
+      <div className="nb-card toolbar-scroll" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 40, padding: '6px 12px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', flex: 1, minWidth: 160 }}>
           <Search size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Chercher un projet…"
             style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)', width: '100%' }} />
@@ -636,26 +654,27 @@ export default function ProjetsPage() {
           ]}
           onChange={setStatusFilter}
         />
-        <div style={{ flex: 1 }} />
-        <button onClick={() => setCreateModal(true)} className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-          <Plus size={13} /> NOUVEAU PROJET
-        </button>
       </div>
 
-      {/* ── ROW 3 : PROJETS PAR MARQUE ───────────────────────────────────────── */}
-      <div className="col-span-4" style={{ ...card, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={sectionLabel}>Projets récents</p>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{filtered.length} projet{filtered.length !== 1 ? 's' : ''}</span>
-        </div>
-
+      {/* ── PROJETS PAR MARQUE ──────────────────────────────────────────────── */}
+      <SectionCard
+        num="02"
+        accent="var(--accent-projets)"
+        title="Projets récents"
+        action={<span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{filtered.length} projet{filtered.length !== 1 ? 's' : ''}</span>}
+      >
         {loading ? (
           <p style={{ padding: '20px', fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
         ) : filtered.length === 0 ? (
           <div style={{ padding: '30px 20px', textAlign: 'center' }}>
-            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>Aucun projet</p>
-            <button onClick={() => setCreateModal(true)} style={{ color: 'var(--accent-brand)', fontSize: 12, ...DF, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>+ Créer un projet</button>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
+              Aucun projet pour ce filtre. Crée ton premier projet pour démarrer.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <StickerButton onClick={() => setCreateModal(true)} accent="var(--accent-projets)" ink="var(--ink-light)" tilt="l">
+                <Plus size={14} /> Créer un projet
+              </StickerButton>
+            </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -700,7 +719,8 @@ export default function ProjetsPage() {
                             </span>
                             <button
                               onClick={e => { e.stopPropagation(); setContextMenu({ projectId: p.id, x: e.clientX, y: e.clientY }) }}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, borderRadius: 4, display: 'flex', alignItems: 'center' }}
+                              title="Actions du projet"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', width: 32, height: 32, marginRight: -6, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                               onMouseEnter={ev => (ev.currentTarget.style.color = 'var(--text)')}
                               onMouseLeave={ev => (ev.currentTarget.style.color = 'var(--text-muted)')}>
                               <MoreVertical size={13} />
@@ -737,11 +757,11 @@ export default function ProjetsPage() {
             })}
           </div>
         )}
-      </div>
+      </SectionCard>
 
-      {/* ── ROW 4 : PROJET SÉLECTIONNÉ ───────────────────────────────────────── */}
+      {/* ── PROJET SÉLECTIONNÉ ──────────────────────────────────────────────── */}
       {selectedProject && (
-        <div className="col-span-4" style={{ ...card, overflow: 'hidden' }}>
+        <div className="nb-card" style={{ overflow: 'hidden' }}>
           {/* Header coloré avec badge marque */}
           <div style={{ background: selectedProject.color, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -749,21 +769,21 @@ export default function ProjetsPage() {
                 Projet sélectionné
               </p>
               <ChevronRight size={10} style={{ color: 'rgba(var(--text-rgb),0.5)' }} />
-              <p style={{ ...DF, fontWeight: 800, fontSize: 14, color: '#fff' }}>{selectedProject.name}</p>
+              <p style={{ ...DF, fontWeight: 800, fontSize: 14, color: 'var(--ink-light)' }}>{selectedProject.name}</p>
               {selectedProject.groupe && (
-                <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(var(--text-rgb),0.25)', color: '#fff', ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 20, background: 'rgba(var(--text-rgb),0.25)', color: 'var(--ink-light)', ...DF, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   {selectedProject.groupe}
                 </span>
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button onClick={() => update(selectedProject.id, { status: selectedProject.status === 'archived' ? 'active' : 'archived' })}
-                title={selectedProject.status === 'archived' ? 'Remettre dans les projets actifs' : 'Archiver ce projet'}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 700, ...DF }}>
+                title={selectedProject.status === 'archived' ? 'Remettre dans les projets actifs' : 'Archiver ce projet'} className="nb-press"
+                style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, padding: '5px 14px', borderRadius: 7, background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', color: 'var(--ink-light)', fontSize: 10, fontWeight: 700, ...DF }}>
                 {selectedProject.status === 'archived' ? '↩ Désarchiver' : '🗄 Archiver'}
               </button>
-              <button onClick={() => setEditModal(selectedProject)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 10, fontWeight: 700, ...DF }}>
+              <button onClick={() => setEditModal(selectedProject)} className="nb-press" title="Modifier ce projet"
+                style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, padding: '5px 14px', borderRadius: 7, background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', color: 'var(--ink-light)', fontSize: 10, fontWeight: 700, ...DF }}>
                 <Pencil size={10} /> Modifier
               </button>
             </div>
@@ -774,7 +794,7 @@ export default function ProjetsPage() {
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 style={{
-                  padding: '10px 16px', fontSize: 10, fontWeight: 700, ...DF, letterSpacing: '0.07em',
+                  padding: '13px 16px', minHeight: 44, fontSize: 10, fontWeight: 700, ...DF, letterSpacing: '0.07em',
                   background: 'none', border: 'none', cursor: 'pointer',
                   color: tab === t.id ? selectedProject.color : 'var(--text-muted)',
                   borderBottom: `2px solid ${tab === t.id ? selectedProject.color : 'transparent'}`,
@@ -950,17 +970,20 @@ export default function ProjetsPage() {
         </div>
       )}
 
-      {/* ── ROW 5 : TÂCHES (col-span-3) + ÉQUIPE (col-span-1) — 500px ──────── */}
+      {/* ── TÂCHES + ÉQUIPE ─────────────────────────────────────────────────── */}
       {selectedProject && (
-        <>
-          <div className="col-span-3" style={{ ...card, minHeight: 500, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-              <p style={sectionLabel}>Tâches récentes</p>
-              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{projTasks.length} tâche{projTasks.length !== 1 ? 's' : ''}</span>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4" style={{ gap: 16 }}>
+          <div className="lg:col-span-3">
+          <SectionCard
+            num="03"
+            accent="var(--accent-projets)"
+            title="Tâches récentes"
+            style={{ minHeight: 500, display: 'flex', flexDirection: 'column' }}
+            action={<span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{projTasks.length} tâche{projTasks.length !== 1 ? 's' : ''}</span>}
+          >
             {projTasks.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune tâche</p>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>Aucune tâche sur ce projet.</p>
               </div>
             ) : (
               <div style={{ overflowY: 'auto', overflowX: 'auto', flex: 1 }}>
@@ -993,30 +1016,39 @@ export default function ProjetsPage() {
                </div>
               </div>
             )}
+          </SectionCard>
           </div>
 
-          <div style={{ ...card, minHeight: 500, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-              <p style={sectionLabel}>Équipe</p>
-            </div>
+          <SectionCard
+            num="04"
+            accent="var(--accent-projets)"
+            title="Équipe"
+            style={{ minHeight: 500, display: 'flex', flexDirection: 'column' }}
+          >
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
               <div style={{ width: 48, height: 48, borderRadius: '50%', background: `${selectedProject.color}22`, border: `2px solid ${selectedProject.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Users size={20} style={{ color: selectedProject.color }} />
               </div>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.6 }}>Gestion d'équipe<br />à venir</p>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.6 }}>Gestion d&apos;équipe<br />à venir</p>
             </div>
-          </div>
-        </>
+          </SectionCard>
+        </div>
       )}
 
-      {/* ── ROW 6 : RÉPARTITION PAR MARQUE (teal, col-span-2) + ACTIVITÉ + LIENS */}
+      {/* ── RÉPARTITION PAR MARQUE + ACTIVITÉ + LIENS ───────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-4" style={{ gap: 16 }}>
 
       {/* RÉPARTITION PAR MARQUE */}
-      <div className="col-span-2" style={{ ...card, background: 'var(--azul)', border: '2px solid var(--ink)', minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
-        <div style={{ padding: '14px 20px 10px', borderBottom: '1px solid rgba(var(--text-rgb),0.2)', flexShrink: 0 }}>
-          <p style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Répartition par marque</p>
-          <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.65)', marginTop: 2 }}>Cette semaine · {totalSec > 0 ? fmtHours(totalSec) : '—'}</p>
-        </div>
+      <div className="lg:col-span-2">
+      <SectionCard
+        num="05"
+        accent="var(--ink-light)"
+        title="Répartition par marque"
+        titleColor="var(--ink-light)"
+        bg="var(--azul)"
+        style={{ minHeight: 400, display: 'flex', flexDirection: 'column', '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}
+        action={<span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.72)', whiteSpace: 'nowrap' }}>{totalSec > 0 ? fmtHours(totalSec) : '—'} cette semaine</span>}
+      >
         <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {groupeRows.length === 0 ? (
             <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.6)', paddingTop: 20, textAlign: 'center' }}>
@@ -1052,17 +1084,20 @@ export default function ProjetsPage() {
             </div>
           )}
         </div>
+      </SectionCard>
       </div>
 
       {/* ACTIVITÉ RÉCENTE */}
-      <div style={{ ...card, minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          <p style={sectionLabel}>Activité récente</p>
-        </div>
+      <SectionCard
+        num="06"
+        accent="var(--accent-projets)"
+        title="Activité récente"
+        style={{ minHeight: 400, display: 'flex', flexDirection: 'column' }}
+      >
         <div style={{ overflowY: 'auto', flex: 1 }}>
           {entries.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>Aucune activité cette semaine</p>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>Aucune activité cette semaine.</p>
             </div>
           ) : entries.slice(0, 8).map((e, i) => {
             const proj = projects.find(p => p.id === e.project_id)
@@ -1083,21 +1118,25 @@ export default function ProjetsPage() {
             )
           })}
         </div>
-      </div>
+      </SectionCard>
 
       {/* LIENS & DOCUMENTS */}
-      <div style={{ ...card, minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          <p style={sectionLabel}>Liens & documents</p>
-        </div>
+      <SectionCard
+        num="07"
+        accent="var(--accent-projets)"
+        title="Liens & documents"
+        style={{ minHeight: 400, display: 'flex', flexDirection: 'column' }}
+      >
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Link2 size={20} style={{ color: 'var(--azul)' }} />
           </div>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.6 }}>
-            Fichiers & liens<br />à venir
+            Fichiers &amp; liens<br />à venir
           </p>
         </div>
+      </SectionCard>
+
       </div>
 
       {/* ── Context menu ────────────────────────────────────────────────────── */}

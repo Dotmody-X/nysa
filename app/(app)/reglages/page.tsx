@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { User, Palette, Bell, Database, Keyboard, Info } from '@/components/ui/icons'
+import { User, Palette, Bell, Database, Keyboard, Info, Settings } from '@/components/ui/icons'
 import { saveTheme, type ThemeMode } from '@/lib/theme'
 import { isDemoModeEnabled, toggleDemoMode } from '@/lib/demo-mode'
 import { PageTitle } from '@/components/ui/PageTitle'
@@ -50,7 +50,7 @@ export default function ReglagesPage() {
 
   return (
     <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, minHeight:'100%' }}>
-      <PageTitle title="Réglages" sub="Personnalise · Intégrations · Données · Abonnement" />
+      <PageTitle title="Réglages" sub="Personnalise · Intégrations · Données · Abonnement" accent="var(--accent-brand)" icon={Settings} />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[12px]">
         {/* Sidebar nav */}

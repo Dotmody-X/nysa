@@ -1,8 +1,9 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Check, X, Eye, EyeOff } from '@/components/ui/icons'
+import { ArrowLeft, Check, X, Eye, EyeOff, User } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
+import { PageTitle } from '@/components/ui/PageTitle'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)', ORANGE = 'var(--accent-brand)', WHEAT = 'var(--text)'
@@ -83,8 +84,7 @@ export default function GeneralPage() {
         <ArrowLeft size={13} /> Retour au profil
       </button>
 
-      <h1 style={{ ...DF, fontWeight: 900, fontSize: 36, color: WHEAT, letterSpacing: '-0.02em', marginBottom: 4 }}>GÉNÉRAL.</h1>
-      <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 28 }}>Paramètres généraux du compte</p>
+      <PageTitle title="Général" sub="Paramètres généraux du compte" accent="var(--accent-brand)" icon={User} />
 
       {/* ── Identité ── */}
       <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 12 }}>

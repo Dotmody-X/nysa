@@ -77,7 +77,7 @@ export default function AgentPage() {
 
   return (
     <div style={{ padding:30, display:'flex', flexDirection:'column', gap:10, height:'100%' }}>
-      <PageTitle title="Agent IA" sub="Ton assistant personnel connecté à NYSA" />
+      <PageTitle title="Agent IA" sub="Ton assistant personnel connecté à NYSA" accent="var(--accent-agent)" icon={Sparkles} iconInk="var(--ink-light)" />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[12px]" style={{ flex:1, minHeight:0 }}>
         {/* Chat */}

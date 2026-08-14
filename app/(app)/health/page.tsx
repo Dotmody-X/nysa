@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Plus, TrendingDown, TrendingUp, Activity, Moon, Heart, Droplets,
-  ChevronRight, Check, Utensils, Apple as AppleIcon, Scale, Flame, Zap
+  ChevronRight, Check, Utensils, Apple as AppleIcon, Scale, Flame, Zap, HeartPulse
 } from '@/components/ui/icons'
+import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useHealth } from '@/hooks/useHealth'
 import { useMealPlan } from '@/hooks/useMealPlan'
 import { userKey } from '@/lib/userStore'
@@ -15,7 +16,7 @@ const TEAL   = 'var(--azul)'
 const ORANGE = 'var(--accent-brand)'
 const WHEAT   = 'var(--text)'
 const TEAL_BG = 'var(--azul)'
-const DARK   = '#1A1A2E'
+const ACCENT  = 'var(--accent-health)'   /* couleur de catégorie de la page */
 
 /* ─── Helpers ───────────────────────────────────────────────── */
 function fmtPace(sec: number) {
@@ -96,31 +97,21 @@ function WeekBars({ data, labels, color = ORANGE, max: maxProp }:
   )
 }
 
-/* ─── Card style shortcuts ──────────────────────────────────── */
-const STICKER: React.CSSProperties = {
-  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)',
-}
+/* ─── Card style shortcuts ────────────────────────────────────
+   Le contour + l'ombre viennent des classes `nb-card` / `nb-tile`. */
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', overflow: 'hidden', ...STICKER, ...extra,
+  background: 'var(--bg-card)', overflow: 'hidden', ...extra,
 })
-const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: TEAL_BG, overflow: 'hidden', ...STICKER,
-  // Fond foncé fixe (cobalt) → encre claire dans les deux thèmes
+// Fond foncé fixe (cobalt) → encre claire dans les deux thèmes
+const INK_LIGHT_VARS = {
   '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)',
-  ...extra,
-} as React.CSSProperties)
-const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, overflow: 'hidden', ...STICKER,
-  // Fond tangerine (clair-moyen) → encre foncée dans les deux thèmes
+} as React.CSSProperties
+// Fond tangerine (clair-moyen) → encre foncée dans les deux thèmes
+const INK_DARK_VARS = {
   '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)',
-  ...extra,
-} as React.CSSProperties)
-const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg)', overflow: 'hidden', ...STICKER, ...extra,
-})
-const lbl = (color = ORANGE): React.CSSProperties => ({
-  ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
-})
+} as React.CSSProperties
+/* Carte de section en colonne — le contenu occupe la hauteur restante. */
+const SECTION_COL: React.CSSProperties = { display: 'flex', flexDirection: 'column' }
 
 /* ═══════════════════════════════════════════════════════════
    MAIN PAGE
@@ -252,8 +243,8 @@ export default function HealthPage() {
   }
 
   const inputStyle: React.CSSProperties = {
-    background: 'var(--bg-input)', border: '1px solid var(--border)',
-    borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12,
+    background: 'var(--bg-input)', border: '1px solid var(--border)', minHeight: 40,
+    borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 13,
   }
 
   // Empty state for demo mode
@@ -267,23 +258,49 @@ export default function HealthPage() {
         .glass-btn:hover { transform: scale(1.1); }
       `}</style>
 
+      {/* ── En-tête de page ───────────────────────────────── */}
+      <PageTitle
+        title="Health"
+        sub="Suivi · Mesures · Objectifs"
+        accent={ACCENT}
+        icon={HeartPulse}
+        iconInk="var(--ink-dark)"
+        right={
+          <div className="toolbar-scroll" style={{ display: 'flex', gap: 8 }}>
+            <StickerButton onClick={() => setShowWForm(v => !v)} accent={TEAL_BG} ink="var(--ink-light)" tilt="l">
+              <Scale size={13} /> + Poids
+            </StickerButton>
+            <StickerButton onClick={() => setShowRForm(v => !v)} accent={ORANGE}>
+              <Activity size={13} /> + Run
+            </StickerButton>
+          </div>
+        }
+      />
+
+      {/* ── KPIs de la semaine ────────────────────────────── */}
+      <KpiGrid>
+        <KpiCard label="Distance" value={`${kmWeek.toFixed(1)} km`} sub={`${thisWeek.length} sortie${thisWeek.length !== 1 ? 's' : ''}`} accent={ACCENT} />
+        <KpiCard label="Temps"    value={fmtDur(secWeek)} sub="cette semaine" accent={ACCENT} />
+        <KpiCard label="Allure"   value={avgPace > 0 ? fmtPace(avgPace) : '—'} sub="moy. semaine" accent={ACCENT} />
+        <KpiCard label="Poids"    value={latestWeight ? `${latestWeight} kg` : '—'}
+          sub={weightTrend != null ? `${weightTrend > 0 ? '+' : ''}${weightTrend?.toFixed(1)} kg` : 'Aucune donnée'} accent={ACCENT} />
+      </KpiGrid>
+
       {/* ── Inline forms ──────────────────────────────────── */}
       {showWForm && (
-        <form onSubmit={handleWeight} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14, padding: 16,
+        <form onSubmit={handleWeight} className="nb-card" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14, padding: 16,
           ...card() }}>
           <input type="date" value={wForm.date} onChange={e => setWForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
           <input type="number" step="0.1" value={wForm.weight} onChange={e => setWForm(f => ({ ...f, weight: e.target.value }))}
             placeholder="Poids (kg)" autoFocus style={{ ...inputStyle, flex: 1 }} />
-          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-            Enregistrer
-          </button>
-          <button type="button" onClick={() => setShowWForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <StickerButton type="submit" accent={ORANGE}>Enregistrer</StickerButton>
+          <button type="button" onClick={() => setShowWForm(false)} className="nb-press" title="Fermer" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', minHeight: 40, padding: '8px 14px', ...DF, fontWeight: 700, fontSize: 13, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             ×
           </button>
         </form>
       )}
       {showRForm && (
-        <form onSubmit={handleRun} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14, padding: 16, ...card() }}>
+        <form onSubmit={handleRun} className="nb-card" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14, padding: 16, ...card() }}>
           <input type="date" value={rForm.date} onChange={e => setRForm(f => ({ ...f, date: e.target.value }))} style={inputStyle} />
           <input type="number" step="0.01" value={rForm.distance} onChange={e => setRForm(f => ({ ...f, distance: e.target.value }))}
             placeholder="Distance (km)" autoFocus style={{ ...inputStyle, flex: 1, minWidth: 110 }} />
@@ -291,10 +308,8 @@ export default function HealthPage() {
             placeholder="Durée (h:mm)" style={{ ...inputStyle, width: 110 }} />
           <input type="text" value={rForm.notes} onChange={e => setRForm(f => ({ ...f, notes: e.target.value }))}
             placeholder="Notes…" style={{ ...inputStyle, flex: 2, minWidth: 140 }} />
-          <button type="submit" className="nb-press" style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-            Ajouter
-          </button>
-          <button type="button" onClick={() => setShowRForm(false)} className="nb-press" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', padding: '8px 12px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
+          <StickerButton type="submit" accent={ORANGE}>Ajouter</StickerButton>
+          <button type="button" onClick={() => setShowRForm(false)} className="nb-press" title="Fermer" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', borderRadius: 'var(--radius-lg)', minHeight: 40, padding: '8px 14px', ...DF, fontWeight: 700, fontSize: 13, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             ×
           </button>
         </form>
@@ -310,55 +325,20 @@ export default function HealthPage() {
         gap: 16,
       }}>
 
-        {/* ── R1 C1-2 : HERO ──────────────────────────────── */}
-        <div style={{ gridColumn: 'span 2', padding: '24px 28px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden' }}>
-          <div>
-            <p style={{ ...DF, fontSize: 42, fontWeight: 900, color: ORANGE, lineHeight: 0.95, marginBottom: 6 }}>HEALTH.</p>
-            <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>
-              Suivez. Progressez. Prenez soin de vous.
-            </p>
-            <div className="toolbar-scroll" style={{ display: 'flex', gap: 8 }}>
-              <button className="nb-press" onClick={() => setShowWForm(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: TEAL_BG, color: 'var(--ink-light)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-                <Scale size={11} /> + Poids
-              </button>
-              <button className="nb-press" onClick={() => setShowRForm(v => !v)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-                <Activity size={11} /> + Run
-              </button>
-            </div>
-          </div>
-          {/* 4 KPIs en ligne unique */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-            {[
-              { l: 'Distance',  v: `${kmWeek.toFixed(1)} km`, sub: `${thisWeek.length} sortie${thisWeek.length !== 1 ? 's' : ''}`, color: ORANGE },
-              { l: 'Temps',     v: fmtDur(secWeek),            sub: 'cette semaine', color: TEAL },
-              { l: 'Allure',    v: avgPace > 0 ? fmtPace(avgPace) : '—', sub: 'moy. semaine', color: WHEAT },
-              { l: 'Poids',     v: latestWeight ? `${latestWeight}kg` : '—', sub: weightTrend != null ? `${weightTrend > 0 ? '+' : ''}${weightTrend?.toFixed(1)} kg` : 'Aucune donnée', color: TEAL },
-            ].map(s => (
-              <div key={s.l} style={{ padding: '10px 12px', ...card() }}>
-                <p style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{s.l}</p>
-                <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.v}</p>
-                <p style={{ fontSize: 8, color: 'var(--text-muted)', marginTop: 3 }}>{s.sub}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── R1 C3-4 : RÉSUMÉ DU JOUR ────────────────────── */}
-        <div style={{ ...orangeCard(), gridColumn: 'span 2', padding: 28 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-            <p style={{ ...lbl('#1A0A0A') }}>Résumé du jour</p>
+        {/* ── R1 : RÉSUMÉ DU JOUR ─────────────────────────── */}
+        <SectionCard title="Résumé du jour" num="01" accent={ACCENT} bg={ORANGE} titleColor="var(--ink-dark)"
+          style={{ gridColumn: 'span 4', ...SECTION_COL, ...INK_DARK_VARS } as React.CSSProperties}
+          action={
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 10, color: 'rgba(26,10,10,0.5)' }}>{today.toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' })}</span>
-              <button onClick={() => { setEditResume(v => !v); setResumeForm({ pas: String(resume.pas), cal: String(resume.cal), pasTarget: String(resume.pasTarget), calTarget: String(resume.calTarget) }) }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 6, background: 'rgba(26,10,10,0.15)', border: 'none', cursor: 'pointer' }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <button className="nb-press" title="Modifier le résumé du jour"
+                onClick={() => { setEditResume(v => !v); setResumeForm({ pas: String(resume.pas), cal: String(resume.cal), pasTarget: String(resume.pasTarget), calTarget: String(resume.calTarget) }) }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: 8, background: 'rgba(26,10,10,0.15)', border: 'none', cursor: 'pointer' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--ink-dark)' }}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
             </div>
-          </div>
+          }>
+          <div style={{ padding: 28, flex: 1, overflowY: 'auto' }}>
 
           {/* Edit form */}
           {editResume && (
@@ -370,22 +350,22 @@ export default function HealthPage() {
                 { k: 'calTarget', lbl: 'Objectif kcal',    ph: '2200' },
               ].map(f => (
                 <div key={f.k}>
-                  <p style={{ fontSize: 8, color: 'rgba(26,10,10,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>{f.lbl}</p>
+                  <p style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'rgba(26,10,10,0.7)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{f.lbl}</p>
                   <input type="number" placeholder={f.ph} value={(resumeForm as any)[f.k]}
                     onChange={e => setResumeForm(v => ({ ...v, [f.k]: e.target.value }))}
-                    style={{ width: '100%', background: 'rgba(26,10,10,0.15)', border: '1px solid rgba(26,10,10,0.25)', borderRadius: 6, padding: '6px 8px', color: '#1A0A0A', fontSize: 12 }} />
+                    style={{ width: '100%', minHeight: 40, background: 'rgba(26,10,10,0.15)', border: '1px solid rgba(26,10,10,0.25)', borderRadius: 6, padding: '8px 10px', color: 'var(--ink-dark)', fontSize: 13 }} />
                 </div>
               ))}
               <div style={{ gridColumn: 'span 4', display: 'flex', gap: 6, marginTop: 2 }}>
-                <button onClick={() => {
+                <button className="nb-press" onClick={() => {
                   const updated = { pas: parseInt(resumeForm.pas) || 0, pasTarget: parseInt(resumeForm.pasTarget) || 10000, cal: parseInt(resumeForm.cal) || 0, calTarget: parseInt(resumeForm.calTarget) || 2200 }
                   setResume(updated)
                   localStorage.setItem(userKey('nysa_resume_jour'), JSON.stringify(updated))
                   setEditResume(false)
-                }} style={{ padding: '6px 14px', borderRadius: 6, background: 'rgba(26,10,10,0.3)', color: '#1A0A0A', border: 'none', fontSize: 11, ...DF, fontWeight: 700, cursor: 'pointer' }}>
+                }} style={{ minHeight: 40, padding: '8px 16px', borderRadius: 6, background: 'rgba(26,10,10,0.3)', color: 'var(--ink-dark)', border: 'none', fontSize: 12, ...DF, fontWeight: 700, cursor: 'pointer' }}>
                   Enregistrer
                 </button>
-                <button onClick={() => setEditResume(false)} style={{ padding: '6px 10px', borderRadius: 6, background: 'rgba(26,10,10,0.1)', color: '#1A0A0A', border: 'none', fontSize: 11, cursor: 'pointer' }}>
+                <button className="nb-press" onClick={() => setEditResume(false)} style={{ minHeight: 40, padding: '8px 14px', borderRadius: 6, background: 'rgba(26,10,10,0.1)', color: 'var(--ink-dark)', border: 'none', fontSize: 12, cursor: 'pointer' }}>
                   Annuler
                 </button>
               </div>
@@ -413,19 +393,17 @@ export default function HealthPage() {
               <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: '#1A0A0A' }}>Apple Santé</p>
               <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.6)' }}>Bientôt disponible — synchronisation pas, calories, sommeil</p>
             </div>
-            <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, background: 'rgba(26,10,10,0.2)', color: '#1A0A0A', ...DF, fontWeight: 700 }}>Soon</span>
+            <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, background: 'rgba(26,10,10,0.2)', color: 'var(--ink-dark)', ...DF, fontWeight: 700 }}>Soon</span>
           </div>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R2 C1 : COURSE À PIED ───────────────────────── */}
-        <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 4 }}>Course à pied</p>
-              <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)' }}>Cette semaine</p>
-            </div>
-            <Activity size={18} style={{ color: 'rgba(var(--text-rgb),0.35)' }} />
-          </div>
+        <SectionCard title="Course à pied" num="02" accent={ACCENT} bg={TEAL_BG} titleColor="var(--ink-light)"
+          style={{ ...SECTION_COL, ...INK_LIGHT_VARS } as React.CSSProperties}
+          action={<Activity size={16} style={{ color: 'rgba(var(--text-rgb),0.5)' }} />}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0 }}>
+          <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)' }}>Cette semaine</p>
           <div>
             <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: WHEAT, lineHeight: 1, marginBottom: 3 }}>
               {kmWeek.toFixed(1)} <span style={{ fontSize: 16, fontWeight: 500 }}>km</span>
@@ -433,18 +411,18 @@ export default function HealthPage() {
             <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.5)' }}>{thisWeek.length} session{thisWeek.length !== 1 ? 's' : ''}</p>
           </div>
           <WeekBars data={dayKm} labels={dayLabels} color={ORANGE} />
-          <button onClick={() => router.push('/sport')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 6 }}>
+          <button onClick={() => router.push('/sport')} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 6 }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.6)' }}>VOIR LE PROGRAMME</span>
             <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.6)' }} />
           </button>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R2 C2 : POIDS ───────────────────────────────── */}
-        <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Poids</p>
-            <Scale size={18} style={{ color: 'rgba(var(--text-rgb),0.35)' }} />
-          </div>
+        <SectionCard title="Poids" num="03" accent={ACCENT} bg={TEAL_BG} titleColor="var(--ink-light)"
+          style={{ ...SECTION_COL, ...INK_LIGHT_VARS } as React.CSSProperties}
+          action={<Scale size={16} style={{ color: 'rgba(var(--text-rgb),0.5)' }} />}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0 }}>
           <div>
             <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.45)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Aujourd&apos;hui</p>
             <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: WHEAT, lineHeight: 1, marginBottom: 4 }}>
@@ -462,20 +440,22 @@ export default function HealthPage() {
             )}
           </div>
           <div style={{ marginBottom: 4 }}>
-            <WeightSparkLine data={weightHistory} />
+            {weightHistory.length >= 2
+              ? <WeightSparkLine data={weightHistory} />
+              : <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.55)' }}>Pas encore assez de mesures</p>}
           </div>
-          <button onClick={() => router.push('/health/poids')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => router.push('/health/poids')} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.6)' }}>VOIR L&apos;ÉVOLUTION</span>
             <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.6)' }} />
           </button>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R2 C3 : SOMMEIL ─────────────────────────────── */}
-        <div style={{ ...darkCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <p style={{ ...lbl('rgba(160,130,220,0.7)') }}>Sommeil</p>
-            <Moon size={18} style={{ color: 'rgba(160,130,220,0.5)' }} />
-          </div>
+        <SectionCard title="Sommeil" num="04" accent={ACCENT} bg="var(--bg)"
+          style={SECTION_COL}
+          action={<Moon size={16} style={{ color: 'rgba(160,130,220,0.6)' }} />}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0 }}>
           <div>
             <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Dernière nuit</p>
             <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: 'var(--text)', lineHeight: 1, marginBottom: 6 }}>
@@ -491,11 +471,12 @@ export default function HealthPage() {
             <AppleIcon size={11} style={{ color: 'rgba(160,130,220,0.7)', flexShrink: 0 }} />
             <span style={{ fontSize: 9, color: 'rgba(160,130,220,0.6)' }}>Sommeil — connexion Apple Santé à venir</span>
           </div>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R2 C4 : FORME GÉNÉRALE ──────────────────────── */}
-        <div style={{ ...card(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <p style={{ ...lbl(TEAL) }}>Forme générale</p>
+        <SectionCard title="Forme générale" num="05" accent={ACCENT} style={SECTION_COL}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14, minHeight: 0 }}>
           {[
             { l: 'Running / sem.',    v: `${kmWeek.toFixed(1)} km`, pct: Math.min(100, (kmWeek / 30) * 100),            color: TEAL_BG },
             { l: 'Sorties / sem.',    v: `${thisWeek.length} / 4`,  pct: Math.min(100, (thisWeek.length / 4) * 100),    color: ORANGE },
@@ -512,36 +493,36 @@ export default function HealthPage() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R3 C1-2 : PROGRAMME COURSE ──────────────────── */}
-        <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.5)') }}>Programme Course à Pied</p>
-            <button onClick={() => router.push('/sport')}
-              style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.35)', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <SectionCard title="Programme Course à Pied" num="06" accent={ACCENT} bg="var(--bg)"
+          style={{ gridColumn: 'span 2', ...SECTION_COL }}
+          action={
+            <button onClick={() => router.push('/sport')} className="nb-press"
+              style={{ ...DF, fontSize: 10, fontWeight: 700, minHeight: 40, padding: '0 4px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
               Plan actuel ▾
             </button>
-          </div>
+          }>
+          <div style={{ padding: 26, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
           {/* Sessions list from recent activities */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
             {activities.length === 0 && !loading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 8 }}>
-                <Activity size={24} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
-                <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.3)' }}>Aucune session enregistrée</p>
-                <button onClick={() => setShowRForm(true)}
-                  style={{ ...DF, fontSize: 11, fontWeight: 700, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
-                  + Ajouter un run
-                </button>
+                <Activity size={24} style={{ color: 'var(--text-subtle)' }} />
+                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune session enregistrée</p>
+                <StickerButton onClick={() => setShowRForm(true)} accent={ORANGE}>
+                  <Plus size={13} /> Ajouter un run
+                </StickerButton>
               </div>
             ) : activities.slice(0, 6).map((a, i) => {
               const isToday = a.date === today.toISOString().slice(0, 10)
               return (
-                <div key={a.id} className="health-row nb-press" onClick={() => router.push(`/sport/${a.id}`)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 'var(--radius-lg)',
+                <div key={a.id} className="health-row nb-press nb-card" onClick={() => router.push(`/sport/${a.id}`)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', minHeight: 40,
                     background: isToday ? `rgba(242,84,45,0.15)` : 'rgba(var(--text-rgb),0.04)',
-                    border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
                     cursor: 'pointer' }}>
                   <div style={{ width: 36, height: 36, borderRadius: 8, background: isToday ? ORANGE : 'rgba(var(--text-rgb),0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -573,19 +554,19 @@ export default function HealthPage() {
             })}
           </div>
 
-          <button onClick={() => router.push('/sport')}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 6, borderTop: '1px solid rgba(var(--text-rgb),0.07)' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.35)' }}>VOIR TOUT LE PROGRAMME</span>
-            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.35)' }} />
+          <button onClick={() => router.push('/sport')} className="nb-press"
+            style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 6, borderTop: '1px solid rgba(var(--text-rgb),0.07)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>VOIR TOUT LE PROGRAMME</span>
+            <ChevronRight size={11} style={{ color: 'var(--text-muted)' }} />
           </button>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R3 C3-4 : ACTIVITÉ HEBDOMADAIRE ─────────────── */}
-        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Activité hebdomadaire</p>
-            <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.35)' }}>Cette semaine</span>
-          </div>
+        <SectionCard title="Activité hebdomadaire" num="07" accent={ACCENT} bg={TEAL_BG} titleColor="var(--ink-light)"
+          style={{ gridColumn: 'span 2', ...SECTION_COL, ...INK_LIGHT_VARS } as React.CSSProperties}
+          action={<span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.55)' }}>Cette semaine</span>}>
+          <div style={{ padding: 26, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {/* Stats row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
             {[
@@ -627,14 +608,14 @@ export default function HealthPage() {
               </div>
             ))}
           </div>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R4 C1 : FRÉQUENCE CARDIAQUE ─────────────────── */}
-        <div style={{ ...darkCard(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <p style={{ ...lbl('rgba(255,80,80,0.7)') }}>Fréquence cardiaque</p>
-            <Heart size={16} style={{ color: 'rgba(255,80,80,0.5)' }} />
-          </div>
+        <SectionCard title="Fréquence cardiaque" num="08" accent={ACCENT} bg="var(--bg)"
+          style={SECTION_COL}
+          action={<Heart size={16} style={{ color: 'rgba(255,80,80,0.7)' }} />}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
           <div>
             <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Repos (moy.)</p>
             <p style={{ ...DF, fontSize: 40, fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>
@@ -642,7 +623,9 @@ export default function HealthPage() {
             </p>
           </div>
           <div style={{ flex: 1 }}>
-            <HrSparkLine data={hrData} />
+            {hrData.filter(v => v > 0).length >= 2
+              ? <HrSparkLine data={hrData} />
+              : <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucune donnée cardiaque</p>}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {activities.slice(0, 2).map(a => a.heart_rate_avg && (
@@ -652,26 +635,25 @@ export default function HealthPage() {
               </div>
             ))}
           </div>
-          <button onClick={() => router.push('/health/frequence-cardiaque')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.2)' }}>VOIR PLUS</span>
-            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
+          <button onClick={() => router.push('/health/frequence-cardiaque')} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>VOIR PLUS</span>
+            <ChevronRight size={11} style={{ color: 'var(--text-muted)' }} />
           </button>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R4 C2 : NUTRITION ───────────────────────────── */}
-        <div style={{ ...darkCard(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.4)') }}>Nutrition</p>
-            <Utensils size={16} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
-          </div>
+        <SectionCard title="Nutrition" num="09" accent={ACCENT} bg="var(--bg)"
+          style={SECTION_COL}
+          action={<Utensils size={16} style={{ color: 'var(--text-muted)' }} />}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
           {!hasNutrition ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center' }}>
-              <Utensils size={24} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
-              <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.4)' }}>Planifie tes repas dans Recettes</p>
-              <button onClick={() => router.push('/recettes')}
-                style={{ ...DF, fontSize: 11, fontWeight: 700, color: TEAL, background: 'none', border: 'none', cursor: 'pointer' }}>
+              <Utensils size={24} style={{ color: 'var(--text-subtle)' }} />
+              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Planifie tes repas dans Recettes</p>
+              <StickerButton onClick={() => router.push('/recettes')} accent={TEAL} ink="var(--ink-light)" tilt="l">
                 Aller aux recettes →
-              </button>
+              </StickerButton>
             </div>
           ) : (
             <>
@@ -704,20 +686,20 @@ export default function HealthPage() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => router.push('/recettes')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
-                <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.2)' }}>VOIR LES RECETTES</span>
-                <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.2)' }} />
+              <button onClick={() => router.push('/recettes')} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 'auto' }}>
+                <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>VOIR LES RECETTES</span>
+                <ChevronRight size={11} style={{ color: 'var(--text-muted)' }} />
               </button>
             </>
           )}
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R4 C3 : HYDRATATION ─────────────────────────── */}
-        <div style={{ ...orangeCard(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <p style={{ ...lbl('#1A0A0A') }}>Hydratation</p>
-            <Droplets size={16} style={{ color: 'rgba(26,10,10,0.5)' }} />
-          </div>
+        <SectionCard title="Hydratation" num="10" accent={ACCENT} bg={ORANGE} titleColor="var(--ink-dark)"
+          style={{ ...SECTION_COL, ...INK_DARK_VARS } as React.CSSProperties}
+          action={<Droplets size={16} style={{ color: 'rgba(26,10,10,0.6)' }} />}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
           <div>
             <p style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Eau bue</p>
             <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>
@@ -737,23 +719,24 @@ export default function HealthPage() {
               </button>
             ))}
           </div>
-          <button onClick={() => updateGlasses(glasses + 1)}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(26,10,10,0.15)', border: 'none', borderRadius: 8, padding: '9px 0', cursor: 'pointer', justifyContent: 'center' }}>
-            <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: '#1A0A0A' }}>+ AJOUTER UN VERRE</span>
+          <button onClick={() => updateGlasses(glasses + 1)} className="nb-press"
+            style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'rgba(26,10,10,0.15)', border: 'none', borderRadius: 8, padding: '9px 0', cursor: 'pointer', justifyContent: 'center' }}>
+            <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--ink-dark)' }}>+ AJOUTER UN VERRE</span>
           </button>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R4 C4 : APPLE SANTÉ ─────────────────────────── */}
-        <div style={{ ...card(), padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <p style={{ ...lbl(TEAL) }}>Intégrations santé</p>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <SectionCard title="Intégrations santé" num="11" accent={ACCENT} style={SECTION_COL}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto' }}>
             {[
               { icon: <AppleIcon size={18} />, name: 'Apple Santé', desc: 'Pas, sommeil, calories, FC', status: 'soon', color: '#666' },
               { icon: <Activity size={18} />,  name: 'Strava',      desc: 'Activités course importées', status: 'active', color: '#FC4C02' },
               { icon: <Heart size={18} />,     name: 'Garmin',      desc: 'Montres & capteurs',         status: 'soon', color: '#007DC3' },
             ].map(s => (
-              <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 'var(--radius-lg)',
-                background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+              <div key={s.name} className="nb-card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                background: 'var(--bg-input)' }}>
                 <div style={{ color: s.color, flexShrink: 0 }}>{s.icon}</div>
                 <div style={{ flex: 1 }}>
                   <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: 'var(--text)' }}>{s.name}</p>
@@ -771,16 +754,18 @@ export default function HealthPage() {
             <p style={{ fontSize: 10, color: TEAL, ...DF, fontWeight: 600 }}>Sync Recettes → Nutrition</p>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>Les recettes consommées alimenteront automatiquement le suivi nutritionnel.</p>
           </div>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R5 C1-2 : MESURES CORPORELLES ───────────────── */}
-        <div style={{ ...card(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <p style={{ ...lbl() }}>Mesures corporelles</p>
+        <SectionCard title="Mesures corporelles" num="12" accent={ACCENT}
+          style={{ gridColumn: 'span 2', ...SECTION_COL }}
+          action={
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
               {today.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
             </span>
-          </div>
+          }>
+          <div style={{ padding: 26, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, flex: 1 }}>
             {(() => {
               const p = (mesures as any).prev ?? {}
@@ -796,7 +781,7 @@ export default function HealthPage() {
                 { l: 'IMC',              v: mesures.imc        != null ? String(mesures.imc)        : '—', delta: mesures.imc != null && mesures.imc < 25 ? 'Normal' : mesures.imc != null ? 'Surpoids' : '', up: null, color: WHEAT  },
               ]
             })().map(s => (
-              <div key={s.l} style={{ padding: '16px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+              <div key={s.l} className="nb-card" style={{ padding: '16px 14px', background: 'var(--bg-input)' }}>
                 <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{s.l}</p>
                 <p style={{ ...DF, fontSize: 22, fontWeight: 900, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.v}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -807,23 +792,24 @@ export default function HealthPage() {
               </div>
             ))}
           </div>
-          <button onClick={() => router.push('/health/mesures')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 'auto', borderTop: '1px solid var(--border)' }}>
+          <button onClick={() => router.push('/health/mesures')} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', padding: '14px 0 0', marginTop: 'auto', borderTop: '1px solid var(--border)' }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>VOIR L&apos;HISTORIQUE</span>
             <ChevronRight size={11} style={{ color: 'var(--text-muted)' }} />
           </button>
-        </div>
+          </div>
+        </SectionCard>
 
         {/* ── R5 C3-4 : DÉFIS & OBJECTIFS ─────────────────── */}
-        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Défis &amp; Objectifs</p>
+        <SectionCard title="Défis & Objectifs" num="13" accent={ACCENT} bg={TEAL_BG} titleColor="var(--ink-light)"
+          style={{ gridColumn: 'span 2', ...SECTION_COL, ...INK_LIGHT_VARS } as React.CSSProperties}>
+          <div style={{ padding: '22px 24px', flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0 }}>
 
           {lsObjectifs.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center' }}>
-              <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.5)' }}>Aucun objectif défini</p>
-              <button onClick={() => router.push('/health/objectifs')} className="nb-press"
-                style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--ink-dark)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '8px 16px', cursor: 'pointer' }}>
-                + Ajoute un objectif
-              </button>
+              <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.6)' }}>Aucun objectif défini</p>
+              <StickerButton onClick={() => router.push('/health/objectifs')} accent={ORANGE}>
+                <Plus size={13} /> Ajoute un objectif
+              </StickerButton>
             </div>
           ) : (
             <>
@@ -879,11 +865,12 @@ export default function HealthPage() {
             </>
           )}
 
-          <button onClick={() => router.push('/health/objectifs')} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(var(--text-rgb),0.1)' }}>
-            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.35)' }}>VOIR TOUS LES OBJECTIFS</span>
-            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.35)' }} />
+          <button onClick={() => router.push('/health/objectifs')} className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0 0', marginTop: 'auto', borderTop: '1px solid rgba(var(--text-rgb),0.1)' }}>
+            <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: 'rgba(var(--text-rgb),0.6)' }}>VOIR TOUS LES OBJECTIFS</span>
+            <ChevronRight size={11} style={{ color: 'rgba(var(--text-rgb),0.6)' }} />
           </button>
-        </div>
+          </div>
+        </SectionCard>
 
       </div>
     </div>

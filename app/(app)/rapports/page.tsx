@@ -3,11 +3,12 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
-  ArrowRight, X, TrendingUp, TrendingDown,
-  Clock, CheckSquare, Activity, DollarSign,
-  Award, Zap, Heart, Flame, Star, Target,
+  ArrowRight, X, TrendingUp,
+  Clock, CheckSquare, DollarSign,
+  Zap, Heart, Flame, Star,
   BarChart2, ChevronRight,
 } from '@/components/ui/icons'
+import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useRapports } from '@/hooks/useRapports'
 import { useHealth }   from '@/hooks/useHealth'
 import { useMultiMonthSummary } from '@/hooks/useBudget'
@@ -49,11 +50,6 @@ type PeriodKey  = '7d' | '30d' | '3m' | 'year'
 type PanelType  = 'activite'|'repartition'|'tt'|'sante'|'finances'|'equilibre'|'progression'|'realisations'|'ia'|null
 
 // ── Shared card style ──────────────────────────────────────────────────────
-const CARD: React.CSSProperties = {
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)',
-  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-  display: 'flex', flexDirection: 'column',
-}
 const LBL: React.CSSProperties = {
   ...DF, fontSize: 10, fontWeight: 800,
   letterSpacing: '0.13em', textTransform: 'uppercase',
@@ -66,7 +62,7 @@ const HDR: React.CSSProperties = {
 // ── FooterLink ─────────────────────────────────────────────────────────────
 function FooterLink({ label, onClick, href }: { label: string; onClick?: () => void; href?: string }) {
   const base: React.CSSProperties = {
-    padding: '11px 20px', borderLeft: 0, borderRight: 0, borderBottom: 0,
+    minHeight: 40, padding: '11px 20px', borderLeft: 0, borderRight: 0, borderBottom: 0,
     borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center',
     justifyContent: 'space-between', flexShrink: 0, marginTop: 'auto',
     width: '100%', background: 'transparent', cursor: 'pointer',
@@ -109,7 +105,8 @@ function Drawer({ title, open, onClose, children, width = 480 }: {
       }}>
         <div style={{ ...HDR, borderBottom: '1px solid var(--border)', padding: '20px 24px 16px', flexShrink: 0 }}>
           <span style={{ ...DF, fontSize: 14, fontWeight: 900, color: WHEAT }}>{title}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
+          <button onClick={onClose} className="nb-press" title="Fermer"
+            style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
             <X size={16} />
           </button>
         </div>
@@ -121,7 +118,7 @@ function Drawer({ title, open, onClose, children, width = 480 }: {
 
 // ── ActivityChart ──────────────────────────────────────────────────────────
 function ActivityChart({ data }: { data: DayStat[] }) {
-  if (!data.length) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Aucune donnée</span></div>
+  if (!data.length) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}><span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Aucune donnée sur cette période</span></div>
   const W = 540, H = 160
   const pL = 8, pR = 8, pT = 10, pB = 22
   const cW = W - pL - pR, cH = H - pT - pB
@@ -189,7 +186,7 @@ function DonutChart({ segments, total, size = 160 }: {
 
 // ── ProgressionChart ───────────────────────────────────────────────────────
 function ProgressionChart({ months }: { months: MonthSummary[] }) {
-  if (months.length < 2) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: 12 }}>Données insuffisantes</span></div>
+  if (months.length < 2) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}><span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Données insuffisantes — il faut au moins 2 mois</span></div>
   const W = 460, H = 140
   const pL = 10, pR = 10, pT = 10, pB = 22
   const cW = W - pL - pR, cH = H - pT - pB
@@ -576,16 +573,6 @@ export default function RapportsPage() {
 
   const activePanel = panel && PANELS[panel]
 
-  // ── Shared inline card header ──────────────────────────────────────────
-  function CH({ label, color = 'var(--text-muted)', right }: { label: string; color?: string; right?: React.ReactNode }) {
-    return (
-      <div style={HDR}>
-        <span style={{ ...LBL, color }}>{label}</span>
-        {right}
-      </div>
-    )
-  }
-
   // ════ RENDER ═══════════════════════════════════════════════════════════
   const PERIOD_TABS: { key: PeriodKey; label: string }[] = [
     { key: '7d',   label: '7 JOURS' },
@@ -610,23 +597,24 @@ export default function RapportsPage() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: 'minmax(280px,auto) minmax(240px,auto) minmax(480px,auto) minmax(360px,auto) minmax(260px,auto) auto',
+        gridTemplateRows: 'minmax(280px,auto) auto minmax(480px,auto) minmax(360px,auto) minmax(260px,auto) auto',
         gap: 12,
       }}>
 
-        {/* ── R1 C1-2 : Header + Tabs ─────────────────────────────────── */}
+        {/* ── R1 C1-2 : En-tête + filtres de période ──────────────────── */}
         <div style={{ gridColumn: '1/3', gridRow: '1/2', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', paddingBottom: 4 }}>
-          <div>
-            <h1 style={{ ...DF, fontSize: 52, fontWeight: 900, color: WHEAT, letterSpacing: '-0.02em', lineHeight: 0.95, marginBottom: 6 }}>RAPPORTS.</h1>
-            <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 20 }}>
-              ANALYSEZ · PROGRESSEZ · PAS À PAS
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <PageTitle
+            title="Rapports"
+            sub="Analysez · Progressez · Pas à pas"
+            accent="var(--accent-rapports)"
+            icon={BarChart2}
+            iconInk="var(--ink-light)"
+          />
+          <div className="toolbar-scroll" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {PERIOD_TABS.map(t => (
               <button key={t.key} onClick={() => setActivePeriod(t.key)} className="nb-press"
                 style={{
-                  padding: '8px 16px', borderRadius: 8,
+                  minHeight: 40, padding: '8px 16px', borderRadius: 8,
                   border: activePeriod === t.key ? '2px solid var(--ink)' : '2px solid var(--border)',
                   boxShadow: activePeriod === t.key ? '3px 3px 0 var(--ink)' : 'none',
                   background: activePeriod === t.key ? ORANGE : 'var(--bg-card)',
@@ -640,11 +628,13 @@ export default function RapportsPage() {
         </div>
 
         {/* ── R1 C3-4 : VUE D'ENSEMBLE ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '3/5', gridRow: '1/2', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '26, 10, 10', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
-          <div style={{ ...HDR, borderBottom: '1px solid rgba(var(--text-rgb),0.2)', padding: '16px 22px 12px' }}>
-            <span style={{ ...LBL, color: 'rgba(var(--text-rgb),0.9)' }}>Vue d'ensemble</span>
-            <TrendingUp size={14} style={{ color: 'rgba(var(--text-rgb),0.7)' }} />
-          </div>
+        <SectionCard
+          title="Vue d'ensemble" num="01" accent="var(--accent-rapports)"
+          titleColor="var(--ink-dark)"
+          bg={ORANGE}
+          action={<TrendingUp size={14} style={{ color: 'rgba(var(--text-rgb),0.7)' }} />}
+          style={{ gridColumn: '3/5', gridRow: '1/2', display: 'flex', flexDirection: 'column', '--text-rgb': '26, 10, 10', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}
+        >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1 }}>
             {[
               { icon: <Zap size={16} />,         label: 'Productivité', value: scoreProductivite },
@@ -660,62 +650,51 @@ export default function RapportsPage() {
               </div>
             ))}
           </div>
+        </SectionCard>
+
+        {/* ── R2 : 4 KPI ──────────────────────────────────────────────── */}
+        <div style={{ gridColumn: '1/5', gridRow: '2/3' }}>
+          <KpiGrid>
+            <KpiCard
+              label="Temps productif" accent={ORANGE} color={ORANGE}
+              value={loading ? '…' : fmtSec(data?.totalSeconds ?? 0)}
+              sub={loading ? '' : `Moy. ${fmtSec(Math.round((data?.totalSeconds ?? 0) / days))} / jour`}
+            />
+            <KpiCard
+              label="Tâches accomplies" accent={TEAL} color={TEAL}
+              value={loading ? '…' : `${data?.tasksDone ?? 0} / ${data?.tasksTotal ?? 0}`}
+              progress={data?.tasksTotal ? data.tasksDone / data.tasksTotal : 0}
+            />
+            <KpiCard
+              label="Courses" accent="var(--accent-rapports)" color="var(--accent-rapports)"
+              value={loading ? '…' : `${data?.totalRuns ?? 0} sorties`}
+              sub={loading ? '' : `${(data?.totalKm ?? 0).toFixed(1)} km parcourus`}
+            />
+            <KpiCard
+              label="Solde financier" accent={balance >= 0 ? TEAL : ORANGE} color={balance >= 0 ? TEAL : ORANGE}
+              value={loading ? '…' : fmtEur(balance)}
+              sub={loading ? '' : `Revenus ${fmtEur(data?.totalIncome ?? 0)}`}
+            />
+          </KpiGrid>
         </div>
 
-        {/* ── R2 : 4 KPI cards ────────────────────────────────────────── */}
-        {[
-          {
-            icon: <Clock size={14} />, label: 'Temps productif', color: ORANGE,
-            value: loading ? '…' : fmtSec(data?.totalSeconds ?? 0),
-            sub:   loading ? '' : `Moy. ${fmtSec(Math.round((data?.totalSeconds ?? 0) / days))} / jour`,
-            panel: 'tt' as PanelType,
-          },
-          {
-            icon: <CheckSquare size={14} />, label: 'Tâches accomplies', color: TEAL,
-            value: loading ? '…' : String(data?.tasksDone ?? 0),
-            sub:   loading ? '' : `sur ${data?.tasksTotal ?? 0} — ${data?.tasksTotal ? pct(data.tasksDone, data.tasksTotal) : 0}% complétion`,
-            panel: null,
-          },
-          {
-            icon: <Activity size={14} />, label: 'Courses', color: '#9B72CF',
-            value: loading ? '…' : `${data?.totalRuns ?? 0} sorties`,
-            sub:   loading ? '' : `${(data?.totalKm ?? 0).toFixed(1)} km parcourus`,
-            panel: 'sante' as PanelType,
-          },
-          {
-            icon: <DollarSign size={14} />, label: 'Solde financier', color: balance >= 0 ? TEAL : ORANGE,
-            value: loading ? '…' : fmtEur(balance),
-            sub:   loading ? '' : `Revenus ${fmtEur(data?.totalIncome ?? 0)}`,
-            panel: 'finances' as PanelType,
-          },
-        ].map((k, i) => (
-          <div key={i} style={{ ...CARD, gridColumn: `${i + 1}/${i + 2}`, gridRow: '2/3' }}>
-            <div style={{ padding: '18px 20px', flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <span style={{ color: k.color }}>{k.icon}</span>
-                <span style={{ ...LBL, color: 'var(--text-muted)', fontSize: 9 }}>{k.label}</span>
-              </div>
-              <p style={{ ...DF, fontSize: 28, fontWeight: 900, color: k.color, lineHeight: 1, marginBottom: 6 }}>{k.value}</p>
-              <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{k.sub}</p>
-            </div>
-            {k.panel && <FooterLink label={`Voir ${k.label.toLowerCase()}`} onClick={() => setPanel(k.panel)} />}
-          </div>
-        ))}
-
         {/* ── R3 C1-2 : Aperçu activité ────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/3', gridRow: '3/4', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
-          <CH label="Aperçu de l'activité" color={WHEAT}
-            right={
-              <div style={{ display: 'flex', gap: 12 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 99, background: TEAL, display: 'inline-block' }} /> Temps
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 99, background: ORANGE, display: 'inline-block' }} /> Tâches
-                </span>
-              </div>
-            }
-          />
+        <SectionCard
+          title="Aperçu de l'activité" num="02" accent="var(--accent-rapports)"
+          titleColor="var(--ink-light)"
+          bg="var(--azul)"
+          action={
+            <div style={{ display: 'flex', gap: 12 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: 99, background: TEAL, display: 'inline-block' }} /> Temps
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(var(--text-rgb),0.7)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: 99, background: ORANGE, display: 'inline-block' }} /> Tâches
+              </span>
+            </div>
+          }
+          style={{ gridColumn: '1/3', gridRow: '3/4', display: 'flex', flexDirection: 'column', '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}
+        >
           <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             {loading
               ? <p style={{ color: 'rgba(var(--text-rgb),0.4)', fontSize: 12 }}>Chargement…</p>
@@ -723,11 +702,13 @@ export default function RapportsPage() {
             }
           </div>
           <FooterLink label="Voir l'analyse détaillée" onClick={() => setPanel('activite')} />
-        </div>
+        </SectionCard>
 
         {/* ── R3 C3-4 : Répartition du temps ──────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '3/5', gridRow: '3/4' }}>
-          <CH label="Répartition du temps" color={TEAL} />
+        <SectionCard
+          title="Répartition du temps" num="03" accent="var(--accent-rapports)" titleColor={TEAL}
+          style={{ gridColumn: '3/5', gridRow: '3/4', display: 'flex', flexDirection: 'column' }}
+        >
           <div style={{ flex: 1, padding: '16px 20px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
             <div style={{ flexShrink: 0 }}>
               <DonutChart segments={donutSegments} total={data?.totalSeconds ?? 0} size={160} />
@@ -754,11 +735,13 @@ export default function RapportsPage() {
             </div>
           </div>
           <FooterLink label="Voir détail par catégorie" onClick={() => setPanel('repartition')} />
-        </div>
+        </SectionCard>
 
         {/* ── R4 C1 : Time Trackers ────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/2', gridRow: '4/5' }}>
-          <CH label="Time Trackers" color={TEAL} />
+        <SectionCard
+          title="Time Trackers" num="04" accent="var(--accent-rapports)" titleColor={TEAL}
+          style={{ gridColumn: '1/2', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
+        >
           <div style={{ padding: '16px 20px', flex: 1 }}>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{loading ? '…' : fmtSec(data?.totalSeconds ?? 0)}</p>
             <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Total {periodeLabel}</p>
@@ -778,11 +761,13 @@ export default function RapportsPage() {
             </div>
           </div>
           <FooterLink label="Voir le rapport complet" onClick={() => setPanel('tt')} />
-        </div>
+        </SectionCard>
 
         {/* ── R4 C2 : Santé ───────────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '2/3', gridRow: '4/5' }}>
-          <CH label="Santé" color={ORANGE} />
+        <SectionCard
+          title="Santé" num="05" accent="var(--accent-rapports)" titleColor={ORANGE}
+          style={{ gridColumn: '2/3', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
+        >
           <div style={{ padding: '16px 20px', flex: 1 }}>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{loading ? '…' : `${scoreSante}`}<span style={{ fontSize: 14, color: 'var(--text-muted)', marginLeft: 2 }}>/100</span></p>
             <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Score moyen</p>
@@ -807,11 +792,13 @@ export default function RapportsPage() {
             </div>
           </div>
           <FooterLink label="Voir le rapport santé" onClick={() => setPanel('sante')} />
-        </div>
+        </SectionCard>
 
         {/* ── R4 C3 : Tâches & Activité ───────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '3/4', gridRow: '4/5' }}>
-          <CH label="Tâches & Activité" color="#9B72CF" />
+        <SectionCard
+          title="Tâches & Activité" num="06" accent="var(--accent-rapports)" titleColor="var(--accent-rapports)"
+          style={{ gridColumn: '3/4', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
+        >
           <div style={{ padding: '16px 20px', flex: 1 }}>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{loading ? '…' : String(data?.tasksDone ?? 0)}</p>
             <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Tâches terminées</p>
@@ -833,11 +820,13 @@ export default function RapportsPage() {
             </div>
           </div>
           <FooterLink label="Voir les tâches" href="/todo" />
-        </div>
+        </SectionCard>
 
         {/* ── R4 C4 : Finances ────────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '4/5', gridRow: '4/5' }}>
-          <CH label="Finances" color={TEAL} />
+        <SectionCard
+          title="Finances" num="07" accent="var(--accent-rapports)" titleColor={TEAL}
+          style={{ gridColumn: '4/5', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
+        >
           <div style={{ padding: '16px 20px', flex: 1 }}>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: balance >= 0 ? TEAL : ORANGE, lineHeight: 1 }}>{loading ? '…' : fmtEur(balance)}</p>
             <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Épargne {periodeLabel}</p>
@@ -862,11 +851,13 @@ export default function RapportsPage() {
             </div>
           </div>
           <FooterLink label="Voir le rapport financier" onClick={() => setPanel('finances')} />
-        </div>
+        </SectionCard>
 
         {/* ── R5 C1 : Équilibre de vie ─────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/2', gridRow: '5/6' }}>
-          <CH label="Équilibre de vie" color={WHEAT} />
+        <SectionCard
+          title="Équilibre de vie" num="08" accent="var(--accent-rapports)" titleColor={WHEAT}
+          style={{ gridColumn: '1/2', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
+        >
           <div style={{ padding: '16px 20px', flex: 1 }}>
             <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>Répartition scores</p>
             <p style={{ ...DF, fontSize: 32, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{scoreEquilibre}%</p>
@@ -887,31 +878,34 @@ export default function RapportsPage() {
             </div>
           </div>
           <FooterLink label="Voir l'analyse complète" onClick={() => setPanel('equilibre')} />
-        </div>
+        </SectionCard>
 
         {/* ── R5 C2-3 : Progression globale ───────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '2/4', gridRow: '5/6' }}>
-          <CH label="Progression globale" color={TEAL}
-            right={
-              <div style={{ display: 'flex', gap: 10 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-muted)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: 99, background: TEAL, display: 'inline-block' }} /> Revenus
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-muted)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: 99, background: ORANGE, display: 'inline-block' }} /> Dépenses
-                </span>
-              </div>
-            }
-          />
+        <SectionCard
+          title="Progression globale" num="09" accent="var(--accent-rapports)" titleColor={TEAL}
+          action={
+            <div style={{ display: 'flex', gap: 10 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-muted)' }}>
+                <span style={{ width: 6, height: 6, borderRadius: 99, background: TEAL, display: 'inline-block' }} /> Revenus
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-muted)' }}>
+                <span style={{ width: 6, height: 6, borderRadius: 99, background: ORANGE, display: 'inline-block' }} /> Dépenses
+              </span>
+            </div>
+          }
+          style={{ gridColumn: '2/4', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
+        >
           <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <ProgressionChart months={multiMonth} />
           </div>
           <FooterLink label="Voir les tendances" onClick={() => setPanel('progression')} />
-        </div>
+        </SectionCard>
 
         {/* ── R5 C4 : Réalisations ────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '4/5', gridRow: '5/6' }}>
-          <CH label="Réalisations" color={ORANGE} />
+        <SectionCard
+          title="Réalisations" num="10" accent="var(--accent-rapports)" titleColor={ORANGE}
+          style={{ gridColumn: '4/5', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
+        >
           <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {realisations.length === 0 && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
@@ -932,10 +926,10 @@ export default function RapportsPage() {
             ))}
           </div>
           <FooterLink label="Voir toutes les réalisations" onClick={() => setPanel('realisations')} />
-        </div>
+        </SectionCard>
 
         {/* ── R6 : Insight IA ─────────────────────────────────────────── */}
-        <div style={{ ...CARD, gridColumn: '1/5', gridRow: '6/7', flexDirection: 'row', minHeight: 160, background: '#0E1630', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
+        <div className="nb-card" style={{ gridColumn: '1/5', gridRow: '6/7', display: 'flex', flexDirection: 'row', overflow: 'hidden', minHeight: 160, background: '#0E1630', '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
           <div style={{ flex: 1.2, padding: '20px 28px', borderRight: '1px solid rgba(14,149,148,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(14,149,148,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -976,10 +970,9 @@ export default function RapportsPage() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', borderLeft: '1px solid rgba(14,149,148,0.2)' }}>
-            <button onClick={() => setPanel('ia')} className="nb-press"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 10, background: TEAL, color: 'var(--ink-light)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <StickerButton onClick={() => setPanel('ia')} accent={TEAL} ink="var(--ink-light)" tilt="l" title="Ouvrir l'analyse complète de l'Agent IA">
               Voir tout <ArrowRight size={12} />
-            </button>
+            </StickerButton>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { RefreshCw, Loader2, ExternalLink } from '@/components/ui/icons'
+import { RefreshCw, Loader2, ExternalLink, List } from '@/components/ui/icons'
 import { PageTitle } from '@/components/ui/PageTitle'
 import { useDigests } from '@/hooks/useDigests'
 import { DigestCard } from '@/components/brief/DigestCard'
@@ -51,7 +51,7 @@ export default function BriefPage() {
 
   return (
     <div style={{ padding: 30, minHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <PageTitle title="Brief" sub="Briefs & débriefs quotidiens"
+      <PageTitle title="Brief" sub="Briefs & débriefs quotidiens" accent="var(--azul)" icon={List} iconInk="var(--ink-light)"
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button onClick={toggleDock} className="nb-press" title="Ouvrir/fermer la mini-fenêtre Brief (dispo sur toutes les pages)"

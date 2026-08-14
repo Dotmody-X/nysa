@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVertical } from '@/components/ui/icons'
+import { Search, Plus, Flame, Zap, ChevronRight, Check, X, Star, Trash2, MoreVertical, UtensilsCrossed } from '@/components/ui/icons'
+import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useRecipes, calcRecipeNutrition } from '@/hooks/useRecipes'
 import { useMealPlan, MEAL_TYPES, currentWeekDays, type MealType } from '@/hooks/useMealPlan'
 import { useShoppingLists, useShoppingItems } from '@/hooks/useShoppingLists'
@@ -20,18 +21,12 @@ const WHEAT   = 'var(--text)'
 const TEAL_BG = 'var(--azul)'
 
 /* ─── Card helpers ───────────────────────────────────────────── */
-const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
-})
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: TEAL_BG, '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
 const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: ORANGE, '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
 } as React.CSSProperties)
-const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
-})
 const lbl = (color = ORANGE): React.CSSProperties => ({
   ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
 })
@@ -269,64 +264,109 @@ export default function RecettesPage() {
       `}</style>
 
       {/* ══════════════════════════════════════════
+          EN-TÊTE — Titre collage + KPI
+      ══════════════════════════════════════════ */}
+      <PageTitle
+        title="Recettes"
+        sub="Suivi · Planification · Découverte"
+        accent="var(--accent-recettes)"
+        icon={UtensilsCrossed}
+        iconInk="var(--ink-dark)"
+        right={
+          <>
+            <StickerButton onClick={() => router.push('/recettes/new/edit')} accent={ORANGE} tilt="l">
+              <Plus size={14} /> Nouvelle recette
+            </StickerButton>
+            <StickerButton onClick={() => setDiscoverTab('pack')} accent={TEAL_BG} ink="var(--ink-light)">
+              <Zap size={14} /> Découvrir
+            </StickerButton>
+          </>
+        }
+      />
+
+      <KpiGrid>
+        <KpiCard
+          label="Mes recettes"
+          value={recipeCount > 0 ? String(recipeCount) : '—'}
+          accent="var(--accent-recettes)"
+          sub={avgCal > 0 ? `${avgCal} kcal en moyenne` : 'Aucune recette pour le moment'}
+        />
+        <KpiCard
+          label={`Calories / ${CAL_TARGET}`}
+          value={hasNutrition ? `${nutrition.cal}` : '—'}
+          accent="var(--accent-recettes)"
+          progress={nutrition.cal / CAL_TARGET}
+        />
+        <KpiCard
+          label="Indice qualité"
+          value={avgGrade ?? '—'}
+          color={avgGrade ? NUTRI_COLOR[avgGrade] : 'var(--text)'}
+          accent="var(--accent-recettes)"
+          sub={avgGrade ? `Nutri-Score · ${graded.length} recette${graded.length > 1 ? 's' : ''}` : 'Pas encore de Nutri-Score'}
+        />
+        <KpiCard
+          label="Balance du jour"
+          value={balancePct != null ? `${balancePct}%` : '—'}
+          accent="var(--accent-recettes)"
+          progress={(balancePct ?? 0) / 100}
+        />
+      </KpiGrid>
+
+      {/* ══════════════════════════════════════════
           GRID — 4 cols × 5 rows
       ══════════════════════════════════════════ */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: '300px 300px 500px 400px 260px',
+        gridTemplateRows: '340px 300px 540px 440px 320px',
         gap: 14,
       }}>
 
-        {/* ── R1 C1-2 : HERO ────────────────────────────── */}
-        <div style={{ gridColumn: 'span 2', padding: '26px 28px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden' }}>
-          {/* Title */}
-          <div>
-            <p style={{ ...DF, fontSize: 46, fontWeight: 900, color: ORANGE, lineHeight: 0.92, marginBottom: 6 }}>RECETTES.</p>
-            <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 18 }}>
-              Suivi · Planification · Mes recettes · Découverte
-            </p>
-            {/* Action buttons */}
-            <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-              <button className="rec-btn nb-press" onClick={() => router.push('/recettes/new/edit')}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-                <Plus size={11} /> Nouvelle recette
-              </button>
-              <button className="rec-btn nb-press" onClick={() => setDiscoverTab('pack')}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: TEAL_BG, color: 'var(--ink-light)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-                <Zap size={11} /> Découvrir des recettes
-              </button>
-            </div>
+        {/* ── R1 C1-2 : RECHERCHE & FILTRES ─────────────── */}
+        <SectionCard
+          title="Rechercher"
+          num="01"
+          accent="var(--accent-recettes)"
+          style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column' }}
+        >
+          <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14, flex: 1, minHeight: 0 }}>
             {/* Search */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 40,
-              borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', marginBottom: 12 }}>
+            <div className="nb-card" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', minHeight: 44 }}>
               <Search size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Chercher une recette…"
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'var(--text)' }} />
             </div>
+            {/* Filter tabs */}
+            <div className="toolbar-scroll" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignContent: 'flex-start', flex: 1, overflowY: 'auto' }}>
+              {ALL_FILTERS.map(f => (
+                <button key={f} className="rec-filter nb-press" onClick={() => setFilter(f)}
+                  style={{ padding: '5px 14px', minHeight: 40, borderRadius: 20, border: 'none', cursor: 'pointer', ...DF, fontSize: 10, fontWeight: 700,
+                    background: filter === f ? ORANGE : 'var(--bg-card)',
+                    color:      filter === f ? 'var(--ink-dark)' : 'var(--text-muted)',
+                    outline:    filter === f ? 'none'  : '1px solid var(--border)',
+                    whiteSpace: 'nowrap',
+                  }}>
+                  {f}
+                </button>
+              ))}
+            </div>
+            {filtered.length === 0 && (
+              <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Aucune recette ne correspond — change de filtre ou crée une recette.
+              </p>
+            )}
           </div>
-          {/* Filter tabs */}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {ALL_FILTERS.map(f => (
-              <button key={f} className="rec-filter" onClick={() => setFilter(f)}
-                style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', ...DF, fontSize: 10, fontWeight: 700,
-                  background: filter === f ? ORANGE : 'var(--bg-card)',
-                  color:      filter === f ? '#fff'  : 'var(--text-muted)',
-                  outline:    filter === f ? 'none'  : '1px solid var(--border)',
-                }}>
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
+        </SectionCard>
 
         {/* ── R1 C3-4 : APPORTS NUTRITIONNELS ─────────────── */}
-        <div style={{ ...orangeCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <p style={{ ...lbl('#1A0A0A') }}>Apports nutritionnels aujourd&apos;hui</p>
-
+        <SectionCard
+          title="Apports nutritionnels aujourd'hui"
+          num="02"
+          accent="var(--accent-recettes)"
+          style={{ ...orangeCard(), gridColumn: 'span 2', display: 'flex', flexDirection: 'column' }}
+        >
+         <div style={{ padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, minHeight: 0 }}>
           {hasNutrition ? (
             <>
               {/* Big calorie number */}
@@ -364,7 +404,8 @@ export default function RecettesPage() {
               </p>
             </div>
           )}
-        </div>
+         </div>
+        </SectionCard>
 
         {/* ── R2 C1-4 : RECETTES RÉCENTES ──────────────────── */}
         {filtered.slice(0, 4).map((r, i) => {
@@ -376,8 +417,8 @@ export default function RecettesPage() {
             router.refresh()
           }
           return (
-          <div key={r.id} className="rec-card nb-press" onClick={() => router.push(`/recettes/${r.id}`)}
-            style={{ ...card(), cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 20, position: 'relative' }}>
+          <div key={r.id} className="rec-card nb-press nb-card" onClick={() => router.push(`/recettes/${r.id}`)}
+            style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 20, position: 'relative', overflow: 'hidden' }}>
             {/* Fav + Delete */}
             <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8 }}>
               {r.fav && <Star size={12} fill={ORANGE} color={ORANGE} />}
@@ -421,15 +462,20 @@ export default function RecettesPage() {
         })}
 
         {/* ── R3 C1-2 : PLANIFICATION DES REPAS ───────────── */}
-        <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 26, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.5)') }}>Planification des repas</p>
-            <span style={{ fontSize: 9, padding: '3px 10px', borderRadius: 6,
+        <SectionCard
+          title="Planification des repas"
+          num="03"
+          accent="var(--accent-recettes)"
+          bg="var(--bg)"
+          style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column' }}
+          action={
+            <span style={{ fontSize: 9, padding: '3px 10px', borderRadius: 6, whiteSpace: 'nowrap',
               background: 'rgba(var(--text-rgb),0.06)', color: 'rgba(var(--text-rgb),0.3)', ...DF, fontWeight: 700 }}>
               Semaine en cours
             </span>
-          </div>
-
+          }
+        >
+         <div style={{ padding: 22, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto' }}>
             <table style={{ width: '100%', minWidth: 440, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
               <thead>
@@ -475,20 +521,26 @@ export default function RecettesPage() {
             </table>
           </div>
 
-          <button onClick={generateAutoPlan} disabled={generating}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: generating ? 'default' : 'pointer', padding: '12px 0 0', marginTop: 6, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}>
+          <button onClick={generateAutoPlan} disabled={generating} className="nb-press"
+            style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 40, background: 'none', border: 'none', cursor: generating ? 'default' : 'pointer', padding: '12px 0 0', marginTop: 6, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}>
             <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: generating ? ORANGE : 'rgba(var(--text-rgb),0.45)' }}>
               {generating ? 'GÉNÉRATION…' : 'GÉNÉRER UN PLAN AUTO'}
             </span>
             <ChevronRight size={11} style={{ color: generating ? ORANGE : 'rgba(var(--text-rgb),0.45)' }} />
           </button>
-        </div>
+         </div>
+        </SectionCard>
 
         {/* ── R3 C3-4 : CATÉGORIES + ACTIONS RAPIDES ──────── */}
-        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <SectionCard
+          title="Catégories"
+          num="04"
+          accent="var(--accent-recettes)"
+          style={{ ...tealCard(), gridColumn: 'span 2', display: 'flex', flexDirection: 'column' }}
+        >
+         <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, flex: 1, minHeight: 0 }}>
           {/* Catégories */}
-          <div>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 12 }}>Catégories</p>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {categories.length === 0 && (
                 <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.45)', padding: '6px 2px' }}>
@@ -497,9 +549,9 @@ export default function RecettesPage() {
               )}
               {categories.map(cat => (
                 <div key={cat.name} style={{ position: 'relative' }}>
-                  <button className="rec-row"
+                  <button className="rec-row nb-press"
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '9px 12px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.05)',
+                      padding: '9px 12px', minHeight: 40, borderRadius: 8, background: 'rgba(var(--text-rgb),0.05)',
                       border: 'none', cursor: 'pointer', width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 8, height: 8, borderRadius: 2, background: cat.color, flexShrink: 0 }} />
@@ -538,19 +590,25 @@ export default function RecettesPage() {
                 { l: 'Favoris', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setFilter('Toutes') },
                 { l: 'Exporter', bg: 'rgba(var(--text-rgb),0.1)', color: WHEAT, onClick: () => setDiscoverTab('io') },
               ].map(a => (
-                <button key={a.l} className="rec-btn" onClick={a.onClick}
-                  style={{ padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                <button key={a.l} className="rec-btn nb-press" onClick={a.onClick}
+                  style={{ padding: '10px', minHeight: 40, borderRadius: 9, border: 'none', cursor: 'pointer',
                     background: a.bg, color: a.color, ...DF, fontWeight: 800, fontSize: 11 }}>
                   {a.l}
                 </button>
               ))}
             </div>
           </div>
-        </div>
+         </div>
+        </SectionCard>
 
         {/* ── R4 C1 : INGRÉDIENTS À UTILISER ─────────────── */}
-        <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column' }}>
-          <p style={{ ...lbl('rgba(var(--text-rgb),0.55)'), marginBottom: 14 }}>Ingrédients à utiliser</p>
+        <SectionCard
+          title="Ingrédients à utiliser"
+          num="05"
+          accent="var(--accent-recettes)"
+          style={{ ...tealCard(), display: 'flex', flexDirection: 'column' }}
+        >
+         <div style={{ padding: 22, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
             {planIngredients.length > 0 ? planIngredients.map((ing, i) => (
               <div key={`${ing.id ?? ing.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10,
@@ -567,22 +625,27 @@ export default function RecettesPage() {
               </p>
             )}
           </div>
-          <button className="rec-btn" style={{ marginTop: 14, padding: '9px', borderRadius: 9, border: 'none', cursor: 'pointer',
+          <button className="rec-btn nb-press" style={{ marginTop: 14, padding: '9px', minHeight: 40, borderRadius: 9, border: 'none', cursor: 'pointer',
             background: 'rgba(var(--text-rgb),0.1)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 10 }}>
             + Ajouter un ingrédient
           </button>
-        </div>
+         </div>
+        </SectionCard>
 
         {/* ── R4 C2 : LISTE DE COURSES ─────────────────────── */}
-        <div style={{ ...orangeCard(), padding: 22, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <p style={{ ...lbl('#1A0A0A') }}>Liste de courses</p>
-            <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 6,
+        <SectionCard
+          title="Liste de courses"
+          num="06"
+          accent="var(--accent-recettes)"
+          style={{ ...orangeCard(), display: 'flex', flexDirection: 'column' }}
+          action={
+            <span style={{ ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap',
               background: 'rgba(26,10,10,0.15)', color: '#1A0A0A' }}>
               {courses.filter(c => c.is_checked).length}/{courses.length}
             </span>
-          </div>
-
+          }
+        >
+         <div style={{ padding: 22, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto' }}>
             {courses.length > 0 ? courses.map(c => (
               <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8,
@@ -614,30 +677,37 @@ export default function RecettesPage() {
                   placeholder="Nouvel article…" autoFocus
                   style={{ flex: 1, background: 'rgba(26,10,10,0.15)', border: '1px solid rgba(26,10,10,0.25)',
                     borderRadius: 7, padding: '7px 10px', color: '#1A0A0A', fontSize: 11, outline: 'none' }} />
-                <button onClick={addCourse}
-                  style={{ background: 'rgba(26,10,10,0.3)', border: 'none', borderRadius: 7, padding: '0 10px', cursor: 'pointer' }}>
+                <button onClick={addCourse} className="nb-press" title="Ajouter l'article"
+                  style={{ background: 'rgba(26,10,10,0.3)', border: 'none', borderRadius: 7, padding: '0 12px', minHeight: 40, cursor: 'pointer' }}>
                   <Check size={12} color="#1A0A0A" />
                 </button>
               </div>
             ) : (
-              <button onClick={() => setShowAddItem(true)} className="rec-btn"
-                style={{ width: '100%', padding: '9px', borderRadius: 9, border: 'none', cursor: 'pointer',
+              <button onClick={() => setShowAddItem(true)} className="rec-btn nb-press"
+                style={{ width: '100%', padding: '9px', minHeight: 40, borderRadius: 9, border: 'none', cursor: 'pointer',
                   background: 'rgba(26,10,10,0.15)', color: '#1A0A0A', ...DF, fontWeight: 700, fontSize: 10 }}>
                 + Ajouter un article
               </button>
             )}
           </div>
-        </div>
+         </div>
+        </SectionCard>
 
         {/* ── R4 C3-4 : MES RECETTES ───────────────────────── */}
-        <div style={{ ...darkCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.4)') }}>Mes recettes</p>
-            <button onClick={() => router.push('/recettes/toutes')} style={{ ...DF, fontSize: 9, fontWeight: 800, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
+        <SectionCard
+          title="Mes recettes"
+          num="07"
+          accent="var(--accent-recettes)"
+          bg="var(--bg)"
+          style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column' }}
+          action={
+            <button onClick={() => router.push('/recettes/toutes')} className="nb-press"
+              style={{ ...DF, fontSize: 9, fontWeight: 800, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer', minHeight: 32, padding: '0 4px' }}>
               VOIR TOUT
             </button>
-          </div>
-
+          }
+        >
+         <div style={{ padding: 24, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
             {allRecipes.length > 0 ? allRecipes.map(r => (
               <div key={r.id} className="rec-row" onClick={() => router.push(`/recettes/${r.id}`)}
@@ -664,9 +734,15 @@ export default function RecettesPage() {
                 </div>
               </div>
             )) : (
-              <p style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.4)', textAlign: 'center', paddingTop: 20 }}>
-                Aucune recette
-              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, paddingTop: 20 }}>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
+                  Aucune recette — crée ta première recette
+                </p>
+                <button onClick={() => router.push('/recettes/new/edit')} className="nb-press"
+                  style={{ ...DF, fontSize: 10, fontWeight: 800, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer', minHeight: 40 }}>
+                  + Nouvelle recette
+                </button>
+              </div>
             )}
           </div>
 
@@ -686,24 +762,29 @@ export default function RecettesPage() {
               ))}
             </div>
           </div>
-        </div>
+         </div>
+        </SectionCard>
 
         {/* ── R5 FULL WIDTH : RÉPARTITION NUTRITIONNELLE ───── */}
-        <div style={{ ...tealCard(), gridColumn: 'span 4', padding: '24px 30px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Répartition nutritionnelle</p>
-            <div style={{ display: 'flex', gap: 8 }}>
+        <SectionCard
+          title="Répartition nutritionnelle"
+          num="08"
+          accent="var(--accent-recettes)"
+          style={{ ...tealCard(), gridColumn: 'span 4', display: 'flex', flexDirection: 'column' }}
+          action={
+            <div className="toolbar-scroll" style={{ display: 'flex', gap: 8 }}>
               {['Aujourd\'hui', 'Semaine', 'Mois'].map((p, i) => (
-                <button key={p} className="rec-filter"
-                  style={{ padding: '4px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 700,
+                <button key={p} className="rec-filter nb-press"
+                  style={{ padding: '4px 12px', minHeight: 32, borderRadius: 20, border: 'none', cursor: 'pointer', ...DF, fontSize: 9, fontWeight: 700, whiteSpace: 'nowrap',
                     background: i === 0 ? 'rgba(var(--text-rgb),0.2)' : 'rgba(var(--text-rgb),0.06)',
                     color: i === 0 ? WHEAT : 'rgba(var(--text-rgb),0.4)' }}>
                   {p}
                 </button>
               ))}
             </div>
-          </div>
-
+          }
+        >
+         <div style={{ padding: '24px 30px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, minHeight: 0 }}>
           <div style={{ display: 'flex', gap: 30, alignItems: 'center', flex: 1, flexWrap: 'wrap' }}>
             {/* Donut */}
             <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -764,43 +845,24 @@ export default function RecettesPage() {
               </div>
             </div>
 
-            {/* KPIs rapides — réels */}
+            {/* KPI interactif — hydratation du jour */}
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {/* Indice qualité = Nutri-Score moyen des recettes */}
-              <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
-                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Indice qualité</p>
-                {avgGrade ? (
-                  <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: NUTRI_COLOR[avgGrade], lineHeight: 1 }}>
-                    {avgGrade} <span style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.4)' }}>Nutri-Score</span>
-                  </p>
-                ) : (
-                  <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>—</p>
-                )}
-                <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 2 }}>{graded.length} recette{graded.length > 1 ? 's' : ''}</p>
-              </div>
-
-              {/* Balance = atteinte moyenne des objectifs macros du jour */}
-              <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
-                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Balance</p>
-                <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{balancePct != null ? `${balancePct}%` : '—'}</p>
-                <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 2 }}>objectifs du jour</p>
-              </div>
-
               {/* Hydratation = compteur de verres d'eau (interactif) */}
-              <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 110 }}>
-                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Hydratation</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button onClick={() => addWater(-1)} aria-label="Retirer un verre"
-                    style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--ink)', background: 'var(--bg-card)', color: WHEAT, cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>–</button>
-                  <p style={{ ...DF, fontSize: 15, fontWeight: 900, color: water >= WATER_GOAL ? '#3B82F6' : WHEAT, lineHeight: 1 }}>{water}<span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.4)' }}>/{WATER_GOAL}</span></p>
-                  <button onClick={() => addWater(1)} aria-label="Ajouter un verre"
-                    style={{ width: 20, height: 20, borderRadius: 6, border: '2px solid var(--ink)', background: '#3B82F6', color: '#fff', cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>+</button>
+              <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--text-rgb),0.06)', minWidth: 130 }}>
+                <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Hydratation</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button onClick={() => addWater(-1)} aria-label="Retirer un verre" className="nb-press"
+                    style={{ width: 40, height: 40, borderRadius: 8, border: '2px solid var(--ink)', background: 'var(--bg-card)', color: WHEAT, cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>–</button>
+                  <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: water >= WATER_GOAL ? '#3B82F6' : WHEAT, lineHeight: 1 }}>{water}<span style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.4)' }}>/{WATER_GOAL}</span></p>
+                  <button onClick={() => addWater(1)} aria-label="Ajouter un verre" className="nb-press"
+                    style={{ width: 40, height: 40, borderRadius: 8, border: '2px solid var(--ink)', background: '#3B82F6', color: '#fff', cursor: 'pointer', ...DF, fontWeight: 900, lineHeight: 1 }}>+</button>
                 </div>
-                <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 4 }}>verres d&apos;eau</p>
+                <p style={{ fontSize: 7, color: 'rgba(var(--text-rgb),0.3)', marginTop: 6 }}>verres d&apos;eau</p>
               </div>
             </div>
           </div>
-        </div>
+         </div>
+        </SectionCard>
 
       </div>
 
@@ -813,16 +875,14 @@ export default function RecettesPage() {
       {selectedMealSlot && (
         <div onClick={() => setSelectedMealSlot(null)}
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: 'var(--radius-xl)', padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
+          <div onClick={e => e.stopPropagation()} className="nb-card" style={{ background: 'var(--bg)', padding: 24, maxWidth: 400, maxHeight: 600, overflowY: 'auto' }}>
             <p style={{ ...DF, fontSize: 18, fontWeight: 900, color: ORANGE, marginBottom: 16 }}>{selectedMealSlot.dayLabel} - {selectedMealSlot.mealLabel}</p>
             {allRecipes.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'center', textAlign: 'center', padding: '12px 0' }}>
                 <p style={{ fontSize: 13, color: 'rgba(var(--text-rgb),0.7)' }}>Aucune recette — crée une recette d&apos;abord</p>
-                <button onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new/edit') }} className="nb-press"
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 'var(--radius-lg)',
-                    background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-                  <Plus size={12} /> Nouvelle recette
-                </button>
+                <StickerButton onClick={() => { setSelectedMealSlot(null); router.push('/recettes/new/edit') }} accent={ORANGE} tilt="none">
+                  <Plus size={14} /> Nouvelle recette
+                </StickerButton>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -830,7 +890,7 @@ export default function RecettesPage() {
                   <button key={r.id} onClick={async () => {
                     await schedule(r.id, selectedMealSlot.dayIso, selectedMealSlot.mealType, 1)
                     setSelectedMealSlot(null)
-                  }} style={{ padding: '12px', textAlign: 'left', background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', borderRadius: 10, cursor: 'pointer', color: 'var(--text)' }}>
+                  }} className="nb-press" style={{ padding: '12px', minHeight: 40, textAlign: 'left', background: 'rgba(14,149,148,0.1)', border: '1px solid rgba(14,149,148,0.2)', borderRadius: 10, cursor: 'pointer', color: 'var(--text)' }}>
                     <p style={{ fontSize: 12, fontWeight: 700 }}>{r.emoji} {r.name}</p>
                     <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginTop: 4 }}>{r.cal} kcal • {r.time} min</p>
                   </button>

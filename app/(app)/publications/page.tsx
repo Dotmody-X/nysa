@@ -345,7 +345,7 @@ export default function PublicationsPage() {
 
   return (
     <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 16, minHeight: '100%' }}>
-      <PageTitle title="Publications" sub="Calendrier éditorial"
+      <PageTitle title="Publications" sub="Calendrier éditorial" accent="var(--accent-calendar)" icon={Send}
         right={
           <button onClick={() => openCreate(view === 'backlog' ? null : todayStr)} className="nb-press"
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--accent-brand)', color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>

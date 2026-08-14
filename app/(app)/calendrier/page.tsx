@@ -7,6 +7,7 @@ import {
   Trash2, Calendar, Bell, RefreshCw, Link2, CheckCircle2, Circle,
   Apple, Pencil,
 } from '@/components/ui/icons'
+import { PageTitle, StickerButton } from '@/components/ui/PageTitle'
 import { useCalendar, CalendarEvent, NewEvent } from '@/hooks/useCalendar'
 import { useTasks } from '@/hooks/useTasks'
 import { useProjects } from '@/hooks/useProjects'
@@ -995,23 +996,27 @@ function CalendrierContent() {
         </div>
       )}
 
-      {/* ── ROW 1 : Hero (2 cols) + À VENIR (2 cols) — 300px ───────────────── */}
+      {/* ── ROW 1 : En-tête de page + À VENIR ──────────────────────────────── */}
 
-      {/* Hero title — col-span-2, 300px */}
-      <div className="col-span-2" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '10px 0 20px 0', height: 300 }}>
-        <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--accent-brand)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 8 }}>
-          Calendrier
-        </p>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(32px, 4vw, 58px)', lineHeight: 1, color: 'var(--text)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
-          Votre journée.<br />Votre plan.
-        </h1>
-        <p style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 500, color: 'var(--azul)', marginTop: 12, textTransform: 'capitalize' }}>
-          {fmtShortDate(today)}
-        </p>
+      <div className="col-span-4">
+        <PageTitle
+          title="Calendrier"
+          sub={fmtShortDate(today)}
+          accent="var(--accent-calendar)"
+          icon={Calendar}
+          right={
+            <StickerButton
+              onClick={() => setModalDate((calView === 'day' ? dayStart : today).toISOString().slice(0, 10))}
+              accent="var(--accent-brand)"
+            >
+              <Plus size={14} /> Événement
+            </StickerButton>
+          }
+        />
       </div>
 
-      {/* À VENIR — col-span-2, teal, 300px, liste verticale */}
-      <div className="col-span-2" style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', height: 300, overflow: 'hidden', '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
+      {/* À VENIR — pleine largeur, cobalt */}
+      <div className="col-span-4" style={{ ...card({ background: 'var(--azul)' }), display: 'flex', flexDirection: 'column', height: 232, overflow: 'hidden', '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(var(--text-rgb),0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <p style={{ fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, color: '#fff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>À venir</p>
           <span style={{ fontSize: 11, color: 'rgba(var(--text-rgb),0.7)', fontWeight: 600 }}>{upcoming.length}</span>
@@ -1042,14 +1047,14 @@ function CalendrierContent() {
 
       {/* ── ROW 2 : Nav bar ────────────────────────────────────────────────── */}
       <div className="col-span-4 toolbar-scroll" style={{ ...card(), padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        {/* View tabs */}
-        <div style={{ display: 'flex', gap: 2, background: 'var(--bg)', borderRadius: 8, padding: 3, border: '1px solid var(--border)' }}>
+        {/* View tabs — segments encrés */}
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
           {(['day','week','month'] as CalView[]).map(v => {
             const label = v === 'day' ? 'JOUR' : v === 'week' ? 'SEMAINE' : 'MOIS'
             const active = calView === v
             return (
-              <button key={v} onClick={() => setCalView(v)}
-                style={{ padding: '4px 14px', borderRadius: 6, fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer', border: 'none', background: active ? 'var(--accent-brand)' : 'transparent', color: active ? 'var(--ink-dark)' : 'var(--text-muted)', transition: 'all 0.15s' }}>
+              <button key={v} onClick={() => setCalView(v)} className="nb-press"
+                style={{ padding: '7px 16px', minHeight: 34, borderRadius: 'var(--radius-sm)', fontSize: 10, fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.08em', cursor: 'pointer', border: '2px solid var(--ink)', boxShadow: active ? '3px 3px 0 var(--ink)' : 'none', background: active ? 'var(--accent-brand)' : 'var(--bg-input)', color: active ? 'var(--ink-dark)' : 'var(--text-muted)' }}>
                 {label}
               </button>
             )
@@ -1057,27 +1062,21 @@ function CalendrierContent() {
         </div>
 
         {/* Navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button onClick={prevPeriod} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
-            <ChevronLeft size={13} style={{ color: 'var(--text-muted)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <button onClick={prevPeriod} aria-label="Période précédente" className="nb-press" style={{ width: 34, height: 34, borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-input)', border: '2px solid var(--ink)', cursor: 'pointer' }}>
+            <ChevronLeft size={14} style={{ color: 'var(--text)' }} />
           </button>
-          <button onClick={goToday} style={{ padding: '5px 16px', borderRadius: 8, fontSize: 11, fontWeight: 500, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', cursor: 'pointer' }}>
+          <button onClick={goToday} className="nb-press" style={{ padding: '7px 16px', minHeight: 34, borderRadius: 'var(--radius-sm)', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'var(--bg-input)', border: '2px solid var(--ink)', color: 'var(--text)', cursor: 'pointer' }}>
             Aujourd'hui
           </button>
-          <button onClick={nextPeriod} style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer' }}>
-            <ChevronRight size={13} style={{ color: 'var(--text-muted)' }} />
+          <button onClick={nextPeriod} aria-label="Période suivante" className="nb-press" style={{ width: 34, height: 34, borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-input)', border: '2px solid var(--ink)', cursor: 'pointer' }}>
+            <ChevronRight size={14} style={{ color: 'var(--text)' }} />
           </button>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-display)', minWidth: 150, textAlign: 'center', textTransform: 'capitalize', letterSpacing: '-0.01em' }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)', fontFamily: 'var(--font-display)', minWidth: 150, textAlign: 'center', textTransform: 'capitalize', letterSpacing: '-0.01em' }}>
             {periodTitle}
           </span>
         </div>
 
-        {/* + Événement */}
-        <button onClick={() => setModalDate((calView === 'day' ? dayStart : today).toISOString().slice(0, 10))}
-          className="nb-press"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 'var(--radius-lg)', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-display)', background: 'var(--accent-brand)', color: 'var(--ink-dark)', cursor: 'pointer', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', letterSpacing: '0.04em' }}>
-          <Plus size={13} /> ÉVÉNEMENT
-        </button>
       </div>
 
       {/* ── ROW 3 : Calendar grid ──────────────────────────────────────────── */}

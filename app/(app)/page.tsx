@@ -56,9 +56,18 @@ export default function DashboardPage() {
   const openTasks  = tasks.filter(t => t.status !== 'done')
   const events     = data?.todayEvents ?? []
   const projects   = data?.activeProjects ?? []
-  const nextDeadline = projects
-    .filter(p => p.deadline)
-    .sort((a, b) => (a.deadline! < b.deadline! ? -1 : 1))[0]
+
+  // Échéances : on distingue les dépassées (à signaler) de la prochaine à venir.
+  const todayISO = new Date().toISOString().slice(0, 10)
+  const dated    = projects.filter(p => p.deadline).sort((a, b) => (a.deadline! < b.deadline! ? -1 : 1))
+  const overdue  = dated.filter(p => p.deadline! < todayISO)
+  const upcoming = dated.find(p => p.deadline! >= todayISO)
+  const hasProgress = projects.some(p => p.progress > 0)
+  const deadlineLabel = overdue.length > 0
+    ? `${overdue.length} échéance${overdue.length > 1 ? 's' : ''} dépassée${overdue.length > 1 ? 's' : ''}`
+    : upcoming
+      ? `Échéance : ${new Date(upcoming.deadline!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
+      : 'aucune échéance'
 
   return (
     <div className="page-wrap" style={{ gap: 16 }}>
@@ -120,7 +129,8 @@ export default function DashboardPage() {
         <Kpi icon={Clock}       label="Temps aujourd'hui" value={loading ? '…' : fmtSeconds(data?.todaySeconds ?? 0)} sub={loading ? '' : `${fmtSeconds(data?.weekSeconds ?? 0)} cette semaine`} accent="var(--accent-time)" href="/time-tracker" iconInk="var(--ink-light)" />
         <Kpi icon={CheckSquare} label="Tâches du jour"    value={loading ? '…' : `${doneTasks}/${tasks.length}`}       sub={loading ? '' : tasks.length === 0 ? 'journée libre' : `${tasks.length - doneTasks} restante${tasks.length - doneTasks > 1 ? 's' : ''}`} accent="var(--accent-todo)" href="/todo"
              progress={tasks.length > 0 ? doneTasks / tasks.length : undefined} />
-        <Kpi icon={FolderKanban} label="Projets actifs"   value={loading ? '…' : String(projects.length)}              sub={nextDeadline ? `Échéance : ${new Date(nextDeadline.deadline!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : 'aucune échéance'} accent="var(--accent-projets)" href="/projets" iconInk="var(--ink-light)" />
+        <Kpi icon={FolderKanban} label="Projets actifs"   value={loading ? '…' : String(projects.length)}              sub={loading ? '' : deadlineLabel} accent="var(--accent-projets)" href="/projets" iconInk="var(--ink-light)"
+             subColor={overdue.length > 0 ? 'var(--danger)' : undefined} />
         <Kpi icon={Wallet}      label="Solde du mois"     value={loading ? '…' : fmtEur(balance)}                      sub={loading ? '' : `${fmtEur(data?.monthIncome ?? 0)} in · ${fmtEur(data?.monthExpense ?? 0)} out`} accent="var(--accent-budget)" href="/budget"
              valueColor={balance < 0 ? 'var(--danger)' : undefined} />
       </div>
@@ -179,16 +189,32 @@ export default function DashboardPage() {
       {!loading && projects.length > 0 && (
         <section className="nb-card p-5">
           <SectionHead num="03" icon={FolderKanban} title="Projets en cours" accent="var(--accent-projets)" href="/projets" iconInk="var(--ink-light)" />
+          {/* Si aucune progression n'est renseignée, une colonne de barres
+              vides n'apprend rien : on affiche l'échéance à la place. */}
           <div className="grid md:grid-cols-2 gap-x-8 gap-y-3 mt-3">
-            {projects.slice(0, 6).map(p => (
-              <div key={p.id} className="flex items-center gap-3">
-                <span className="text-sm font-semibold truncate" style={{ flex: 1 }}>{p.name}</span>
-                <div style={{ width: 120, height: 8, borderRadius: 99, background: 'var(--bg-input)', border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
-                  <div style={{ width: `${Math.min(100, Math.max(0, p.progress))}%`, height: '100%', background: p.color || 'var(--accent-projets)' }} />
+            {projects.slice(0, 6).map(p => {
+              const late = p.deadline && p.deadline < todayISO
+              return (
+                <div key={p.id} className="flex items-center gap-3">
+                  <span style={{ width: 8, height: 8, borderRadius: 2, flexShrink: 0, background: p.color || 'var(--accent-projets)' }} />
+                  <span className="text-sm font-semibold truncate" style={{ flex: 1 }}>{p.name}</span>
+                  {hasProgress ? (
+                    <>
+                      <div style={{ width: 120, height: 8, borderRadius: 99, background: 'var(--bg-input)', border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
+                        <div style={{ width: `${Math.min(100, Math.max(0, p.progress))}%`, height: '100%', background: p.color || 'var(--accent-projets)' }} />
+                      </div>
+                      <span className="text-xs font-bold" style={{ ...DF, width: 34, textAlign: 'right', color: 'var(--text-muted)' }}>{Math.round(p.progress)}%</span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-semibold" style={{ color: late ? 'var(--danger)' : 'var(--text-muted)', flexShrink: 0 }}>
+                      {p.deadline
+                        ? `${late ? 'En retard · ' : ''}${new Date(p.deadline).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
+                        : 'sans échéance'}
+                    </span>
+                  )}
                 </div>
-                <span className="text-xs font-bold" style={{ ...DF, width: 34, textAlign: 'right', color: 'var(--text-muted)' }}>{Math.round(p.progress)}%</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       )}
@@ -227,9 +253,9 @@ function SectionHead({ num, icon: Icon, title, accent, href, iconInk = 'var(--in
   )
 }
 
-function Kpi({ icon: Icon, label, value, sub, accent, href, progress, valueColor, iconInk = 'var(--ink-dark)' }: {
+function Kpi({ icon: Icon, label, value, sub, accent, href, progress, valueColor, iconInk = 'var(--ink-dark)', subColor }: {
   icon: typeof Clock; label: string; value: string; sub: string; accent: string; href: string;
-  progress?: number; valueColor?: string; iconInk?: string
+  progress?: number; valueColor?: string; iconInk?: string; subColor?: string
 }) {
   return (
     <Link href={href} className="nb-card nb-press p-4 flex flex-col gap-1.5" style={{ minHeight: 104 }}>
@@ -245,7 +271,7 @@ function Kpi({ icon: Icon, label, value, sub, accent, href, progress, valueColor
           <div style={{ width: `${Math.round(progress * 100)}%`, height: '100%', background: accent }} />
         </div>
       ) : (
-        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{sub}</span>
+        <span className="text-xs font-semibold" style={{ color: subColor ?? 'var(--text-muted)' }}>{sub}</span>
       )}
     </Link>
   )

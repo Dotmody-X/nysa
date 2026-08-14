@@ -2,9 +2,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Plus, ChevronLeft, ChevronRight, TrendingUp, TrendingDown,
-  Target, Zap, Calendar, MoreVertical, ExternalLink,
-  Trash2, Edit2, X, Check, Save, BarChart2, RefreshCw,
+  Target, Zap, Calendar, ExternalLink, Wallet,
+  Trash2, Edit2, X, Check, BarChart2,
 } from '@/components/ui/icons'
+import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useBudget, useMultiMonthSummary, useAccountFlows, type NewTransaction, type BudgetCategory } from '@/hooks/useBudget'
 import { usePrices } from '@/hooks/usePrices'
 import { userKey } from '@/lib/userStore'
@@ -93,7 +94,7 @@ function FluxChart({ months }: { months: { label:string; income:number; expense:
 function FooterLink({ label, onClick }: { label:string; onClick?: () => void }) {
   return (
     <button onClick={onClick} className="nb-press"
-      style={{ padding:'12px 20px', borderLeft:0, borderRight:0, borderBottom:0, borderTop:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, marginTop:'auto', width:'100%', background:'transparent', cursor: onClick ? 'pointer' : 'default' }}
+      style={{ minHeight:40, padding:'12px 20px', borderLeft:0, borderRight:0, borderBottom:0, borderTop:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, marginTop:'auto', width:'100%', background:'transparent', cursor: onClick ? 'pointer' : 'default' }}
       onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--text-rgb),0.04)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
     >
@@ -126,7 +127,8 @@ function Drawer({ title, open, onClose, children, width = 480 }: {
         {/* Drawer header */}
         <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <h2 style={{ ...DF, fontSize:16, fontWeight:900, color:WHEAT }}>{title}</h2>
-          <button onClick={onClose} style={{ width:30, height:30, borderRadius:8, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <button onClick={onClose} className="nb-press" title="Fermer"
+            style={{ width:40, height:40, borderRadius:8, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
             <X size={14}/>
           </button>
         </div>
@@ -253,13 +255,7 @@ export default function BudgetPage() {
   }
 
   // ── Styles partagés ──
-  const CARD: React.CSSProperties = {
-    background:'var(--bg-card)', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)',
-    boxShadow:'4px 4px 0 var(--ink)',
-    overflow:'hidden', display:'flex', flexDirection:'column',
-  }
   const LBL: React.CSSProperties = { ...DF, fontSize:10, fontWeight:800, letterSpacing:'0.13em', textTransform:'uppercase' }
-  const HDR: React.CSSProperties = { padding:'16px 20px 12px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }
   const INPUT: React.CSSProperties = { padding:'10px 14px', borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-input)', color:'var(--text)', fontSize:13, boxSizing:'border-box' as any, width:'100%' }
 
   // ════ CONTENU DES PANNEAUX ════════════════════════════════════════════════
@@ -389,7 +385,7 @@ export default function BudgetPage() {
                           style={{ width:80, padding:'5px 8px', borderRadius:7, border:`1px solid ${color}`, background:'var(--bg-input)', color:'var(--text)', fontSize:13, ...DF, fontWeight:700 }}
                           autoFocus/>
                         <span style={{ fontSize:11, color:'var(--text-muted)' }}>€</span>
-                        <button onClick={() => saveCatBudget(cat.id)} style={{ background:color, color:'#fff', border:'none', borderRadius:6, padding:'5px 10px', fontSize:11, cursor:'pointer', ...DF, fontWeight:700 }}>
+                        <button className="nb-press" onClick={() => saveCatBudget(cat.id)} style={{ background:color, color:'#fff', border:'none', borderRadius:6, padding:'5px 10px', fontSize:11, cursor:'pointer', ...DF, fontWeight:700 }}>
                           {savingBudget===cat.id ? '…' : 'OK'}
                         </button>
                       </div>
@@ -423,10 +419,10 @@ export default function BudgetPage() {
             <input type="color" value={newCatForm.color} onChange={e=>setNewCatForm(p=>({...p,color:e.target.value}))} style={{ width:40, height:42, borderRadius:8, border:'1px solid var(--border)', cursor:'pointer', background:'transparent' }}/>
           </div>
           <div style={{ display:'flex', gap:8 }}>
-            <button onClick={addNewCategory} style={{ flex:1, padding:'10px', borderRadius:10, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>
+            <button className="nb-press" onClick={addNewCategory} style={{ flex:1, padding:'10px', borderRadius:10, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>
               Créer la catégorie
             </button>
-            <button onClick={()=>setNewCatForm(p=>({...p,show:false}))} style={{ padding:'10px 14px', borderRadius:10, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>
+            <button className="nb-press" onClick={()=>setNewCatForm(p=>({...p,show:false}))} style={{ padding:'10px 14px', borderRadius:10, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>
               Annuler
             </button>
           </div>
@@ -484,7 +480,7 @@ export default function BudgetPage() {
                 style={{ width:90, padding:'6px 9px', borderRadius:8, border:`1px solid ${TEAL}`, background:'var(--bg-input)', color:'var(--text)', fontSize:13, ...DF, fontWeight:700 }}
                 onKeyDown={e => { if (e.key==='Enter') updateCompteBalance(compte.id, (e.target as HTMLInputElement).value); if (e.key==='Escape') setEditingCompte(null) }}
                 autoFocus/>
-              <button onClick={e => { const inp = document.getElementById(`compte-edit-${compte.id}`) as HTMLInputElement; if (inp) updateCompteBalance(compte.id, inp.value) }}
+              <button className="nb-press" onClick={e => { const inp = document.getElementById(`compte-edit-${compte.id}`) as HTMLInputElement; if (inp) updateCompteBalance(compte.id, inp.value) }}
                 style={{ background:TEAL, color:'#fff', border:'none', borderRadius:6, padding:'6px 10px', cursor:'pointer' }}>
                 <Check size={12}/>
               </button>
@@ -526,10 +522,10 @@ export default function BudgetPage() {
             </select>
           </div>
           <div style={{ display:'flex', gap:8 }}>
-            <button onClick={addCompte} style={{ flex:1, padding:'10px', borderRadius:10, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>
+            <button className="nb-press" onClick={addCompte} style={{ flex:1, padding:'10px', borderRadius:10, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>
               Ajouter le compte
             </button>
-            <button onClick={()=>setNewCompteForm(p=>({...p,show:false}))} style={{ padding:'10px 14px', borderRadius:10, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>
+            <button className="nb-press" onClick={()=>setNewCompteForm(p=>({...p,show:false}))} style={{ padding:'10px 14px', borderRadius:10, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>
               Annuler
             </button>
           </div>
@@ -550,8 +546,8 @@ export default function BudgetPage() {
         style={{ ...INPUT, marginBottom:4 }}/>
       <div style={{ display:'flex', gap:8, justifyContent:'space-between', alignItems:'center' }}>
         <span style={{ fontSize:11, color:'var(--text-muted)' }}>{filteredTx.length} transaction{filteredTx.length!==1?'s':''}</span>
-        <button onClick={()=>{ setShowTxModal(true); setActivePanel(null) }}
-          style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:8, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, fontSize:11, cursor:'pointer' }}>
+        <button className="nb-press" onClick={()=>{ setShowTxModal(true); setActivePanel(null) }}
+          style={{ display:'flex', alignItems:'center', gap:6, minHeight:40, padding:'7px 14px', borderRadius:8, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, fontSize:11, cursor:'pointer' }}>
           <Plus size={12}/> Nouvelle
         </button>
       </div>
@@ -659,8 +655,8 @@ export default function BudgetPage() {
                 </div>
                 <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                   <input type="color" value={goalDraft.color??g.color} onChange={e=>setGoalDraft(p=>({...p,color:e.target.value}))} style={{ width:40, height:38, borderRadius:8, border:'1px solid var(--border)', cursor:'pointer', background:'transparent' }}/>
-                  <button onClick={()=>saveGoal(g.id)} style={{ flex:1, padding:'9px', borderRadius:9, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>Sauvegarder</button>
-                  <button onClick={()=>{setEditingGoal(null);setGoalDraft({})}} style={{ padding:'9px 12px', borderRadius:9, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>✕</button>
+                  <button className="nb-press" onClick={()=>saveGoal(g.id)} style={{ flex:1, padding:'9px', borderRadius:9, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>Sauvegarder</button>
+                  <button className="nb-press" onClick={()=>{setEditingGoal(null);setGoalDraft({})}} style={{ padding:'9px 12px', borderRadius:9, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>✕</button>
                 </div>
               </div>
             ) : (
@@ -701,10 +697,10 @@ export default function BudgetPage() {
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             <input type="color" value={newGoalForm.color} onChange={e=>setNewGoalForm(p=>({...p,color:e.target.value}))} style={{ width:40, height:40, borderRadius:8, border:'1px solid var(--border)', cursor:'pointer', background:'transparent' }}/>
-            <button onClick={addGoal} style={{ flex:1, padding:'10px', borderRadius:10, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>
+            <button className="nb-press" onClick={addGoal} style={{ flex:1, padding:'10px', borderRadius:10, background:TEAL, color:'#fff', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>
               Créer l'objectif
             </button>
-            <button onClick={()=>setNewGoalForm(p=>({...p,show:false}))} style={{ padding:'10px 14px', borderRadius:10, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>✕</button>
+            <button className="nb-press" onClick={()=>setNewGoalForm(p=>({...p,show:false}))} style={{ padding:'10px 14px', borderRadius:10, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer' }}>✕</button>
           </div>
         </div>
       ) : (
@@ -901,83 +897,78 @@ export default function BudgetPage() {
     <div style={{ padding:'20px 26px', display:'flex', flexDirection:'column', gap:14, minHeight:'100%' }}>
 
       {/* ════ HEADER ════ */}
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:20 }}>
-        <div>
-          <h1 style={{ ...DF, fontSize:44, fontWeight:900, color:WHEAT, letterSpacing:'-0.02em', lineHeight:1, marginBottom:3 }}>BUDGET.</h1>
-          <p style={{ fontSize:10, color:'var(--text-muted)', letterSpacing:'0.14em', textTransform:'uppercase' }}>
-            MAÎTRISEZ · PLANIFIEZ · ATTEIGNEZ VOS OBJECTIFS
-          </p>
-        </div>
-        {/* Résumé du mois */}
-        <div style={{ background:ORANGE, borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', padding:'14px 20px', display:'flex', gap:0, flexShrink:0, flexWrap:'wrap', width:'100%', maxWidth:500, '--text-rgb':'26, 10, 10', '--text':'var(--ink-dark)', '--text-muted':'rgba(26, 10, 10, 0.65)' } as React.CSSProperties}>
-          <div style={{ flex:1, paddingRight:20 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-              <span style={{ ...LBL, fontSize:9, color:'rgba(var(--text-rgb),0.8)' }}>RÉSUMÉ DU MOIS</span>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.7)', textTransform:'capitalize' }}>{monthName}</span>
-                <MoreVertical size={13} style={{ color:'rgba(var(--text-rgb),0.6)' }}/>
-              </div>
-            </div>
-            <div style={{ display:'flex', gap:0, flexWrap:'wrap', rowGap:10 }}>
-              {[
-                { l:'Revenus',       v:fmtEur(cur.totalIncome),        d:deltaIncome,   pos:deltaIncome>=0   },
-                { l:'Dépenses',      v:fmtEur(cur.totalExpense),       d:-deltaExpense, pos:deltaExpense<=0  },
-                { l:'Épargne / Inv.',v:fmtEur(totalSavingsInvest),     d:cur.totalSavings-prev.totalSavings, pos:true },
-              ].map((kpi,i) => (
-                <div key={i} style={{ borderLeft:i>0?'1px solid rgba(var(--text-rgb),0.22)':undefined, paddingLeft:i>0?18:undefined, paddingRight:18 }}>
-                  <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginBottom:3 }}>{kpi.l}</p>
-                  <p style={{ ...DF, fontSize:22, fontWeight:900, color:'var(--ink-dark)', lineHeight:1 }}>{kpi.v}</p>
-                  {!cur.loading && <p style={{ fontSize:9, color:kpi.pos?'rgba(var(--text-rgb),0.9)':'rgba(255,220,200,0.9)', marginTop:2 }}>{fmtEur(Math.abs(kpi.d),true)} vs préc.</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ borderLeft:'1px solid rgba(var(--text-rgb),0.22)', paddingLeft:18, display:'flex', flexDirection:'column', justifyContent:'center', minWidth:110 }}>
-            <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginBottom:4 }}>Solde</p>
-            <p style={{ ...DF, fontSize:28, fontWeight:900, color:'var(--ink-dark)', lineHeight:1 }}>{fmtEur(cur.balance)}</p>
-            <p style={{ fontSize:9, color:'rgba(var(--text-rgb),0.7)', marginTop:3 }}>{cur.balance>=0?'✓ Excédent':'⚠ Déficit'}</p>
-          </div>
-        </div>
-      </div>
+      <PageTitle
+        title="Budget"
+        sub="Maîtrisez · Planifiez · Atteignez vos objectifs"
+        accent={ORANGE}
+        icon={Wallet}
+        iconInk="var(--ink-dark)"
+        right={
+          <>
+            <StickerButton onClick={()=>panel('prix')} accent="var(--bg-card)" ink="var(--text)" tilt="l" title="Prix & magasins issus des tickets importés">
+              <BarChart2 size={13}/> Prix &amp; magasins
+            </StickerButton>
+            <StickerButton onClick={()=>setShowTxModal(true)} accent={ORANGE} ink="var(--ink-dark)" title="Ajouter une transaction">
+              <Plus size={14}/> Transaction
+            </StickerButton>
+          </>
+        }
+      />
+
+      {/* ════ KPI DU MOIS ════ */}
+      <KpiGrid>
+        <KpiCard
+          label="Solde" accent={cur.balance>=0?TEAL:ORANGE} color={cur.balance>=0?TEAL:ORANGE}
+          value={fmtEur(cur.balance)}
+          sub={`${cur.balance>=0?'✓ Excédent':'⚠ Déficit'} · ${monthName}`}
+        />
+        <KpiCard
+          label="Revenus" accent={TEAL}
+          value={fmtEur(cur.totalIncome)}
+          sub={cur.loading ? '' : `${fmtEur(Math.abs(deltaIncome), true)} vs mois préc.`}
+        />
+        <KpiCard
+          label="Dépenses" accent={ORANGE}
+          value={fmtEur(cur.totalExpense)}
+          sub={cur.loading ? '' : `${fmtEur(Math.abs(deltaExpense), true)} vs mois préc.`}
+        />
+        <KpiCard
+          label="Épargne / Inv." accent={TEAL}
+          value={fmtEur(totalSavingsInvest)}
+          progress={Math.max(0, Math.min(1, savings / 100))}
+        />
+      </KpiGrid>
 
       {/* ════ FILTER BAR ════ */}
       <div className="toolbar-scroll" style={{ display:'flex', alignItems:'center', gap:10 }}>
-        <button onClick={prevMo} style={{ width:32, height:32, borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+        <button onClick={prevMo} className="nb-press" title="Mois précédent"
+          style={{ width:40, height:40, borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
           <ChevronLeft size={15}/>
         </button>
-        <div style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:6, minHeight:40, padding:'7px 14px', borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)' }}>
           <Calendar size={12} style={{ color:'var(--text-muted)' }}/>
           <span style={{ ...DF, fontSize:12, fontWeight:700, color:WHEAT, textTransform:'capitalize', minWidth:110 }}>{monthName}</span>
-          <ChevronRight size={12} style={{ color:'var(--text-muted)' }}/>
         </div>
-        <button onClick={nextMo} style={{ width:32, height:32, borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+        <button onClick={nextMo} className="nb-press" title="Mois suivant"
+          style={{ width:40, height:40, borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
           <ChevronRight size={15}/>
         </button>
-        <select value={selectedAccount} onChange={e=>setSelectedAccount(e.target.value)}
-          style={{ padding:'7px 12px', borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:11, cursor:'pointer' }}>
+        <select value={selectedAccount} onChange={e=>setSelectedAccount(e.target.value)} aria-label="Filtrer par compte"
+          style={{ height:40, padding:'7px 12px', borderRadius:8, background:'var(--bg-card)', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:11, cursor:'pointer' }}>
           <option value="all">Tous les comptes</option>
           {comptes.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
         </select>
-        <div style={{ flex:1 }}/>
-        <button onClick={()=>panel('prix')} className="nb-press"
-          style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:10, background:'var(--bg-card)', color:'var(--text)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer' }}>
-          <BarChart2 size={13}/> Prix & magasins
-        </button>
-        <button onClick={()=>setShowTxModal(true)} className="nb-press"
-          style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 20px', borderRadius:10, background:ORANGE, color:'var(--ink-dark)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer' }}>
-          <Plus size={14}/> + TRANSACTION
-        </button>
       </div>
 
       {/* ════ GRID ════ */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gridTemplateRows:'300px 300px 500px 400px 260px', gap:12, flex:1 }}>
 
         {/* B1 Aperçu dépenses */}
-        <div style={{ ...CARD, gridColumn:'1/3', gridRow:'1/2', background:TEAL_BG, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', '--text-rgb':'255, 255, 255', '--text':'#ffffff', '--text-muted':'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
-          <div style={{ ...HDR, borderBottom:'1px solid rgba(var(--text-rgb),0.1)' }}>
-            <span style={{ ...LBL, color:WHEAT }}>Aperçu des dépenses</span>
-            <span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.45)' }}>{cur.byCategory.length} catégories</span>
-          </div>
+        <SectionCard
+          title="Aperçu des dépenses" num="01" accent={ORANGE} titleColor="var(--ink-light)" bg={TEAL_BG}
+          action={<span style={{ fontSize:10, color:'rgba(var(--text-rgb),0.6)' }}>{cur.byCategory.length} catégories</span>}
+          style={{ gridColumn:'1/3', gridRow:'1/2', display:'flex', flexDirection:'column', '--text-rgb':'255, 255, 255', '--text':'#ffffff', '--text-muted':'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}
+        >
           <div style={{ flex:1, padding:'14px 20px', display:'flex', gap:16, alignItems:'center', overflow:'hidden' }}>
             <div style={{ position:'relative', flexShrink:0 }}>
               <DonutChart size={140} segments={cur.byCategory.map((c,i)=>({value:c.spent,color:c.color??PALETTE[i%PALETTE.length]}))} total={cur.totalExpense}/>
@@ -1004,16 +995,18 @@ export default function BudgetPage() {
             </div>
           </div>
           <FooterLink label="Voir l'analyse complète" onClick={()=>panel('analyse')}/>
-        </div>
+        </SectionCard>
 
         {/* B2 Répartition vs Budget */}
-        <div style={{ ...CARD, gridColumn:'3/5', gridRow:'1/2' }}>
-          <div style={HDR}>
-            <span style={{ ...LBL, color:ORANGE }}>Répartition vs Budget</span>
+        <SectionCard
+          title="Répartition vs Budget" num="02" accent={ORANGE} titleColor={ORANGE}
+          action={
             <span style={{ fontSize:9, color:'var(--text-muted)' }}>
               {cur.totalExpense>0 && cur.totalBillsBudget>0 ? `${Math.round((cur.totalExpense/cur.totalBillsBudget)*100)}% utilisé` : ''}
             </span>
-          </div>
+          }
+          style={{ gridColumn:'3/5', gridRow:'1/2', display:'flex', flexDirection:'column' }}
+        >
           <div style={{ flex:1, padding:'12px 20px', overflow:'auto', display:'flex', flexDirection:'column', gap:9 }}>
             {cur.loading
               ? <p style={{ fontSize:12, color:'var(--text-muted)' }}>Chargement…</p>
@@ -1046,15 +1039,24 @@ export default function BudgetPage() {
             }
           </div>
           <FooterLink label="Gérer mon budget" onClick={()=>panel('budget')}/>
-        </div>
+        </SectionCard>
 
         {/* B3 Comptes */}
-        <div style={{ ...CARD, gridColumn:'1/2', gridRow:'2/3' }}>
-          <div style={HDR}>
-            <span style={{ ...LBL, color:TEAL }}>Comptes</span>
-            <span style={{ fontSize:9, color:'var(--text-muted)', ...DF, fontWeight:700 }}>Solde</span>
-          </div>
+        <SectionCard
+          title="Comptes" num="03" accent={ORANGE} titleColor={TEAL}
+          action={<span style={{ fontSize:9, color:'var(--text-muted)', ...DF, fontWeight:700 }}>Solde</span>}
+          style={{ gridColumn:'1/2', gridRow:'2/3', display:'flex', flexDirection:'column' }}
+        >
           <div style={{ flex:1, padding:'8px 16px', overflow:'auto' }}>
+            {comptes.length===0 && (
+              <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, padding:'16px 0' }}>
+                <p style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center' }}>Aucun compte enregistré</p>
+                <button onClick={()=>panel('comptes')} className="nb-press"
+                  style={{ minHeight:40, padding:'10px 16px', borderRadius:10, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', ...DF, fontWeight:700, fontSize:11, cursor:'pointer' }}>
+                  + Ajouter un compte
+                </button>
+              </div>
+            )}
             {comptes.map((c,i)=>{
               const bal = effBalance(c)
               const flow = accountFlows[c.id] ?? 0
@@ -1078,17 +1080,18 @@ export default function BudgetPage() {
             <span style={{ ...DF, fontWeight:900, fontSize:15, color:WHEAT }}>{fmtEur(totalComptes)}</span>
           </div>
           <FooterLink label="Voir tous les comptes" onClick={()=>panel('comptes')}/>
-        </div>
+        </SectionCard>
 
         {/* B4 Flux de trésorerie */}
-        <div style={{ ...CARD, gridColumn:'2/5', gridRow:'2/3' }}>
-          <div style={HDR}>
-            <span style={{ ...LBL }}>Flux de trésorerie</span>
-            <div style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:6, background:'var(--bg-input)', border:'1px solid var(--border)' }}>
-              <span style={{ fontSize:10, color:'var(--text-muted)' }}>6 derniers mois</span>
-              <ChevronRight size={11} style={{ color:'var(--text-muted)' }}/>
-            </div>
-          </div>
+        <SectionCard
+          title="Flux de trésorerie" num="04" accent={ORANGE}
+          action={
+            <span style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:6, background:'var(--bg-input)', border:'1px solid var(--border)', fontSize:10, color:'var(--text-muted)' }}>
+              6 derniers mois
+            </span>
+          }
+          style={{ gridColumn:'2/5', gridRow:'2/3', display:'flex', flexDirection:'column' }}
+        >
           <div style={{ flex:1, padding:'14px 20px', display:'flex', gap:16, overflow:'hidden' }}>
             <div style={{ flex:1, overflow:'hidden' }}>
               <div style={{ display:'flex', gap:12, marginBottom:8 }}>
@@ -1122,14 +1125,14 @@ export default function BudgetPage() {
             </div>
           </div>
           <FooterLink label="Voir le rapport de trésorerie" onClick={()=>panel('tresorerie')}/>
-        </div>
+        </SectionCard>
 
         {/* B5 Dernières transactions */}
-        <div style={{ ...CARD, gridColumn:'1/4', gridRow:'3/4' }}>
-          <div style={HDR}>
-            <span style={{ ...LBL }}>Dernières transactions</span>
-            <span style={{ fontSize:10, color:'var(--text-muted)' }}>{filteredTx.length} ce mois</span>
-          </div>
+        <SectionCard
+          title="Dernières transactions" num="05" accent={ORANGE}
+          action={<span style={{ fontSize:10, color:'var(--text-muted)' }}>{filteredTx.length} ce mois</span>}
+          style={{ gridColumn:'1/4', gridRow:'3/4', display:'flex', flexDirection:'column' }}
+        >
           <div style={{ display:'grid', gridTemplateColumns:'1fr 120px 100px 110px', padding:'7px 20px', background:'var(--bg-input)', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
             {['Description','Catégorie','Compte','Montant'].map(h=>(
               <span key={h} style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.09em' }}>{h}</span>
@@ -1140,8 +1143,11 @@ export default function BudgetPage() {
               ? <div style={{ padding:24, textAlign:'center' }}><p style={{ fontSize:12, color:'var(--text-muted)' }}>Chargement…</p></div>
               : filteredTx.length===0
               ? <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:8 }}>
-                  <p style={{ fontSize:12, color:'var(--text-muted)' }}>Aucune transaction</p>
-                  <button onClick={()=>setShowTxModal(true)} style={{ fontSize:11, color:ORANGE, background:'none', border:'none', ...DF, fontWeight:700, cursor:'pointer' }}>+ Ajouter</button>
+                  <p style={{ fontSize:12, color:'var(--text-muted)' }}>Aucune transaction ce mois</p>
+                  <button onClick={()=>setShowTxModal(true)} className="nb-press"
+                    style={{ minHeight:40, padding:'10px 18px', borderRadius:10, fontSize:11, color:'var(--ink-dark)', background:ORANGE, border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', ...DF, fontWeight:800, cursor:'pointer' }}>
+                    + Ajouter une transaction
+                  </button>
                 </div>
               : filteredTx.slice(0,16).map((tx)=>(
                   <div key={tx.id} style={{ display:'grid', gridTemplateColumns:'1fr 120px 100px 110px', padding:'10px 20px', borderBottom:'1px solid var(--border)', alignItems:'center' }}>
@@ -1165,14 +1171,14 @@ export default function BudgetPage() {
             }
           </div>
           <FooterLink label="Voir toutes les transactions" onClick={()=>panel('transactions')}/>
-        </div>
+        </SectionCard>
 
         {/* B6 Paiements à venir */}
-        <div style={{ ...CARD, gridColumn:'4/5', gridRow:'3/4' }}>
-          <div style={HDR}>
-            <span style={{ ...LBL }}>Paiements à venir</span>
-            <Calendar size={13} style={{ color:'var(--text-muted)' }}/>
-          </div>
+        <SectionCard
+          title="Paiements à venir" num="06" accent={ORANGE}
+          action={<Calendar size={13} style={{ color:'var(--text-muted)' }}/>}
+          style={{ gridColumn:'4/5', gridRow:'3/4', display:'flex', flexDirection:'column' }}
+        >
           <div style={{ flex:1, padding:'10px 16px', overflow:'auto', display:'flex', flexDirection:'column', gap:6 }}>
             {upcomingBills.length===0
               ? <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:8, opacity:0.4 }}>
@@ -1197,17 +1203,18 @@ export default function BudgetPage() {
             }
           </div>
           <FooterLink label="Voir tous les paiements" onClick={()=>panel('paiements')}/>
-        </div>
+        </SectionCard>
 
         {/* B7 Planification budgétaire */}
-        <div style={{ ...CARD, gridColumn:'1/3', gridRow:'4/5' }}>
-          <div style={HDR}>
-            <span style={{ ...LBL }}>Planification budgétaire</span>
-            <div style={{ display:'flex', alignItems:'center', gap:6, padding:'3px 10px', borderRadius:6, background:'var(--bg-input)', border:'1px solid var(--border)' }}>
-              <span style={{ fontSize:10, color:'var(--text-muted)', textTransform:'capitalize' }}>{monthName}</span>
-              <ChevronRight size={11} style={{ color:'var(--text-muted)' }}/>
-            </div>
-          </div>
+        <SectionCard
+          title="Planification budgétaire" num="07" accent={ORANGE}
+          action={
+            <span style={{ display:'flex', alignItems:'center', gap:6, padding:'3px 10px', borderRadius:6, background:'var(--bg-input)', border:'1px solid var(--border)', fontSize:10, color:'var(--text-muted)', textTransform:'capitalize' }}>
+              {monthName}
+            </span>
+          }
+          style={{ gridColumn:'1/3', gridRow:'4/5', display:'flex', flexDirection:'column' }}
+        >
           <div style={{ display:'grid', gridTemplateColumns:'1fr 72px 72px 72px 90px', padding:'6px 20px', background:'var(--bg-input)', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
             {['Catégorie','Budget','Dépenses','Reste','Progression'].map(h=>(
               <span key={h} style={{ fontSize:9, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.08em' }}>{h}</span>
@@ -1242,17 +1249,26 @@ export default function BudgetPage() {
             }
           </div>
           <FooterLink label="Modifier mon budget" onClick={()=>panel('budget')}/>
-        </div>
+        </SectionCard>
 
         {/* B8 Objectifs financiers */}
-        <div style={{ ...CARD, gridColumn:'3/5', gridRow:'4/5' }}>
-          <div style={HDR}>
-            <span style={{ ...LBL }}>Objectifs financiers</span>
-            <button onClick={()=>panel('objectifs')} style={{ width:24, height:24, borderRadius:6, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-              <Plus size={12}/>
+        <SectionCard
+          title="Objectifs financiers" num="08" accent={ORANGE}
+          action={
+            <button onClick={()=>panel('objectifs')} className="nb-press" title="Ajouter un objectif"
+              style={{ minHeight:40, display:'flex', alignItems:'center', gap:6, padding:'0 12px', borderRadius:8, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', ...DF, fontWeight:700, fontSize:11, cursor:'pointer' }}>
+              <Plus size={12}/> Ajouter
             </button>
-          </div>
+          }
+          style={{ gridColumn:'3/5', gridRow:'4/5', display:'flex', flexDirection:'column' }}
+        >
           <div style={{ flex:1, padding:'14px 20px', overflow:'auto', display:'flex', flexDirection:'column', gap:18 }}>
+            {goals.length===0 && (
+              <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8 }}>
+                <Target size={22} style={{ color:'var(--text-muted)' }}/>
+                <p style={{ fontSize:11, color:'var(--text-muted)', textAlign:'center' }}>Aucun objectif d&apos;épargne défini</p>
+              </div>
+            )}
             {goals.map(g=>{
               const pct  = g.target>0 ? Math.min(100,Math.round(g.current/g.target*100)) : 0
               const done = g.current>=g.target
@@ -1276,10 +1292,10 @@ export default function BudgetPage() {
             })}
           </div>
           <FooterLink label="Voir tous mes objectifs" onClick={()=>panel('objectifs')}/>
-        </div>
+        </SectionCard>
 
         {/* B9 Agent IA */}
-        <div style={{ gridColumn:'1/5', gridRow:'5/6', background:TEAL_BG, borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'4px 4px 0 var(--ink)', display:'flex', alignItems:'center', padding:'0 36px', gap:24, overflow:'hidden', '--text-rgb':'255, 255, 255', '--text':'#ffffff', '--text-muted':'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
+        <div className="nb-card" style={{ gridColumn:'1/5', gridRow:'5/6', background:TEAL_BG, display:'flex', alignItems:'center', padding:'0 36px', gap:24, overflow:'hidden', '--text-rgb':'255, 255, 255', '--text':'#ffffff', '--text-muted':'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
           <div style={{ width:48, height:48, borderRadius:'50%', background:'rgba(var(--text-rgb),0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
             <Zap size={22} style={{ color:WHEAT }}/>
           </div>
@@ -1295,8 +1311,8 @@ export default function BudgetPage() {
             </p>
           </div>
           <button onClick={()=>panel('ai')} className="nb-press"
-            style={{ padding:'11px 20px', borderRadius:11, background:'rgba(var(--text-rgb),0.15)', border:'1px solid rgba(var(--text-rgb),0.25)', color:WHEAT, ...DF, fontWeight:700, fontSize:11, flexShrink:0, display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
-            <BarChart2 size={13}/> Voir l'analyse détaillée
+            style={{ minHeight:40, padding:'11px 20px', borderRadius:11, background:'rgba(var(--text-rgb),0.15)', border:'1px solid rgba(var(--text-rgb),0.25)', color:WHEAT, ...DF, fontWeight:700, fontSize:11, flexShrink:0, display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
+            <BarChart2 size={13}/> Voir l&apos;analyse détaillée
           </button>
         </div>
       </div>
@@ -1319,13 +1335,13 @@ export default function BudgetPage() {
           <div style={{ background:'var(--bg-card)', borderRadius:20, border:'1px solid var(--border-active)', padding:28, width:'100%', maxWidth:460, boxShadow:'0 24px 60px rgba(0,0,0,0.55)' }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
               <h3 style={{ ...DF, fontSize:20, fontWeight:900, color:WHEAT }}>Nouvelle transaction</h3>
-              <button onClick={()=>setShowTxModal(false)} style={{ width:30, height:30, borderRadius:8, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:18, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+              <button className="nb-press" onClick={()=>setShowTxModal(false)} title="Fermer" style={{ width:40, height:40, borderRadius:8, background:'var(--bg-input)', border:'1px solid var(--border)', color:'var(--text-muted)', fontSize:18, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
             </div>
             <form onSubmit={handleAddTx} style={{ display:'flex', flexDirection:'column', gap:12 }}>
               <div style={{ display:'flex', gap:8 }}>
                 {(['expense','income'] as const).map(type=>(
-                  <button key={type} type="button" onClick={()=>setTxForm(f=>({...f,type}))}
-                    style={{ flex:1, padding:'10px', borderRadius:10, border:`2px solid ${txForm.type===type?(type==='expense'?ORANGE:TEAL):'var(--border)'}`, background:txForm.type===type?(type==='expense'?'rgba(242,84,45,0.12)':'rgba(14,149,148,0.12)'):'transparent', color:txForm.type===type?(type==='expense'?ORANGE:TEAL):'var(--text-muted)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer', transition:'all 0.2s' }}>
+                  <button className="nb-press" key={type} type="button" onClick={()=>setTxForm(f=>({...f,type}))}
+                    style={{ flex:1, minHeight:40, padding:'10px', borderRadius:10, border:`2px solid ${txForm.type===type?(type==='expense'?ORANGE:TEAL):'var(--border)'}`, background:txForm.type===type?(type==='expense'?'rgba(242,84,45,0.12)':'rgba(14,149,148,0.12)'):'transparent', color:txForm.type===type?(type==='expense'?ORANGE:TEAL):'var(--text-muted)', ...DF, fontWeight:700, fontSize:12, cursor:'pointer', transition:'all 0.2s' }}>
                     {type==='expense'?'↓ Dépense':'↑ Revenu'}
                   </button>
                 ))}
@@ -1361,7 +1377,7 @@ export default function BudgetPage() {
                 <input type="checkbox" checked={txForm.is_recurring??false} onChange={e=>setTxForm(f=>({...f,is_recurring:e.target.checked}))} style={{ width:15, height:15, accentColor:TEAL }}/>
                 <span style={{ fontSize:12, color:'var(--text-muted)' }}>Paiement récurrent (mensuel)</span>
               </label>
-              <button type="submit"
+              <button className="nb-press" type="submit"
                 style={{ padding:'13px', borderRadius:12, background:txForm.type==='expense'?ORANGE:TEAL, color:'#fff', border:'none', ...DF, fontWeight:900, fontSize:14, cursor:'pointer', marginTop:2 }}>
                 Ajouter la transaction
               </button>

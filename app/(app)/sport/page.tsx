@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Upload, Plus, RefreshCw, CheckCircle2, AlertCircle, ChevronRight, Activity, Zap, TrendingUp, Target, Award, Calendar } from '@/components/ui/icons'
+import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useHealth } from '@/hooks/useHealth'
 import { parseGpx } from '@/lib/parseGpx'
 import { createClient } from '@/lib/supabase/client'
@@ -13,6 +14,7 @@ const STRAVA_ORANGE = '#FC4C02'
 const TEAL          = 'var(--azul)'
 const ORANGE        = 'var(--accent-brand)'
 const WHEAT   = 'var(--text)'
+const ACCENT  = 'var(--accent-sport)'   /* couleur de catégorie de la page */
 
 /* ─── Helpers ────────────────────────────────────────────── */
 function fmtPace(sec: number) {
@@ -47,6 +49,26 @@ function fmtDateLong(d: string) {
   if (diffDays < -1 && diffDays >= -6) return `J${diffDays}`
   return dateStr
 }
+/* Encres des surfaces d'accent (cobalt = foncé, tangerine = clair) */
+const INK_LIGHT_VARS = {
+  '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)',
+} as React.CSSProperties
+const INK_DARK_VARS = {
+  '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)',
+} as React.CSSProperties
+/* Carte de section en colonne — le contenu occupe la hauteur restante. */
+const SECTION_COL: React.CSSProperties = { display: 'flex', flexDirection: 'column' }
+
+/* Champs de formulaire — label au-dessus, saisie lisible (≥ 13px) */
+const FIELD_LABEL: React.CSSProperties = {
+  ...DF, fontSize: 10, fontWeight: 800, color: 'var(--text-muted)',
+  textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4,
+}
+const FIELD_INPUT: React.CSSProperties = {
+  width: '100%', minHeight: 40, background: 'var(--bg-input)', border: '1px solid var(--border)',
+  borderRadius: 8, padding: '9px 10px', color: 'var(--text)', fontSize: 13,
+}
+
 function stravaAuthUrl() {
   const clientId    = process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID
   const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL ?? (typeof window !== 'undefined' ? window.location.origin : '')}/api/strava/callback`
@@ -377,27 +399,13 @@ function SportPageInner() {
   }).slice(0, 5)
   const nextRun = nextRuns[0] ?? null
 
-  /* ── Card style helpers ──────────────────────────────── */
-  const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
-  })
+  /* ── Card style helpers ────────────────────────────────
+     Le contour + l'ombre viennent des classes `nb-card` / `nb-tile`. */
   const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: 'var(--azul)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-    '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)',
+    background: 'var(--azul)', overflow: 'hidden',
+    ...INK_LIGHT_VARS,
     ...extra,
   } as React.CSSProperties)
-  const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-    background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-    boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-    '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)',
-    ...extra,
-  } as React.CSSProperties)
-  const label = (color = ORANGE): React.CSSProperties => ({
-    ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em',
-    textTransform: 'uppercase' as const, color,
-  })
 
   // Empty state for demo mode
 
@@ -407,6 +415,61 @@ function SportPageInner() {
         @keyframes spin { to { transform: rotate(360deg); } }
         .sport-row-btn:hover { background: var(--bg-card-hover) !important; }
       `}</style>
+
+      {/* ── En-tête de page ──────────────────────────────── */}
+      <PageTitle
+        title="Running"
+        sub="Sorties · Plans · Records"
+        accent={ACCENT}
+        icon={Activity}
+        iconInk="var(--ink-dark)"
+        right={
+          <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <a href={typeof window !== 'undefined' ? stravaAuthUrl() : '#'} className="nb-press sticker-l"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 40, padding: '9px 14px', borderRadius: 'var(--radius-md)',
+                border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+                background: STRAVA_ORANGE, color: 'var(--ink-light)', ...DF, fontWeight: 800, fontSize: 11,
+                letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0 4 13.828h4.17"/>
+              </svg>
+              Strava
+            </a>
+
+            <button onClick={handleStravaSync} disabled={syncing} className="nb-press" title="Synchroniser les activités Strava"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 40, padding: '9px 14px', borderRadius: 'var(--radius-md)',
+                border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+                background: 'var(--bg-card)', color: syncing ? 'var(--text-muted)' : 'var(--text)', ...DF, fontWeight: 800, fontSize: 11,
+                letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              <RefreshCw size={13} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
+              {syncing ? 'Sync…' : 'Synchroniser'}
+            </button>
+
+            <label className="nb-press sticker-r" title="Importer un fichier GPX"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 40, padding: '9px 14px', borderRadius: 'var(--radius-md)',
+                border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+                background: 'var(--bg-card)', color: 'var(--text)', ...DF, fontWeight: 800, fontSize: 11,
+                letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              <input ref={fileRef} type="file" accept=".gpx" style={{ display: 'none' }} onChange={handleGpxFile} />
+              <Upload size={13} /> {importing ? 'Import…' : 'GPX'}
+            </label>
+
+            <StickerButton onClick={() => setShowManual(v => !v)} accent={ACCENT} title="Ajouter une sortie">
+              <Plus size={14} /> Ajouter
+            </StickerButton>
+          </div>
+        }
+      />
+
+      {/* ── KPIs de la semaine ───────────────────────────── */}
+      <KpiGrid>
+        <KpiCard label="Séances / semaine"  value={String(seancesWeek)} accent={ACCENT} progress={pctSeances / 100} />
+        <KpiCard label="Distance / semaine" value={`${kmWeek.toFixed(1)} km`} accent={ACCENT} progress={pctKm / 100} />
+        <KpiCard label="Allure moyenne"
+          value={kmWeek > 0 && secWeek > 0 ? fmtPace(secWeek / kmWeek) : avgPaceAll > 0 ? fmtPace(avgPaceAll) : '—'}
+          sub="dernières sorties" accent={ACCENT} />
+        <KpiCard label="Dénivelé / semaine" value={`+${elevWeek} m`} accent={ACCENT} progress={pctElev / 100} />
+      </KpiGrid>
 
       {/* ── Notification Strava ──────────────────────────── */}
       {syncMsg && (
@@ -429,10 +492,9 @@ function SportPageInner() {
 
       {/* ── Manual add form ──────────────────────────────── */}
       {showManual && (
-        <form onSubmit={handleManual} style={{
-          display: 'flex', gap: 12, flexWrap: 'wrap', padding: 16,
-          borderRadius: 'var(--radius-lg)', marginBottom: 16,
-          background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
+        <form onSubmit={handleManual} className="nb-card" style={{
+          display: 'flex', gap: 12, flexWrap: 'wrap', padding: 16, marginBottom: 16,
+          background: 'var(--bg-card)',
         }}>
           {[
             { type: 'date',   value: form.date,     key: 'date',     ph: '',                  w: 'auto' },
@@ -444,65 +506,34 @@ function SportPageInner() {
               value={f.value} onChange={e => setForm(v => ({ ...v, [f.key]: e.target.value }))}
               placeholder={f.ph}
               style={{ flex: f.w === '1' ? 1 : undefined, width: f.w !== '1' && f.w !== 'auto' ? f.w : undefined,
-                background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8,
-                padding: '8px 12px', color: 'var(--text)', fontSize: 12, minWidth: 100 }} />
+                background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, minHeight: 40,
+                padding: '9px 12px', color: 'var(--text)', fontSize: 13, minWidth: 100 }} />
           ))}
-          <button type="submit" className="nb-press"
-            style={{ background: ORANGE, color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-            Enregistrer
-          </button>
+          <StickerButton type="submit" accent={ACCENT}>Enregistrer</StickerButton>
         </form>
       )}
 
       {/* ══════════════════════════════════════════════════
-          GRID LAYOUT — 4 cols, gap 10
+          GRID LAYOUT — 4 cols, gap 16
+          (la rangée de KPI est remontée sous le titre)
       ══════════════════════════════════════════════════ */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: '300px 300px 500px 500px 400px 260px',
+        gridTemplateRows: '300px 500px 500px 400px',
         gap: 16,
       }}>
 
         {/* ── R1C1-2 : HERO ──────────────────────────────── */}
-        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 28, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div className="nb-tile" style={{ ...tealCard(), gridColumn: 'span 2', padding: 28, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.5)', textTransform: 'uppercase', marginBottom: 6 }}>Running</p>
-            <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: WHEAT, lineHeight: 1.05, marginBottom: 4 }}>
+            <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', color: 'rgba(var(--text-rgb),0.5)', textTransform: 'uppercase', marginBottom: 6 }}>Volume de la semaine</p>
+            <p style={{ ...DF, fontSize: 56, fontWeight: 900, color: WHEAT, lineHeight: 1, marginBottom: 6 }}>
               {loading ? '…' : `${kmWeek.toFixed(1)} km`}
             </p>
-            <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.55)', marginBottom: 20 }}>
+            <p style={{ fontSize: 12, color: 'rgba(var(--text-rgb),0.55)' }}>
               cette semaine · {seancesWeek} sortie{seancesWeek > 1 ? 's' : ''}
             </p>
-
-            {/* Actions toolbar */}
-            <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <a href={typeof window !== 'undefined' ? stravaAuthUrl() : '#'} className="nb-press"
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
-                  background: STRAVA_ORANGE, color: '#fff', ...DF, fontWeight: 700, fontSize: 11, textDecoration: 'none' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff">
-                  <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0 4 13.828h4.17"/>
-                </svg>
-                Strava
-              </a>
-              <button onClick={handleStravaSync} disabled={syncing} className="nb-press"
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
-                  background: 'rgba(var(--text-rgb),0.08)', color: syncing ? 'rgba(var(--text-rgb),0.4)' : WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
-                <RefreshCw size={11} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
-                {syncing ? 'Sync…' : 'Synchroniser'}
-              </button>
-              <label className="nb-press" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)',
-                background: 'rgba(var(--text-rgb),0.08)', color: WHEAT, ...DF, fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
-                <input ref={fileRef} type="file" accept=".gpx" style={{ display: 'none' }} onChange={handleGpxFile} />
-                <Upload size={11} /> {importing ? 'Import…' : 'GPX'}
-              </label>
-              <button onClick={() => setShowManual(v => !v)} className="nb-press"
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                  background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-                <Plus size={11} /> Ajouter
-              </button>
-            </div>
           </div>
 
           {/* Bottom stats row */}
@@ -521,8 +552,9 @@ function SportPageInner() {
         </div>
 
         {/* ── R1C3-4 : RÉSUMÉ DE LA SEMAINE ─────────────── */}
-        <div style={{ ...orangeCard(), gridColumn: 'span 2', padding: 28, display: 'flex', flexDirection: 'column' }}>
-          <p style={{ ...label('#1A0A0A'), marginBottom: 18 }}>Résumé de la semaine</p>
+        <SectionCard title="Résumé de la semaine" num="01" accent={ACCENT} bg={ORANGE} titleColor="var(--ink-dark)"
+          style={{ gridColumn: 'span 2', ...SECTION_COL, ...INK_DARK_VARS } as React.CSSProperties}>
+          <div style={{ padding: 28, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflowY: 'auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
             {[
               { l: 'Distance',  v: `${kmWeek.toFixed(1)} km`,         pct: pctKm,      target: `${OBJ_KM_DYNAMIC} km` },
@@ -557,47 +589,14 @@ function SportPageInner() {
               <p style={{ ...DF, fontSize: 24, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>{activities.length}</p>
             </div>
           </div>
-        </div>
-
-        {/* ── R2 : 4 KPI CARDS ──────────────────────────── */}
-        {[
-          { l: 'Séances / semaine', v: String(seancesWeek), sub: `obj. ${Math.ceil(OBJ_SEANCES_DYNAMIC)}`, pct: pctSeances, color: TEAL, dark: true },
-          { l: 'Distance / semaine', v: `${kmWeek.toFixed(1)}`, unit: 'km', sub: `obj. ${Math.ceil(OBJ_KM_DYNAMIC)} km`, pct: pctKm, color: ORANGE, dark: false },
-          { l: 'Allure moyenne', v: kmWeek > 0 && secWeek > 0 ? fmtPace(secWeek / kmWeek) : avgPaceAll > 0 ? fmtPace(avgPaceAll) : '—', sub: 'dernières sorties', color: 'var(--azul)', dark: true },
-          { l: 'Dénivelé / semaine', v: `+${elevWeek}`, unit: 'm', sub: `obj. ${Math.ceil(OBJ_ELEV_DYNAMIC)}m`, pct: pctElev, color: '#5B6F3A', dark: true },
-        ].map((kpi, i) => (
-          <div key={i} style={{
-            background: kpi.color, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-            boxShadow: '4px 4px 0 var(--ink)', padding: '22px 22px 18px',
-            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden',
-            ...(kpi.dark
-              ? { '--text-rgb': '255, 255, 255', '--text': 'var(--ink-light)', '--text-muted': 'rgba(255, 255, 255, 0.72)' }
-              : { '--text-rgb': '17, 17, 17', '--text': 'var(--ink-dark)', '--text-muted': 'rgba(17, 17, 17, 0.65)' }),
-          } as React.CSSProperties}>
-            <div>
-              <p style={{ fontSize: 9, color: kpi.dark ? 'rgba(var(--text-rgb),0.5)' : 'rgba(26,10,10,0.5)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>{kpi.l}</p>
-              <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: kpi.dark ? WHEAT : '#1A0A0A', lineHeight: 1 }}>
-                {kpi.v}
-                {kpi.unit && <span style={{ fontSize: 14, marginLeft: 3 }}>{kpi.unit}</span>}
-              </p>
-            </div>
-            <div>
-              {kpi.pct !== undefined && (
-                <div style={{ height: 4, borderRadius: 99, background: kpi.dark ? 'rgba(var(--text-rgb),0.15)' : 'rgba(26,10,10,0.15)', overflow: 'hidden', marginBottom: 6 }}>
-                  <div style={{ height: '100%', borderRadius: 99, background: kpi.dark ? WHEAT : '#1A0A0A', width: `${kpi.pct}%` }} />
-                </div>
-              )}
-              <p style={{ fontSize: 10, color: kpi.dark ? 'rgba(var(--text-rgb),0.45)' : 'rgba(26,10,10,0.45)' }}>{kpi.sub}</p>
-            </div>
           </div>
-        ))}
+        </SectionCard>
 
-        {/* ── R3C1-2 : APERÇU SEMAINE ───────────────────── */}
-        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <p style={{ ...label('rgba(var(--text-rgb),0.55)') }}>Aperçu de la semaine</p>
-            <span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.4)' }}>{kmWeek.toFixed(1)} km · {fmtDur(secWeek)}</span>
-          </div>
+        {/* ── R2C1-2 : APERÇU SEMAINE ───────────────────── */}
+        <SectionCard title="Aperçu de la semaine" num="02" accent={ACCENT} bg="var(--azul)" titleColor="var(--ink-light)"
+          style={{ gridColumn: 'span 2', ...SECTION_COL, ...INK_LIGHT_VARS } as React.CSSProperties}
+          action={<span style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.55)' }}>{kmWeek.toFixed(1)} km · {fmtDur(secWeek)}</span>}>
+          <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
             <BarChart data={dayData} labels={dayLabels} color="rgba(var(--text-rgb),0.35)" highlight={todayIdx} />
           </div>
@@ -618,56 +617,49 @@ function SportPageInner() {
               )
             })}
           </div>
-        </div>
+          </div>
+        </SectionCard>
 
-        {/* ── R3C3-4 : PROCHAINE COURSE + ALLURE ─────────── */}
+        {/* ── R2C3-4 : PROCHAINE COURSE + ALLURE ─────────── */}
         <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Prochaine course */}
-          <div style={{ ...card(), padding: 22, flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <p style={{ ...label() }}>Prochaine course planifiée</p>
-              {!showPlanForm && (
-                <button onClick={() => setShowPlanForm(true)} className="nb-press"
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 'var(--radius-lg)',
-                    background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 10,
-                    border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-                  <Plus size={10} /> Planifier
-                </button>
-              )}
-            </div>
+          <SectionCard title="Prochaine course planifiée" num="03" accent={ACCENT}
+            style={{ flex: 1, ...SECTION_COL }}
+            action={!showPlanForm ? (
+              <StickerButton onClick={() => setShowPlanForm(true)} accent={ACCENT} title="Planifier une sortie">
+                <Plus size={13} /> Planifier
+              </StickerButton>
+            ) : undefined}>
+            <div style={{ padding: 22, flex: 1, minHeight: 0, overflowY: 'auto' }}>
 
             {showPlanForm ? (
               <form onSubmit={handlePlan} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8 }}>
                   <div>
-                    <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Date</p>
+                    <p style={FIELD_LABEL}>Date</p>
                     <input type="date" value={planForm.date}
                       onChange={e => setPlanForm(f => ({ ...f, date: e.target.value }))}
                       min={tomorrow}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border-active)',
-                        borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
+                      style={{ ...FIELD_INPUT, border: '1px solid var(--border-active)' }} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Distance (km)</p>
+                    <p style={FIELD_LABEL}>Distance (km)</p>
                     <input type="number" step="0.1" value={planForm.distance} placeholder="10.0" autoFocus
                       onChange={e => setPlanForm(f => ({ ...f, distance: e.target.value }))}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)',
-                        borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
+                      style={FIELD_INPUT} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Heure</p>
+                    <p style={FIELD_LABEL}>Heure</p>
                     <input type="time" value={planForm.time}
                       onChange={e => setPlanForm(f => ({ ...f, time: e.target.value }))}
-                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)',
-                        borderRadius: 8, padding: '8px 6px', color: 'var(--text)', fontSize: 12 }} />
+                      style={{ ...FIELD_INPUT, padding: '9px 6px' }} />
                   </div>
                 </div>
                 <div>
-                  <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Titre (optionnel)</p>
+                  <p style={FIELD_LABEL}>Titre (optionnel)</p>
                   <input type="text" value={planForm.title} placeholder="ex : Sortie longue du dimanche"
                     onChange={e => setPlanForm(f => ({ ...f, title: e.target.value }))}
-                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)',
-                      borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 12 }} />
+                    style={FIELD_INPUT} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 8, background: 'rgba(14,149,148,0.08)', border: '1px solid rgba(14,149,148,0.2)' }}>
                   <Calendar size={11} style={{ color: TEAL, flexShrink: 0 }} />
@@ -675,13 +667,14 @@ function SportPageInner() {
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                   <button type="submit" disabled={planSaving || !planForm.distance} className="nb-press"
-                    style={{ flex: 1, background: planForm.distance ? ORANGE : 'var(--border)', color: planForm.distance ? 'var(--ink-dark)' : 'var(--text-muted)',
-                      borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 700, fontSize: 12,
+                    style={{ flex: 1, minHeight: 40, background: planForm.distance ? ACCENT : 'var(--border)', color: planForm.distance ? 'var(--ink-dark)' : 'var(--text-muted)',
+                      borderRadius: 'var(--radius-lg)', padding: '9px 0', ...DF, fontWeight: 800, fontSize: 12,
+                      textTransform: 'uppercase', letterSpacing: '0.06em',
                       border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: planForm.distance ? 'pointer' : 'default', transition: 'background .2s' }}>
                     {planSaving ? 'Enregistrement…' : 'Planifier cette sortie'}
                   </button>
                   <button type="button" onClick={() => setShowPlanForm(false)} className="nb-press"
-                    style={{ padding: '9px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)',
+                    style={{ minHeight: 40, padding: '9px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)',
                       border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--text-muted)', ...DF, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
                     Annuler
                   </button>
@@ -758,16 +751,18 @@ function SportPageInner() {
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>Aucune sortie planifiée</p>
               </div>
             )}
-          </div>
+            </div>
+          </SectionCard>
 
           {/* Allure moyenne — sparkline */}
-          <div style={{ ...card(), padding: 22, flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <p style={{ ...label(TEAL) }}>Évolution de l&apos;allure</p>
+          <SectionCard title="Évolution de l'allure" num="04" accent={ACCENT}
+            style={{ flex: 1, ...SECTION_COL }}
+            action={
               <span style={{ ...DF, fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>
                 {avgPaceAll > 0 ? fmtPace(avgPaceAll) : '—'}
               </span>
-            </div>
+            }>
+            <div style={{ padding: 22, flex: 1, minHeight: 0 }}>
             {paceData.some(v => v > 0) ? (
               <SparkLine data={paceData} color={TEAL} height={50} />
             ) : (
@@ -780,16 +775,15 @@ function SportPageInner() {
                 <span key={i} style={{ fontSize: 8, color: 'var(--text-muted)' }}>{l}</span>
               ))}
             </div>
-          </div>
+            </div>
+          </SectionCard>
         </div>
 
-        {/* ── R4C1-2 : DERNIÈRES SORTIES ────────────────── */}
-        <div style={{ ...card(), gridColumn: 'span 2', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-            <p style={{ ...label() }}>Dernières sorties</p>
-            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{activities.length} sorties</span>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* ── R3C1-2 : DERNIÈRES SORTIES ────────────────── */}
+        <SectionCard title="Dernières sorties" num="05" accent={ACCENT}
+          style={{ gridColumn: 'span 2', ...SECTION_COL }}
+          action={<span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{activities.length} sorties</span>}>
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
             {loading ? (
               <p style={{ padding: 20, fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
             ) : activities.length === 0 ? (
@@ -803,7 +797,7 @@ function SportPageInner() {
               const hasGpx = !!(a.raw_data as any)?.gpx
               return (
                 <button key={a.id} className="sport-row-btn" onClick={() => router.push(`/sport/${a.id}`)}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
+                  style={{ width: '100%', minHeight: 56, display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
                     borderBottom: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
                   <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--azul)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {hasGpx ? <Zap size={16} style={{ color: ORANGE }} /> : <Activity size={16} style={{ color: 'var(--ink-light)' }} />}
@@ -838,22 +832,23 @@ function SportPageInner() {
               )
             })}
           </div>
-        </div>
+        </SectionCard>
 
-        {/* ── R4C3-4 : ZONES FC ─────────────────────────── */}
+        {/* ── R3C3-4 : ZONES FC ─────────────────────────── */}
         <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ ...card(), flex: 1, padding: 24 }}>
-            <p style={{ ...label(TEAL), marginBottom: 18 }}>Zones de fréquence cardiaque</p>
+          <SectionCard title="Zones de fréquence cardiaque" num="06" accent={ACCENT}
+            style={{ flex: 1, ...SECTION_COL }}>
+            <div style={{ padding: 24, flex: 1, minHeight: 0, overflowY: 'auto' }}>
             <HrZonesBar zones={zones} />
             {/* Total time in zones */}
             <div style={{ marginTop: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 14, borderTop: '1px solid var(--border)' }}>
               <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Temps total analysé</p>
               <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{fmtDurLong(secWeek)}</p>
             </div>
-          </div>
-          <div style={{ ...card(), padding: 20 }}>
-            <p style={{ ...label(), marginBottom: 12 }}>FC Moyenne</p>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+            </div>
+          </SectionCard>
+          <SectionCard title="FC Moyenne" num="07" accent={ACCENT}>
+            <div style={{ padding: 20, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
               {activities.slice(0, 5).filter(a => a.heart_rate_avg).map(a => (
                 <div key={a.id} style={{ textAlign: 'center' }}>
                   <p style={{ ...DF, fontSize: 16, fontWeight: 900, color: 'var(--text)' }}>{a.heart_rate_avg}</p>
@@ -864,12 +859,13 @@ function SportPageInner() {
                 <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Pas de données FC</p>
               )}
             </div>
-          </div>
+          </SectionCard>
         </div>
 
-        {/* ── R5C1-2 : PLAN D'ENTRAÎNEMENT ─────────────── */}
-        <div style={{ ...tealCard(), gridColumn: 'span 2', padding: 24, display: 'flex', flexDirection: 'column' }}>
-          <p style={{ ...label('rgba(var(--text-rgb),0.55)'), marginBottom: 18 }}>Plan d&apos;entraînement</p>
+        {/* ── R4C1-2 : PLAN D'ENTRAÎNEMENT ─────────────── */}
+        <SectionCard title="Plan d'entraînement" num="08" accent={ACCENT} bg="var(--azul)" titleColor="var(--ink-light)"
+          style={{ gridColumn: 'span 2', ...SECTION_COL, ...INK_LIGHT_VARS } as React.CSSProperties}>
+          <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, flex: 1 }}>
             {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, i) => {
               const d = new Date(weekStart); d.setDate(weekStart.getDate() + i)
@@ -914,11 +910,13 @@ function SportPageInner() {
               <Donut pct={pctSeances} color={WHEAT} size={52} stroke={6} />
             </div>
           </div>
-        </div>
+          </div>
+        </SectionCard>
 
-        {/* ── R5C3 : DÉFIS & OBJECTIFS ──────────────────── */}
-        <div style={{ ...orangeCard(), padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ ...label('#1A0A0A'), marginBottom: 4 }}>Défis & Objectifs</p>
+        {/* ── R4C3 : DÉFIS & OBJECTIFS ──────────────────── */}
+        <SectionCard title="Défis & Objectifs" num="09" accent={ACCENT} bg={ORANGE} titleColor="var(--ink-dark)"
+          style={{ ...SECTION_COL, ...INK_DARK_VARS } as React.CSSProperties}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0, overflowY: 'auto' }}>
           {[
             { icon: <Target size={14} />, l: '100 km / mois',   v: `${activities.filter(a => {const d=new Date(a.date+'T12:00:00'); return d.getMonth()===today.getMonth()&&d.getFullYear()===today.getFullYear()}).reduce((s,a)=>s+(a.distance_km??0),0).toFixed(0)} km`, pct: Math.min(100, (activities.filter(a=>{const d=new Date(a.date+'T12:00:00');return d.getMonth()===today.getMonth()&&d.getFullYear()===today.getFullYear()}).reduce((s,a)=>s+(a.distance_km??0),0)/100)*100) },
             { icon: <Award   size={14} />, l: 'Total 500 km',    v: `${allKm.toFixed(0)} km`, pct: Math.min(100, (allKm / 500) * 100) },
@@ -936,20 +934,20 @@ function SportPageInner() {
               <p style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)', marginTop: 4 }}>{d.pct.toFixed(0)}%</p>
             </div>
           ))}
-        </div>
+          </div>
+        </SectionCard>
 
-        {/* ── R5C4 : MEILLEURS TEMPS ────────────────────── */}
-        <div style={{ ...card(), padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ ...label(TEAL), marginBottom: 4 }}>Meilleurs temps</p>
+        {/* ── R4C4 : MEILLEURS TEMPS ────────────────────── */}
+        <SectionCard title="Meilleurs temps" num="10" accent={ACCENT} style={SECTION_COL}>
+          <div style={{ padding: 22, flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0, overflowY: 'auto' }}>
           {[
             { dist: '5 km',   run: best5k  },
             { dist: '10 km',  run: best10k },
             { dist: 'Semi',   run: bestHm  },
           ].map(({ dist, run }) => (
-            <div key={dist} style={{
+            <div key={dist} className="nb-card" style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)',
-              border: '2px solid var(--ink)',
+              padding: '12px 14px', background: 'var(--bg-input)', boxShadow: 'none',
             }}>
               <div>
                 <p style={{ ...DF, fontSize: 11, fontWeight: 800, color: 'var(--text-muted)' }}>{dist}</p>
@@ -973,12 +971,11 @@ function SportPageInner() {
                   <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{best.distance_km?.toFixed(1)} km</p>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{fmtDate(best.date)}</p>
                 </div>
-              ) : <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>—</p>
+              ) : <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucune sortie enregistrée</p>
             })()}
           </div>
-        </div>
-
-
+          </div>
+        </SectionCard>
 
       </div>
     </div>

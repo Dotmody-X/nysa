@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Trash2, Check, AlertTriangle, Plus, X, Eye } from '@/components/ui/icons'
+import { Loader2, Trash2, Check, AlertTriangle, Plus, X, Eye, Shield } from '@/components/ui/icons'
 import { type SiteConfig, type ThemeConfig, type ThemePreset, type Plan } from '@/hooks/useAppConfig'
+import { PageTitle } from '@/components/ui/PageTitle'
 
 // Presets de thème intégrés (points de départ rapides)
 const BUILTIN_PRESETS: { name: string; theme: ThemeConfig }[] = [
@@ -139,12 +140,9 @@ export default function AdminPage() {
 
   return (
     <div style={{ padding: '26px 30px', display: 'flex', flexDirection: 'column', gap: 16, minHeight: '100%' }}>
-      <div>
-        <h1 style={{ ...DF, fontSize: 40, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>ADMIN.</h1>
-        <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>Back-office · Gestion du site</p>
-      </div>
+      <PageTitle title="Admin" sub="Back-office · Gestion du site" accent="var(--azul)" icon={Shield} iconInk="var(--ink-light)" />
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div className="toolbar-scroll" style={{ display: 'flex', gap: 8 }}>
         <button style={tabBtn('overview', '')} onClick={() => setTab('overview')}>Vue d&apos;ensemble</button>
         <button style={tabBtn('users', '')} onClick={() => setTab('users')}>Utilisateurs ({users.length})</button>
         <button style={tabBtn('theme', '')} onClick={() => setTab('theme')}>Thème</button>

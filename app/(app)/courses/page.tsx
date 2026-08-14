@@ -7,6 +7,7 @@ import {
   Package, AlertTriangle, MapPin, Calendar, Store, Navigation, Upload,
 } from '@/components/ui/icons'
 import { ImportReceipt } from '@/components/courses/ImportReceipt'
+import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { userKey } from '@/lib/userStore'
 import { useShoppingLists, useShoppingItems, type ShoppingItem } from '@/hooks/useShoppingLists'
 import { useInventory } from '@/hooks/useInventory'
@@ -31,23 +32,10 @@ const DARK    = 'var(--bg)'
 function fmtEur(n: number) { return n.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 
 /* ─── Card helpers ───────────────────────────────────────────── */
-const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
-})
 const tealCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: TEAL_BG, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
   '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)', ...extra,
 } as React.CSSProperties)
-const orangeCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: ORANGE, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden',
-  '--text-rgb': '26, 10, 10', '--text': '#1a0a0a', '--text-muted': 'rgba(26, 10, 10, 0.65)', ...extra,
-} as React.CSSProperties)
-const darkCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: DARK, borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
-})
-const lbl = (color = ORANGE): React.CSSProperties => ({
-  ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color,
-})
 
 /* ─── Category colors ────────────────────────────────────────── */
 const CAT_COLORS: Record<string, string> = {
@@ -146,7 +134,7 @@ function StoreSelectorModal({
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', width: 560, maxWidth: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="nb-card" style={{ background: 'var(--bg-card)', width: 560, maxWidth: '95vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 22px', borderBottom: '1px solid var(--border)' }}>
           <div>
@@ -167,7 +155,8 @@ function StoreSelectorModal({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {STORE_CHAINS.map(chain => (
                 <button key={chain.id} onClick={() => setSelectedChain(chain)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10,
+                  className="nb-press"
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', minHeight: 40, borderRadius: 10,
                     border: `2px solid ${selectedChain?.id === chain.id ? chain.color : 'var(--border)'}`,
                     background: selectedChain?.id === chain.id ? `${chain.color}18` : 'var(--bg-input)',
                     cursor: 'pointer', textAlign: 'left', transition: 'all .12s' }}>
@@ -201,9 +190,9 @@ function StoreSelectorModal({
               {nearbyStores.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
                   {nearbyStores.map(store => (
-                    <button key={store.id} onClick={() => selectStore(store)} className="nb-press"
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--radius-lg)',
-                        background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', textAlign: 'left' }}>
+                    <button key={store.id} onClick={() => selectStore(store)} className="nb-press nb-card"
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', minHeight: 40,
+                        background: 'var(--bg-input)', cursor: 'pointer', textAlign: 'left' }}>
                       <MapPin size={14} style={{ color: selectedChain.color, flexShrink: 0 }} />
                       <div style={{ flex: 1 }}>
                         <p style={{ ...DF2, fontSize: 12, fontWeight: 700, color: WHEAT }}>{store.name || selectedChain.name}</p>
@@ -221,11 +210,11 @@ function StoreSelectorModal({
         {/* Footer */}
         {selectedChain && (
           <div style={{ padding: '14px 22px', borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
-            <button onClick={onClose} style={{ flex: 1, padding: '10px', borderRadius: 9, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF2, fontWeight: 700, fontSize: 12 }}>
+            <button onClick={onClose} className="nb-press" style={{ flex: 1, padding: '10px', minHeight: 40, borderRadius: 9, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer', ...DF2, fontWeight: 700, fontSize: 12 }}>
               Annuler
             </button>
-            <button onClick={selectChainOnly} className="nb-press"
-              style={{ flex: 2, padding: '10px', borderRadius: 'var(--radius-lg)', background: ORANGE, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', color: 'var(--ink-dark)', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
+            <button onClick={selectChainOnly} className="nb-press nb-card"
+              style={{ flex: 2, padding: '10px', minHeight: 40, background: ORANGE, color: 'var(--ink-dark)', cursor: 'pointer', ...DF2, fontWeight: 900, fontSize: 12 }}>
               Utiliser {selectedChain.name} {city ? `— ${city}` : '(sans localisation)'}
             </button>
           </div>
@@ -531,104 +520,65 @@ export default function CoursesPage() {
       `}</style>
 
       {/* ══════════════════════════════════════════
-          HEADER — Hero + Budget + Économies
+          HEADER — Titre collage + KPI
       ══════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 260px) minmax(0, 220px)', gap: 14, minHeight: 180 }}>
+      <PageTitle
+        title="Courses"
+        sub="Listes · Inventaire · Prix"
+        accent="var(--accent-courses)"
+        icon={ShoppingCart}
+        iconInk="var(--ink-dark)"
+        right={
+          <>
+            <StickerButton onClick={() => setShowNewList(v => !v)} accent={ORANGE} tilt="l">
+              <Plus size={14} /> Nouvelle liste
+            </StickerButton>
+            <StickerButton onClick={() => setShowSearch(v => !v)} accent={TEAL_BG} ink="var(--ink-light)">
+              <Search size={14} /> Rechercher
+            </StickerButton>
+            <StickerButton accent="var(--bg-card)" ink="var(--text)" tilt="none">
+              <Barcode size={14} /> Code-barres
+            </StickerButton>
+          </>
+        }
+      />
 
-        {/* Hero */}
-        <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
-            <p style={{ ...DF, fontSize: 46, fontWeight: 900, color: WHEAT, lineHeight: 0.92, marginBottom: 4 }}>COURSES.</p>
-            <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: TEAL, letterSpacing: '0.08em', marginBottom: 6 }}>
-              PLANIFIEZ. ACHETEZ. ÉCONOMISEZ.
-            </p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: 340 }}>
-              Gérez vos courses intelligemment, évitez le gaspillage et restez dans votre budget.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button className="crs-btn nb-press" onClick={() => setShowNewList(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                background: ORANGE, color: 'var(--ink-dark)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-              <Plus size={11} /> Nouvelle liste
-            </button>
-            <button className="crs-btn nb-press" onClick={() => setShowSearch(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                background: TEAL_BG, color: 'var(--ink-light)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-              <Search size={11} /> Rechercher
-            </button>
-            <button className="crs-btn nb-press"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-lg)',
-                background: 'var(--bg-card)', color: 'var(--text)', ...DF, fontWeight: 700, fontSize: 11, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
-              <Barcode size={11} /> Code-barres
-            </button>
-          </div>
-        </div>
-
-        {/* Budget panier */}
-        <div style={{ ...orangeCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <p style={{ ...lbl('#1A0A0A') }}>Budget panier</p>
-            <ShoppingCart size={20} style={{ color: 'rgba(26,10,10,0.4)' }} />
-          </div>
-          <div>
-            <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.55)', marginBottom: 2 }}>Total estimé</p>
-            <p style={{ ...DF, fontSize: 38, fontWeight: 900, color: '#1A0A0A', lineHeight: 1 }}>
-              {fmtEur(basketTotal)}
-            </p>
-            <p style={{ fontSize: 10, color: 'rgba(26,10,10,0.55)', marginTop: 2, marginBottom: 10 }}>
-              Budget : {BUDGET_TARGET},00 €
-            </p>
-            <div style={{ height: 6, borderRadius: 99, background: 'rgba(0,0,0,0.2)', overflow: 'hidden', marginBottom: 6 }}>
-              <div style={{ height: '100%', borderRadius: 99, background: 'rgba(26,10,10,0.65)', width: `${budgetPct}%`, transition: 'width .5s' }} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)' }}>{budgetPct.toFixed(0)}%</span>
-              <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.5)' }}>
-                Reste : {fmtEur(Math.max(0, BUDGET_TARGET - basketTotal))}
-              </span>
-            </div>
-            {cheapestStore && (
-              <div style={{ marginTop: 10, padding: '6px 10px', borderRadius: 8, background: 'rgba(26,10,10,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <span style={{ fontSize: 9, color: 'rgba(26,10,10,0.7)', fontWeight: 700 }}>🏪 Moins cher : {cheapestStore.store}</span>
-                <span style={{ ...DF, fontSize: 11, fontWeight: 900, color: '#1A0A0A' }}>~{fmtEur(cheapestStore.total)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Économies prévues */}
-        <div style={{ ...tealCard(), padding: 22, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.55)') }}>Économies prévues</p>
-            <Tag size={18} style={{ color: 'rgba(var(--text-rgb),0.3)' }} />
-          </div>
-          <div>
-            <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginBottom: 2 }}>Cette semaine</p>
-            {savings > 0 ? (
-              <>
-                <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{fmtEur(savings)}</p>
-                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginTop: 4 }}>via les promotions du jour</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                  <TrendingDown size={12} style={{ color: WHEAT }} />
-                  <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT }}>{livePromos.length} promo{livePromos.length > 1 ? 's' : ''}</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <p style={{ ...DF, fontSize: 36, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>—</p>
-                <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.45)', marginTop: 4 }}>Aucune donnée pour le moment</p>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+      <KpiGrid>
+        <KpiCard
+          label={`Panier / ${BUDGET_TARGET} €`}
+          value={fmtEur(basketTotal)}
+          accent="var(--accent-courses)"
+          progress={budgetPct / 100}
+        />
+        <KpiCard
+          label="Coché"
+          value={`${checkedCount}/${totalItems}`}
+          accent="var(--accent-courses)"
+          progress={progress / 100}
+        />
+        <KpiCard
+          label="Économies prévues"
+          value={savings > 0 ? fmtEur(savings) : '—'}
+          accent="var(--accent-courses)"
+          sub={savings > 0
+            ? `${livePromos.length} promo${livePromos.length > 1 ? 's' : ''} du jour`
+            : 'Aucune donnée pour le moment'}
+        />
+        <KpiCard
+          label="Moins cher"
+          value={cheapestStore ? `~${fmtEur(cheapestStore.total)}` : '—'}
+          accent="var(--accent-courses)"
+          sub={cheapestStore
+            ? cheapestStore.store
+            : `${totalItems} article${totalItems > 1 ? 's' : ''} · ${totalRayons} rayon${totalRayons > 1 ? 's' : ''}`}
+        />
+      </KpiGrid>
 
       {/* ══════════════════════════════════════════
           NEW LIST + SEARCH (inline forms, toggled)
       ══════════════════════════════════════════ */}
       {showNewList && (
-        <div style={{ display: 'flex', gap: 8, padding: 14, ...card() }}>
+        <div className="nb-card" style={{ display: 'flex', gap: 8, padding: 14, overflow: 'hidden' }}>
           <input value={newListName} onChange={e => setNewListName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleCreateList()}
             placeholder="Nom de la liste (ex: Semaine du 5 mai)…" autoFocus
@@ -643,12 +593,12 @@ export default function CoursesPage() {
       )}
 
       {showSearch && (
-        <div style={{ ...card(), padding: 14 }}>
-          <div style={{ display: 'flex', gap: 8, marginBottom: results.length > 0 ? 10 : 0 }}>
-            <div style={{ display: 'flex', gap: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+        <div className="nb-card" style={{ padding: 14, overflow: 'hidden' }}>
+          <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, marginBottom: results.length > 0 ? 10 : 0 }}>
+            <div style={{ display: 'flex', gap: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)', flexShrink: 0 }}>
               {(['search', 'barcode'] as const).map(t => (
-                <button key={t} onClick={() => { setSearchTab(t); setResults([]) }}
-                  style={{ padding: '7px 14px', background: searchTab === t ? ORANGE : 'var(--bg-input)', color: searchTab === t ? '#fff' : 'var(--text-muted)', border: 'none', cursor: 'pointer', ...DF, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <button key={t} onClick={() => { setSearchTab(t); setResults([]) }} className="nb-press"
+                  style={{ padding: '7px 14px', minHeight: 40, background: searchTab === t ? ORANGE : 'var(--bg-input)', color: searchTab === t ? 'var(--ink-dark)' : 'var(--text-muted)', border: 'none', cursor: 'pointer', ...DF, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
                   {t === 'search' ? <><Search size={10} /> Nom</> : <><Barcode size={10} /> Code-barres</>}
                 </button>
               ))}
@@ -720,10 +670,11 @@ export default function CoursesPage() {
             {t.l}
           </button>
         ))}
-        <button onClick={() => setShowReceipt(true)} className="nb-press"
-          style={{ marginLeft: 'auto', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 'var(--radius-md)', background: TEAL, color: 'var(--ink-light)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 800, fontSize: 11, whiteSpace: 'nowrap' }}>
-          <Upload size={13} /> Importer un ticket
-        </button>
+        <div style={{ marginLeft: 'auto', marginBottom: 4, whiteSpace: 'nowrap' }}>
+          <StickerButton onClick={() => setShowReceipt(true)} accent={TEAL} ink="var(--ink-light)" tilt="none">
+            <Upload size={13} /> Importer un ticket
+          </StickerButton>
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════
@@ -732,40 +683,42 @@ export default function CoursesPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 280px) minmax(0, 260px)', gap: 14 }}>
 
         {/* ── Col 1 : Liste de courses ─────────── */}
-        <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <p style={{ ...lbl() }}>Liste de courses</p>
+        <SectionCard
+          title="Liste de courses"
+          num="01"
+          accent="var(--accent-courses)"
+          style={{ display: 'flex', flexDirection: 'column' }}
+          action={
+            <div className="toolbar-scroll" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <span style={{ ...DF, fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20,
-                background: 'rgba(242,84,45,0.12)', color: ORANGE }}>{totalItems} articles</span>
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
+                background: 'rgba(242,84,45,0.12)', color: ORANGE, whiteSpace: 'nowrap' }}>{totalItems} articles</span>
               {/* List selector */}
               {lists.length > 0 && (
                 <select value={activeListId ?? ''} onChange={e => setActiveListId(e.target.value)}
-                  style={{ ...inp, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}>
+                  style={{ ...inp, padding: '4px 8px', fontSize: 11, cursor: 'pointer', minHeight: 32 }}>
                   {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
               )}
-              <button onClick={() => setShowManual(v => !v)} className="crs-btn"
-                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 10, cursor: 'pointer', ...DF, fontWeight: 700 }}>
+              <button onClick={() => setShowManual(v => !v)} className="crs-btn nb-press"
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '7px 10px', minHeight: 32, borderRadius: 7, background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 10, cursor: 'pointer', ...DF, fontWeight: 700, whiteSpace: 'nowrap' }}>
                 <Plus size={10} /> Manuel
               </button>
               {activeListId && items.length > 0 && checkedCount === items.length && (
-                <button onClick={() => validateList(activeListId)} className="crs-btn"
-                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, background: TEAL_BG, border: 'none', color: 'var(--ink-light)', fontSize: 10, cursor: 'pointer', ...DF, fontWeight: 700 }}>
+                <button onClick={() => validateList(activeListId)} className="crs-btn nb-press"
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '7px 10px', minHeight: 32, borderRadius: 7, background: TEAL_BG, border: 'none', color: 'var(--ink-light)', fontSize: 10, cursor: 'pointer', ...DF, fontWeight: 700, whiteSpace: 'nowrap' }}>
                   <Check size={10} /> Terminer
                 </button>
               )}
               {activeListId && (
-                <button onClick={() => { deleteList(activeListId); setActiveListId(null) }}
-                  style={{ padding: '5px 8px', borderRadius: 7, background: 'none', border: '1px solid var(--border)', cursor: 'pointer', opacity: 0.4 }}>
+                <button onClick={() => { deleteList(activeListId); setActiveListId(null) }} className="nb-press"
+                  title="Supprimer la liste"
+                  style={{ padding: '7px 8px', minHeight: 32, borderRadius: 7, background: 'none', border: '1px solid var(--border)', cursor: 'pointer', opacity: 0.4 }}>
                   <Trash2 size={10} style={{ color: 'var(--text-muted)' }} />
                 </button>
               )}
             </div>
-          </div>
+          }
+        >
 
           {/* Progress bar */}
           {items.length > 0 && (
@@ -797,9 +750,9 @@ export default function CoursesPage() {
                 )}
               </select>
               <input type="number" value={manualPrice} onChange={e => setManualPrice(e.target.value)} placeholder="Prix €" style={{ ...inp, width: 75 }} />
-              <button onClick={handleManualAdd} className="nb-press" style={{ padding: '7px 14px', borderRadius: 'var(--radius-lg)', background: ORANGE, color: 'var(--ink-dark)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 11 }}>
-                Ajouter
-              </button>
+              <StickerButton onClick={handleManualAdd} accent={ORANGE} tilt="none">
+                <Plus size={14} /> Ajouter
+              </StickerButton>
             </div>
           )}
 
@@ -809,7 +762,8 @@ export default function CoursesPage() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', gap: 10 }}>
                 <ShoppingCart size={28} style={{ color: 'var(--text-muted)' }} />
                 <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Sélectionne ou crée une liste</p>
-                <button onClick={() => setShowNewList(true)} style={{ ...DF, fontSize: 11, fontWeight: 700, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => setShowNewList(true)} className="nb-press"
+                  style={{ ...DF, fontSize: 11, fontWeight: 700, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer', minHeight: 40 }}>
                   + Créer une liste
                 </button>
               </div>
@@ -821,6 +775,10 @@ export default function CoursesPage() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '30px 20px', gap: 8 }}>
                 <ShoppingCart size={24} style={{ color: 'var(--text-muted)' }} />
                 <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Liste vide — ajoute des articles</p>
+                <button onClick={() => setShowManual(true)} className="nb-press"
+                  style={{ ...DF, fontSize: 11, fontWeight: 700, color: ORANGE, background: 'none', border: 'none', cursor: 'pointer', minHeight: 40 }}>
+                  + Ajouter un article
+                </button>
               </div>
             ) : (
               Object.entries(byCategory).map(([cat, catItems]) => (
@@ -862,32 +820,37 @@ export default function CoursesPage() {
           </div>
 
           {/* Add article footer */}
-          <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <button onClick={() => setShowManual(true)} className="crs-btn"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 11 }}>
+          <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <button onClick={() => setShowManual(true)} className="crs-btn nb-press"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 11 }}>
               <Plus size={12} style={{ color: TEAL }} /> Ajouter un article
             </button>
-            <button onClick={() => setShowSearch(true)} className="crs-btn"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: '50%', background: TEAL_BG, border: 'none', cursor: 'pointer' }}>
-              <Plus size={12} style={{ color: WHEAT }} />
+            <button onClick={() => setShowSearch(true)} className="crs-btn nb-press" title="Rechercher un produit"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', background: TEAL_BG, border: '2px solid var(--ink)', cursor: 'pointer' }}>
+              <Plus size={14} style={{ color: 'var(--ink-light)' }} />
             </button>
           </div>
-        </div>
+        </SectionCard>
 
         {/* ── Col 2 : Lié aux recettes ──────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ ...card() }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-              <p style={{ ...lbl(TEAL) }}>Lié aux recettes</p>
-              <button onClick={() => router.push('/recettes')} style={{ fontSize: 9, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+          <SectionCard
+            title="Lié aux recettes"
+            num="02"
+            accent="var(--accent-courses)"
+            action={
+              <button onClick={() => router.push('/recettes')} className="nb-press"
+                style={{ fontSize: 9, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, minHeight: 32, padding: '0 4px' }}>
                 Voir toutes
               </button>
-            </div>
+            }
+          >
             {todayRecipes.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '28px 16px', textAlign: 'center' }}>
                 <Star size={20} style={{ color: 'var(--text-muted)' }} />
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>Aucune recette planifiée aujourd'hui</p>
-                <button onClick={() => router.push('/recettes')} style={{ ...DF, fontSize: 10, fontWeight: 700, color: TEAL, background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => router.push('/recettes')} className="nb-press"
+                  style={{ ...DF, fontSize: 10, fontWeight: 700, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', minHeight: 40 }}>
                   Planifier des repas →
                 </button>
               </div>
@@ -917,22 +880,27 @@ export default function CoursesPage() {
                 </div>
               ))
             )}
-          </div>
+          </SectionCard>
         </div>
 
         {/* ── Col 3 : Inventaire + Promotions ──── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Inventaire maison */}
-          <div style={{ ...card() }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-              <p style={{ ...lbl('rgba(var(--text-rgb),0.5)') }}>Inventaire maison</p>
-              <button onClick={() => router.push('/courses/inventaire')} style={{ fontSize: 9, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Gérer</button>
-            </div>
+          <SectionCard
+            title="Inventaire maison"
+            num="03"
+            accent="var(--accent-courses)"
+            action={
+              <button onClick={() => router.push('/courses/inventaire')} className="nb-press"
+                style={{ fontSize: 9, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, minHeight: 32, padding: '0 4px' }}>Gérer</button>
+            }
+          >
             {!inventoryHydrated ? null : inventory.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '28px 16px', textAlign: 'center' }}>
                 <Package size={20} style={{ color: 'var(--text-muted)' }} />
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>Inventaire vide</p>
-                <button onClick={() => router.push('/courses/inventaire')} style={{ ...DF, fontSize: 10, fontWeight: 700, color: TEAL, background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => router.push('/courses/inventaire')} className="nb-press"
+                  style={{ ...DF, fontSize: 10, fontWeight: 700, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', minHeight: 40 }}>
                   Ajouter des produits →
                 </button>
               </div>
@@ -953,34 +921,37 @@ export default function CoursesPage() {
                 ))}
                 {/* Interconnexion Inventaire → Courses */}
                 {toBuy.length > 0 && (
-                  <button className="crs-btn" onClick={addInventoryToBuy} disabled={!activeListId || pushingInventory}
-                    style={{ width: '100%', padding: '9px', background: 'rgba(242,84,45,0.1)', border: 'none', cursor: !activeListId ? 'default' : 'pointer', fontSize: 10, color: ORANGE, ...DF, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: !activeListId ? 0.5 : 1, borderBottom: '1px solid var(--border)' }}>
+                  <button className="crs-btn nb-press" onClick={addInventoryToBuy} disabled={!activeListId || pushingInventory}
+                    style={{ width: '100%', padding: '9px', minHeight: 40, background: 'rgba(242,84,45,0.1)', border: 'none', cursor: !activeListId ? 'default' : 'pointer', fontSize: 10, color: ORANGE, ...DF, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: !activeListId ? 0.5 : 1, borderBottom: '1px solid var(--border)' }}>
                     {pushingInventory ? <Loader2 size={11} className="animate-spin" /> : <ShoppingCart size={11} />}
                     Ajouter {toBuy.length} à racheter aux courses
                   </button>
                 )}
               </>
             )}
-            <button className="crs-btn" onClick={() => router.push('/courses/inventaire')}
-              style={{ width: '100%', padding: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: TEAL, ...DF, fontWeight: 700 }}>
-              Voir tout l'inventaire →
+            <button className="crs-btn nb-press" onClick={() => router.push('/courses/inventaire')}
+              style={{ width: '100%', padding: '10px', minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: TEAL, ...DF, fontWeight: 700 }}>
+              Voir tout l&apos;inventaire →
             </button>
-          </div>
+          </SectionCard>
 
           {/* Promotions — Open Prices live data */}
-          <div style={{ ...card() }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
+          <SectionCard
+            title="Promotions pour vous"
+            num="04"
+            accent="var(--accent-courses)"
+            action={
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <p style={{ ...lbl(ORANGE) }}>Promotions pour vous</p>
                 {!loadingPromos && livePromos.length > 0 && (
                   <span style={{ fontSize: 8, padding: '2px 6px', borderRadius: 4, background: 'rgba(91,159,58,0.15)', color: '#5B9F3A', ...DF, fontWeight: 700 }}>
                     LIVE
                   </span>
                 )}
                 {loadingPromos && <Loader2 size={10} className="animate-spin" style={{ color: 'var(--text-muted)' }} />}
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>via Open Prices</span>
               </div>
-              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>via Open Prices</span>
-            </div>
+            }
+          >
             {/* En chargement : placeholders FALLBACK ; sinon promos réelles ; sinon état vide */}
             {(loadingPromos ? FALLBACK_PROMOS : livePromos.slice(0, 4)).map((p, i) => {
               const isLive = !loadingPromos
@@ -1016,7 +987,7 @@ export default function CoursesPage() {
                 <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Aucune promotion disponible</p>
               </div>
             )}
-          </div>
+          </SectionCard>
         </div>
       </div>
 
@@ -1026,14 +997,15 @@ export default function CoursesPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
 
         {/* Parcours magasin */}
-        <div style={{ ...card(), padding: 20 }}>
-          {/* Store badge */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <p style={{ ...lbl('var(--text-muted)') }}>Parcours magasin recommandé</p>
-            <MapPin size={14} style={{ color: 'var(--text-muted)' }} />
-          </div>
+        <SectionCard
+          title="Parcours magasin recommandé"
+          num="05"
+          accent="var(--accent-courses)"
+          action={<MapPin size={14} style={{ color: 'var(--text-muted)' }} />}
+        >
+         <div style={{ padding: 20 }}>
           {/* Selected store chip */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+          <div className="toolbar-scroll" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
             {activeChain ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
                 <div style={{ width: 10, height: 10, borderRadius: 2, background: activeChain.color, flexShrink: 0 }} />
@@ -1043,8 +1015,8 @@ export default function CoursesPage() {
             ) : (
               <span style={{ fontSize: 10, color: 'var(--text-muted)', flex: 1 }}>Optimisé pour gagner du temps</span>
             )}
-            <button onClick={() => setShowStoreSelector(true)} className="crs-btn"
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', cursor: 'pointer', fontSize: 9, color: 'var(--text-muted)' }}>
+            <button onClick={() => setShowStoreSelector(true)} className="crs-btn nb-press"
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', minHeight: 32, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', cursor: 'pointer', fontSize: 9, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
               <Store size={9} /> {activeChain ? 'Changer' : 'Choisir mon magasin'}
             </button>
           </div>
@@ -1073,38 +1045,52 @@ export default function CoursesPage() {
                 <Calendar size={11} style={{ color: 'var(--text-muted)' }} />
                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Estimation : ~{(parcours.reduce((s, r) => s + r.count, 0) * 1.2).toFixed(0)} min</span>
               </div>
-              <button onClick={() => setShowStoreSelector(true)} style={{ fontSize: 10, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700 }}>Voir le plan</button>
+              <button onClick={() => setShowStoreSelector(true)} className="nb-press"
+                style={{ fontSize: 10, color: TEAL, background: 'none', border: 'none', cursor: 'pointer', ...DF, fontWeight: 700, minHeight: 32 }}>Voir le plan</button>
             </div>
           )}
-        </div>
+         </div>
+        </SectionCard>
 
         {/* Évolution des dépenses */}
-        <div style={{ ...darkCard(), padding: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <p style={{ ...lbl('rgba(var(--text-rgb),0.4)') }}>Évolution des dépenses</p>
-            <select style={{ fontSize: 9, background: 'rgba(var(--text-rgb),0.06)', border: '1px solid rgba(var(--text-rgb),0.1)', borderRadius: 5, color: 'rgba(var(--text-rgb),0.4)', padding: '2px 6px', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+        <SectionCard
+          title="Évolution des dépenses"
+          num="06"
+          accent="var(--accent-courses)"
+          bg={DARK}
+          action={
+            <select style={{ fontSize: 9, background: 'rgba(var(--text-rgb),0.06)', border: '1px solid rgba(var(--text-rgb),0.1)', borderRadius: 5, color: 'rgba(var(--text-rgb),0.4)', padding: '4px 6px', minHeight: 32, cursor: 'pointer', ...DF, fontWeight: 700 }}>
               <option>Cette semaine</option>
               <option>Ce mois</option>
             </select>
-          </div>
+          }
+        >
+         <div style={{ padding: 20 }}>
           <p style={{ fontSize: 8, color: 'rgba(var(--text-rgb),0.2)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Courses</p>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '36px 12px', textAlign: 'center' }}>
             <TrendingDown size={20} style={{ color: 'rgba(var(--text-rgb),0.25)' }} />
             <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: 'rgba(var(--text-rgb),0.4)' }}>À venir</p>
             <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.25)', lineHeight: 1.4 }}>L'historique des dépenses sera disponible après quelques courses validées.</p>
           </div>
-          <button style={{ width: '100%', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'rgba(var(--text-rgb),0.25)', ...DF, fontWeight: 700, marginTop: 10, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}
+          <button className="nb-press"
+            style={{ width: '100%', padding: '10px 0', minHeight: 40, background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'rgba(var(--text-rgb),0.25)', ...DF, fontWeight: 700, marginTop: 10, borderTop: '1px solid rgba(var(--text-rgb),0.06)' }}
             onClick={() => router.push('/budget')}>
             Voir le rapport complet →
           </button>
-        </div>
+         </div>
+        </SectionCard>
 
         {/* Agent IA */}
-        <div style={{ ...tealCard(), padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <SectionCard
+          title="Agent IA courses"
+          num="07"
+          accent="var(--accent-courses)"
+          style={{ ...tealCard(), display: 'flex', flexDirection: 'column' }}
+        >
+         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Zap size={16} style={{ color: WHEAT, flexShrink: 0, marginTop: 2 }} />
             <div>
-              <p style={{ ...lbl('rgba(var(--text-rgb),0.6)'), marginBottom: 4 }}>Agent IA courses</p>
               <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.1)' }}>
                 {savings > 0 ? (
                   <>
@@ -1123,18 +1109,16 @@ export default function CoursesPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '16px 10px', textAlign: 'center', flex: 1, justifyContent: 'center' }}>
             <Zap size={16} style={{ color: 'rgba(var(--text-rgb),0.4)' }} />
-            <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.6)', lineHeight: 1.4 }}>Suggestions d'optimisation à venir</p>
+            <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.6)', lineHeight: 1.4 }}>Suggestions d&apos;optimisation à venir</p>
           </div>
-        </div>
+         </div>
+        </SectionCard>
       </div>
 
       {/* ══════════════════════════════════════════
           PRÉPARATION & ORGANISATION
       ══════════════════════════════════════════ */}
-      <div style={{ ...card() }}>
-        <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)' }}>
-          <p style={{ ...lbl('var(--text-muted)') }}>Préparation &amp; Organisation</p>
-        </div>
+      <SectionCard title="Préparation & Organisation" num="08" accent="var(--accent-courses)">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0 }}>
           {[
             {
@@ -1163,22 +1147,22 @@ export default function CoursesPage() {
               <p style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT, marginBottom: 4 }}>{s.title}</p>
               <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>{s.desc}</p>
               {s.btn && (
-                <button onClick={s.onClick} className="crs-btn"
-                  style={{ fontSize: 10, color: TEAL, background: 'none', border: `1px solid var(--border)`, borderRadius: 7, padding: '6px 12px', cursor: 'pointer', ...DF, fontWeight: 700 }}>
+                <button onClick={s.onClick} className="crs-btn nb-press"
+                  style={{ fontSize: 10, color: TEAL, background: 'none', border: `1px solid var(--border)`, borderRadius: 7, padding: '6px 12px', minHeight: 40, cursor: 'pointer', ...DF, fontWeight: 700 }}>
                   {s.btn}
                 </button>
               )}
             </div>
           ))}
         </div>
-      </div>
+      </SectionCard>
 
       {/* ══════════════════════════════════════════
           FOOTER — Astuce IA + Total + Valider
       ══════════════════════════════════════════ */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 14, alignItems: 'stretch' }}>
         {/* Astuce IA */}
-        <div style={{ ...card({ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }) }}>
+        <div className="nb-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, overflow: 'hidden' }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: TEAL_BG, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Zap size={14} style={{ color: WHEAT }} />
           </div>
@@ -1191,7 +1175,7 @@ export default function CoursesPage() {
         </div>
 
         {/* Total estimé + Valider */}
-        <div style={{ ...card({ padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }) }}>
+        <div className="nb-card" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', overflow: 'hidden' }}>
           <div>
             <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Total estimé</p>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>
@@ -1211,10 +1195,9 @@ export default function CoursesPage() {
             {savingExpense ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
             {expenseSaved ? 'Dépense enregistrée' : 'Enregistrer comme dépense'}
           </button>
-          <button className="crs-btn nb-press" onClick={() => activeListId && validateList(activeListId)}
-            style={{ padding: '14px 28px', borderRadius: 'var(--radius-lg)', background: TEAL_BG, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--ink-light)', ...DF, fontWeight: 900, fontSize: 13, whiteSpace: 'nowrap' }}>
-            Valider ma liste
-          </button>
+          <StickerButton onClick={() => activeListId && validateList(activeListId)} accent={TEAL_BG} ink="var(--ink-light)">
+            <Check size={14} /> Valider ma liste
+          </StickerButton>
         </div>
       </div>
 
@@ -1224,9 +1207,10 @@ export default function CoursesPage() {
       )}
       {receiptMsg && (
         <div onClick={() => setReceiptMsg(null)}
+          className="nb-card"
           style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, maxWidth: 480,
-            padding: '12px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', color: 'var(--ink-light)',
-            border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
+            padding: '12px 18px', background: 'var(--azul)', color: 'var(--ink-light)',
+            cursor: 'pointer', ...DF, fontWeight: 700, fontSize: 12 }}>
           {receiptMsg}
         </div>
       )}

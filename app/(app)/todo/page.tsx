@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Plus, Search, CheckCircle2, Circle, Clock, ChevronDown, Pencil, Trash2, X } from '@/components/ui/icons'
+import { Plus, Search, CheckCircle2, Circle, Clock, ChevronDown, Pencil, Trash2, X, CheckSquare } from '@/components/ui/icons'
 import { useTasks } from '@/hooks/useTasks'
 import { useProjects } from '@/hooks/useProjects'
 import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
@@ -266,6 +266,8 @@ export default function TodoPage() {
       <PageTitle
         title="To Do List"
         sub="Organisées · Priorités · Automatiques"
+        accent="var(--accent-todo)"
+        icon={CheckSquare}
         right={
           <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 px-4 py-2 nb-press"

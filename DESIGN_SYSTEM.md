@@ -86,6 +86,21 @@ Statuts : `--success #18b26b` (light : `#0e9c5e`), `--warning #ffc23d`
 | `.text-brand`, `.text-{catégorie}` | couleurs de texte accent |
 | `.toolbar-scroll` | barre d'outils scrollable horizontalement en mobile |
 
+### Composants de page (`components/ui/PageTitle.tsx`) — **à utiliser sur toute page**
+
+| Composant | Rôle |
+|---|---|
+| `PageTitle` | En-tête signature : sticker d'accent incliné + eyebrow + titre GÉANT au contour + filet épais. Props : `title`, `sub`, `right`, `accent`, `icon`, `iconInk`. |
+| `KpiGrid` + `KpiCard` | Rangée de KPI en `nb-card`. `KpiCard` : `label`, `value`, `sub`, `accent` (pastille), `progress` (0→1, remplace `sub` par une barre). |
+| `SectionCard` | Bloc de contenu titré : `title`, `num` ("01"…) affiché au contour, `accent`, `action`. |
+| `StickerButton` | Bouton d'action en sticker : `accent`, `ink`, `tilt` ('l'/'r'/'none'). |
+
+Chaque page porte **une** couleur de catégorie, passée en `accent` :
+accueil/compte/réglages → brand · calendrier/publications → calendar ·
+time-tracker → time · projets → projets · todo → todo · sport → sport ·
+health → health · recettes → recettes · courses → courses ·
+budget → budget · rapports/marketing/agent → rapports · brief → azul.
+
 ### Composants React (`components/ui/`)
 
 - `Button` — variants `primary` (brand), `secondary`, `ghost`, `danger` ; sizes `sm/md/lg` ; prop `loading`.

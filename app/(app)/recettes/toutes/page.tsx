@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, ChevronLeft, Trash2, Star } from '@/components/ui/icons'
+import { Search, ChevronLeft, Trash2, Star, UtensilsCrossed } from '@/components/ui/icons'
 import { useRecipes } from '@/hooks/useRecipes'
 import { createClient } from '@/lib/supabase/client'
+import { PageTitle } from '@/components/ui/PageTitle'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)'
@@ -39,17 +40,20 @@ export default function AllRecipesPage() {
   return (
     <div style={{ padding: 30 }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 30 }}>
-        <button onClick={() => router.back()}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: WHEAT, padding: 0 }}>
-          <ChevronLeft size={24} />
-        </button>
-        <h1 style={{ ...DF, fontSize: 28, fontWeight: 900, color: WHEAT, flex: 1 }}>Toutes les recettes</h1>
-        <span style={{ fontSize: 12, color: WHEAT, opacity: 0.6 }}>{filtered.length} recettes</span>
-      </div>
+      <button onClick={() => router.back()} className="nb-press"
+        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-md)', cursor: 'pointer', color: 'var(--text)', fontSize: 11, fontWeight: 700, padding: '8px 14px', marginBottom: 20 }}>
+        <ChevronLeft size={13} /> Retour
+      </button>
+
+      <PageTitle
+        title="Toutes les recettes"
+        sub={`${filtered.length} recette${filtered.length > 1 ? 's' : ''}`}
+        accent="var(--accent-recettes)"
+        icon={UtensilsCrossed}
+      />
 
       {/* Search + Filter */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+      <div className="toolbar-scroll" style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', height: 44,
           borderRadius: 'var(--radius-lg)', background: 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)' }}>
           <Search size={14} style={{ color: 'var(--text-muted)' }} />
@@ -60,14 +64,16 @@ export default function AllRecipesPage() {
       </div>
 
       {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+      <div className="toolbar-scroll" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
         {filters.map(f => (
-          <button key={f} onClick={() => setFilter(f)}
+          <button key={f} onClick={() => setFilter(f)} className="nb-press"
             style={{
-              padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
-              background: filter === f ? ORANGE : 'var(--bg-input)',
-              color: filter === f ? '#0C0C0C' : WHEAT,
-              fontWeight: 700, fontSize: 12
+              padding: '8px 16px', minHeight: 36, borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+              border: '2px solid var(--ink)',
+              boxShadow: filter === f ? '3px 3px 0 var(--ink)' : 'none',
+              background: filter === f ? 'var(--accent-recettes)' : 'var(--bg-input)',
+              color: filter === f ? 'var(--ink-dark)' : 'var(--text-muted)',
+              ...DF, fontWeight: 800, fontSize: 11, letterSpacing: '0.05em', textTransform: 'uppercase',
             }}>
             {f}
           </button>

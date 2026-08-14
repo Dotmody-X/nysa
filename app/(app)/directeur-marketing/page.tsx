@@ -145,7 +145,7 @@ export default function DirecteurMarketingPage() {
 
   return (
     <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 18, minHeight: '100%' }}>
-      <PageTitle title="Marketing" sub="Formation & progression" />
+      <PageTitle title="Marketing" sub="Formation & progression" accent="var(--accent-rapports)" icon={Award} iconInk="var(--ink-light)" />
 
       {/* ── SECTION 1 : Parcours de formation ── */}
       <div style={{ ...card(), padding: 0, overflow: 'hidden' }}>
