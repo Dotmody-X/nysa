@@ -52,24 +52,33 @@ function BrandTag({ brand }: { brand?: string }) {
   )
 }
 
-/* ── Bandeau de chiffres : gros nombres séparés par des filets ── */
+/* ── Bandeau de chiffres ──────────────────────────────────────
+   Flex (et non grid) : les cellules d'une rangée incomplète
+   s'étirent pour la remplir — pas de trou. La taille du chiffre
+   s'adapte au nombre de colonnes et à la longueur de la valeur. */
 function StatStrip({ stats }: { stats: DigestStat[] }) {
+  const dense = stats.length >= 5
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', borderTop: '2px solid var(--ink)', borderBottom: '2px solid var(--ink)' }}>
-      {stats.map((s, i) => (
-        <div key={i}
-          style={{
-            flex: '1 1 96px', minWidth: 96, padding: '11px 14px 12px',
-            borderLeft: i === 0 ? 'none' : '1px solid var(--border)',
-          }}>
-          <p style={{ ...DF, fontSize: 8.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3, lineHeight: 1.3 }}>
-            {s.label}
-          </p>
-          <p style={{ ...DF, fontSize: 30, fontWeight: 900, lineHeight: 1, color: toneColor(s.tone), letterSpacing: '-0.02em' }}>
-            {String(s.value)}
-          </p>
-        </div>
-      ))}
+      {stats.map((s, i) => {
+        const txt = String(s.value)
+        // « 8h27 » ne doit pas déborder de sa colonne.
+        const size = txt.length > 4 ? 22 : txt.length > 3 ? 26 : dense ? 30 : 36
+        return (
+          <div key={i}
+            style={{
+              flex: '1 1 0%', minWidth: 74, padding: '12px 13px 13px',
+              borderLeft: i === 0 ? 'none' : '1px solid var(--border)',
+            }}>
+            <p style={{ ...DF, fontSize: 8, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4, lineHeight: 1.25 }}>
+              {s.label}
+            </p>
+            <p style={{ ...DF, fontSize: size, fontWeight: 900, lineHeight: 0.9, color: toneColor(s.tone), letterSpacing: '-0.035em', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {txt}
+            </p>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -89,7 +98,7 @@ function PriorityRow({ p, i, last }: { p: DigestPriority; i: number; last: boole
   const pc = priorityColor(p.priority)
   return (
     <div style={{ display: 'flex', gap: 12, padding: '11px 0', borderBottom: last ? 'none' : '1px solid var(--border)' }}>
-      <span style={{ ...DF, fontSize: 22, fontWeight: 900, lineHeight: 1, color: pc, minWidth: 26, letterSpacing: '-0.02em' }}>
+      <span style={{ ...DF, fontSize: 28, fontWeight: 900, lineHeight: 0.9, color: pc, minWidth: 34, letterSpacing: '-0.04em' }}>
         {num2(i)}
       </span>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -217,7 +226,8 @@ export function DigestCard({ digest }: { digest: Digest }) {
   const dateStr = p?.date || fmtDateTime(digest.generated_at)
 
   return (
-    <div className="nb-card" style={{ padding: 0, overflow: 'hidden' }}>
+    /* Tranche colorée en haut : identifie le type d'un coup d'œil. */
+    <div className="nb-card" style={{ padding: 0, overflow: 'hidden', borderTop: `10px solid ${m.color}` }}>
       {/* En-tête éditorial : sticker + type, titre au contour, filet épais */}
       <div style={{ padding: '16px 20px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9 }}>
