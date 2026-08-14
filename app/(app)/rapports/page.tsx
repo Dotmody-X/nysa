@@ -506,7 +506,7 @@ export default function RapportsPage() {
       )}
       {realisations.map((r, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px', background: 'var(--bg-input)', borderRadius: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: r.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.color, flexShrink: 0 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: `color-mix(in srgb, ${r.color} 14%, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.color, flexShrink: 0 }}>
             {r.icon}
           </div>
           <div>
@@ -915,7 +915,7 @@ export default function RapportsPage() {
             )}
             {realisations.slice(0, 4).map((r, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: r.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.color, flexShrink: 0 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: `color-mix(in srgb, ${r.color} 14%, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.color, flexShrink: 0 }}>
                   {r.icon}
                 </div>
                 <div>

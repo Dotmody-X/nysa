@@ -459,8 +459,8 @@ export default function TodoPage() {
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     width: '100%', padding: '6px 8px', borderRadius: 7, marginBottom: 2,
-                    background: isActive ? p.color + '22' : 'transparent',
-                    border: isActive ? `1px solid ${p.color}44` : '1px solid transparent',
+                    background: isActive ? `color-mix(in srgb, ${p.color} 16%, transparent)` : 'transparent',
+                    border: isActive ? `1px solid color-mix(in srgb, ${p.color} 32%, transparent)` : '1px solid transparent',
                     cursor: 'pointer',
                   }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>

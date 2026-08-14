@@ -1122,7 +1122,7 @@ function CalendrierContent() {
                     return (
                       <div key={ev.id}
                         onClick={e => { e.stopPropagation(); setSelected(ev) }}
-                        style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, marginBottom: 2, background: color + '22', color, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', border: '2px solid var(--ink)' }}>
+                        style={{ fontSize: 9, padding: '1px 5px', borderRadius: 4, marginBottom: 2, background: `color-mix(in srgb, ${color} 16%, transparent)`, color, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', border: '2px solid var(--ink)' }}>
                         {ev.title}
                       </div>
                     )
@@ -1182,9 +1182,9 @@ function CalendrierContent() {
                     return (
                       <div key={ev.id}
                         onClick={() => setSelected(ev)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4, background: color + '22', border: '2px solid var(--ink)', cursor: 'pointer', maxWidth: '100%', overflow: 'hidden' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = color + '44')}
-                        onMouseLeave={e => (e.currentTarget.style.background = color + '22')}>
+                        style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4, background: `color-mix(in srgb, ${color} 16%, transparent)`, border: '2px solid var(--ink)', cursor: 'pointer', maxWidth: '100%', overflow: 'hidden' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = `color-mix(in srgb, ${color} 32%, transparent)`)}
+                        onMouseLeave={e => (e.currentTarget.style.background = `color-mix(in srgb, ${color} 16%, transparent)`)}>
                         <div style={{ width: 5, height: 5, borderRadius: '50%', background: color, flexShrink: 0 }} />
                         <span style={{ fontSize: 9, fontWeight: 600, color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>
                       </div>

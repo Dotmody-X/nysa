@@ -496,7 +496,7 @@ export default function ComptePage() {
           }>
           <div style={{ padding:20, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             {badges.map(b => (
-              <div key={b.label} style={{ padding:'14px 12px', borderRadius:10, background: b.unlocked ? b.color+'18' : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow: b.unlocked ? '3px 3px 0 var(--ink)' : 'none', opacity: b.unlocked ? 1 : 0.4, display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
+              <div key={b.label} style={{ padding:'14px 12px', borderRadius:10, background: b.unlocked ? `color-mix(in srgb, ${b.color} 12%, transparent)` : 'var(--bg-input)', border:'2px solid var(--ink)', boxShadow: b.unlocked ? '3px 3px 0 var(--ink)' : 'none', opacity: b.unlocked ? 1 : 0.4, display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
                 <div style={{ width:44, height:44, borderRadius:10, background: b.unlocked ? b.color : 'var(--border)', border:'2px solid var(--ink)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>
                   {b.icon}
                 </div>

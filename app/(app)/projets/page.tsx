@@ -265,7 +265,7 @@ function ProjectModal({
         </div>
 
         {/* Aperçu */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: form.color + '15', border: `1px solid ${form.color}44` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: `color-mix(in srgb, ${form.color} 12%, transparent)`, border: `1px solid color-mix(in srgb, ${form.color} 32%, transparent)` }}>
           <div style={{ width: 10, height: 10, borderRadius: 3, background: form.color }} />
           <span style={{ fontSize: 12, fontWeight: 600, color: form.color }}>{form.name || 'Aperçu'}</span>
           {form.groupe && (
