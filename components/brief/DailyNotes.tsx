@@ -38,21 +38,23 @@ export function DailyNotes() {
 
   return (
     <div style={{ ...card(), display: 'flex', flexDirection: 'column' }}>
-      {/* En-tête */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '2px solid var(--ink)', background: 'var(--bg-input)' }}>
-        <PenLine size={15} style={{ color: 'var(--accent-brand)' }} />
-        <span style={{ ...DF, fontSize: 13, fontWeight: 900, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes du jour</span>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>· lues par le débrief du soir</span>
-        <div style={{ flex: 1 }} />
+      {/* En-tête éditorial : sticker + intitulé + filet */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '14px 18px 0' }}>
+        <span className="sticker-l nb-tile" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, background: 'var(--accent-brand)', boxShadow: '2px 2px 0 var(--ink)', flexShrink: 0 }}>
+          <PenLine size={13} style={{ color: 'var(--ink-dark)' }} />
+        </span>
+        <span style={{ ...DF, fontSize: 11, fontWeight: 900, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.14em', whiteSpace: 'nowrap' }}>Notes du jour</span>
+        <span style={{ flex: 1, height: 2, background: 'var(--ink)', opacity: 0.85, borderRadius: 1, minWidth: 12 }} />
         {status && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: status.color }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: status.color, whiteSpace: 'nowrap' }}>
             {status.icon} {status.text}
           </span>
         )}
       </div>
+      <p style={{ fontSize: 10.5, color: 'var(--text-muted)', padding: '5px 18px 0' }}>Lues par le débrief du soir.</p>
 
       {/* Zone de saisie */}
-      <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ padding: '12px 18px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <textarea
           value={content}
           onChange={e => setContent(e.target.value)}
@@ -84,11 +86,10 @@ export function DailyNotes() {
             ) : !history || history.length === 0 ? (
               <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucune note antérieure.</p>
             ) : history.map(h => (
-              <div key={h.note_date} style={{ ...card({ boxShadow: '2px 2px 0 var(--ink)' }), padding: 0 }}>
-                <div style={{ padding: '7px 12px', borderBottom: '1px solid var(--border)', background: 'var(--bg-input)' }}>
-                  <span style={{ ...DF, fontSize: 10, fontWeight: 800, color: 'var(--text)', textTransform: 'capitalize' }}>{fmtDay(h.note_date)}</span>
-                </div>
-                <p style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{h.content || '—'}</p>
+              /* Pas de carte imbriquée : date en petites capitales + filet. */
+              <div key={h.note_date} style={{ paddingLeft: 12, borderLeft: '3px solid var(--border)' }}>
+                <span style={{ ...DF, fontSize: 9.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{fmtDay(h.note_date)}</span>
+                <p style={{ marginTop: 4, fontSize: 12, color: 'var(--text)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{h.content || '—'}</p>
               </div>
             ))}
           </div>

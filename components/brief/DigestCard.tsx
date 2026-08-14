@@ -4,29 +4,17 @@ import { Sun, Moon } from '@/components/ui/icons'
 import { toneColor, priorityColor, PRIORITY_LABEL, brandColor, digestIcon } from '@/lib/digestStyle'
 import type { Digest, DigestPayload, DigestStat, DigestPriority, DigestSection, DigestItem, DigestFlag } from '@/hooks/useDigests'
 
+/* ============================================================
+   Rendu ÉDITORIAL d'un brief/débrief.
+   Parti pris : la hiérarchie vient de la typo et des filets,
+   pas de l'empilement de boîtes. Une seule surface encadrée —
+   la carte elle-même. Tout le reste est du texte réglé.
+   ============================================================ */
+
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const WHEAT = 'var(--text)'
 const BRIEF_COLOR = 'var(--azul)'
 const DEBRIEF_COLOR = 'var(--accent-brand)'
-
-const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
-  boxShadow: '4px 4px 0 var(--ink)', overflow: 'hidden', ...extra,
-})
-
-/* Surface INTERNE : seule la carte digest porte l'ombre « sticker ».
-   Les tuiles imbriquées restent plates pour éviter l'empilement de boîtes. */
-const innerCard = (extra: React.CSSProperties = {}): React.CSSProperties => ({
-  background: 'var(--bg-input)', borderRadius: 'var(--radius-md)',
-  border: '1.5px solid var(--border)', overflow: 'hidden', ...extra,
-})
-
-/* Petite étiquette carrée — remplace les pilules arrondies. */
-const chipBase: React.CSSProperties = {
-  ...DF, fontSize: 9, fontWeight: 800, padding: '3px 8px',
-  borderRadius: 'var(--radius-sm)', letterSpacing: '0.04em',
-  textTransform: 'uppercase', whiteSpace: 'nowrap',
-}
 
 const kindMeta = (kind: string) => kind === 'debrief'
   ? { label: 'Débrief', color: DEBRIEF_COLOR, Icon: Moon }
@@ -36,149 +24,184 @@ function fmtDateTime(iso: string): string {
   return new Date(iso).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 }
 
-/* ── Pastille marque ── */
-function BrandDot({ brand }: { brand?: string }) {
+const num2 = (i: number) => String(i + 1).padStart(2, '0')
+
+/* Petit label de rubrique : numéro au contour + intitulé + filet. */
+function RubricHead({ num, label, color, icon: Icon }: {
+  num: string; label: string; color: string
+  icon?: React.ComponentType<{ size?: number; style?: React.CSSProperties }>
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
+      <span className="text-outline" style={{ ...DF, fontSize: 17, fontWeight: 900, lineHeight: 1, WebkitTextStrokeWidth: '1.2px' }}>{num}</span>
+      {Icon && <Icon size={13} style={{ color, flexShrink: 0 }} />}
+      <span style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: WHEAT, whiteSpace: 'nowrap' }}>{label}</span>
+      <span style={{ flex: 1, height: 2, background: 'var(--ink)', opacity: 0.85, borderRadius: 1, minWidth: 12 }} />
+    </div>
+  )
+}
+
+/* ── Marque : pastille + nom, sans fond ── */
+function BrandTag({ brand }: { brand?: string }) {
   if (!brand) return null
-  return <span title={brand} style={{ width: 9, height: 9, borderRadius: '50%', background: brandColor(brand), border: '1.5px solid var(--ink)', flexShrink: 0, display: 'inline-block' }} />
-}
-function BrandBadge({ brand }: { brand?: string }) {
-  if (!brand) return null
-  const c = brandColor(brand)
-  return <span style={{ ...chipBase, color: 'var(--ink-light)', background: c }}>{brand}</span>
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+      <span style={{ width: 8, height: 8, borderRadius: 2, background: brandColor(brand), border: '1.5px solid var(--ink)', flexShrink: 0 }} />
+      <span style={{ ...DF, fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{brand}</span>
+    </span>
+  )
 }
 
-/* ── Tuile KPI (stat) ── */
-function StatTile({ stat }: { stat: DigestStat }) {
-  const c = toneColor(stat.tone)
+/* ── Bandeau de chiffres : gros nombres séparés par des filets ── */
+function StatStrip({ stats }: { stats: DigestStat[] }) {
   return (
-    <div style={{ ...innerCard(), padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4, borderTop: `3px solid ${c}` }}>
-      <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{stat.label}</span>
-      <span style={{ ...DF, fontSize: 24, fontWeight: 900, color: c, lineHeight: 1 }}>{String(stat.value)}</span>
+    <div style={{ display: 'flex', flexWrap: 'wrap', borderTop: '2px solid var(--ink)', borderBottom: '2px solid var(--ink)' }}>
+      {stats.map((s, i) => (
+        <div key={i}
+          style={{
+            flex: '1 1 96px', minWidth: 96, padding: '11px 14px 12px',
+            borderLeft: i === 0 ? 'none' : '1px solid var(--border)',
+          }}>
+          <p style={{ ...DF, fontSize: 8.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3, lineHeight: 1.3 }}>
+            {s.label}
+          </p>
+          <p style={{ ...DF, fontSize: 30, fontWeight: 900, lineHeight: 1, color: toneColor(s.tone), letterSpacing: '-0.02em' }}>
+            {String(s.value)}
+          </p>
+        </div>
+      ))}
     </div>
   )
 }
 
-/* ── Carte priorité ── */
-function PriorityCard({ p }: { p: DigestPriority }) {
-  const pc = priorityColor(p.priority)
-  return (
-    <div style={{ ...innerCard(), padding: 14, borderLeft: `4px solid ${pc}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: WHEAT, lineHeight: 1.3 }}>{p.title}</p>
-        {p.priority && (
-          <span style={{ ...chipBase, color: 'var(--ink-light)', background: pc, flexShrink: 0 }}>
-            {PRIORITY_LABEL[p.priority] ?? p.priority}
-          </span>
-        )}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        {p.brand && <BrandBadge brand={p.brand} />}
-        {p.due && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>⏳ {p.due}</span>}
-      </div>
-      {p.note && <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>{p.note}</p>}
-    </div>
-  )
-}
-
-/* ── Ligne d'item (section) ── */
-function ItemRow({ item }: { item: DigestItem }) {
-  const c = item.tone ? toneColor(item.tone) : null
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
-      {item.brand ? <span style={{ marginTop: 4 }}><BrandDot brand={item.brand} /></span>
-        : <span style={{ width: 5, height: 5, borderRadius: '50%', background: c ?? 'var(--text-muted)', marginTop: 6, flexShrink: 0 }} />}
-      <span style={{ flex: 1, fontSize: 12.5, color: c ?? WHEAT, lineHeight: 1.5 }}>{item.text}</span>
-      {item.badge && (
-        <span style={{ ...chipBase, color: c ?? 'var(--text-muted)', background: `color-mix(in srgb, ${c ?? 'var(--text-muted)'} 16%, transparent)`, border: `1px solid color-mix(in srgb, ${c ?? 'var(--text-muted)'} 40%, transparent)`, flexShrink: 0 }}>{item.badge}</span>
-      )}
-    </div>
-  )
-}
-
-/* ── Carte section ── */
-function SectionCard({ s }: { s: DigestSection }) {
-  const Icon = digestIcon(s.icon)
-  return (
-    <div style={{ ...innerCard(), padding: 0, background: 'transparent' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', borderBottom: '1.5px solid var(--border)', background: 'var(--bg-input)' }}>
-        <Icon size={14} style={{ color: 'var(--accent-brand)' }} />
-        <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.title}</span>
-      </div>
-      <div style={{ padding: '4px 14px 10px' }}>
-        {(s.items ?? []).map((it, i) => <ItemRow key={i} item={it} />)}
-        {(!s.items || s.items.length === 0) && <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '8px 0' }}>—</p>}
-      </div>
-    </div>
-  )
-}
-
-/* ── Encadré flag ── */
-function FlagBox({ flag }: { flag: DigestFlag }) {
+/* ── Alerte : filet épais à gauche, pas de cadre ── */
+function FlagLine({ flag }: { flag: DigestFlag }) {
   const c = toneColor(flag.tone)
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 'var(--radius-md)', background: `color-mix(in srgb, ${c} 14%, transparent)`, border: `1.5px solid ${c}` }}>
-      <span style={{ width: 8, height: 8, borderRadius: 2, background: c, flexShrink: 0 }} />
-      <span style={{ fontSize: 12, color: WHEAT, fontWeight: 600, lineHeight: 1.4 }}>{flag.text}</span>
+    <div style={{ display: 'flex', gap: 10, padding: '2px 0 2px 12px', borderLeft: `4px solid ${c}` }}>
+      <p style={{ fontSize: 12, color: WHEAT, fontWeight: 600, lineHeight: 1.5 }}>{flag.text}</p>
     </div>
   )
 }
 
-/* ── Corps structuré (payload) ── */
-function PayloadBody({ p }: { p: DigestPayload }) {
+/* ── Priorité : numéro géant + titre, séparateur en filet ── */
+function PriorityRow({ p, i, last }: { p: DigestPriority; i: number; last: boolean }) {
+  const pc = priorityColor(p.priority)
   return (
-    <div style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {p.headline && <p style={{ fontSize: 14, color: WHEAT, lineHeight: 1.6, fontWeight: 500 }}>{p.headline}</p>}
-
-      {Array.isArray(p.stats) && p.stats.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
-          {p.stats.map((s, i) => <StatTile key={i} stat={s} />)}
+    <div style={{ display: 'flex', gap: 12, padding: '11px 0', borderBottom: last ? 'none' : '1px solid var(--border)' }}>
+      <span style={{ ...DF, fontSize: 22, fontWeight: 900, lineHeight: 1, color: pc, minWidth: 26, letterSpacing: '-0.02em' }}>
+        {num2(i)}
+      </span>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: WHEAT, lineHeight: 1.35 }}>{p.title}</p>
+          {p.priority && (
+            <span style={{ ...DF, fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: pc, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {PRIORITY_LABEL[p.priority] ?? p.priority}
+            </span>
+          )}
         </div>
-      )}
-
-      {Array.isArray(p.flags) && p.flags.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {p.flags.map((f, i) => <FlagBox key={i} flag={f} />)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <BrandTag brand={p.brand} />
+          {p.due && <span style={{ fontSize: 10.5, color: 'var(--text-muted)', fontWeight: 600 }}>⏳ {p.due}</span>}
         </div>
-      )}
+        {p.note && <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>{p.note}</p>}
+      </div>
+    </div>
+  )
+}
 
-      {Array.isArray(p.priorities) && p.priorities.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <p style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Priorités</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
-            {p.priorities.map((pr, i) => <PriorityCard key={i} p={pr} />)}
-          </div>
-        </div>
-      )}
-
-      {Array.isArray(p.sections) && p.sections.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-          {p.sections.map((s, i) => <SectionCard key={i} s={s} />)}
-        </div>
+/* ── Ligne d'item ── */
+function ItemRow({ item, last }: { item: DigestItem; last: boolean }) {
+  const c = item.tone ? toneColor(item.tone) : null
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, padding: '7px 0', borderBottom: last ? 'none' : '1px solid var(--border)' }}>
+      <span style={{ width: 5, height: 5, borderRadius: 1, background: item.brand ? brandColor(item.brand) : (c ?? 'var(--text-subtle)'), marginTop: 7, flexShrink: 0 }} />
+      <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: c ?? WHEAT, lineHeight: 1.55 }}>{item.text}</span>
+      {item.badge && (
+        <span style={{ ...DF, fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: c ?? 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0, marginTop: 2 }}>
+          {item.badge}
+        </span>
       )}
     </div>
   )
 }
 
-/* ── Repli markdown (lignes sans payload) : découpe par titres ## ── */
-function MarkdownFallback({ content }: { content: string }) {
+/* ── Rubrique de section ── */
+function SectionBlock({ s, i, color }: { s: DigestSection; i: number; color: string }) {
+  const Icon = digestIcon(s.icon)
+  const items = s.items ?? []
+  return (
+    <div>
+      <RubricHead num={num2(i)} label={s.title} color={color} icon={Icon} />
+      {items.length === 0
+        ? <p style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>Rien à signaler.</p>
+        : items.map((it, k) => <ItemRow key={k} item={it} last={k === items.length - 1} />)}
+    </div>
+  )
+}
+
+/* ── Corps structuré ── */
+function PayloadBody({ p, color }: { p: DigestPayload; color: string }) {
+  const stats = Array.isArray(p.stats) ? p.stats : []
+  const flags = Array.isArray(p.flags) ? p.flags : []
+  const priorities = Array.isArray(p.priorities) ? p.priorities : []
+  const sections = Array.isArray(p.sections) ? p.sections : []
+
+  // Numérotation continue : priorités puis sections.
+  const prioIndex = priorities.length > 0 ? 0 : -1
+  const sectionOffset = priorities.length > 0 ? 1 : 0
+
+  return (
+    <>
+      {p.headline && (
+        <p style={{ padding: '16px 20px 14px', fontSize: 14.5, color: WHEAT, lineHeight: 1.55, fontWeight: 500 }}>
+          {p.headline}
+        </p>
+      )}
+
+      {stats.length > 0 && <StatStrip stats={stats} />}
+
+      <div style={{ padding: '16px 20px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {flags.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {flags.map((f, i) => <FlagLine key={i} flag={f} />)}
+          </div>
+        )}
+
+        {priorities.length > 0 && (
+          <div>
+            <RubricHead num={num2(prioIndex)} label="Priorités" color={color} />
+            {priorities.map((pr, i) => (
+              <PriorityRow key={i} p={pr} i={i} last={i === priorities.length - 1} />
+            ))}
+          </div>
+        )}
+
+        {sections.map((s, i) => (
+          <SectionBlock key={i} s={s} i={i + sectionOffset} color={color} />
+        ))}
+      </div>
+    </>
+  )
+}
+
+/* ── Repli markdown ── */
+function MarkdownFallback({ content, color }: { content: string; color: string }) {
   const text = (content ?? '').trim()
   const parts = text.split(/\n(?=##\s)/).map(s => s.trim()).filter(Boolean)
   const blocks = parts.length > 0 ? parts : (text ? [text] : [])
   return (
-    <div style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ padding: '16px 20px 20px', display: 'flex', flexDirection: 'column', gap: 18 }}>
       {blocks.length === 0 && <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucun contenu.</p>}
       {blocks.map((block, i) => {
         const m = block.match(/^##\s+(.*)/)
         const title = m ? m[1].trim() : null
         const body = (m ? block.slice(m[0].length) : block).trim()
         return (
-          <div key={i} style={{ ...innerCard(), padding: 0, background: 'transparent' }}>
-            {title && (
-              <div style={{ padding: '9px 14px', borderBottom: '1.5px solid var(--border)', background: 'var(--bg-input)' }}>
-                <span style={{ ...DF, fontSize: 11, fontWeight: 800, color: WHEAT, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{title}</span>
-              </div>
-            )}
-            {body && <p style={{ padding: '12px 14px', fontSize: 12.5, color: WHEAT, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{body}</p>}
+          <div key={i}>
+            {title && <RubricHead num={num2(i)} label={title} color={color} />}
+            {body && <p style={{ fontSize: 12.5, color: WHEAT, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{body}</p>}
           </div>
         )
       })}
@@ -186,24 +209,38 @@ function MarkdownFallback({ content }: { content: string }) {
   )
 }
 
-/* ── Carte digest complète ── */
+/* ── Carte digest ── */
 export function DigestCard({ digest }: { digest: Digest }) {
   const m = kindMeta(digest.kind)
   const p = digest.payload
   const title = p?.title || m.label
   const dateStr = p?.date || fmtDateTime(digest.generated_at)
+
   return (
-    <div style={{ ...card(), padding: 0 }}>
-      {/* Bandeau : sticker d'icône + type, titre, date */}
-      <div style={{ background: m.color, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderBottom: '2px solid var(--ink)' }}>
-        <span className="sticker-l" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 'var(--radius-sm)', background: 'var(--ink-light)', border: '2px solid var(--ink)', flexShrink: 0 }}>
-          <m.Icon size={16} style={{ color: m.color }} />
-        </span>
-        <span style={{ ...chipBase, background: 'rgba(0,0,0,0.22)', color: 'var(--ink-light)' }}>{m.label}</span>
-        <span style={{ ...DF, fontSize: 15, fontWeight: 900, color: 'var(--ink-light)', flex: 1, minWidth: 120 }}>{title}</span>
-        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-light)', opacity: 0.85, textTransform: 'capitalize' }}>{dateStr}</span>
+    <div className="nb-card" style={{ padding: 0, overflow: 'hidden' }}>
+      {/* En-tête éditorial : sticker + type, titre au contour, filet épais */}
+      <div style={{ padding: '16px 20px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9 }}>
+          <span className="sticker-l nb-tile" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, background: m.color, boxShadow: '2px 2px 0 var(--ink)', flexShrink: 0 }}>
+            <m.Icon size={15} style={{ color: 'var(--ink-light)' }} />
+          </span>
+          <span style={{ ...DF, fontSize: 9.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: m.color }}>
+            {m.label}
+          </span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'capitalize', whiteSpace: 'nowrap' }}>
+            {dateStr}
+          </span>
+        </div>
+
+        <h3 className="text-outline" style={{ ...DF, fontSize: 'clamp(24px, 3.2vw, 34px)', fontWeight: 900, lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.025em', WebkitTextStrokeWidth: '1.6px' }}>
+          {title}
+        </h3>
+
+        <div className="rule-thick" style={{ background: m.color, marginTop: 10 }} />
       </div>
-      {p ? <PayloadBody p={p} /> : <MarkdownFallback content={digest.content} />}
+
+      {p ? <PayloadBody p={p} color={m.color} /> : <MarkdownFallback content={digest.content} color={m.color} />}
     </div>
   )
 }
