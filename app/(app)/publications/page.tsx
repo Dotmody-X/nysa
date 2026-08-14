@@ -422,14 +422,16 @@ export default function PublicationsPage() {
                   const pubs = byDay.get(dStr) ?? []
                   return (
                     <div key={i} onClick={() => openCreate(dStr)}
-                      style={{ minHeight: 96, padding: 6, borderRight: '1px solid var(--border)', borderBottom: '1px solid var(--border)', background: inMonth ? 'transparent' : 'var(--bg-input)', opacity: inMonth ? 1 : 0.5, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      /* minWidth:0 — sans lui, un titre long en nowrap élargit
+                         sa colonne et déforme la grille des 7 jours. */
+                      style={{ minWidth: 0, minHeight: 96, padding: 6, borderRight: '1px solid var(--border)', borderBottom: '1px solid var(--border)', background: inMonth ? 'transparent' : 'var(--bg-input)', opacity: inMonth ? 1 : 0.5, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4, overflow: 'hidden' }}>
                       <span style={{ fontSize: 11, fontWeight: isToday ? 900 : 600, color: isToday ? 'var(--accent-brand)' : 'var(--text-muted)', ...DF }}>{day.getDate()}</span>
                       {pubs.map(p => (
                         <div key={p.id} onClick={e => { e.stopPropagation(); openEdit(p) }}
                           title={`${p.title ?? ''}${p.brand ? ' — ' + p.brand : ''}${p.channel ? ' · ' + p.channel : ''}`}
-                          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 5px', borderRadius: 5, background: channelColor(p.channel) + '2e', border: '1px solid var(--border)', borderLeft: `3px solid ${channelColor(p.channel)}`, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : p.status === 'published' ? 0.8 : 1 }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, maxWidth: '100%', padding: '3px 5px', borderRadius: 5, background: `color-mix(in srgb, ${channelColor(p.channel)} 18%, transparent)`, border: '1px solid var(--border)', borderLeft: `3px solid ${channelColor(p.channel)}`, cursor: 'pointer', opacity: p.status === 'cancelled' ? 0.5 : p.status === 'published' ? 0.8 : 1 }}>
                           <span style={{ width: 7, height: 7, borderRadius: '50%', background: brandColor(p.brand ?? ''), border: '1px solid var(--ink)', flexShrink: 0 }} />
-                          <span style={{ fontSize: 10, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <span style={{ fontSize: 10, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
                             {p.title}{p.channel ? ` · ${p.channel}` : ''}
                           </span>
                         </div>

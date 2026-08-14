@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { RefreshCw, Loader2, ExternalLink, List } from '@/components/ui/icons'
-import { PageTitle } from '@/components/ui/PageTitle'
+import { PageTitle, StickerButton } from '@/components/ui/PageTitle'
 import { useDigests } from '@/hooks/useDigests'
 import { DigestCard } from '@/components/brief/DigestCard'
 import { DailyNotes } from '@/components/brief/DailyNotes'
@@ -42,10 +42,13 @@ export default function BriefPage() {
     window.dispatchEvent(new Event('nysa:toggle-brief'))
   }
 
+  // Segments encrés — même langage que les onglets du calendrier.
   const chip = (active: boolean, color: string): React.CSSProperties => ({
-    ...DF, fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
-    border: `2px solid ${active ? color : 'var(--border)'}`,
-    background: active ? color : 'var(--bg-card)',
+    ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase',
+    padding: '8px 16px', minHeight: 36, borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+    border: '2px solid var(--ink)',
+    boxShadow: active ? '3px 3px 0 var(--ink)' : 'none',
+    background: active ? color : 'var(--bg-input)',
     color: active ? 'var(--ink-light)' : 'var(--text-muted)',
   })
 
@@ -54,14 +57,13 @@ export default function BriefPage() {
       <PageTitle title="Brief" sub="Briefs & débriefs quotidiens" accent="var(--azul)" icon={List} iconInk="var(--ink-light)"
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={toggleDock} className="nb-press" title="Ouvrir/fermer la mini-fenêtre Brief (dispo sur toutes les pages)"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--azul)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: 'var(--ink-light)', ...DF, fontWeight: 700, fontSize: 12 }}>
+            <StickerButton onClick={toggleDock} accent="var(--azul)" ink="var(--ink-light)" tilt="l"
+              title="Ouvrir/fermer la mini-fenêtre Brief (dispo sur toutes les pages)">
               <ExternalLink size={13} /> Mini-fenêtre
-            </button>
-            <button onClick={refetch} className="nb-press"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer', color: WHEAT, ...DF, fontWeight: 700, fontSize: 12 }}>
+            </StickerButton>
+            <StickerButton onClick={refetch} accent="var(--bg-card)" ink={WHEAT}>
               {loading ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />} Actualiser
-            </button>
+            </StickerButton>
           </div>
         } />
 
@@ -83,15 +85,15 @@ export default function BriefPage() {
       <DailyNotes />
 
       {/* Filtres */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <button style={chip(typeFilter === 'tous', 'var(--text-muted)')} onClick={() => setTypeFilter('tous')}>Tous</button>
-        <button style={chip(typeFilter === 'brief', BRIEF_COLOR)} onClick={() => setTypeFilter('brief')}>Briefs</button>
-        <button style={chip(typeFilter === 'debrief', DEBRIEF_COLOR)} onClick={() => setTypeFilter('debrief')}>Débriefs</button>
+      <div className="toolbar-scroll" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <button className="nb-press" style={chip(typeFilter === 'tous', 'var(--ink-dark)')} onClick={() => setTypeFilter('tous')}>Tous</button>
+        <button className="nb-press" style={chip(typeFilter === 'brief', BRIEF_COLOR)} onClick={() => setTypeFilter('brief')}>Briefs</button>
+        <button className="nb-press" style={chip(typeFilter === 'debrief', DEBRIEF_COLOR)} onClick={() => setTypeFilter('debrief')}>Débriefs</button>
         <div style={{ flex: 1 }} />
-        <input type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)}
-          style={{ background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontSize: 12 }} />
+        <input type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} aria-label="Filtrer par date"
+          style={{ background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 'var(--radius-sm)', padding: '8px 10px', minHeight: 36, color: 'var(--text)', fontSize: 12 }} />
         {dateFilter && (
-          <button onClick={() => setDateFilter('')} style={{ ...DF, fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Toutes les dates</button>
+          <button onClick={() => setDateFilter('')} style={{ ...DF, fontSize: 11, fontWeight: 700, minHeight: 36, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>Toutes les dates</button>
         )}
       </div>
 

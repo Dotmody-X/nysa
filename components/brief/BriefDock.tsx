@@ -29,11 +29,14 @@ function BriefPanel({ onClose }: { onClose: () => void }) {
   const current = view === 'brief' ? latestBrief : latestDebrief
   const isDebrief = view === 'debrief'
 
+  // Segments encrés — cohérent avec les filtres de la page Brief.
   const tab = (active: boolean, color: string): React.CSSProperties => ({
-    ...DF, fontSize: 11, fontWeight: 800, padding: '4px 11px', borderRadius: 20, cursor: 'pointer',
+    ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase',
+    padding: '6px 12px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
     display: 'flex', alignItems: 'center', gap: 5,
-    border: `2px solid ${active ? color : 'var(--border)'}`,
-    background: active ? color : 'var(--bg-card)',
+    border: '2px solid var(--ink)',
+    boxShadow: active ? '2px 2px 0 var(--ink)' : 'none',
+    background: active ? color : 'var(--bg-input)',
     color: active ? 'var(--ink-light)' : 'var(--text-muted)',
   })
 
