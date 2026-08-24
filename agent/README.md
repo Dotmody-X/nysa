@@ -124,6 +124,77 @@ Arborescence suggérée :
 #contenu    #rapports
 ```
 
+## Suivi du temps en conversant
+
+C'est le cœur de l'usage quotidien. Tu annonces ce que tu commences, le reste suit :
+
+> **Nathan** — je commence la refonte du packaging Mixologue
+
+`demarrer_activite` enchaîne alors, en un seul appel :
+
+1. arrêt du chronomètre en cours ;
+2. **statut de la tâche quittée** — `done` si tu as dit qu'elle était finie, sinon
+   `in_progress` avec **l'échéance inchangée**, donc toujours visible ;
+3. cumul du temps écoulé dans `tasks.actual_minutes` ;
+4. recherche de la tâche cible, création seulement si aucune ne correspond ;
+5. nouveau chronomètre lié à la tâche **et** au projet.
+
+La règle qui compte : dans le doute, l'agent ne coche pas. Une tâche non terminée ne
+doit jamais disparaître du radar.
+
+## Cerveau Obsidian
+
+Le vault est un dépôt Git privé, cloné sur le Pi5 dans `OBSIDIAN_VAULT`. **Aucun MCP
+n'est nécessaire** : ce sont des fichiers markdown, et Claude Code les lit et les écrit
+avec ses outils natifs. La passerelle passe simplement `--add-dir`.
+
+```bash
+git clone git@github.com:<toi>/cerveau.git /home/pi/cerveau
+```
+
+Sur tes autres appareils : plugin **obsidian-git** (desktop) ou **Working Copy** (iPad).
+Chaque note écrite par l'agent devient un commit — tu vois ce qu'il a ajouté et tu peux
+revenir en arrière.
+
+L'agent n'y consigne pas les échanges courants, seulement ce qui mérite de survivre à la
+conversation : une décision et sa raison, un arbitrage, un retour d'expérience. Il lit
+les notes existantes avant d'écrire, pour suivre tes conventions de nommage et de liens.
+
+Pousser automatiquement, côté Pi5 :
+
+```bash
+# crontab -e
+*/15 * * * * cd /home/pi/cerveau && git add -A && git diff --cached --quiet || (git commit -m "agent: notes" && git push)
+```
+
+## Contrôle du Mac
+
+`mac_shell` et `mac_applescript` passent par SSH. Sur le Mac : **Réglages → Général →
+Partage → Connexion à distance**. Puis, depuis le Pi5 :
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_mac -N ""
+ssh-copy-id -i ~/.ssh/id_ed25519_mac <user>@<mac>.local
+```
+
+### Séparation des contextes de confiance
+
+Ces deux tools ne sont **jamais** chargés partout. `macTools()` ne renvoie quelque chose
+que si `NYSA_ALLOW_MAC=1`, et **seule la passerelle Discord pose ce drapeau** — là où
+c'est Nathan lui-même qui écrit.
+
+Les sessions planifiées qui trient `work.events` ne l'ont pas, parce que les titres et
+payloads de cette table viennent d'e-mails et de commandes, donc de tiers. Sans cette
+séparation, un message piégé dans l'inbox deviendrait une exécution de commande sur la
+machine principale.
+
+Vérifiable :
+
+```
+Session planifiée (triage inbox)  -> 14 tools | mac: AUCUN
+Session Discord (Nathan écrit)    -> 16 tools | mac: mac_shell, mac_applescript
+```
+
 ## Limites d'usage
 
 L'abonnement Max a des quotas glissants. **Ne fais pas tourner l'agent en boucle de

@@ -120,7 +120,14 @@ async function handleAgent(message: Message, text: string) {
       timeoutMs: config.CLAUDE_TIMEOUT_MS,
       resumeSessionId: sessions.get(channelId) ?? null,
       mcpConfigPath,
-      systemPrompt: systemPrompt({ channelName, brand, timezone: config.AGENT_TIMEZONE }),
+      extraDirs: config.OBSIDIAN_VAULT ? [config.OBSIDIAN_VAULT] : [],
+      systemPrompt: systemPrompt({
+        channelName,
+        brand,
+        timezone: config.AGENT_TIMEZONE,
+        vaultPath: config.OBSIDIAN_VAULT ?? null,
+        macEnabled: Boolean(config.MAC_SSH_HOST && config.MAC_SSH_USER),
+      }),
       env: {
         NYSA_ACCESS_TOKEN: session.accessToken,
         NYSA_USER_ID: session.userId,
@@ -129,6 +136,16 @@ async function handleAgent(message: Message, text: string) {
         SUPABASE_ANON_KEY: config.SUPABASE_ANON_KEY,
         AGENT_TIMEZONE: config.AGENT_TIMEZONE,
         LOG_LEVEL: config.LOG_LEVEL,
+
+        // Séparation des contextes de confiance : le contrôle du Mac n'est
+        // accordé qu'ici, où c'est l'utilisateur lui-même qui écrit. Les
+        // sessions planifiées qui lisent du contenu tiers (triage d'inbox)
+        // ne posent jamais ce drapeau — sans quoi un e-mail piégé
+        // deviendrait une exécution de commande sur la machine principale.
+        NYSA_ALLOW_MAC: '1',
+        ...(config.MAC_SSH_HOST ? { MAC_SSH_HOST: config.MAC_SSH_HOST } : {}),
+        ...(config.MAC_SSH_USER ? { MAC_SSH_USER: config.MAC_SSH_USER } : {}),
+        ...(config.MAC_SSH_KEY ? { MAC_SSH_KEY: config.MAC_SSH_KEY } : {}),
       },
     })
 

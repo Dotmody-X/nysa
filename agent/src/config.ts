@@ -40,6 +40,20 @@ const bridgeSchema = supabaseSchema.extend({
   NYSA_REPO: z.string().min(1),
   /** Garde-fou : au-delà, on coupe. Évite qu'une boucle vide l'abonnement. */
   CLAUDE_TIMEOUT_MS: z.coerce.number().int().positive().default(180_000),
+
+  /**
+   * Clone local du vault Obsidian. Claude Code y accède avec ses outils de
+   * fichiers natifs — aucun MCP n'est nécessaire pour du markdown.
+   */
+  OBSIDIAN_VAULT: z.string().optional(),
+
+  /**
+   * Contrôle du Mac par SSH. Les tools ne se chargent que si l'hôte et
+   * l'utilisateur sont renseignés ET que la session y a droit (voir mac.ts).
+   */
+  MAC_SSH_HOST: z.string().optional(),
+  MAC_SSH_USER: z.string().optional(),
+  MAC_SSH_KEY: z.string().optional(),
 })
 
 function parseOrDie<T extends z.ZodTypeAny>(schema: T, what: string): z.infer<T> {
