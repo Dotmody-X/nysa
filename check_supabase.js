@@ -4,8 +4,13 @@
  */
 const { createClient } = require('@supabase/supabase-js')
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://teqsxzfslpxejncrkudz.supabase.co'
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlcXN4emZzbHB4ZWpuY3JrdWR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTgxNjUsImV4cCI6MjA5Mjg3NDE2NX0._BHPVzZLxgdJh4oJflx_T9ZkXK6olmC5Y3fNF_Cbo7A'
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!url || !anonKey) {
+  console.error('Definir NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY (voir .env.local)')
+  process.exit(1)
+}
 
 const supabase = createClient(url, anonKey)
 
