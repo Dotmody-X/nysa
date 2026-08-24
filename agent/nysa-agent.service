@@ -1,0 +1,33 @@
+[Unit]
+Description=Agent Nysa — passerelle Discord vers Claude Code
+Documentation=https://github.com/Dotmody-X/nysa/tree/main/agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/nysa/agent
+EnvironmentFile=/home/pi/nysa/agent/.env
+ExecStart=/usr/bin/node dist/discord/bridge.js
+
+# Claude Code lit ses identifiants (compte Max) dans le HOME de l'utilisateur :
+# sans ça, le service démarre mais chaque appel échoue faute d'authentification.
+Environment=HOME=/home/pi
+
+Restart=on-failure
+RestartSec=10
+# Une rafale de redémarrages signale une config cassée, pas un incident réseau :
+# mieux vaut s'arrêter et le voir dans journalctl.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nysa-agent
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,181 @@
+import { writeFileSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve as resolvePath } from 'node:path'
+import { Client, Events, GatewayIntentBits, Partials, type Message } from 'discord.js'
+import { bridgeConfig } from '../config.js'
+import { linkAccount, resolveSession } from '../identity.js'
+import { brandFromChannel } from '../brands.js'
+import { runClaude } from './claude.js'
+import { systemPrompt } from './prompt.js'
+import { log } from '../log.js'
+
+const config = bridgeConfig()
+
+const here = dirname(fileURLToPath(import.meta.url))
+/** Le serveur MCP compilé, lancé par Claude Code en sous-processus. */
+const MCP_ENTRY = resolvePath(here, '../mcp/server.js')
+
+/** Fil de conversation par salon, pour que l'agent garde le contexte. */
+const sessions = new Map<string, string>()
+/** Un seul appel à la fois par salon : les limites d'usage de l'abonnement ne sont pas infinies. */
+const busy = new Set<string>()
+
+const mcpConfigPath = (() => {
+  const dir = mkdtempSync(join(tmpdir(), 'nysa-mcp-'))
+  const path = join(dir, 'mcp.json')
+  writeFileSync(
+    path,
+    JSON.stringify({
+      mcpServers: {
+        nysa: { command: process.execPath, args: [MCP_ENTRY] },
+      },
+    }),
+  )
+  return path
+})()
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages,
+  ],
+  partials: [Partials.Channel],
+})
+
+function isAllowed(discordUserId: string): boolean {
+  return config.AGENT_ALLOWED_DISCORD_IDS.includes(discordUserId)
+}
+
+/** Discord refuse au-delà de 2000 caractères. */
+function chunk(text: string, size = 1900): string[] {
+  if (text.length <= size) return [text]
+  const parts: string[] = []
+  let rest = text
+  while (rest.length > size) {
+    const cut = rest.lastIndexOf('\n', size)
+    const at = cut > size * 0.5 ? cut : size
+    parts.push(rest.slice(0, at))
+    rest = rest.slice(at).replace(/^\n/, '')
+  }
+  if (rest) parts.push(rest)
+  return parts
+}
+
+async function handleLink(message: Message, email: string) {
+  if (!isAllowed(message.author.id)) {
+    await message.reply(
+      "Ton identifiant Discord n'est pas autorisé à lier un compte. " +
+        `Ajoute \`${message.author.id}\` à AGENT_ALLOWED_DISCORD_IDS, puis relance le service.`,
+    )
+    return
+  }
+
+  try {
+    const userId = await linkAccount(message.author.id, email)
+    await message.reply(`Compte lié à Nysa (\`${userId}\`). Tu peux me parler normalement.`)
+  } catch (e) {
+    await message.reply(`Liaison impossible : ${e instanceof Error ? e.message : String(e)}`)
+  }
+}
+
+async function handleAgent(message: Message, text: string) {
+  const channelId = message.channelId
+
+  if (busy.has(channelId)) {
+    await message.reply('Je traite déjà une demande dans ce salon — laisse-moi finir.')
+    return
+  }
+
+  let session
+  try {
+    session = await resolveSession(message.author.id)
+  } catch (e) {
+    await message.reply(`Session Nysa indisponible : ${e instanceof Error ? e.message : String(e)}`)
+    return
+  }
+
+  if (!session) {
+    await message.reply(
+      'Ton compte Discord n\'est pas encore lié à Nysa. Envoie `!lier ton@email.com`.',
+    )
+    return
+  }
+
+  const channelName =
+    message.channel && 'name' in message.channel ? (message.channel.name as string) : null
+  const brand = brandFromChannel(channelName)
+
+  busy.add(channelId)
+  if (message.channel.isSendable()) await message.channel.sendTyping()
+
+  try {
+    const run = await runClaude({
+      bin: config.CLAUDE_BIN,
+      cwd: config.NYSA_REPO,
+      prompt: text,
+      timeoutMs: config.CLAUDE_TIMEOUT_MS,
+      resumeSessionId: sessions.get(channelId) ?? null,
+      mcpConfigPath,
+      systemPrompt: systemPrompt({ channelName, brand, timezone: config.AGENT_TIMEZONE }),
+      env: {
+        NYSA_ACCESS_TOKEN: session.accessToken,
+        NYSA_USER_ID: session.userId,
+        NYSA_CHANNEL: channelName ?? '',
+        SUPABASE_URL: config.SUPABASE_URL,
+        SUPABASE_ANON_KEY: config.SUPABASE_ANON_KEY,
+        AGENT_TIMEZONE: config.AGENT_TIMEZONE,
+        LOG_LEVEL: config.LOG_LEVEL,
+      },
+    })
+
+    if (run.sessionId) sessions.set(channelId, run.sessionId)
+    for (const part of chunk(run.reply)) await message.reply(part)
+  } catch (e) {
+    log.error('Échec du traitement', e)
+    await message.reply(`Erreur : ${e instanceof Error ? e.message : String(e)}`)
+  } finally {
+    busy.delete(channelId)
+  }
+}
+
+client.once(Events.ClientReady, c => {
+  log.info(`Passerelle Discord connectée en tant que ${c.user.tag}`)
+  log.info(`Dépôt Nysa : ${config.NYSA_REPO} — MCP : ${MCP_ENTRY}`)
+})
+
+client.on(Events.MessageCreate, async message => {
+  if (message.author.bot) return
+
+  const content = message.content.trim()
+  if (!content) return
+
+  if (content.startsWith('!lier ')) {
+    await handleLink(message, content.slice('!lier '.length).trim())
+    return
+  }
+
+  if (content === '!reset') {
+    sessions.delete(message.channelId)
+    await message.reply('Fil de conversation réinitialisé pour ce salon.')
+    return
+  }
+
+  // En salon, il faut mentionner le bot ; en message privé, tout est pour lui.
+  const isDM = !message.guild
+  const mentioned = client.user ? message.mentions.has(client.user) : false
+  if (!isDM && !mentioned) return
+
+  if (!isAllowed(message.author.id)) return
+
+  const text = client.user
+    ? content.replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '').trim()
+    : content
+
+  if (text) await handleAgent(message, text)
+})
+
+client.login(config.DISCORD_TOKEN)
