@@ -34,6 +34,18 @@ const bridgeSchema = supabaseSchema.extend({
   /** Sert UNIQUEMENT à résoudre l'identité et à créer une session. Jamais aux données métier. */
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 
+  /**
+   * En salon de serveur, exiger une mention du bot pour lui répondre.
+   *
+   * Faux par défaut : sur un serveur personnel, la liste blanche filtre déjà
+   * qui peut parler, et devoir écrire « @Condor » à chaque phrase est une
+   * friction inutile. À passer à true si le bot rejoint un serveur partagé.
+   */
+  AGENT_REQUIRE_MENTION: z
+    .string()
+    .optional()
+    .transform(v => v === 'true' || v === '1'),
+
   /** Binaire Claude Code. Authentifié une fois avec le compte Max : aucun token facturé. */
   CLAUDE_BIN: z.string().default('claude'),
   /** Racine du dépôt Nysa sur le Pi5 — Claude Code y lit CLAUDE.md et le MCP. */
