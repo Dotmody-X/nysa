@@ -43,3 +43,6 @@ next-env.d.ts
 # Source brute CIQUAL (régénère lib/ciqual.generated.ts)
 ciqual-src/
 *.zip
+
+# config locale Claude Code
+.claude/
