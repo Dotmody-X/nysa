@@ -108,6 +108,30 @@ export function systemPrompt(args: {
     )
   }
 
+  if (args.channelName === 'idees' && args.vaultPath) {
+    lignes.push(
+      '',
+      '## Salon idées',
+      '',
+      "Ici Nathan jette ses idées en vrac. Ta seule tâche : les garder. Dépose chaque idée dans " +
+        '`00_Inbox/Idees/` — une note par idée, le nom du fichier est l\'idée elle-même, sans accents. ' +
+        'Frontmatter `type: note`, `domaine` deviné si évident sinon `meta`, `statut: actif`, ' +
+        '`tags: [idee]`, plus `source: discord/idees` et la date du jour.',
+      '',
+      "Conserve la formulation d'origine : ne reformule pas, ne développe pas, n'ajoute pas ton avis " +
+        "sauf s'il est demandé. Relie avec des liens `[[...]]` vers les notes existantes du sujet — " +
+        'cherche avant d\'écrire, une idée qui prolonge une note existante s\'y ajoute plutôt que de ' +
+        'créer un doublon.',
+      '',
+      "**Ne crée jamais de tâche depuis ce salon.** Une idée n'est pas un engagement : il faut que " +
+        'Nathan le demande explicitement. Ne range rien dans `10_Pro/` non plus — l\'inbox est le sas, ' +
+        'une idée n\'en sort que quand elle a mûri.',
+      '',
+      'Le protocole complet est dans `50_Ressources/Procedures/Capture des idees.md`. ' +
+        'Réponds en une ligne : ce que tu as écrit et où.',
+    )
+  }
+
   if (args.brand) {
     lignes.push(
       '',
