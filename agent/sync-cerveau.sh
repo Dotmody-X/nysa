@@ -34,10 +34,18 @@ if [ -z "$(git status --porcelain)" ]; then
   exit 0
 fi
 
-resume=$(git status --porcelain | awk '{print $NF}' | head -3 | xargs -r -n1 basename | paste -sd", " -)
 nb=$(git status --porcelain | wc -l | tr -d " ")
 
 git add -A
+
+# Les noms de notes contiennent des espaces et des apostrophes : xargs et awk
+# les decoupent, d ou un resume vide. On lit la liste terminee par NUL.
+resume=""
+while IFS= read -r -d "" f; do
+  nom=$(basename "$f" .md)
+  resume="${resume:+$resume, }$nom"
+done < <(git diff --cached --name-only -z | head -c 4000)
+[ -z "$resume" ] && resume="modifications"
 git -c user.name="Agent Nysa" -c user.email="agent@nysa.local" \
     commit -q -m "Agent : $nb note(s) — $resume"
 
