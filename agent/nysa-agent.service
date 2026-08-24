@@ -4,6 +4,12 @@ Documentation=https://github.com/Dotmody-X/nysa/tree/main/agent
 After=network-online.target
 Wants=network-online.target
 
+# Une rafale de redémarrages signale une config cassée, pas un incident réseau :
+# mieux vaut s'arrêter et le voir dans journalctl. Ces deux clés appartiennent
+# à [Unit] — systemd les ignore silencieusement si on les met dans [Service].
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
 [Service]
 Type=simple
 User=pi
@@ -17,10 +23,6 @@ Environment=HOME=/home/pi
 
 Restart=on-failure
 RestartSec=10
-# Une rafale de redémarrages signale une config cassée, pas un incident réseau :
-# mieux vaut s'arrêter et le voir dans journalctl.
-StartLimitIntervalSec=300
-StartLimitBurst=5
 
 StandardOutput=journal
 StandardError=journal
