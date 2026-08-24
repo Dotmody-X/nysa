@@ -86,8 +86,18 @@ else
 fi
 
 bleu "== 6/6  Claude Code =="
-if command -v claude >/dev/null 2>&1; then
-  vert "Claude Code présent : $(claude --version 2>/dev/null | head -1)"
+# Le préfixe npm peut vivre dans le HOME (~/.npm-global), qui n'est PAS dans le
+# PATH d'une session SSH non interactive : chercher uniquement via `command -v`
+# conclurait à tort que Claude Code est absent.
+prefixe_npm=$(npm config get prefix 2>/dev/null || echo /usr/local)
+export PATH="$prefixe_npm/bin:$PATH"
+CLAUDE_PATH=""
+command -v claude >/dev/null 2>&1 && CLAUDE_PATH=$(command -v claude)
+
+if [ -n "$CLAUDE_PATH" ]; then
+  vert "Claude Code présent : $($CLAUDE_PATH --version 2>/dev/null | head -1)"
+  sed -i "s|^CLAUDE_BIN=.*|CLAUDE_BIN=$CLAUDE_PATH|" .env
+  vert "CLAUDE_BIN pointé sur $CLAUDE_PATH"
   # L'authentification vit dans le HOME : sans elle le service démarre mais
   # chaque appel échoue.
   if [ ! -d "$HOME/.claude" ]; then
@@ -96,10 +106,21 @@ if command -v claude >/dev/null 2>&1; then
   fi
 else
   jaune "Claude Code absent."
-  sudo npm install -g @anthropic-ai/claude-code >/dev/null 2>&1 \
-    && vert "Claude Code installé." \
-    || manquant+=("Installer Claude Code : sudo npm install -g @anthropic-ai/claude-code")
-  manquant+=("Lancer 'claude' une fois et se connecter avec le compte Max")
+  # Si le préfixe npm global est dans le HOME, surtout pas de sudo : cela
+  # installerait pour root, dans un préfixe que l'utilisateur n'utilise pas.
+  if [ -w "$prefixe_npm" ]; then
+    npm install -g @anthropic-ai/claude-code >/dev/null 2>&1
+  else
+    sudo npm install -g @anthropic-ai/claude-code >/dev/null 2>&1
+  fi
+  if command -v claude >/dev/null 2>&1; then
+    CLAUDE_PATH=$(command -v claude)
+    vert "Claude Code installé : $CLAUDE_PATH"
+    sed -i "s|^CLAUDE_BIN=.*|CLAUDE_BIN=$CLAUDE_PATH|" .env
+    [ -d "$HOME/.claude" ] || manquant+=("Lancer '$CLAUDE_PATH' une fois et se connecter avec le compte Max")
+  else
+    manquant+=("Installer Claude Code : npm install -g @anthropic-ai/claude-code")
+  fi
 fi
 
 echo
