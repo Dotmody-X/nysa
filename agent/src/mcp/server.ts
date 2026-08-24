@@ -3,7 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { mcpConfig } from '../config.js'
 import { userClient } from '../supabase.js'
 import { brandFromChannel } from '../brands.js'
-import { ALL_TOOLS } from '../tools/index.js'
+import { allTools } from '../tools/index.js'
 import type { AgentContext } from '../context.js'
 import { log } from '../log.js'
 
@@ -42,8 +42,9 @@ async function main() {
   }
 
   const server = new McpServer({ name: 'nysa', version: '0.1.0' })
+  const tools = allTools()
 
-  for (const def of ALL_TOOLS) {
+  for (const def of tools) {
     server.tool(def.name, def.description, def.schema.shape, async (input: unknown) => {
       try {
         const text = await def.run(input, ctx)
@@ -60,8 +61,9 @@ async function main() {
   }
 
   log.info(
-    `MCP Nysa prêt — ${ALL_TOOLS.length} tools, utilisateur ${userId}` +
-      (ctx.brand ? `, marque ${ctx.brand.groupe}` : ''),
+    `MCP Nysa prêt — ${tools.length} tools, utilisateur ${userId}` +
+      (ctx.brand ? `, marque ${ctx.brand.groupe}` : '') +
+      (process.env.NYSA_ALLOW_MAC === '1' ? ', contrôle Mac ACTIF' : ''),
   )
 
   await server.connect(new StdioServerTransport())

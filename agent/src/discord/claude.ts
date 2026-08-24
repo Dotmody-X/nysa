@@ -17,6 +17,8 @@ export type ClaudeOptions = {
   env: Record<string, string>
   mcpConfigPath: string
   systemPrompt: string
+  /** Répertoires supplémentaires accessibles — typiquement le vault Obsidian. */
+  extraDirs?: string[]
 }
 
 /**
@@ -41,9 +43,13 @@ export function runClaude(options: ClaudeOptions): Promise<ClaudeRun> {
     // Autonomie totale sur les tools Nysa : aucune confirmation demandée.
     // La réversibilité vient du journal d'audit et de l'absence de tool de
     // suppression, pas d'un garde-fou interactif.
+    // Les outils de fichiers natifs servent au vault Obsidian : c'est du
+    // markdown, il n'a besoin d'aucun MCP.
     '--allowedTools',
-    'mcp__nysa',
+    'mcp__nysa,Read,Write,Edit,Glob,Grep',
   ]
+
+  for (const dir of options.extraDirs ?? []) args.push('--add-dir', dir)
 
   if (options.resumeSessionId) args.push('--resume', options.resumeSessionId)
 
