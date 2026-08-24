@@ -181,12 +181,14 @@ client.on(Events.MessageCreate, async message => {
     return
   }
 
-  // En salon, il faut mentionner le bot ; en message privé, tout est pour lui.
+  // La liste blanche est le vrai filtre : sans elle, on ignore tout.
+  if (!isAllowed(message.author.id)) return
+
+  // En message privé, tout est pour l'agent. En salon, la mention n'est exigée
+  // que si AGENT_REQUIRE_MENTION est activé — inutile sur un serveur personnel.
   const isDM = !message.guild
   const mentioned = client.user ? message.mentions.has(client.user) : false
-  if (!isDM && !mentioned) return
-
-  if (!isAllowed(message.author.id)) return
+  if (!isDM && config.AGENT_REQUIRE_MENTION && !mentioned) return
 
   const text = client.user
     ? content.replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '').trim()

@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { tool } from './types.js'
 import type { AgentContext } from '../context.js'
 import { audit } from '../audit.js'
-import { formatDuration } from '../dates.js'
+import { formatDuration, localToISO, todayISO } from '../dates.js'
 
 const ENTRY_FIELDS = 'id, description, category, project_id, task_id, started_at, ended_at, duration_seconds'
 const TASK_FIELDS = 'id, title, status, priority, due_date, actual_minutes, project_id'
@@ -15,6 +15,14 @@ type Task = {
   actual_minutes: number | null
   project_id: string | null
 }
+
+/**
+ * Au-delà de cette durée, un chronomètre encore ouvert n'est pas du travail en
+ * cours : c'est un pointage oublié. Le compter produirait des totaux absurdes
+ * — un oubli d'une semaine s'est déjà traduit par 415 h attribuées à une seule
+ * tâche. On le ferme sans durée plutôt que de polluer les statistiques.
+ */
+const CHRONO_ABANDONNE_S = 12 * 3600
 
 /**
  * Ferme le chronomètre en cours et applique la règle de statut à la tâche
@@ -39,15 +47,34 @@ async function closeRunning(
   const current = running?.[0]
   if (!current) return { resume: null, seconds: 0 }
 
-  const seconds = Math.max(
+  const ecoule = Math.max(
     0,
     Math.floor((Date.now() - new Date(current.started_at as string).getTime()) / 1000),
   )
+  const abandonne = ecoule > CHRONO_ABANDONNE_S
+  const seconds = abandonne ? 0 : ecoule
 
   await ctx.db
     .from('time_entries')
-    .update({ ended_at: new Date().toISOString(), duration_seconds: seconds })
+    .update({
+      ended_at: new Date().toISOString(),
+      duration_seconds: abandonne ? null : seconds,
+    })
     .eq('id', current.id as string)
+
+  if (abandonne) {
+    await audit(ctx, {
+      tool: 'chrono_abandonne',
+      args: { id: current.id, heures_ecoulees: Math.round(ecoule / 360) / 10 },
+      before: current,
+    })
+    return {
+      resume:
+        `Chronomètre oublié depuis ${Math.round(ecoule / 3600)} h ` +
+        `(« ${current.description ?? 'sans titre'} ») fermé sans durée — il aurait faussé tes totaux`,
+      seconds: 0,
+    }
+  }
 
   let suffixe = ''
 
@@ -206,6 +233,7 @@ export const timeTools = [
         const { data, error } = await ctx.db
           .from('tasks')
           .insert({
+            user_id: ctx.userId,
             title: input.quoi,
             status: 'in_progress',
             priority: 'medium',
@@ -230,6 +258,9 @@ export const timeTools = [
       const { data: entry, error } = await ctx.db
         .from('time_entries')
         .insert({
+          // user_id n'a AUCUN défaut en base : sans lui, la policy
+          // WITH CHECK (auth.uid() = user_id) rejette l'insertion.
+          user_id: ctx.userId,
           description: task?.title ?? input.quoi,
           project_id: projectId,
           task_id: task?.id ?? null,
@@ -272,6 +303,90 @@ export const timeTools = [
       const closed = await closeRunning(ctx, input.terminee)
       if (!closed.resume) return 'Aucun chronomètre en cours.'
       return closed.resume
+    },
+  }),
+
+  tool({
+    name: 'saisir_temps',
+    description:
+      "Enregistre un bloc de temps DÉJÀ passé, avec ses heures de début et de fin. C'est le tool à " +
+      "utiliser quand l'utilisateur raconte sa journée après coup (« de 8h à 9h j'ai fait X, puis " +
+      "jusqu'à 13h50 j'ai fait Y »). `demarrer_activite`, lui, ne sert qu'à pointer en direct.\n\n" +
+      'Appelle-le une fois par bloc. Les heures sont en heure locale, format 24 h.',
+    schema: z.object({
+      description: z.string().min(2).describe("Ce qui a été fait pendant ce bloc."),
+      debut: z.string().describe('Heure de début, format HH:MM (ex. 08:00).'),
+      fin: z.string().describe('Heure de fin, format HH:MM (ex. 09:00).'),
+      date: z.string().optional().describe("Date AAAA-MM-JJ. Par défaut aujourd'hui."),
+      projet: z.string().optional().describe('Nom, même partiel, du projet.'),
+      tache_id: z.string().uuid().optional().describe('Tâche à créditer du temps.'),
+    }),
+    run: async (input, ctx) => {
+      const jour = input.date ?? todayISO(ctx.timezone)
+
+      let debut: string
+      let fin: string
+      try {
+        debut = localToISO(jour, input.debut, ctx.timezone)
+        fin = localToISO(jour, input.fin, ctx.timezone)
+      } catch (e) {
+        return e instanceof Error ? e.message : String(e)
+      }
+
+      let seconds = Math.floor((new Date(fin).getTime() - new Date(debut).getTime()) / 1000)
+      // Un bloc qui se termine « avant » son début a franchi minuit.
+      if (seconds < 0) {
+        fin = new Date(new Date(fin).getTime() + 86_400_000).toISOString()
+        seconds += 86_400
+      }
+      if (seconds <= 0) return 'Le bloc a une durée nulle.'
+      if (seconds > CHRONO_ABANDONNE_S) {
+        return `Bloc de ${formatDuration(seconds)} : c'est plus de 12 h d'affilée, vérifie les heures.`
+      }
+
+      const projectId = await findProjectId(ctx, input.projet ?? undefined)
+
+      const { data, error } = await ctx.db
+        .from('time_entries')
+        .insert({
+          user_id: ctx.userId,
+          description: input.description,
+          project_id: projectId,
+          task_id: input.tache_id ?? null,
+          started_at: debut,
+          ended_at: fin,
+          duration_seconds: seconds,
+        })
+        .select(ENTRY_FIELDS)
+        .single()
+
+      // Le temps doit aussi remonter sur la tâche, sinon estimé et réel divergent.
+      if (!error && input.tache_id) {
+        const { data: t } = await ctx.db
+          .from('tasks')
+          .select('actual_minutes')
+          .eq('id', input.tache_id)
+          .maybeSingle()
+        if (t) {
+          await ctx.db
+            .from('tasks')
+            .update({
+              actual_minutes: ((t.actual_minutes as number | null) ?? 0) + Math.round(seconds / 60),
+            })
+            .eq('id', input.tache_id)
+        }
+      }
+
+      await audit(ctx, {
+        tool: 'saisir_temps',
+        args: input,
+        after: data,
+        ok: !error,
+        error: error?.message,
+      })
+
+      if (error) return `Erreur : ${error.message}`
+      return `Enregistré : « ${input.description} », ${input.debut}–${input.fin} (${formatDuration(seconds)}).`
     },
   }),
 
