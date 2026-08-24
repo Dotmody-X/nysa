@@ -24,17 +24,11 @@ export default function AgentPage() {
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [userId, setUserId] = useState('nathan')
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { 
-    bottomRef.current?.scrollIntoView({ behavior:'smooth' }) 
-  }, [messages])
-
   useEffect(() => {
-    const storedUserId = localStorage.getItem('user_id') || 'nathan'
-    setUserId(storedUserId)
-  }, [])
+    bottomRef.current?.scrollIntoView({ behavior:'smooth' })
+  }, [messages])
 
   async function sendMessage(text: string) {
     if (!text.trim() || loading) return
@@ -47,16 +41,16 @@ export default function AgentPage() {
       const res = await fetch('/api/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text.trim(),
-          userId: userId
-        })
+        // Pas de userId : le serveur lit l'identité dans la session (cookie).
+        body: JSON.stringify({ message: text.trim() })
       })
       
       const data = await res.json()
       const reply: Message = {
         role: 'assistant',
-        content: data.reply || 'Erreur de connexion à l\'agent.'
+        content: res.status === 401
+          ? '🔒 Session expirée — reconnecte-toi pour parler à l\'agent.'
+          : data.reply || data.error || 'Erreur de connexion à l\'agent.'
       }
       setMessages(m => [...m, reply])
     } catch (error) {

@@ -1,33 +1,34 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
-// Client créé à la demande : évite de lire les env au chargement du module
-// (fait échouer `next build` quand SUPABASE_SERVICE_ROLE_KEY n'est pas défini).
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
+export const runtime = 'nodejs'
+
 const openclawGateway = process.env.OPENCLAW_GATEWAY_URL || 'http://192.168.1.100:18789' // Pi5 IP
 const openclawToken = process.env.OPENCLAW_TOKEN
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, userId } = await request.json()
+    const { message } = await request.json()
 
-    if (!message || !userId) {
-      return NextResponse.json(
-        { error: 'Message et userId requis' },
-        { status: 400 }
-      )
+    if (!message) {
+      return NextResponse.json({ error: 'Message requis' }, { status: 400 })
     }
 
-    // Charger le contexte utilisateur complet
-    const context = await loadUserContext(userId)
+    // L'identité vient EXCLUSIVEMENT de la session (cookie), jamais du body :
+    // un userId fourni par l'appelant permettrait de lire le compte d'autrui.
+    // Le client utilise la clé anon, donc la RLS s'applique à chaque requête.
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    // Charger le contexte utilisateur complet (cloisonné par la RLS)
+    const context = await loadUserContext(supabase)
 
     // Envoyer à Cóndor (OpenClaw) pour une réponse intelligente
-    const reply = await generateResponse(message, context, userId)
+    const reply = await generateResponse(message, context, user.id)
 
     return NextResponse.json({
       reply,
@@ -43,30 +44,29 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function loadUserContext(userId: string) {
-  const supabase = getSupabase()
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
+// Aucun filtre `.eq('user_id', …)` n'est nécessaire : le client porte le JWT de
+// la session et la RLS ne renvoie que les lignes du compte connecté.
+async function loadUserContext(supabase: SupabaseServerClient) {
   // Tasks
   const { data: tasks } = await supabase
     .from('tasks')
     .select('*')
-    .eq('user_id', userId)
     .order('due_date', { ascending: true })
 
   // Projects
   const { data: projects } = await supabase
     .from('projects')
     .select('*')
-    .eq('user_id', userId)
 
   // Events (7 prochains jours)
   const now = new Date()
   const next7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-  
+
   const { data: events } = await supabase
     .from('events')
     .select('*')
-    .eq('user_id', userId)
     .gte('start_at', now.toISOString())
     .lt('start_at', next7days.toISOString())
     .order('start_at', { ascending: true })
@@ -75,14 +75,12 @@ async function loadUserContext(userId: string) {
   const { data: budgetEntries } = await supabase
     .from('budgets')
     .select('*')
-    .eq('user_id', userId)
     .eq('date_month', new Date().toISOString().slice(0, 7))
 
   // Time entries
   const { data: timeEntries } = await supabase
     .from('time_entries')
     .select('*')
-    .eq('user_id', userId)
     .gte('date', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
 
   return {
