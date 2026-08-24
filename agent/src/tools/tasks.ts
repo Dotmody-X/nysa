@@ -96,6 +96,9 @@ export const taskTools = [
       const { data, error } = await ctx.db
         .from('tasks')
         .insert({
+          // user_id n'a AUCUN défaut en base : sans lui, la policy
+          // WITH CHECK (auth.uid() = user_id) rejette l'insertion.
+          user_id: ctx.userId,
           title: input.titre,
           description: input.description ?? null,
           project_id: project?.id ?? null,
