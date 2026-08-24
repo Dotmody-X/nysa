@@ -49,13 +49,48 @@ export function systemPrompt(args: {
       `Le vault est en \`${args.vaultPath}\`. Ce sont des fichiers markdown : utilise tes outils de ` +
         'fichiers habituels (Read, Write, Edit, Glob, Grep), pas un tool Nysa.',
       '',
-      'Quand une décision est prise, une orientation arrêtée ou un enseignement tiré, écris-le dans le ' +
-        'vault. Pas les échanges courants — seulement ce qui mérite de survivre à la conversation : ' +
-        'un choix et sa raison, un arbitrage, un retour d\'expérience.',
+      '### Structure',
       '',
-      'Respecte les conventions déjà présentes : avant de créer une note, regarde comment les notes ' +
-        'existantes sont nommées, structurées et liées, et fais pareil. Relie systématiquement avec des ' +
-        'liens `[[...]]` vers les notes existantes plutôt que de créer un îlot isolé.',
+      '- `10_Pro/` — le travail, par marque : `Le Mixologue`, `Aeterna`, `The e-Smoker`, plus `Carriere`',
+      '- `40_Personnes/` — une note par personne',
+      '- `50_Ressources/` — `Procedures`, `Prompts`, `Veille`',
+      '- `30_Journal/` — `Daily`, `Weekly`',
+      '- `00_Inbox/` — à trier ; `90_Archives/` — inactif ; `99_Meta/Templates/` — les gabarits',
+      '- `20_Perso/` — vie privée. Tu peux y lire si on te le demande, mais **n\'y écris jamais** ' +
+        'de ta propre initiative.',
+      '',
+      '### Conventions à respecter',
+      '',
+      'Chaque note commence par un frontmatter YAML avec `type`, `titre`, `domaine`, `statut`, `tags`, ' +
+        'et `date` pour les décisions.',
+      '',
+      '- `type` : `note`, `projet`, `decision`, `personne`, `procedure`, `marque`, `veille`, `reunion`',
+      '- `domaine` : `le-mixologue`, `aeterna`, `e-smoker`, `carriere`, `meta`',
+      '- `statut` : `actif`, `termine`, `archive`, `en-pause`',
+      '',
+      'Les noms de fichiers sont **sans accents** (« Etiquetage modulaire », pas « Étiquetage »).',
+      '',
+      '### Écrire une décision',
+      '',
+      'Quand un choix est arrêté, crée une note dans le dossier de son domaine — pas dans un dossier ' +
+        '« décisions » séparé, elles vivent à côté de leur sujet.',
+      '',
+      'Le nom du fichier **est la décision elle-même**, formulée comme une affirmation courte : ' +
+        '« Arret de Mixo Beer.md », « Fermeture le jeudi.md », « Supabase comme back-end par defaut.md ». ' +
+        'Pas de date ni de préfixe dans le nom.',
+      '',
+      'Suis le gabarit `99_Meta/Templates/T_Decision.md` : frontmatter puis les sections `## Le choix`, ' +
+        '`## Pourquoi`, `## Alternatives écartées`, `## À revoir si`. Cette dernière section est la plus ' +
+        'utile — c\'est elle qui permet de rouvrir un choix sans le refaire de zéro.',
+      '',
+      '### Avant d\'écrire',
+      '',
+      'Cherche toujours si une note existe déjà sur le sujet (Glob, Grep) : mieux vaut enrichir que ' +
+        'dupliquer. Relie avec des liens `[[...]]` vers les notes existantes — le vault en compte plus ' +
+        'de 2500, une note isolée y est une note perdue.',
+      '',
+      'N\'y consigne pas les échanges courants, seulement ce qui mérite de survivre à la conversation : ' +
+        'un choix et sa raison, un arbitrage, un retour d\'expérience.',
     )
   }
 
