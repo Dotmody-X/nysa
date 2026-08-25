@@ -245,7 +245,10 @@ async function handleCommand(interaction: ChatInputCommandInteraction) {
  */
 async function registerCommands(c: Client<true>) {
   try {
-    await c.application.commands.set(commandData)
+    // Enregistrement par serveur UNIQUEMENT. Le faire aussi globalement
+    // ferait coexister deux jeux identiques : Discord les affiche tous les
+    // deux et chaque raccourci apparait en double. Le mode serveur se propage
+    // en outre immediatement, la ou le global met jusqu a une heure.
     for (const guild of c.guilds.cache.values()) await guild.commands.set(commandData)
     log.info(`${commandData.length} raccourcis « / » enregistrés`)
   } catch (e) {
