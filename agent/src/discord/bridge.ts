@@ -3,12 +3,22 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve as resolvePath } from 'node:path'
-import { Client, Events, GatewayIntentBits, Partials, type Message } from 'discord.js'
+import {
+  Client,
+  Events,
+  GatewayIntentBits,
+  Partials,
+  type ChatInputCommandInteraction,
+  type Message,
+} from 'discord.js'
 import { bridgeConfig } from '../config.js'
 import { linkAccount, resolveSession } from '../identity.js'
 import { brandFromChannel } from '../brands.js'
+import { userClient } from '../supabase.js'
 import { runClaude } from './claude.js'
+import { commandData, commands } from './commands.js'
 import { systemPrompt } from './prompt.js'
+import type { AgentContext } from '../context.js'
 import { log } from '../log.js'
 
 const config = bridgeConfig()
@@ -105,8 +115,7 @@ async function handleAgent(message: Message, text: string) {
     return
   }
 
-  const channelName =
-    message.channel && 'name' in message.channel ? (message.channel.name as string) : null
+  const channelName = channelNameOf(message)
   const brand = brandFromChannel(channelName)
 
   busy.add(channelId)
@@ -159,9 +168,100 @@ async function handleAgent(message: Message, text: string) {
   }
 }
 
-client.once(Events.ClientReady, c => {
+/** Le nom du salon porte la marque : #mixologue-contenu n'a pas à la répéter. */
+function channelNameOf(source: Message | ChatInputCommandInteraction): string | null {
+  const channel = source.channel
+  return channel && 'name' in channel ? ((channel.name as string) ?? null) : null
+}
+
+const commandDeps = {
+  resetSession: (channelId: string) => {
+    sessions.delete(channelId)
+  },
+  isAllowed,
+}
+
+/**
+ * Les raccourcis « / » répondent directement, sans lancer Claude Code : c'est une
+ * lecture de la base, mise en forme. D'où ce chemin séparé de `handleAgent`, et
+ * l'absence de verrou `busy` — rien ici ne consomme l'abonnement.
+ */
+async function handleCommand(interaction: ChatInputCommandInteraction) {
+  const def = commands.find(c => c.data.name === interaction.commandName)
+  if (!def) return
+
+  // Répondre sous 3 s n'est pas garanti : on diffère d'abord.
+  await interaction.deferReply()
+
+  try {
+    let reply: string
+
+    if (def.needsSession) {
+      // La liste blanche filtre avant tout accès aux données.
+      if (!isAllowed(interaction.user.id)) {
+        await interaction.editReply(
+          `Ton identifiant Discord (\`${interaction.user.id}\`) n'est pas autorisé.`,
+        )
+        return
+      }
+
+      const session = await resolveSession(interaction.user.id)
+      if (!session) {
+        await interaction.editReply(
+          "Ce compte Discord n'est pas encore lié à Nysa. Utilise `/lier`.",
+        )
+        return
+      }
+
+      const channelName = channelNameOf(interaction)
+      const ctx: AgentContext = {
+        userId: session.userId,
+        db: userClient(session.accessToken),
+        surface: 'discord',
+        channelName,
+        brand: brandFromChannel(channelName),
+        timezone: config.AGENT_TIMEZONE,
+      }
+      reply = await def.run(interaction, ctx, commandDeps)
+    } else {
+      reply = await def.run(interaction, commandDeps)
+    }
+
+    const parts = chunk(reply)
+    await interaction.editReply(parts[0] ?? '(vide)')
+    for (const part of parts.slice(1)) await interaction.followUp(part)
+  } catch (e) {
+    log.error(`Raccourci /${interaction.commandName} en échec`, e)
+    const message = `Erreur : ${e instanceof Error ? e.message : String(e)}`
+    if (interaction.deferred || interaction.replied) await interaction.editReply(message)
+  }
+}
+
+/**
+ * Discord veut la liste des commandes déclarée à l'avance. On la pose sur chaque
+ * serveur — propagation immédiate — ET en global, seule portée qui fonctionne en
+ * message privé. Une commande de serveur masque la globale de même nom : pas de
+ * doublon à l'affichage.
+ */
+async function registerCommands(c: Client<true>) {
+  try {
+    await c.application.commands.set(commandData)
+    for (const guild of c.guilds.cache.values()) await guild.commands.set(commandData)
+    log.info(`${commandData.length} raccourcis « / » enregistrés`)
+  } catch (e) {
+    log.error('Enregistrement des raccourcis impossible', e)
+  }
+}
+
+client.once(Events.ClientReady, async c => {
   log.info(`Passerelle Discord connectée en tant que ${c.user.tag}`)
   log.info(`Dépôt Nysa : ${config.NYSA_REPO} — MCP : ${MCP_ENTRY}`)
+  await registerCommands(c)
+})
+
+client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isChatInputCommand()) return
+  await handleCommand(interaction)
 })
 
 client.on(Events.MessageCreate, async message => {
