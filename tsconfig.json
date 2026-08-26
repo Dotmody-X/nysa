@@ -30,5 +30,6 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "//": "agent/ est un projet Node autonome, avec son propre tsconfig et ses propres dependances (zod, discord.js). Vercel n'installe que la racine : sans cette exclusion, `next build` type-verifie l'agent et echoue sur des modules absents.",
+  "exclude": ["node_modules", "agent"]
 }
