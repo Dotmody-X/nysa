@@ -59,37 +59,51 @@ export function useImprimantes() {
  * clients de l'application.
  */
 export function useClientAcces(clientId?: string) {
-  const [acces, setAcces] = useState<ClientAcces | null>(null)
+  const [acces, setAcces] = useState<ClientAcces[]>([])
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
   const fetch = useCallback(async () => {
-    if (!clientId) { setAcces(null); return }
+    if (!clientId) { setAcces([]); return }
     setLoading(true)
+    // Un client a souvent plusieurs comptes sur un meme service : E-Fumeur en
+    // a trois (Lanester, Vannes, Nantes), Dj Vap de Lokili sept. D'ou une
+    // liste, la ou un maybeSingle() ne renvoyait rien des qu'il y en avait
+    // plus d'un.
     const { data } = await supabase
       .from('client_acces')
       .select('*')
       .eq('client_id', clientId)
-      .maybeSingle()
-    setAcces((data as ClientAcces) ?? null)
+      .order('service')
+      .order('identifiant')
+    setAcces((data as ClientAcces[]) ?? [])
     setLoading(false)
   }, [clientId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch() }, [fetch])
 
-  async function save(payload: Partial<ClientAcces>) {
+  async function save(payload: Partial<ClientAcces> & { id?: string }) {
     if (!clientId) return { data: null, error: new Error('client_id requis') }
     const { data: { user } } = await supabase.auth.getUser()
-    const { data, error } = await supabase
-      .from('client_acces')
-      .upsert(
-        { ...payload, client_id: clientId, service: payload.service ?? 'site-etiquettes', user_id: user!.id },
-        { onConflict: 'client_id,service' },
-      )
-      .select().single()
-    if (!error && data) setAcces(data as ClientAcces)
+    const ligne = {
+      ...payload,
+      client_id: clientId,
+      service: payload.service?.trim() || 'mixo-label',
+      user_id: user!.id,
+    }
+    const requete = payload.id
+      ? supabase.from('client_acces').update(ligne).eq('id', payload.id)
+      : supabase.from('client_acces').insert(ligne)
+    const { data, error } = await requete.select().single()
+    if (!error) await fetch()
     return { data, error }
   }
 
-  return { acces, loading, save, refetch: fetch }
+  async function remove(id: string) {
+    const { error } = await supabase.from('client_acces').delete().eq('id', id)
+    if (!error) setAcces(prev => prev.filter(a => a.id !== id))
+    return { error }
+  }
+
+  return { acces, loading, save, remove, refetch: fetch }
 }
