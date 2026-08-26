@@ -1,0 +1,3 @@
+# L'agent Discord tourne sur le Pi, pas sur Vercel : inutile de l'envoyer
+# dans le contexte de build.
+agent/
