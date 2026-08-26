@@ -15,6 +15,7 @@ import { useProjectSettings } from '@/hooks/useProjectSettings'
 import { useProjectGroupes, type Groupe } from '@/hooks/useProjectGroupes'
 import { userKey } from '@/lib/userStore'
 import type { Project }   from '@/types'
+import { ClientSelect } from '@/components/ui/ClientSelect'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -141,6 +142,7 @@ function ProjectModal({
     deadline:    project?.deadline    ?? '',
     budget:      project?.budget ? String(project.budget) : '',
     groupe:      project?.groupe      ?? '',
+    client_id:   project?.client_id   ?? '',
   })
   const [saving,  setSaving]  = useState(false)
   const [confirm, setConfirm] = useState(false)
@@ -159,6 +161,7 @@ function ProjectModal({
       deadline: form.deadline || undefined,
       budget: form.budget ? Number(form.budget) : undefined,
       groupe: form.groupe || undefined,
+      client_id: form.client_id || undefined,
     }
     if (isEdit && onSave && project) {
       await onSave(project.id, payload)
@@ -227,6 +230,16 @@ function ProjectModal({
               + Ajouter
             </button>
           </div>
+        </div>
+
+        <div>
+          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Client</label>
+          <ClientSelect
+            value={form.client_id || undefined}
+            onChange={id => setForm(f => ({ ...f, client_id: id ?? '' }))}
+            style={inp}
+            placeholder="Sans client"
+          />
         </div>
 
         <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}

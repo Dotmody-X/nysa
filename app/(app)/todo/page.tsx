@@ -5,6 +5,7 @@ import { useTasks } from '@/hooks/useTasks'
 import { useProjects } from '@/hooks/useProjects'
 import { PageTitle, KpiGrid, KpiCard } from '@/components/ui/PageTitle'
 import type { Task } from '@/types'
+import { ClientSelect } from '@/components/ui/ClientSelect'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
@@ -38,6 +39,7 @@ function EditTaskModal({
     status:     task.status as 'todo' | 'in_progress' | 'done',
     due_date:   task.due_date ?? '',
     project_id: task.project_id ?? '',
+    client_id:  task.client_id ?? '',
     description: task.description ?? '',
   })
   const [saving,  setSaving]  = useState(false)
@@ -52,6 +54,7 @@ function EditTaskModal({
       status:      form.status,
       due_date:    form.due_date || undefined,
       project_id:  form.project_id || undefined,
+      client_id:   form.client_id || undefined,
       description: form.description || undefined,
     })
     setSaving(false)
@@ -119,6 +122,17 @@ function EditTaskModal({
           <input type="date" value={form.due_date} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} style={inp} />
         </div>
 
+        {/* Client */}
+        <div>
+          <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Client</label>
+          <ClientSelect
+            value={form.client_id || undefined}
+            onChange={id => setForm(f => ({ ...f, client_id: id ?? '' }))}
+            style={inp}
+            placeholder="Sans client"
+          />
+        </div>
+
         {/* Projet */}
         <div>
           <label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Projet</label>
@@ -184,6 +198,7 @@ export default function TodoPage() {
   const [newPriority,  setNewPriority]  = useState<'urgent'|'high'|'medium'|'low'>('medium')
   const [newDate,      setNewDate]      = useState(new Date().toISOString().slice(0, 10))
   const [newProjectId, setNewProjectId] = useState('')
+  const [newClientId,  setNewClientId]  = useState('')
 
   const today = new Date().toISOString().slice(0, 10)
 
@@ -207,6 +222,7 @@ export default function TodoPage() {
       priority:   newPriority,
       due_date:   newDate || undefined,
       project_id: newProjectId || undefined,
+      client_id:  newClientId || undefined,
     })
     setNewTitle(''); setShowForm(false)
   }
@@ -334,6 +350,12 @@ export default function TodoPage() {
             <option value="">Sans projet</option>
             {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
+          <ClientSelect
+            value={newClientId || undefined}
+            onChange={id => setNewClientId(id ?? '')}
+            style={{ ...inp, minWidth: 120 }}
+            placeholder="Sans client"
+          />
           <button type="submit" className="nb-press"
             style={{ background: 'var(--accent-brand)', color: 'var(--ink-dark)', borderRadius: 'var(--radius-lg)', padding: '8px 20px', ...DF, fontWeight: 700, fontSize: 12, border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', cursor: 'pointer' }}>
             Créer

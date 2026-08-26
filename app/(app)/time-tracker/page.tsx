@@ -10,6 +10,7 @@ import { useProjects }    from '@/hooks/useProjects'
 import { useTimeCategories } from '@/hooks/useTimeCategories'
 import { readDefaultLabel } from '@/hooks/useDefaultLabel'
 import type { TimeEntry } from '@/types'
+import { ClientSelect } from '@/components/ui/ClientSelect'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
@@ -323,13 +324,14 @@ function EditEntryModal({
   projects: Array<{ id: string; name: string; color: string }>
   categories: string[]
   onAddCategory: (v: string) => void
-  onSave:   (id: string, patch: Partial<Pick<TimeEntry,'description'|'project_id'|'category'|'started_at'|'ended_at'|'is_billable'>>) => Promise<unknown>
+  onSave:   (id: string, patch: Partial<Pick<TimeEntry,'description'|'project_id'|'client_id'|'category'|'started_at'|'ended_at'|'is_billable'>>) => Promise<unknown>
   onDelete: (id: string) => Promise<void>
   onClose:  () => void
 }) {
   const [form, setForm] = useState({
     description: entry.description ?? '',
     projectId:   entry.project_id  ?? '',
+    clientId:    entry.client_id   ?? '',
     category:    entry.category    ?? '',
     billable:    entry.is_billable,
     startDate:   toLocalDate(entry.started_at),
@@ -344,7 +346,7 @@ function EditEntryModal({
     setSaving(true)
     const startedAt = new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
     const endedAt   = form.endTime ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString() : entry.ended_at
-    await onSave(entry.id, { description: form.description || undefined, project_id: form.projectId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
+    await onSave(entry.id, { description: form.description || undefined, project_id: form.projectId || undefined, client_id: form.clientId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
     setSaving(false); onClose()
   }
 
@@ -360,7 +362,13 @@ function EditEntryModal({
           <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Sur quoi as-tu travaillé ?" style={inp} autoFocus /></div>
         <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Projet</label>
           <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inp}>
-            <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+            <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+          <ClientSelect
+            value={form.clientId || undefined}
+            onChange={id => setForm(f => ({ ...f, clientId: id ?? '' }))}
+            style={inp}
+            placeholder="Sans client"
+          /></div>
         <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
           <CategoryPicker value={form.category} categories={categories} onChange={v => setForm(f => ({ ...f, category: v }))} onAdd={onAddCategory} inp={inp} /></div>
         <div className="grid grid-cols-2 gap-2">
@@ -406,14 +414,14 @@ function ManualEntryModal({
   projects: Array<{ id: string; name: string; color: string }>
   categories: string[]
   onAddCategory: (v: string) => void
-  onCreate: (patch: { description?: string; project_id?: string; category?: string; is_billable?: boolean; started_at: string; ended_at?: string }) => Promise<unknown>
+  onCreate: (patch: { description?: string; project_id?: string; client_id?: string; category?: string; is_billable?: boolean; started_at: string; ended_at?: string }) => Promise<unknown>
   onClose:  () => void
 }) {
   const today = new Date()
   const yd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
   const currentTime = `${String(today.getHours()).padStart(2,'0')}:${String(today.getMinutes()).padStart(2,'0')}`
   const [form, setForm] = useState({
-    description: '', projectId: '', category: readDefaultLabel(), billable: true,
+    description: '', projectId: '', clientId: '', category: readDefaultLabel(), billable: true,
     startDate: yd(today), startTime: currentTime, endDate: '', endTime: '',
   })
   const [saving, setSaving] = useState(false)
@@ -429,7 +437,7 @@ function ManualEntryModal({
     }
     const startedAt = parseLocalDate(form.startDate, form.startTime)
     const endedAt   = form.endDate && form.endTime ? parseLocalDate(form.endDate, form.endTime) : undefined
-    await onCreate({ description: form.description || undefined, project_id: form.projectId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
+    await onCreate({ description: form.description || undefined, project_id: form.projectId || undefined, client_id: form.clientId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
     setSaving(false); onClose()
   }
   const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' }
@@ -444,7 +452,13 @@ function ManualEntryModal({
           <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Sur quoi as-tu travaillé ?" style={inp} autoFocus onKeyDown={e => e.key === 'Enter' && submit()} /></div>
         <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Projet</label>
           <select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} style={inp}>
-            <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+            <option value="">Sans projet</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+          <ClientSelect
+            value={form.clientId || undefined}
+            onChange={id => setForm(f => ({ ...f, clientId: id ?? '' }))}
+            style={inp}
+            placeholder="Sans client"
+          /></div>
         <div><label style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: 5 }}>Catégorie</label>
           <CategoryPicker value={form.category} categories={categories} onChange={v => setForm(f => ({ ...f, category: v }))} onAdd={onAddCategory} inp={inp} /></div>
         <div className="grid grid-cols-2 gap-2">

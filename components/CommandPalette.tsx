@@ -17,6 +17,8 @@ const DESTINATIONS: Dest[] = [
   { label: 'Time Tracker',  href: '/time-tracker',       emoji: '⏱', key: 't' },
   { label: 'Projets',       href: '/projets',            emoji: '📁', key: 'p' },
   { label: 'To-Do',         href: '/todo',               emoji: '✅', key: 'd' },
+  { label: 'Clients',       href: '/clients',            emoji: '🏪', key: 'l' },
+  { label: 'Imprimantes',   href: '/imprimantes',        emoji: '🖨️', key: 'i' },
   { label: 'Running',       href: '/sport',              emoji: '🏃', key: 'u' },
   { label: 'Health',        href: '/health',             emoji: '❤️', key: 'e' },
   { label: 'Recettes',      href: '/recettes',           emoji: '🍽', key: 'r' },

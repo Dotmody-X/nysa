@@ -13,6 +13,8 @@ export interface User {
 }
 
 // ------ Clients ------
+export type ClientStatut = 'actif' | 'inactif' | 'prospect' | 'archive'
+
 export interface Client {
   id: string
   user_id: string
@@ -20,8 +22,58 @@ export interface Client {
   company?: string
   email?: string
   phone?: string
+  adresse?: string
+  ville?: string
+  pays?: string
+  vendeur?: string
+  statut: ClientStatut
   notes?: string
   created_at: string
+  updated_at?: string
+}
+
+/**
+ * Identifiants d'un client sur un service tiers (site d'etiquettes DGCCRF).
+ * Table separee de `clients` a dessein : la liste des clients est affichee
+ * partout dans l'app, ces identifiants ne doivent pas voyager avec elle.
+ */
+export interface ClientAcces {
+  id: string
+  user_id: string
+  client_id: string
+  service: string
+  identifiant?: string
+  motdepasse?: string
+  date_creation?: string
+  mail_identifiants_envoye: boolean
+  mail_mise_a_dispo_envoye: boolean
+  mail_installation_envoye: boolean
+  notes?: string
+  created_at: string
+  updated_at?: string
+}
+
+// ------ Imprimantes ------
+export type ImprimanteStatut =
+  | 'demandee' | 'commandee' | 'envoyee' | 'en_service' | 'retournee' | 'hors_service'
+
+export interface Imprimante {
+  id: string
+  user_id: string
+  client_id?: string
+  client?: Pick<Client, 'id' | 'name' | 'ville'>
+  /** Nom du magasin tel qu'il figure sur la liste d'origine, meme sans client rattache. */
+  magasin: string
+  modele: string
+  serial?: string
+  adresse?: string
+  date_mise_a_dispo?: string
+  statut: ImprimanteStatut
+  nombre: number
+  document_signe: boolean
+  notes?: string
+  created_at: string
+  updated_at?: string
 }
 
 // ------ Projets ------
@@ -54,6 +106,8 @@ export interface Task {
   user_id: string
   project_id?: string
   project?: Pick<Project, 'id' | 'name' | 'color'>
+  client_id?: string
+  client?: Pick<Client, 'id' | 'name'>
   title: string
   description?: string
   status: TaskStatus
@@ -98,6 +152,8 @@ export interface TimeEntry {
   user_id: string
   project_id?: string
   project?: Pick<Project, 'id' | 'name' | 'color'>
+  client_id?: string
+  client?: Pick<Client, 'id' | 'name'>
   task_id?: string
   task?: Pick<Task, 'id' | 'title'>
   description?: string

@@ -31,6 +31,8 @@
   --accent-calendar: #36c5f0;   /* ciel */
   --accent-todo:     #ffc23d;   /* jaune soleil */
   --accent-agent:    #8b5cf6;   /* violet */
+  --accent-clients:  #f2711c;   /* orange brique */
+  --accent-imprim:   #0ea5a5;   /* sarcelle */
   --azul:            #2d5bff;   /* alias cobalt (ex teal) */
 
   /* Rayons chunky */
@@ -176,6 +178,8 @@
   --color-accent-calendar:   var(--accent-calendar);
   --color-accent-todo:       var(--accent-todo);
   --color-accent-agent:      var(--accent-agent);
+  --color-accent-clients:    var(--accent-clients);
+  --color-accent-imprim:     var(--accent-imprim);
 
   --font-sans:            var(--font-sora), 'Sora', system-ui, -apple-system, sans-serif;
   --font-display:         var(--font-saira), 'Saira', system-ui, -apple-system, sans-serif;
