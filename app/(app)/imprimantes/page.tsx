@@ -4,7 +4,7 @@ import { Printer, Plus, Search, Trash2, Pencil, X, Eye, EyeOff, Copy, Check } fr
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useImprimantes, useClientAcces } from '@/hooks/useImprimantes'
 import { useClients } from '@/hooks/useClients'
-import type { Imprimante, ImprimanteStatut } from '@/types'
+import type { Imprimante, ImprimanteStatut, ClientAcces } from '@/types'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const ACCENT = 'var(--accent-imprim)'
@@ -56,27 +56,36 @@ function Secret({ valeur }: { valeur?: string }) {
   )
 }
 
-/** Bloc d'accès au site d'étiquettes, chargé seulement quand la fiche est ouverte. */
-function AccesClient({ clientId }: { clientId: string }) {
-  const { acces, loading, save } = useClientAcces(clientId)
+/** Un compte parmi ceux du client : lecture, edition, suppression. */
+function LigneAcces({
+  a, onSave, onRemove,
+}: {
+  a: ClientAcces
+  onSave: (p: Partial<ClientAcces> & { id?: string }) => Promise<unknown>
+  onRemove: (id: string) => Promise<unknown>
+}) {
   const [edite, setEdite] = useState(false)
-  const [form, setForm] = useState({ identifiant: '', motdepasse: '' })
-
-  if (loading) return <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
+  const [form, setForm] = useState({
+    service: a.service, identifiant: a.identifiant ?? '', motdepasse: a.motdepasse ?? '', notes: a.notes ?? '',
+  })
 
   if (edite) {
     return (
-      <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gap: 6, padding: 8, border: '2px solid var(--ink)', borderRadius: 8 }}>
+        <input placeholder="Service" value={form.service}
+               onChange={e => setForm({ ...form, service: e.target.value })} style={champ} />
         <input placeholder="Identifiant / e-mail" value={form.identifiant}
                onChange={e => setForm({ ...form, identifiant: e.target.value })} style={champ} />
         <input placeholder="Mot de passe" value={form.motdepasse}
                onChange={e => setForm({ ...form, motdepasse: e.target.value })} style={champ} />
+        <input placeholder="Note — quel site, quelle personne…" value={form.notes}
+               onChange={e => setForm({ ...form, notes: e.target.value })} style={champ} />
         <div className="flex gap-2">
           <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setEdite(false)}>
             Annuler
           </StickerButton>
           <StickerButton accent={ACCENT} tilt="none"
-                         onClick={async () => { await save(form); setEdite(false) }}>
+                         onClick={async () => { await onSave({ ...form, id: a.id }); setEdite(false) }}>
             Enregistrer
           </StickerButton>
         </div>
@@ -85,20 +94,82 @@ function AccesClient({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div style={{ display: 'grid', gap: 6, fontSize: 12 }}>
-      <div><strong>Identifiant</strong> · {acces?.identifiant || <span style={{ color: 'var(--text-muted)' }}>—</span>}</div>
-      <div><strong>Mot de passe</strong> · <Secret valeur={acces?.motdepasse} /></div>
-      {acces && (
-        <div style={{ color: 'var(--text-muted)' }}>
-          Identifiants envoyés : {acces.mail_identifiants_envoye ? 'oui' : 'non'} ·
-          Mise à disposition : {acces.mail_mise_a_dispo_envoye ? 'oui' : 'non'} ·
-          Installation : {acces.mail_installation_envoye ? 'oui' : 'non'}
-        </div>
+    <div style={{ display: 'grid', gap: 4, padding: 8, border: '2px solid var(--ink)', borderRadius: 8 }}>
+      <div className="flex items-center justify-between gap-2">
+        <span style={{ ...DF, fontWeight: 800, fontSize: 11 }}>{a.service}</span>
+        <span className="flex gap-1">
+          <button onClick={() => setEdite(true)} title="Modifier"
+                  style={{ padding: 3, border: '2px solid var(--ink)', borderRadius: 6, background: 'var(--bg-card)' }}>
+            <Pencil size={11} />
+          </button>
+          <button onClick={() => onRemove(a.id)} title="Supprimer"
+                  style={{ padding: 3, border: '2px solid var(--ink)', borderRadius: 6, background: 'var(--bg-card)' }}>
+            <Trash2 size={11} />
+          </button>
+        </span>
+      </div>
+      {a.notes && <div style={{ color: 'var(--text-muted)' }}>{a.notes}</div>}
+      <div><strong>Identifiant</strong> · {a.identifiant || <span style={{ color: 'var(--text-muted)' }}>—</span>}</div>
+      <div><strong>Mot de passe</strong> · <Secret valeur={a.motdepasse} /></div>
+      <div style={{ color: 'var(--text-muted)' }}>
+        Identifiants envoyés : {a.mail_identifiants_envoye ? 'oui' : 'non'} ·
+        Mise à disposition : {a.mail_mise_a_dispo_envoye ? 'oui' : 'non'} ·
+        Installation : {a.mail_installation_envoye ? 'oui' : 'non'}
+      </div>
+      {a.date_creation && (
+        <div style={{ color: 'var(--text-muted)' }}>Ouvert le {a.date_creation}</div>
       )}
-      <button onClick={() => { setForm({ identifiant: acces?.identifiant ?? '', motdepasse: acces?.motdepasse ?? '' }); setEdite(true) }}
-              style={{ ...DF, fontSize: 11, fontWeight: 700, color: ACCENT, textAlign: 'left' }}>
-        {acces ? 'Modifier les accès' : 'Ajouter des accès'}
-      </button>
+    </div>
+  )
+}
+
+/** Accès du client au site d’étiquettes, chargés seulement quand la fiche est ouverte. */
+function AccesClient({ clientId }: { clientId: string }) {
+  const { acces, loading, save, remove } = useClientAcces(clientId)
+  const [ajout, setAjout] = useState(false)
+  const [form, setForm] = useState({ service: 'mixo-label', identifiant: '', motdepasse: '', notes: '' })
+
+  if (loading) return <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
+
+  return (
+    <div style={{ display: 'grid', gap: 8, fontSize: 12 }}>
+      {acces.length === 0 && !ajout && (
+        <p style={{ color: 'var(--text-muted)' }}>Aucun accès enregistré pour ce client.</p>
+      )}
+
+      {acces.map(a => (
+        <LigneAcces key={a.id} a={a} onSave={save} onRemove={remove} />
+      ))}
+
+      {ajout ? (
+        <div style={{ display: 'grid', gap: 6, padding: 8, border: '2px solid var(--ink)', borderRadius: 8 }}>
+          <input placeholder="Service" value={form.service}
+                 onChange={e => setForm({ ...form, service: e.target.value })} style={champ} />
+          <input placeholder="Identifiant / e-mail" value={form.identifiant}
+                 onChange={e => setForm({ ...form, identifiant: e.target.value })} style={champ} />
+          <input placeholder="Mot de passe" value={form.motdepasse}
+                 onChange={e => setForm({ ...form, motdepasse: e.target.value })} style={champ} />
+          <input placeholder="Note — quel site, quelle personne…" value={form.notes}
+                 onChange={e => setForm({ ...form, notes: e.target.value })} style={champ} />
+          <div className="flex gap-2">
+            <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setAjout(false)}>
+              Annuler
+            </StickerButton>
+            <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
+              await save(form)
+              setForm({ service: 'mixo-label', identifiant: '', motdepasse: '', notes: '' })
+              setAjout(false)
+            }}>
+              Enregistrer
+            </StickerButton>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setAjout(true)}
+                style={{ ...DF, fontSize: 11, fontWeight: 700, color: ACCENT, textAlign: 'left' }}>
+          Ajouter un accès
+        </button>
+      )}
     </div>
   )
 }
