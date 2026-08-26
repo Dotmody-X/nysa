@@ -81,6 +81,8 @@ export {
   Truck as Truck,
   UploadSimple as Upload,
   User as User,
+  Printer as Printer,
+  Copy as Copy,
   Users as Users,
   ForkKnife as Utensils,
   ForkKnife as UtensilsCrossed,
