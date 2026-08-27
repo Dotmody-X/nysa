@@ -26,6 +26,10 @@ function fmtSec(sec: number) {
   const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60)
   return h > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}min`
 }
+/** Heures décimales, arrondies au centième — la forme qu'on reporte sur une facture. */
+function fmtHeures(sec: number) {
+  return (sec / 3600).toLocaleString('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
 function fmtEur(n: number) {
   return n.toLocaleString('fr-BE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 })
 }
@@ -40,6 +44,7 @@ function aggregateByN(stats: DayStat[], n: number): DayStat[] {
       label:      chunk[0].label || chunk[Math.floor(n / 2)]?.label || '',
       seconds:    chunk.reduce((s, d) => s + d.seconds, 0),
       tasks_done: chunk.reduce((s, d) => s + d.tasks_done, 0),
+      entries_count: chunk.reduce((s, d) => s + d.entries_count, 0),
     })
   }
   return result
@@ -304,20 +309,75 @@ export default function RapportsPage() {
 
   // ════ PANEL CONTENTS ═════════════════════════════════════════════════════
 
+  // Le relevé porte tous les jours de la période, y compris ceux à zéro : un
+  // jour sans heures est une information, pas une ligne à masquer. La moyenne,
+  // elle, ne compte que les jours travaillés — diviser par les week-ends
+  // donnerait un chiffre qui ne veut rien dire.
+  const releve = useMemo(() => {
+    const jours = data?.dailyStats ?? []
+    const travailles = jours.filter(d => d.seconds > 0)
+    return {
+      jours,
+      travailles: travailles.length,
+      total: jours.reduce((s, d) => s + d.seconds, 0),
+      moyenne: travailles.length ? Math.round(travailles.reduce((s, d) => s + d.seconds, 0) / travailles.length) : 0,
+      plusLong: travailles.reduce((m, d) => Math.max(m, d.seconds), 0),
+    }
+  }, [data?.dailyStats])
+
   const PanelActivite = (
     <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
       <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Activité journalière — Temps tracké (teal) · Tâches (orange)</p>
       <ActivityChart data={chartData} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-        {(data?.dailyStats ?? []).filter(d => d.seconds > 0 || d.tasks_done > 0).slice(0, 15).map((d, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{d.date}</span>
-            <div style={{ display: 'flex', gap: 16 }}>
-              {d.seconds > 0 && <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: TEAL }}>{fmtSec(d.seconds)}</span>}
-              {d.tasks_done > 0 && <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: ORANGE }}>{d.tasks_done} tâches</span>}
-            </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+        {[
+          { l: 'Total',              v: fmtSec(releve.total), h: `${fmtHeures(releve.total)} h` },
+          { l: 'Jours travaillés',   v: String(releve.travailles), h: `sur ${releve.jours.length}` },
+          { l: 'Moy. / jour presté', v: fmtSec(releve.moyenne), h: `${fmtHeures(releve.moyenne)} h` },
+          { l: 'Plus longue journée', v: fmtSec(releve.plusLong), h: `${fmtHeures(releve.plusLong)} h` },
+        ].map(k => (
+          <div key={k.l} style={{ flex: '1 1 130px', padding: '8px 10px', border: '1px solid var(--border)', borderRadius: 8 }}>
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: .4 }}>{k.l}</p>
+            <p style={{ ...DF, fontSize: 15, fontWeight: 800, color: TEAL }}>{k.v}</p>
+            <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{k.h}</p>
           </div>
         ))}
+      </div>
+
+      <div>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>
+          Heures prestées, jour par jour
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {releve.jours.map(d => {
+            const j = new Date(d.date + 'T12:00:00')
+            const weekend = j.getDay() === 0 || j.getDay() === 6
+            const vide = d.seconds === 0
+            return (
+              <div key={d.date}
+                   style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto',
+                            alignItems: 'center', gap: 12, padding: '6px 0',
+                            borderBottom: '1px solid var(--border)', opacity: vide ? .45 : 1 }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {j.toLocaleDateString('fr-BE', { weekday: 'short', day: '2-digit', month: '2-digit' })}
+                  {weekend && <span style={{ fontSize: 10 }}> · week-end</span>}
+                </span>
+                <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: vide ? 'var(--text-muted)' : TEAL,
+                               minWidth: 62, textAlign: 'right' }}>
+                  {vide ? '—' : fmtSec(d.seconds)}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', minWidth: 48, textAlign: 'right' }}>
+                  {vide ? '' : `${fmtHeures(d.seconds)} h`}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', minWidth: 74, textAlign: 'right' }}>
+                  {d.entries_count > 0 && `${d.entries_count} chrono${d.entries_count > 1 ? 's' : ''}`}
+                  {d.tasks_done > 0 && <span style={{ color: ORANGE }}> · {d.tasks_done} t.</span>}
+                </span>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
