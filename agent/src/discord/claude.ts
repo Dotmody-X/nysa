@@ -30,6 +30,44 @@ export type ClaudeOptions = {
  * revérifier avec `claude --help` lors de l'installation sur le Pi5, ils
  * évoluent d'une version à l'autre.
  */
+type SortieClaude = {
+  result?: string
+  session_id?: string
+  is_error?: boolean
+  terminal_reason?: string
+}
+
+/**
+ * Le message utile est dans le JSON de stdout, pas sur stderr.
+ *
+ * Claude Code renseigne `result` même quand il échoue — une session OAuth
+ * expirée sort ainsi avec un stderr vide et tout le diagnostic sur stdout.
+ * Lire stderr en premier ne remontait donc que « Code de sortie 1 ».
+ */
+function messageErreur(sortie: SortieClaude | null, stderr: string, code: number | null): string {
+  if (sortie?.result?.trim()) return sortie.result.trim()
+  const derniere = stderr.trim().split('\n').filter(Boolean).pop()
+  return derniere || `Code de sortie ${code}`
+}
+
+/**
+ * Certaines pannes ont un remède connu et une seule cause plausible : autant
+ * le donner dans le salon plutôt que d'obliger à ouvrir une session sur le Pi.
+ */
+function remede(message: string): string | null {
+  if (/oauth|authenticate|credential|session expired/i.test(message)) {
+    return "La session Claude Code a expiré sur le Pi. Rebranche-la avec `claude setup-token`, " +
+      'puis `sudo systemctl restart nysa-agent`.'
+  }
+  if (/usage limit|rate.?limit|quota|too many requests/i.test(message)) {
+    return "Limite d'usage de l'abonnement atteinte. Elle se réinitialise seule — réessaie plus tard."
+  }
+  if (/ENOENT|not found/i.test(message)) {
+    return 'Le binaire `claude` est introuvable à ce chemin. Vérifie `CLAUDE_BIN` dans `agent/.env`.'
+  }
+  return null
+}
+
 export function runClaude(options: ClaudeOptions): Promise<ClaudeRun> {
   const args = [
     '-p',
@@ -81,26 +119,34 @@ export function runClaude(options: ClaudeOptions): Promise<ClaudeRun> {
     child.on('close', code => {
       clearTimeout(timer)
 
-      if (code !== 0) {
-        log.error(`Claude Code a quitté avec le code ${code}`, stderr.slice(0, 2000))
-        reject(new Error(stderr.trim().split('\n').pop() || `Code de sortie ${code}`))
+      let sortie: SortieClaude | null = null
+      try {
+        sortie = JSON.parse(stdout) as SortieClaude
+      } catch {
+        // Le format JSON peut changer : on continue sans, stderr prendra le relais.
+      }
+
+      // Un code de sortie nul ne suffit pas : une erreur d'API ressort parfois
+      // en 0, avec `is_error` pour seul signal.
+      if (code !== 0 || sortie?.is_error) {
+        const message = messageErreur(sortie, stderr, code)
+        const aide = remede(message)
+        log.error(
+          `Claude Code a échoué (code ${code}${sortie?.terminal_reason ? `, ${sortie.terminal_reason}` : ''})`,
+          message,
+        )
+        reject(new Error(aide ? `${message}\n\n${aide}` : message))
         return
       }
 
-      try {
-        const parsed = JSON.parse(stdout) as {
-          result?: string
-          session_id?: string
-          is_error?: boolean
-        }
+      if (sortie) {
         resolve({
-          reply: parsed.result?.trim() || '(réponse vide)',
-          sessionId: parsed.session_id ?? null,
+          reply: sortie.result?.trim() || '(réponse vide)',
+          sessionId: sortie.session_id ?? null,
         })
-      } catch {
-        // Si le format JSON change, on rend quand même quelque chose d'utile.
-        resolve({ reply: stdout.trim() || '(réponse vide)', sessionId: null })
+        return
       }
+      resolve({ reply: stdout.trim() || '(réponse vide)', sessionId: null })
     })
   })
 }
