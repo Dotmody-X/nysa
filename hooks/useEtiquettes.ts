@@ -148,6 +148,36 @@ export function useEtiquettes() {
     return { error }
   }
 
+  /**
+   * Enregistre d'un coup toutes les quantités d'une grille de saisie.
+   *
+   * C'est la traduction du bon de commande papier : on parcourt la liste des
+   * saveurs, on inscrit des nombres, on valide une fois. Une quantité remise à
+   * zéro retire sa ligne — sur le papier, on rature.
+   */
+  async function enregistrerQuantites(commandeId: string, quantites: Record<string, number>) {
+    const u = await uid()
+    const aPoser = Object.entries(quantites).filter(([, q]) => q > 0)
+    const aRetirer = Object.entries(quantites).filter(([, q]) => !q).map(([id]) => id)
+
+    if (aRetirer.length) {
+      const { error } = await supabase.from('etiquette_commande_lignes')
+        .delete().eq('commande_id', commandeId).in('etiquette_id', aRetirer)
+      if (error) return { error }
+    }
+    if (aPoser.length) {
+      const { error } = await supabase.from('etiquette_commande_lignes').upsert(
+        aPoser.map(([etiquette_id, quantite]) => ({
+          user_id: u, commande_id: commandeId, etiquette_id, quantite,
+        })),
+        { onConflict: 'commande_id,etiquette_id' },
+      )
+      if (error) return { error }
+    }
+    await fetch()
+    return { error: null }
+  }
+
   async function retirerLigne(id: string) {
     const { error } = await supabase.from('etiquette_commande_lignes').delete().eq('id', id)
     if (!error) await fetch()
@@ -191,7 +221,7 @@ export function useEtiquettes() {
   return {
     gammes, commandes, loading, error, refetch: fetch,
     marquerEtat, ajouterEtiquette, supprimerEtiquette, enregistrerFormat,
-    enregistrerCommande, supprimerCommande, ajouterLigne, retirerLigne,
+    enregistrerCommande, supprimerCommande, ajouterLigne, retirerLigne, enregistrerQuantites,
     televerser, supprimerFichier, lien,
   }
 }
