@@ -19,6 +19,7 @@ export {
   CheckCircle as CheckCircle2,
   CheckSquare as CheckSquare,
   CaretDown as ChevronDown,
+  CaretUp as ChevronUp,
   CaretLeft as ChevronLeft,
   CaretRight as ChevronRight,
   Circle as Circle,
