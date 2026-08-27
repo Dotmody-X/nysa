@@ -121,6 +121,30 @@ export function useEtiquettes() {
     return { error }
   }
 
+  async function supprimerFormat(id: string) {
+    const { error } = await supabase.from('etiquette_formats').delete().eq('id', id)
+    if (!error) await fetch()
+    return { error }
+  }
+
+  // ── Gammes ────────────────────────────────────────────────────────────────
+
+  async function enregistrerGamme(g: Partial<EtiquetteGamme> & { nom: string }) {
+    const ligne = { ...g, user_id: await uid() }
+    const req = g.id
+      ? supabase.from('etiquette_gammes').update({ ...ligne, updated_at: new Date().toISOString() }).eq('id', g.id)
+      : supabase.from('etiquette_gammes').insert(ligne)
+    const { error } = await req
+    if (!error) await fetch()
+    return { error }
+  }
+
+  async function supprimerGamme(id: string) {
+    const { error } = await supabase.from('etiquette_gammes').delete().eq('id', id)
+    if (!error) await fetch()
+    return { error }
+  }
+
   // ── Commandes ─────────────────────────────────────────────────────────────
 
   async function enregistrerCommande(c: Partial<EtiquetteCommande>) {
@@ -220,7 +244,8 @@ export function useEtiquettes() {
 
   return {
     gammes, commandes, loading, error, refetch: fetch,
-    marquerEtat, ajouterEtiquette, supprimerEtiquette, enregistrerFormat,
+    marquerEtat, ajouterEtiquette, supprimerEtiquette,
+    enregistrerFormat, supprimerFormat, enregistrerGamme, supprimerGamme,
     enregistrerCommande, supprimerCommande, ajouterLigne, retirerLigne, enregistrerQuantites,
     televerser, supprimerFichier, lien,
   }
