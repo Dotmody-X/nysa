@@ -401,3 +401,89 @@ export interface Demande {
   created_at: string
   updated_at?: string
 }
+
+export type EtatFichier = 'a_jour' | 'modifie' | 'changement_envoye'
+export type CommandeEtiquetteStatut =
+  'brouillon' | 'confirmee' | 'en_production' | 'recue' | 'annulee'
+export type EtiquetteFichierCategorie = 'bat' | 'facture' | 'autre'
+
+export interface EtiquetteGamme {
+  id: string
+  user_id: string
+  nom: string
+  ordre: number
+  actif: boolean
+  notes?: string
+  created_at: string
+  updated_at?: string
+}
+
+export interface EtiquetteFormat {
+  id: string
+  user_id: string
+  gamme_id: string
+  gamme?: Pick<EtiquetteGamme, 'id' | 'nom'>
+  contenance: string
+  /** Une même contenance existe parfois en deux déclinaisons : 75 ml avec ou sans livret. */
+  variante?: string
+  dimensions?: string
+  specification?: string
+  actif: boolean
+  created_at: string
+  updated_at?: string
+}
+
+export interface Etiquette {
+  id: string
+  user_id: string
+  format_id: string
+  format?: EtiquetteFormat
+  saveur: string
+  etat_fichier: EtatFichier
+  date_modification?: string
+  derniere_commande?: string
+  notes?: string
+  created_at: string
+  updated_at?: string
+}
+
+export interface EtiquetteCommandeLigne {
+  id: string
+  user_id: string
+  commande_id: string
+  etiquette_id: string
+  etiquette?: Etiquette
+  quantite: number
+  /** Trace figée : le nouveau fichier est-il parti avec cette commande. */
+  fichier_envoye: boolean
+  created_at: string
+}
+
+export interface EtiquetteFichier {
+  id: string
+  user_id: string
+  commande_id: string
+  categorie: EtiquetteFichierCategorie
+  filename: string
+  file_path: string
+  file_size?: number
+  file_type?: string
+  created_at: string
+}
+
+export interface EtiquetteCommande {
+  id: string
+  user_id: string
+  reference?: string
+  imprimeur?: string
+  statut: CommandeEtiquetteStatut
+  date_commande?: string
+  date_reception?: string
+  numero_facture?: string
+  montant?: number
+  notes?: string
+  lignes?: EtiquetteCommandeLigne[]
+  fichiers?: EtiquetteFichier[]
+  created_at: string
+  updated_at?: string
+}

@@ -34,6 +34,7 @@
   --accent-clients:  #f2711c;   /* orange brique */
   --accent-imprim:   #0ea5a5;   /* sarcelle */
   --accent-demandes: #8b5cf6;   /* violet */
+  --accent-etiquettes: #d946a0; /* magenta */
   --azul:            #2d5bff;   /* alias cobalt (ex teal) */
 
   /* Rayons chunky */
@@ -182,6 +183,7 @@
   --color-accent-clients:    var(--accent-clients);
   --color-accent-imprim:     var(--accent-imprim);
   --color-accent-demandes:   var(--accent-demandes);
+  --color-accent-etiquettes: var(--accent-etiquettes);
 
   --font-sans:            var(--font-sora), 'Sora', system-ui, -apple-system, sans-serif;
   --font-display:         var(--font-saira), 'Saira', system-ui, -apple-system, sans-serif;

@@ -6,7 +6,7 @@ import {
   Settings, Sun, Moon, Monitor, User,
   Home, BarChart2, Calendar, Clock, FolderKanban, CheckSquare, Activity,
   HeartPulse, UtensilsCrossed, ShoppingCart, Wallet, List, Send, Award, Shield,
-  Users, Printer, Package,
+  Users, Printer, Package, Barcode,
 } from '@/components/ui/icons'
 import { NysaLogo } from '@/components/ui/NysaLogo'
 import { useState, useEffect, useRef } from 'react'
@@ -29,6 +29,7 @@ const navItems: NavItem[] = [
   { href: '/clients',      label: 'Clients',       Icon: Users,        group: 'Organiser' },
   { href: '/demandes',     label: 'Demandes',      Icon: Package,      group: 'Organiser' },
   { href: '/imprimantes',  label: 'Imprimantes',   Icon: Printer,      group: 'Organiser' },
+  { href: '/etiquettes',   label: 'Étiquettes',    Icon: Barcode,      group: 'Organiser' },
   { href: '/publications', label: 'Publications',  Icon: Send,         group: 'Organiser' },
   { href: '/directeur-marketing', label: 'Marketing', Icon: Award,     group: 'Organiser' },
   { href: '/sport',        label: 'Running',       Icon: Activity,     group: 'Quotidien' },

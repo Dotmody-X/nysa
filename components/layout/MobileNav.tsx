@@ -6,7 +6,7 @@ import {
   Home, BarChart2, User, Plus, LayoutGrid, X,
   Calendar, Clock, FolderKanban, CheckSquare, Activity, HeartPulse,
   UtensilsCrossed, ShoppingCart, Wallet, List, Send, Award,
-  Users, Printer, Package,
+  Users, Printer, Package, Barcode,
 } from '@/components/ui/icons'
 import { useState } from 'react'
 import { useAppConfig } from '@/hooks/useAppConfig'
@@ -23,6 +23,7 @@ const ALL_SECTIONS = [
   { href: '/clients',      label: 'Clients',      Icon: Users },
   { href: '/demandes',     label: 'Demandes',     Icon: Package },
   { href: '/imprimantes',  label: 'Imprimantes',  Icon: Printer },
+  { href: '/etiquettes',   label: 'Étiquettes',   Icon: Barcode },
   { href: '/sport',        label: 'Running',      Icon: Activity },
   { href: '/health',       label: 'Health',       Icon: HeartPulse },
   { href: '/recettes',     label: 'Recettes',     Icon: UtensilsCrossed },
