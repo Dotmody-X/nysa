@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import {
   ArrowRight, Clock, Calendar, CheckSquare, Wallet, FolderKanban, Activity,
+  Users, Package, Printer, Barcode, AlertTriangle,
 } from '@/components/ui/icons'
 import { useDashboard } from '@/hooks/useDashboard'
+import { useMixologue } from '@/hooks/useMixologue'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -44,6 +46,7 @@ const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 
 export default function DashboardPage() {
   const { data, loading } = useDashboard()
+  const { chiffres, loading: chargeMixo } = useMixologue()
 
   const todayLabel = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long',
@@ -215,6 +218,48 @@ export default function DashboardPage() {
                 </div>
               )
             })}
+          </div>
+        </section>
+      )}
+
+      {/* ── Le Mixologue ───────────────────────────────────────────────── */}
+      {!chargeMixo && chiffres && (
+        <section className="nb-card p-5">
+          <SectionHead num="04" icon={Package} title="Le Mixologue" accent="var(--accent-clients)" href="/demandes" />
+
+          {/* Une alerte d'abord : c'est la seule chose de ce bloc qui appelle
+              une action, et elle coûte un retirage entier si elle est manquée. */}
+          {chiffres.etiquettesARenvoyer > 0 && (
+            <Link href="/etiquettes" className="flex items-start gap-2 mt-3 p-3"
+                  style={{ border: '2px solid var(--ink)', borderRadius: 10,
+                           background: 'var(--accent-recettes)', color: 'var(--ink-dark)' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span className="text-xs font-semibold" style={{ lineHeight: 1.5 }}>
+                <strong>
+                  {chiffres.etiquettesARenvoyer} fichier{chiffres.etiquettesARenvoyer > 1 ? 's' : ''} d’étiquette
+                  {chiffres.etiquettesARenvoyer > 1 ? 's' : ''} à envoyer à l’imprimeur
+                </strong>
+                <br />
+                {chiffres.aRenvoyer.slice(0, 8).join(' · ')}
+                {chiffres.aRenvoyer.length > 8 && ` … +${chiffres.aRenvoyer.length - 8}`}
+              </span>
+            </Link>
+          )}
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+            <Kpi icon={Users}   label="Clients"     value={String(chiffres.clients)}
+                 sub={`${chiffres.magasinsEquipes} magasins équipés`}
+                 accent="var(--accent-clients)" href="/clients" />
+            <Kpi icon={Package} label="Demandes"    value={String(chiffres.demandesEnCours)}
+                 sub={`en cours · ${chiffres.demandesTotal} au total`}
+                 accent="var(--accent-demandes)" href="/demandes" iconInk="var(--ink-light)" />
+            <Kpi icon={Printer} label="Imprimantes" value={String(chiffres.machines)}
+                 sub={`${chiffres.accesSite} accès au site`}
+                 accent="var(--accent-imprim)" href="/imprimantes" iconInk="var(--ink-light)" />
+            <Kpi icon={Barcode} label="Étiquettes"  value={String(chiffres.commandesOuvertes)}
+                 sub={chiffres.commandesOuvertes === 1 ? 'commande ouverte' : 'commandes ouvertes'}
+                 accent="var(--accent-etiquettes)" href="/etiquettes" iconInk="var(--ink-light)"
+                 valueColor={chiffres.etiquettesARenvoyer ? 'var(--danger)' : undefined} />
           </div>
         </section>
       )}
