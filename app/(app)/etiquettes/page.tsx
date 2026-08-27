@@ -9,7 +9,7 @@ import { useEtiquettes } from '@/hooks/useEtiquettes'
 import { santeCode, type SanteCode } from '@/lib/ean'
 import type {
   EtatFichier, EtiquetteCommande, CommandeEtiquetteStatut,
-  EtiquetteFichier, EtiquetteFichierCategorie, EtiquetteFormat, EtiquetteGamme,
+  EtiquetteDocument, EtiquetteDocCategorie, EtiquetteFormat, EtiquetteGamme,
 } from '@/types'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -41,6 +41,8 @@ const champ: React.CSSProperties = {
   padding: '7px 9px', fontSize: 13, color: 'var(--text)',
   background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8,
 }
+const petit: React.CSSProperties = { ...champ, padding: '5px 7px', fontSize: 12 }
+
 const cellule: React.CSSProperties = {
   padding: '5px 8px', borderBottom: '1px solid var(--border)', fontSize: 12, textAlign: 'left',
 }
@@ -91,53 +93,109 @@ function Etat({ e }: { e: EtatFichier }) {
   )
 }
 
-function Fichier({ f, lien, onSupprimer }: {
-  f: EtiquetteFichier
-  lien: (f: EtiquetteFichier) => Promise<string | null>
-  onSupprimer: (f: EtiquetteFichier) => void
+const TYPES_DOC: { value: EtiquetteDocCategorie; label: string }[] = [
+  { value: 'facture', label: 'Facture' },
+  { value: 'bl',      label: 'Bon de livraison' },
+  { value: 'bat',     label: 'BAT' },
+  { value: 'devis',   label: 'Devis' },
+  { value: 'autre',   label: 'Autre' },
+]
+
+/**
+ * Une ligne de document : type, numéro, date, montant, et son PDF.
+ *
+ * Une commande en donne plusieurs — l'imprimeur facture et livre en plusieurs
+ * fois — d'où une liste plutôt qu'un champ unique sur la commande.
+ */
+function LigneDocument({ d, lien, onEnregistrer, onSupprimer, onJoindre, onDetacher }: {
+  d: EtiquetteDocument
+  lien: (d: EtiquetteDocument) => Promise<string | null>
+  onEnregistrer: (p: Partial<EtiquetteDocument> & { commande_id: string }) => Promise<{ error: unknown }>
+  onSupprimer: (d: EtiquetteDocument) => void
+  onJoindre: (id: string, f: File, c: EtiquetteDocCategorie, docId: string) => Promise<{ error: unknown }>
+  onDetacher: (d: EtiquetteDocument) => void
 }) {
   const [url, setUrl] = useState<string | null>(null)
+  const [form, setForm] = useState({
+    categorie: d.categorie, numero: d.numero ?? '',
+    date_document: d.date_document ?? '', montant: d.montant?.toString() ?? '',
+  })
+  const input = useRef<HTMLInputElement>(null)
+  const [envoi, setEnvoi] = useState(false)
+
   useEffect(() => {
     let vivant = true
-    lien(f).then(u => { if (vivant) setUrl(u) })
+    lien(d).then(u => { if (vivant) setUrl(u) })
     return () => { vivant = false }
-  }, [f.id]) // eslint-disable-line react-hooks/exhaustive-deps
-  return (
-    <span className="flex items-center gap-1" style={{ fontSize: 11, padding: '3px 7px',
-                     border: '2px solid var(--ink)', borderRadius: 999 }}>
-      <strong>{f.categorie === 'bat' ? 'BAT' : f.categorie === 'facture' ? 'Facture' : 'Fichier'}</strong>
-      <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {f.filename}
-      </span>
-      {url && <a href={url} target="_blank" rel="noreferrer" title="Ouvrir"><ExternalLink size={10} /></a>}
-      <button onClick={() => onSupprimer(f)} title="Supprimer"><Trash2 size={10} /></button>
-    </span>
-  )
-}
+  }, [d.id, d.file_path]) // eslint-disable-line react-hooks/exhaustive-deps
 
-function Depot({ commandeId, categorie, label, onEnvoi }: {
-  commandeId: string
-  categorie: EtiquetteFichierCategorie
-  label: string
-  onEnvoi: (id: string, f: File, c: EtiquetteFichierCategorie) => Promise<{ error: unknown }>
-}) {
-  const input = useRef<HTMLInputElement>(null)
-  const [enCours, setEnCours] = useState(false)
+  function enregistrer() {
+    const change = form.categorie !== d.categorie
+      || form.numero !== (d.numero ?? '')
+      || form.date_document !== (d.date_document ?? '')
+      || form.montant !== (d.montant?.toString() ?? '')
+    if (!change) return
+    onEnregistrer({
+      id: d.id, commande_id: d.commande_id, categorie: form.categorie,
+      numero: form.numero, date_document: form.date_document || undefined,
+      montant: form.montant ? Number(form.montant) : undefined,
+    })
+  }
+
   return (
-    <>
-      <input ref={input} type="file" hidden accept="application/pdf,image/png,image/jpeg,image/webp"
-             onChange={async ev => {
-               const f = ev.target.files?.[0]
-               if (!f) return
-               setEnCours(true); await onEnvoi(commandeId, f, categorie); setEnCours(false)
-               ev.target.value = ''
-             }} />
-      <button onClick={() => input.current?.click()} disabled={enCours}
-              style={{ ...DF, fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 6,
-                       border: '2px solid var(--ink)', background: 'var(--bg-card)', color: 'var(--text)' }}>
-        <Upload size={10} /> {enCours ? 'Envoi…' : label}
-      </button>
-    </>
+    <tr>
+      <td style={cellule}>
+        <select value={form.categorie} onBlur={enregistrer}
+                onChange={ev => setForm({ ...form, categorie: ev.target.value as EtiquetteDocCategorie })}
+                style={{ ...petit, width: 130 }}>
+          {TYPES_DOC.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
+        </select>
+      </td>
+      <td style={cellule}>
+        <input value={form.numero} placeholder="n°" onBlur={enregistrer}
+               onChange={ev => setForm({ ...form, numero: ev.target.value })}
+               style={{ ...petit, width: 130 }} />
+      </td>
+      <td style={cellule}>
+        <input type="date" value={form.date_document} onBlur={enregistrer}
+               onChange={ev => setForm({ ...form, date_document: ev.target.value })}
+               style={{ ...petit, width: 130 }} />
+      </td>
+      <td style={{ ...cellule, textAlign: 'right' }}>
+        <input type="number" step="0.01" value={form.montant} placeholder="—" onBlur={enregistrer}
+               onChange={ev => setForm({ ...form, montant: ev.target.value })}
+               style={{ ...petit, width: 90, textAlign: 'right' }} />
+      </td>
+      <td style={{ ...cellule, whiteSpace: 'nowrap' }}>
+        <input ref={input} type="file" hidden accept="application/pdf,image/png,image/jpeg,image/webp"
+               onChange={async ev => {
+                 const f = ev.target.files?.[0]
+                 if (!f) return
+                 setEnvoi(true); await onJoindre(d.commande_id, f, d.categorie, d.id); setEnvoi(false)
+                 ev.target.value = ''
+               }} />
+        {d.file_path ? (
+          <span className="flex items-center gap-1" style={{ fontSize: 11 }}>
+            <span style={{ maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  title={d.filename}>{d.filename}</span>
+            {url && <a href={url} target="_blank" rel="noreferrer" title="Ouvrir"><ExternalLink size={11} /></a>}
+            <button onClick={() => onDetacher(d)} title="Retirer le PDF, garder le numéro"><X size={11} /></button>
+          </span>
+        ) : (
+          <button onClick={() => input.current?.click()} disabled={envoi}
+                  style={{ ...DF, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
+                           border: '2px solid var(--ink)', background: 'var(--bg-card)', color: 'var(--text)' }}>
+            <Upload size={10} /> {envoi ? 'Envoi…' : 'Joindre'}
+          </button>
+        )}
+      </td>
+      <td style={{ ...cellule, textAlign: 'right' }}>
+        <button title="Supprimer la ligne" onClick={() => onSupprimer(d)}
+                style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+          <Trash2 size={11} />
+        </button>
+      </td>
+    </tr>
   )
 }
 
@@ -602,6 +660,10 @@ export default function EtiquettesPage() {
                 const st = STATUTS.find(s => s.value === c.statut) ?? STATUTS[0]
                 const alerte = (c.lignes ?? []).filter(l => l.etiquette?.etat_fichier === 'modifie')
                 const total = (c.lignes ?? []).reduce((s, l) => s + l.quantite, 0)
+                const docs = c.documents ?? []
+                const factures = docs.filter(d => d.categorie === 'facture')
+                const bls = docs.filter(d => d.categorie === 'bl')
+                const totalFacture = factures.reduce((s, d) => s + (d.montant ?? 0), 0)
                 const ouverte = cmdOuverte === c.id
                 return (
                   <div key={c.id} style={{ border: '2px solid var(--ink)', borderRadius: 'var(--radius-md)',
@@ -615,7 +677,9 @@ export default function EtiquettesPage() {
                         </p>
                         <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                           {c.date_commande ?? 'sans date'} · {(c.lignes ?? []).length} références · {total} étiquettes
-                          {c.numero_facture ? ` · facture ${c.numero_facture}` : ''}
+                          {factures.length > 0 && ` · ${factures.length} facture${factures.length > 1 ? 's' : ''}`}
+                          {totalFacture > 0 && ` · ${totalFacture.toLocaleString('fr-BE')} €`}
+                          {bls.length > 0 && ` · ${bls.length} BL`}
                         </p>
                       </div>
                       <span className="flex items-center gap-2">
@@ -703,17 +767,58 @@ export default function EtiquettesPage() {
                           <Recapitulatif texte={texteCommande(c, formatsAplat)} />
                         )}
 
-                        {!!c.fichiers?.length && (
-                          <div className="flex flex-wrap gap-2">
-                            {c.fichiers.map(f => (
-                              <Fichier key={f.id} f={f} lien={e.lien} onSupprimer={e.supprimerFichier} />
-                            ))}
+                        <div>
+                          <div className="flex items-center justify-between gap-2" style={{ marginBottom: 4 }}>
+                            <p style={{ ...DF, fontWeight: 800, fontSize: 12 }}>
+                              Factures, BL et documents ({docs.length})
+                            </p>
+                            <StickerButton accent={ACCENT} tilt="none" onClick={() =>
+                              e.enregistrerDocument({ commande_id: c.id, categorie: 'facture', numero: 'à compléter' })}>
+                              <Plus size={12} /> Ajouter
+                            </StickerButton>
                           </div>
-                        )}
+                          {docs.length === 0 ? (
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                              Aucun document. L’imprimeur facture et livre souvent en plusieurs fois :
+                              ajoute une ligne par facture et par bon de livraison.
+                            </p>
+                          ) : (
+                            <div style={{ overflowX: 'auto', border: '2px solid var(--ink)', borderRadius: 8 }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 620 }}>
+                                <thead>
+                                  <tr>
+                                    <th style={entete}>Type</th>
+                                    <th style={entete}>Numéro</th>
+                                    <th style={entete}>Date</th>
+                                    <th style={{ ...entete, textAlign: 'right' }}>Montant</th>
+                                    <th style={entete}>PDF</th>
+                                    <th style={{ ...entete, textAlign: 'right' }}></th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {docs.map(d => (
+                                    <LigneDocument key={d.id} d={d} lien={e.lien}
+                                                   onEnregistrer={e.enregistrerDocument}
+                                                   onSupprimer={e.supprimerDocument}
+                                                   onJoindre={e.televerser}
+                                                   onDetacher={e.retirerFichier} />
+                                  ))}
+                                  {totalFacture > 0 && (
+                                    <tr>
+                                      <td style={{ ...cellule, fontWeight: 700 }} colSpan={3}>Total facturé</td>
+                                      <td style={{ ...cellule, textAlign: 'right', fontWeight: 700 }}>
+                                        {totalFacture.toLocaleString('fr-BE')} €
+                                      </td>
+                                      <td style={cellule} colSpan={2} />
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                          <Depot commandeId={c.id} categorie="bat" label="BAT" onEnvoi={e.televerser} />
-                          <Depot commandeId={c.id} categorie="facture" label="Facture" onEnvoi={e.televerser} />
                           <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setEdition({ ...c })}>
                             <Pencil size={12} /> Modifier
                           </StickerButton>
@@ -914,15 +1019,10 @@ export default function EtiquettesPage() {
                          onChange={ev => setEdition({ ...edition, date_reception: ev.target.value || undefined })}
                          style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>N° de facture
-                  <input value={edition.numero_facture ?? ''} onChange={ev => setEdition({ ...edition, numero_facture: ev.target.value })}
-                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>Montant €
-                  <input type="number" step="0.01" value={edition.montant ?? ''}
-                         onChange={ev => setEdition({ ...edition, montant: ev.target.value ? Number(ev.target.value) : undefined })}
-                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
-              </div>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                Les factures et bons de livraison se saisissent dans la commande elle-même,
+                une ligne par document : l’imprimeur en émet souvent plusieurs.
+              </p>
               <label style={{ fontSize: 12, fontWeight: 700 }}>Notes
                 <textarea rows={2} value={edition.notes ?? ''} onChange={ev => setEdition({ ...edition, notes: ev.target.value })}
                           style={{ ...champ, width: '100%', marginTop: 4, resize: 'vertical' }} /></label>

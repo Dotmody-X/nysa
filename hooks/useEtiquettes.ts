@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type {
   EtiquetteGamme, EtiquetteFormat, Etiquette, EtiquetteCommande,
-  EtiquetteFichier, EtiquetteFichierCategorie, EtatFichier,
+  EtiquetteDocument, EtiquetteDocCategorie, EtatFichier,
 } from '@/types'
 
 const BUCKET = 'etiquettes'
@@ -28,7 +28,7 @@ export function useEtiquettes() {
       supabase.from('etiquettes').select('*').order('saveur'),
       supabase.from('etiquette_commandes').select('*').order('date_commande', { ascending: false, nullsFirst: false }),
       supabase.from('etiquette_commande_lignes').select('*, etiquette:etiquettes(*)'),
-      supabase.from('etiquette_fichiers').select('*').order('created_at'),
+      supabase.from('etiquette_documents').select('*').order('categorie').order('numero'),
     ])
 
     const souci = [g, f, e, c, l, fi].find(r => r.error)?.error
@@ -56,17 +56,17 @@ export function useEtiquettes() {
       liste.push(x)
       lignesParCmd.set(x.commande_id, liste)
     }
-    const fichiersParCmd = new Map<string, EtiquetteFichier[]>()
-    for (const x of (fi.data ?? []) as EtiquetteFichier[]) {
-      const liste = fichiersParCmd.get(x.commande_id) ?? []
+    const docsParCmd = new Map<string, EtiquetteDocument[]>()
+    for (const x of (fi.data ?? []) as EtiquetteDocument[]) {
+      const liste = docsParCmd.get(x.commande_id) ?? []
       liste.push(x)
-      fichiersParCmd.set(x.commande_id, liste)
+      docsParCmd.set(x.commande_id, liste)
     }
 
     setCommandes(((c.data ?? []) as EtiquetteCommande[]).map(x => ({
       ...x,
       lignes: (lignesParCmd.get(x.id) ?? []) as EtiquetteCommande['lignes'],
-      fichiers: fichiersParCmd.get(x.id) ?? [],
+      documents: docsParCmd.get(x.id) ?? [],
     })))
     setError(null)
     setLoading(false)
@@ -264,20 +264,53 @@ export function useEtiquettes() {
     return { error }
   }
 
-  // ── BAT et factures ───────────────────────────────────────────────────────
+  // ── Documents : BAT, factures, bons de livraison ──────────────────────────
 
-  async function televerser(commandeId: string, fichier: File, categorie: EtiquetteFichierCategorie) {
+  /** Enregistre un document. Le PDF viendra peut-être plus tard, ou jamais. */
+  async function enregistrerDocument(d: Partial<EtiquetteDocument> & { commande_id: string }) {
+    const ligne = {
+      user_id: await uid(),
+      commande_id: d.commande_id,
+      categorie: d.categorie ?? 'autre',
+      numero: d.numero?.trim() || null,
+      date_document: d.date_document || null,
+      montant: d.montant ?? null,
+      notes: d.notes?.trim() || null,
+    }
+    const req = d.id
+      ? supabase.from('etiquette_documents').update(ligne).eq('id', d.id)
+      : supabase.from('etiquette_documents').insert(ligne)
+    const { error } = await req
+    if (!error) await fetch()
+    return { error }
+  }
+
+  async function supprimerDocument(d: EtiquetteDocument) {
+    if (d.file_path) await supabase.storage.from(BUCKET).remove([d.file_path])
+    const { error } = await supabase.from('etiquette_documents').delete().eq('id', d.id)
+    if (!error) await fetch()
+    return { error }
+  }
+
+  /** Attache un PDF à un document existant, ou en crée un si aucun n'est visé. */
+  async function televerser(commandeId: string, fichier: File, categorie: EtiquetteDocCategorie, documentId?: string) {
     const u = await uid()
     const propre = fichier.name.replace(/[^\w.\-]/g, '_')
     const chemin = `${u}/${commandeId}/${Date.now()}-${propre}`
     const envoi = await supabase.storage.from(BUCKET).upload(chemin, fichier)
     if (envoi.error) return { error: envoi.error }
-    const { error } = await supabase.from('etiquette_fichiers').insert({
-      user_id: u, commande_id: commandeId, categorie,
+
+    const piece = {
       filename: fichier.name, file_path: chemin,
       file_size: fichier.size, file_type: fichier.type,
-    })
+    }
+    const { error } = documentId
+      ? await supabase.from('etiquette_documents').update(piece).eq('id', documentId)
+      : await supabase.from('etiquette_documents')
+          .insert({ user_id: u, commande_id: commandeId, categorie, ...piece })
+
     if (error) {
+      // Ne pas laisser un objet orphelin dans le bucket si la ligne echoue.
       await supabase.storage.from(BUCKET).remove([chemin])
       return { error }
     }
@@ -285,16 +318,20 @@ export function useEtiquettes() {
     return { error: null }
   }
 
-  async function supprimerFichier(f: EtiquetteFichier) {
-    await supabase.storage.from(BUCKET).remove([f.file_path])
-    const { error } = await supabase.from('etiquette_fichiers').delete().eq('id', f.id)
+  /** Détache le PDF sans supprimer le document : le numéro reste. */
+  async function retirerFichier(d: EtiquetteDocument) {
+    if (d.file_path) await supabase.storage.from(BUCKET).remove([d.file_path])
+    const { error } = await supabase.from('etiquette_documents')
+      .update({ filename: null, file_path: null, file_size: null, file_type: null })
+      .eq('id', d.id)
     if (!error) await fetch()
     return { error }
   }
 
   /** Bucket privé : URL signée d'une heure. */
-  async function lien(f: EtiquetteFichier) {
-    const { data } = await supabase.storage.from(BUCKET).createSignedUrl(f.file_path, 3600)
+  async function lien(d: EtiquetteDocument) {
+    if (!d.file_path) return null
+    const { data } = await supabase.storage.from(BUCKET).createSignedUrl(d.file_path, 3600)
     return data?.signedUrl ?? null
   }
 
@@ -303,6 +340,6 @@ export function useEtiquettes() {
     marquerEtat, modifierEtiquette, ajouterEtiquette, supprimerEtiquette,
     enregistrerFormat, supprimerFormat, deplacerFormat, enregistrerGamme, supprimerGamme,
     enregistrerCommande, supprimerCommande, ajouterLigne, retirerLigne, enregistrerQuantites,
-    televerser, supprimerFichier, lien,
+    enregistrerDocument, supprimerDocument, televerser, retirerFichier, lien,
   }
 }
