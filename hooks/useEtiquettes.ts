@@ -24,7 +24,7 @@ export function useEtiquettes() {
     setLoading(true)
     const [g, f, e, c, l, fi] = await Promise.all([
       supabase.from('etiquette_gammes').select('*').order('ordre'),
-      supabase.from('etiquette_formats').select('*').order('contenance'),
+      supabase.from('etiquette_formats').select('*').order('ordre').order('contenance'),
       supabase.from('etiquettes').select('*').order('saveur'),
       supabase.from('etiquette_commandes').select('*').order('date_commande', { ascending: false, nullsFirst: false }),
       supabase.from('etiquette_commande_lignes').select('*, etiquette:etiquettes(*)'),
@@ -119,6 +119,7 @@ export function useEtiquettes() {
       user_id: await uid(),
       gamme_id: f.gamme_id,
       contenance: f.contenance.trim(),
+      ordre: f.ordre ?? 0,
       variante: f.variante?.trim() || null,
       dimensions: f.dimensions?.trim() || null,
       specification: f.specification?.trim() || null,
@@ -136,6 +137,36 @@ export function useEtiquettes() {
     const { error } = await supabase.from('etiquette_formats').delete().eq('id', id)
     if (!error) await fetch()
     return { error }
+  }
+
+  /**
+   * Remonte ou descend un format d'un cran dans sa gamme.
+   *
+   * On échange les rangs des deux voisins plutôt que de renuméroter la série :
+   * une seule paire bouge, et les autres formats gardent le leur.
+   */
+  async function deplacerFormat(id: string, sens: -1 | 1) {
+    const gamme = gammes.find(g => g.formats.some(f => f.id === id))
+    if (!gamme) return { error: new Error('Format introuvable') }
+    const suite = [...gamme.formats].sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0))
+    const i = suite.findIndex(f => f.id === id)
+    const voisin = suite[i + sens]
+    if (!voisin) return { error: null }   // déjà en bout de liste
+
+    const [a, b] = [suite[i], voisin]
+    const [ra, rb] = [a.ordre ?? 0, b.ordre ?? 0]
+    // Deux rangs identiques ne s'échangent pas : on les écarte d'abord.
+    const [na, nb] = ra === rb ? [rb + sens, ra] : [rb, ra]
+
+    const r1 = await supabase.from('etiquette_formats')
+      .update({ ordre: na, updated_at: new Date().toISOString() }).eq('id', a.id)
+    if (r1.error) return { error: r1.error }
+    const r2 = await supabase.from('etiquette_formats')
+      .update({ ordre: nb, updated_at: new Date().toISOString() }).eq('id', b.id)
+    if (r2.error) return { error: r2.error }
+
+    await fetch()
+    return { error: null }
   }
 
   // ── Gammes ────────────────────────────────────────────────────────────────
@@ -263,7 +294,7 @@ export function useEtiquettes() {
   return {
     gammes, commandes, loading, error, refetch: fetch,
     marquerEtat, ajouterEtiquette, supprimerEtiquette,
-    enregistrerFormat, supprimerFormat, enregistrerGamme, supprimerGamme,
+    enregistrerFormat, supprimerFormat, deplacerFormat, enregistrerGamme, supprimerGamme,
     enregistrerCommande, supprimerCommande, ajouterLigne, retirerLigne, enregistrerQuantites,
     televerser, supprimerFichier, lien,
   }

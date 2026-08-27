@@ -424,6 +424,8 @@ export interface EtiquetteFormat {
   gamme_id: string
   gamme?: Pick<EtiquetteGamme, 'id' | 'nom'>
   contenance: string
+  /** Rang dans sa gamme : le tri alphabétique placerait « 120 ml » avant « 30 ml ». */
+  ordre: number
   /** Une même contenance existe parfois en deux déclinaisons : 75 ml avec ou sans livret. */
   variante?: string
   dimensions?: string

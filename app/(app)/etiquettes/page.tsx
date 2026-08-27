@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   Barcode, Plus, Search, Trash2, Pencil, X, AlertTriangle, Check, Upload, ExternalLink, Copy,
+  ChevronUp, ChevronDown,
 } from '@/components/ui/icons'
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useEtiquettes } from '@/hooks/useEtiquettes'
@@ -403,7 +404,8 @@ export default function EtiquettesPage() {
                 <Plus size={13} /> Gamme
               </StickerButton>
               <StickerButton accent={ACCENT}
-                             onClick={() => setEditFormat({ gamme_id: e.gammes[0]?.id, contenance: '' })}>
+                             onClick={() => setEditFormat({ gamme_id: e.gammes[0]?.id, contenance: '',
+                                            ordre: ((e.gammes[0]?.formats.at(-1)?.ordre) ?? 0) + 10 })}>
                 <Plus size={13} /> Format
               </StickerButton>
             </span>
@@ -432,7 +434,8 @@ export default function EtiquettesPage() {
                         </td>
                         <td style={{ ...cellule, textAlign: 'right', whiteSpace: 'nowrap' }}>
                           <button title="Ajouter un format à cette gamme"
-                                  onClick={() => setEditFormat({ gamme_id: g.id, contenance: '' })}
+                                  onClick={() => setEditFormat({ gamme_id: g.id, contenance: '',
+                                                          ordre: ((g.formats.at(-1)?.ordre) ?? 0) + 10 })}
                                   style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
                             <Plus size={11} />
                           </button>
@@ -468,7 +471,25 @@ export default function EtiquettesPage() {
                             </span>
                           )}
                         </td>
-                        <td style={cellule}>{f.contenance}</td>
+                        <td style={{ ...cellule, whiteSpace: 'nowrap' }}>
+                          <span className="flex items-center gap-1">
+                            <span className="flex flex-col" style={{ gap: 1 }}>
+                              <button title="Monter" disabled={i === 0}
+                                      onClick={() => e.deplacerFormat(f.id, -1)}
+                                      style={{ padding: 0, lineHeight: 0, border: '1px solid var(--ink)', borderRadius: 3,
+                                               background: 'var(--bg-card)', opacity: i === 0 ? .3 : 1 }}>
+                                <ChevronUp size={9} />
+                              </button>
+                              <button title="Descendre" disabled={i === g.formats.length - 1}
+                                      onClick={() => e.deplacerFormat(f.id, 1)}
+                                      style={{ padding: 0, lineHeight: 0, border: '1px solid var(--ink)', borderRadius: 3,
+                                               background: 'var(--bg-card)', opacity: i === g.formats.length - 1 ? .3 : 1 }}>
+                                <ChevronDown size={9} />
+                              </button>
+                            </span>
+                            {f.contenance}
+                          </span>
+                        </td>
                         <td style={{ ...cellule, color: 'var(--text-muted)' }}>{f.variante ?? '—'}</td>
                         <td style={cellule}>{f.dimensions ?? '—'}</td>
                         <td style={{ ...cellule, color: 'var(--text-muted)', fontSize: 11, maxWidth: 320 }}>
@@ -686,10 +707,19 @@ export default function EtiquettesPage() {
                     À remplir seulement si la même contenance existe en deux déclinaisons.
                   </span></label>
               </div>
-              <label style={{ fontSize: 12, fontWeight: 700 }}>Dimensions
-                <input value={editFormat.dimensions ?? ''} placeholder="167 x 90 mm"
-                       onChange={ev => setEditFormat({ ...editFormat, dimensions: ev.target.value || undefined })}
-                       style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Dimensions
+                  <input value={editFormat.dimensions ?? ''} placeholder="167 x 90 mm"
+                         onChange={ev => setEditFormat({ ...editFormat, dimensions: ev.target.value || undefined })}
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Rang
+                  <input type="number" value={editFormat.ordre ?? 0}
+                         onChange={ev => setEditFormat({ ...editFormat, ordre: Number(ev.target.value) })}
+                         style={{ ...champ, width: '100%', marginTop: 4 }} />
+                  <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--text-muted)' }}>
+                    Petit d’abord. Les flèches du tableau font la même chose.
+                  </span></label>
+              </div>
               <label style={{ fontSize: 12, fontWeight: 700 }}>Spécification pour l’imprimeur
                 <textarea rows={4} value={editFormat.specification ?? ''}
                           placeholder="pp transparent avec blanc de soutien - NORMAL - Sens de sortie : gauche en avant"
