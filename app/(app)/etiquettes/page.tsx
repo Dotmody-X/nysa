@@ -1,7 +1,7 @@
 'use client'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import {
-  Barcode, Plus, Search, Trash2, Pencil, X, AlertTriangle, Check, Upload, ExternalLink,
+  Barcode, Plus, Search, Trash2, Pencil, X, AlertTriangle, Check, Upload, ExternalLink, Copy,
 } from '@/components/ui/icons'
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useEtiquettes } from '@/hooks/useEtiquettes'
@@ -101,6 +101,95 @@ function Depot({ commandeId, categorie, label, onEnvoi }: {
   )
 }
 
+/**
+ * Le texte à envoyer à l'imprimeur.
+ *
+ * Une commande peut porter plusieurs formats : chacun ouvre sa section avec sa
+ * spécification technique intégrale, puisque c'est elle qui décrit le support à
+ * produire. Suivent ses saveurs et leurs quantités.
+ *
+ * Les fichiers à joindre sont listés à part : l'imprimeur conserve les autres,
+ * et c'est le seul point où une omission coûte un retirage entier.
+ */
+function texteCommande(
+  c: EtiquetteCommande,
+  formats: { id: string; libelle: string; specification: string; dimensions: string }[],
+): string {
+  const parFormat = new Map<string, { saveur: string; quantite: number; aEnvoyer: boolean }[]>()
+  for (const l of c.lignes ?? []) {
+    const fid = l.etiquette?.format_id
+    if (!fid) continue
+    const liste = parFormat.get(fid) ?? []
+    liste.push({
+      saveur: l.etiquette?.saveur ?? '—',
+      quantite: l.quantite,
+      aEnvoyer: l.fichier_envoye || l.etiquette?.etat_fichier === 'modifie',
+    })
+    parFormat.set(fid, liste)
+  }
+
+  const lignes: string[] = ['Bonjour,', '']
+  lignes.push(c.reference
+    ? `Merci de préparer le retirage suivant (${c.reference}) :`
+    : 'Merci de préparer le retirage suivant :')
+
+  let total = 0
+  const aJoindre: string[] = []
+
+  for (const [fid, items] of parFormat) {
+    const f = formats.find(x => x.id === fid)
+    lignes.push('', (f?.libelle ?? 'Format inconnu').toUpperCase())
+    if (f?.specification) lignes.push(f.specification)
+    else if (f?.dimensions) lignes.push(`Format : ${f.dimensions}`)
+    lignes.push('')
+
+    const largeur = Math.max(...items.map(i => i.saveur.length), 10)
+    for (const i of items.sort((a, b) => a.saveur.localeCompare(b.saveur, 'fr'))) {
+      lignes.push(`  ${i.saveur.padEnd(largeur, ' ')}  ${String(i.quantite).padStart(6, ' ')}`)
+      total += i.quantite
+      if (i.aEnvoyer) aJoindre.push(`${i.saveur} (${f?.libelle ?? ''})`)
+    }
+  }
+
+  lignes.push('', `Total : ${total.toLocaleString('fr-BE')} étiquettes`)
+
+  if (aJoindre.length) {
+    lignes.push('', 'Fichiers joints — ces visuels ont changé depuis le dernier tirage :')
+    for (const x of aJoindre) lignes.push(`  · ${x}`)
+    lignes.push('', 'Les autres fichiers sont déjà en votre possession, inchangés.')
+  } else {
+    lignes.push('', 'Aucun fichier à joindre : tous les visuels sont inchangés depuis le dernier tirage.')
+  }
+
+  lignes.push('', 'Merci d’avance,')
+  return lignes.join('\n')
+}
+
+function Recapitulatif({ texte }: { texte: string }) {
+  const [copie, setCopie] = useState(false)
+  return (
+    <div style={{ display: 'grid', gap: 6 }}>
+      <div className="flex items-center justify-between gap-2">
+        <p style={{ ...DF, fontWeight: 800, fontSize: 12 }}>Message pour l’imprimeur</p>
+        <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
+          await navigator.clipboard.writeText(texte)
+          setCopie(true)
+          setTimeout(() => setCopie(false), 1600)
+        }}>
+          {copie ? <><Check size={12} /> Copié</> : <><Copy size={12} /> Copier</>}
+        </StickerButton>
+      </div>
+      <pre style={{ margin: 0, padding: 10, fontSize: 11, lineHeight: 1.5,
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    background: 'var(--bg-input)', border: '2px solid var(--ink)',
+                    borderRadius: 8, maxHeight: 320, overflowY: 'auto' }}>
+        {texte}
+      </pre>
+    </div>
+  )
+}
+
 export default function EtiquettesPage() {
   const e = useEtiquettes()
   const [onglet, setOnglet] = useState<'etiquettes' | 'formats' | 'commandes'>('etiquettes')
@@ -137,6 +226,7 @@ export default function EtiquettesPage() {
       id: f.id,
       libelle: `${g.nom} · ${f.contenance}${f.variante ? ` ${f.variante}` : ''}`,
       dimensions: f.dimensions ?? '',
+      specification: f.specification ?? '',
       nb: f.etiquettes.length,
     }))),
     [e.gammes])
@@ -505,6 +595,10 @@ export default function EtiquettesPage() {
                           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                             Choisis un format pour afficher ses saveurs et saisir les quantités.
                           </p>
+                        )}
+
+                        {(c.lignes ?? []).length > 0 && (
+                          <Recapitulatif texte={texteCommande(c, formatsAplat)} />
                         )}
 
                         {!!c.fichiers?.length && (
