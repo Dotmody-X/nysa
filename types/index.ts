@@ -405,7 +405,7 @@ export interface Demande {
 export type EtatFichier = 'a_jour' | 'modifie' | 'changement_envoye'
 export type CommandeEtiquetteStatut =
   'brouillon' | 'confirmee' | 'en_production' | 'recue' | 'annulee'
-export type EtiquetteFichierCategorie = 'bat' | 'facture' | 'autre'
+export type EtiquetteDocCategorie = 'bat' | 'facture' | 'bl' | 'devis' | 'autre'
 
 export interface EtiquetteGamme {
   id: string
@@ -464,13 +464,23 @@ export interface EtiquetteCommandeLigne {
   created_at: string
 }
 
-export interface EtiquetteFichier {
+/**
+ * Un document de commande : facture, bon de livraison, BAT, devis.
+ *
+ * Le PDF est facultatif — on saisit souvent le numéro avant de recevoir la
+ * pièce, et une commande donne plusieurs factures comme plusieurs BL.
+ */
+export interface EtiquetteDocument {
   id: string
   user_id: string
   commande_id: string
-  categorie: EtiquetteFichierCategorie
-  filename: string
-  file_path: string
+  categorie: EtiquetteDocCategorie
+  numero?: string
+  date_document?: string
+  montant?: number
+  notes?: string
+  filename?: string
+  file_path?: string
   file_size?: number
   file_type?: string
   created_at: string
@@ -484,11 +494,9 @@ export interface EtiquetteCommande {
   statut: CommandeEtiquetteStatut
   date_commande?: string
   date_reception?: string
-  numero_facture?: string
-  montant?: number
   notes?: string
   lignes?: EtiquetteCommandeLigne[]
-  fichiers?: EtiquetteFichier[]
+  documents?: EtiquetteDocument[]
   created_at: string
   updated_at?: string
 }
