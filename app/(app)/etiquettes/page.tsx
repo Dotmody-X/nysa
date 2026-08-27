@@ -13,10 +13,10 @@ import type {
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const ACCENT = 'var(--accent-etiquettes)'
 
-const ETATS: Record<EtatFichier, { label: string; couleur: string; alerte: boolean }> = {
-  a_jour:            { label: 'À jour',            couleur: 'var(--accent-sport)',    alerte: false },
-  modifie:           { label: 'Fichier à envoyer', couleur: 'var(--accent-recettes)', alerte: true  },
-  changement_envoye: { label: 'Changement envoyé', couleur: 'var(--accent-calendar)', alerte: false },
+const ETATS: Record<EtatFichier, { label: string; court: string; couleur: string }> = {
+  a_jour:            { label: 'À jour',            court: 'À jour',  couleur: 'var(--accent-sport)' },
+  modifie:           { label: 'Fichier à envoyer', court: 'À envoyer', couleur: 'var(--accent-recettes)' },
+  changement_envoye: { label: 'Changement envoyé', court: 'Envoyé',  couleur: 'var(--accent-calendar)' },
 }
 
 const STATUTS: { value: CommandeEtiquetteStatut; label: string; couleur: string }[] = [
@@ -28,10 +28,28 @@ const STATUTS: { value: CommandeEtiquetteStatut; label: string; couleur: string 
 ]
 
 const champ: React.CSSProperties = {
-  width: '100%', padding: '8px 10px', fontSize: 13, color: 'var(--text)',
+  padding: '7px 9px', fontSize: 13, color: 'var(--text)',
   background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 8,
 }
-const petit: React.CSSProperties = { ...champ, padding: '5px 7px', fontSize: 12 }
+const cellule: React.CSSProperties = {
+  padding: '5px 8px', borderBottom: '1px solid var(--border)', fontSize: 12, textAlign: 'left',
+}
+const entete: React.CSSProperties = {
+  ...cellule, ...DF, fontWeight: 800, fontSize: 11, textTransform: 'uppercase',
+  letterSpacing: .4, color: 'var(--text-muted)', borderBottom: '2px solid var(--ink)',
+  position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 1,
+}
+
+function Etat({ e }: { e: EtatFichier }) {
+  const s = ETATS[e]
+  return (
+    <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
+                   border: '2px solid var(--ink)', background: s.couleur,
+                   color: 'var(--ink-dark)', whiteSpace: 'nowrap' }}>
+      {s.court}
+    </span>
+  )
+}
 
 function Fichier({ f, lien, onSupprimer }: {
   f: EtiquetteFichier
@@ -44,12 +62,11 @@ function Fichier({ f, lien, onSupprimer }: {
     lien(f).then(u => { if (vivant) setUrl(u) })
     return () => { vivant = false }
   }, [f.id]) // eslint-disable-line react-hooks/exhaustive-deps
-
   return (
     <span className="flex items-center gap-1" style={{ fontSize: 11, padding: '3px 7px',
                      border: '2px solid var(--ink)', borderRadius: 999 }}>
       <strong>{f.categorie === 'bat' ? 'BAT' : f.categorie === 'facture' ? 'Facture' : 'Fichier'}</strong>
-      <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {f.filename}
       </span>
       {url && <a href={url} target="_blank" rel="noreferrer" title="Ouvrir"><ExternalLink size={10} /></a>}
@@ -69,16 +86,14 @@ function Depot({ commandeId, categorie, label, onEnvoi }: {
   return (
     <>
       <input ref={input} type="file" hidden accept="application/pdf,image/png,image/jpeg,image/webp"
-             onChange={async e => {
-               const f = e.target.files?.[0]
+             onChange={async ev => {
+               const f = ev.target.files?.[0]
                if (!f) return
-               setEnCours(true)
-               await onEnvoi(commandeId, f, categorie)
-               setEnCours(false)
-               e.target.value = ''
+               setEnCours(true); await onEnvoi(commandeId, f, categorie); setEnCours(false)
+               ev.target.value = ''
              }} />
       <button onClick={() => input.current?.click()} disabled={enCours}
-              style={{ ...DF, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
+              style={{ ...DF, fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 6,
                        border: '2px solid var(--ink)', background: 'var(--bg-card)', color: 'var(--text)' }}>
         <Upload size={10} /> {enCours ? 'Envoi…' : label}
       </button>
@@ -88,192 +103,196 @@ function Depot({ commandeId, categorie, label, onEnvoi }: {
 
 export default function EtiquettesPage() {
   const e = useEtiquettes()
-  const [onglet, setOnglet] = useState<'formats' | 'commandes'>('formats')
-  const [recherche, setRecherche] = useState('')
-  const [gammeOuverte, setGammeOuverte] = useState<string | null>(null)
-  const [formatOuvert, setFormatOuvert] = useState<string | null>(null)
-  const [cmdOuverte, setCmdOuverte] = useState<string | null>(null)
-  const [edition, setEdition] = useState<Partial<EtiquetteCommande> | null>(null)
-  const [ajoutLigne, setAjoutLigne] = useState<{ etiquetteId: string; quantite: string }>({ etiquetteId: '', quantite: '' })
-  const [nouvelleSaveur, setNouvelleSaveur] = useState('')
+  const [onglet, setOnglet] = useState<'etiquettes' | 'commandes'>('etiquettes')
 
-  const toutes = useMemo(
-    () => e.gammes.flatMap(g => g.formats.flatMap(f =>
-      f.etiquettes.map(x => ({ ...x, gamme: g.nom, format: f })))),
+  // ── Table des étiquettes ────────────────────────────────────────────────
+  const [recherche, setRecherche] = useState('')
+  const [fGamme, setFGamme] = useState('')
+  const [fFormat, setFFormat] = useState('')
+  const [fEtat, setFEtat] = useState<EtatFichier | ''>('')
+  const [saveurNouvelle, setSaveurNouvelle] = useState('')
+
+  // ── Grille de commande ──────────────────────────────────────────────────
+  const [cmdOuverte, setCmdOuverte] = useState<string | null>(null)
+  const [grilleFormat, setGrilleFormat] = useState('')
+  const [quantites, setQuantites] = useState<Record<string, string>>({})
+  const [enregistrement, setEnregistrement] = useState(false)
+  const [edition, setEdition] = useState<Partial<EtiquetteCommande> | null>(null)
+
+  /** Toutes les étiquettes à plat : c'est la forme que la table demande. */
+  const lignes = useMemo(
+    () => e.gammes.flatMap(g => g.formats.flatMap(f => f.etiquettes.map(x => ({
+      ...x,
+      gammeNom: g.nom,
+      formatNom: `${f.contenance}${f.variante ? ` · ${f.variante}` : ''}`,
+      dimensions: f.dimensions ?? '',
+      formatId: f.id,
+    })))),
     [e.gammes])
 
-  const aRenvoyer = toutes.filter(x => x.etat_fichier === 'modifie')
-  const nbFormats = e.gammes.reduce((s, g) => s + g.formats.length, 0)
+  const formatsAplat = useMemo(
+    () => e.gammes.flatMap(g => g.formats.map(f => ({
+      id: f.id,
+      libelle: `${g.nom} · ${f.contenance}${f.variante ? ` ${f.variante}` : ''}`,
+      dimensions: f.dimensions ?? '',
+      nb: f.etiquettes.length,
+    }))),
+    [e.gammes])
 
-  const q = recherche.trim().toLowerCase()
-  const gammesVues = useMemo(() => {
-    if (!q) return e.gammes
-    return e.gammes
-      .map(g => ({
-        ...g,
-        formats: g.formats
-          .map(f => ({ ...f, etiquettes: f.etiquettes.filter(x => x.saveur.toLowerCase().includes(q)) }))
-          .filter(f => f.etiquettes.length > 0
-            || `${f.contenance} ${f.variante ?? ''} ${f.dimensions ?? ''}`.toLowerCase().includes(q)),
-      }))
-      .filter(g => g.formats.length > 0 || g.nom.toLowerCase().includes(q))
-  }, [e.gammes, q])
+  const visibles = useMemo(() => {
+    const q = recherche.trim().toLowerCase()
+    return lignes.filter(x =>
+      (!fGamme  || x.gammeNom === fGamme) &&
+      (!fFormat || x.formatId === fFormat) &&
+      (!fEtat   || x.etat_fichier === fEtat) &&
+      (!q || `${x.saveur} ${x.gammeNom} ${x.formatNom} ${x.dimensions}`.toLowerCase().includes(q)))
+  }, [lignes, recherche, fGamme, fFormat, fEtat])
+
+  const aRenvoyer = lignes.filter(x => x.etat_fichier === 'modifie')
+
+  /** Saveurs du format choisi, dans l'ordre — la grille reprend le bon papier. */
+  const grille = useMemo(
+    () => lignes.filter(x => x.formatId === grilleFormat)
+                .sort((a, b) => a.saveur.localeCompare(b.saveur, 'fr')),
+    [lignes, grilleFormat])
+
+  /** À l'ouverture d'une commande, la grille se pré-remplit de ses lignes. */
+  function ouvrirCommande(c: EtiquetteCommande) {
+    if (cmdOuverte === c.id) { setCmdOuverte(null); return }
+    setCmdOuverte(c.id)
+    const depart: Record<string, string> = {}
+    for (const l of c.lignes ?? []) depart[l.etiquette_id] = String(l.quantite)
+    setQuantites(depart)
+    const premier = (c.lignes ?? [])[0]
+    setGrilleFormat(premier?.etiquette?.format_id ?? formatsAplat[0]?.id ?? '')
+  }
+
+  const totalSaisi = Object.values(quantites).reduce((s, v) => s + (Number(v) || 0), 0)
 
   return (
     <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 14 }}>
       <PageTitle
         title="Étiquettes"
-        sub="Formats par gamme · commandes · BAT et factures"
-        accent={ACCENT}
-        icon={Barcode}
-        iconInk="var(--ink-light)"
+        sub="Formats par gamme · bons de commande · BAT et factures"
+        accent={ACCENT} icon={Barcode} iconInk="var(--ink-light)"
       />
 
       <KpiGrid>
-        <KpiCard label="Gammes"     value={String(e.gammes.length)} accent={ACCENT} />
-        <KpiCard label="Formats"    value={String(nbFormats)} accent={ACCENT} />
-        <KpiCard label="Étiquettes" value={String(toutes.length)} accent={ACCENT} />
-        <KpiCard label="À renvoyer" value={String(aRenvoyer.length)}
-                 sub="fichier modifié" accent={aRenvoyer.length ? 'var(--accent-recettes)' : ACCENT} />
+        <KpiCard label="Étiquettes" value={String(lignes.length)} accent={ACCENT} />
+        <KpiCard label="Formats"    value={String(formatsAplat.length)} accent={ACCENT} />
+        <KpiCard label="Commandes"  value={String(e.commandes.length)} accent={ACCENT} />
+        <KpiCard label="À renvoyer" value={String(aRenvoyer.length)} sub="fichier modifié"
+                 accent={aRenvoyer.length ? 'var(--accent-recettes)' : ACCENT} />
       </KpiGrid>
 
       {aRenvoyer.length > 0 && (
-        <div style={{ display: 'grid', gap: 6, padding: 12, border: '2px solid var(--ink)',
-                      borderRadius: 'var(--radius-md)', background: 'var(--accent-recettes)',
-                      color: 'var(--ink-dark)', boxShadow: '4px 4px 0 var(--ink)' }}>
+        <div style={{ padding: 10, border: '2px solid var(--ink)', borderRadius: 'var(--radius-md)',
+                      background: 'var(--accent-recettes)', color: 'var(--ink-dark)',
+                      boxShadow: '4px 4px 0 var(--ink)', fontSize: 12 }}>
           <p className="flex items-center gap-2" style={{ ...DF, fontWeight: 800, fontSize: 13 }}>
             <AlertTriangle size={14} />
             {aRenvoyer.length} fichier{aRenvoyer.length > 1 ? 's' : ''} à envoyer à l’imprimeur
           </p>
-          <p style={{ fontSize: 12 }}>
-            Ces visuels ont changé depuis la dernière commande : l’imprimeur détient une version périmée.
-            À la confirmation d’une commande qui les contient, ils passeront seuls en « changement envoyé ».
-          </p>
-          <p style={{ fontSize: 12 }}>
-            {aRenvoyer.slice(0, 12).map(x => `${x.saveur} (${x.gamme} ${x.format.contenance})`).join(' · ')}
-            {aRenvoyer.length > 12 && ` … et ${aRenvoyer.length - 12} autres`}
-          </p>
+          <p>{aRenvoyer.slice(0, 14).map(x => x.saveur).join(' · ')}
+             {aRenvoyer.length > 14 && ` … +${aRenvoyer.length - 14}`}</p>
         </div>
       )}
 
       <div className="flex gap-2">
-        {(['formats', 'commandes'] as const).map(o => (
+        {([['etiquettes', `Étiquettes (${lignes.length})`],
+           ['commandes',  `Commandes (${e.commandes.length})`]] as const).map(([o, l]) => (
           <StickerButton key={o} tilt="none"
                          accent={onglet === o ? ACCENT : 'var(--bg-input)'}
                          ink={onglet === o ? undefined : 'var(--text)'}
-                         onClick={() => setOnglet(o)}>
-            {o === 'formats' ? 'Gammes et formats' : `Commandes (${e.commandes.length})`}
-          </StickerButton>
+                         onClick={() => setOnglet(o)}>{l}</StickerButton>
         ))}
       </div>
 
-      {onglet === 'formats' && (
-        <SectionCard title="Gammes et formats" accent={ACCENT}>
-          <div className="flex items-center gap-2" style={{ ...champ, marginBottom: 12 }}>
-            <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-            <input value={recherche} onChange={ev => setRecherche(ev.target.value)}
-                   placeholder="Gamme, format, dimensions, saveur…"
-                   style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: 13, color: 'var(--text)' }} />
+      {onglet === 'etiquettes' && (
+        <SectionCard title="Toutes les étiquettes" accent={ACCENT}>
+          <div className="flex flex-wrap gap-2" style={{ marginBottom: 10 }}>
+            <div className="flex items-center gap-2" style={{ ...champ, flex: '1 1 200px' }}>
+              <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+              <input value={recherche} onChange={ev => setRecherche(ev.target.value)}
+                     placeholder="Saveur, gamme, format…"
+                     style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: 13, color: 'var(--text)' }} />
+            </div>
+            <select value={fGamme} onChange={ev => setFGamme(ev.target.value)} style={champ}>
+              <option value="">Toutes les gammes</option>
+              {e.gammes.map(g => <option key={g.id} value={g.nom}>{g.nom}</option>)}
+            </select>
+            <select value={fFormat} onChange={ev => setFFormat(ev.target.value)} style={champ}>
+              <option value="">Tous les formats</option>
+              {formatsAplat.map(f => <option key={f.id} value={f.id}>{f.libelle}</option>)}
+            </select>
+            <select value={fEtat} onChange={ev => setFEtat(ev.target.value as EtatFichier | '')} style={champ}>
+              <option value="">Tous les états</option>
+              {(Object.keys(ETATS) as EtatFichier[]).map(k => <option key={k} value={k}>{ETATS[k].label}</option>)}
+            </select>
           </div>
 
-          {e.loading ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Chargement…</p> : (
-            <div style={{ display: 'grid', gap: 8 }}>
-              {gammesVues.map(g => (
-                <div key={g.id} style={{ border: '2px solid var(--ink)', borderRadius: 'var(--radius-md)',
-                                         background: 'var(--bg-card)', overflow: 'hidden' }}>
-                  <div className="flex items-center justify-between gap-3" style={{ padding: '10px 12px', cursor: 'pointer' }}
-                       onClick={() => setGammeOuverte(gammeOuverte === g.id ? null : g.id)}>
-                    <div>
-                      <p style={{ ...DF, fontWeight: 800, fontSize: 13 }}>{g.nom}</p>
-                      <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {g.formats.length} format{g.formats.length > 1 ? 's' : ''}
-                        {' · '}
-                        {g.formats.reduce((s, f) => s + f.etiquettes.length, 0)} étiquettes
-                      </p>
-                    </div>
-                  </div>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
+            {visibles.length} sur {lignes.length}
+          </p>
 
-                  {gammeOuverte === g.id && (
-                    <div style={{ borderTop: '2px solid var(--ink)', padding: 12, display: 'grid', gap: 8 }}>
-                      {g.formats.length === 0 && (
-                        <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                          Aucun format renseigné pour cette gamme.
-                        </p>
+          <div style={{ maxHeight: '60vh', overflowY: 'auto', border: '2px solid var(--ink)', borderRadius: 8 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={entete}>Saveur</th>
+                  <th style={entete}>Gamme</th>
+                  <th style={entete}>Format</th>
+                  <th style={entete}>Dimensions</th>
+                  <th style={entete}>État</th>
+                  <th style={entete}>Dernière commande</th>
+                  <th style={{ ...entete, textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibles.map(x => (
+                  <tr key={x.id} style={{ background: x.etat_fichier === 'modifie' ? 'var(--bg-input)' : undefined }}>
+                    <td style={{ ...cellule, fontWeight: 700 }}>{x.saveur}</td>
+                    <td style={{ ...cellule, color: 'var(--text-muted)' }}>{x.gammeNom}</td>
+                    <td style={cellule}>{x.formatNom}</td>
+                    <td style={{ ...cellule, color: 'var(--text-muted)', fontSize: 11 }}>{x.dimensions}</td>
+                    <td style={cellule}><Etat e={x.etat_fichier} /></td>
+                    <td style={{ ...cellule, color: 'var(--text-muted)' }}>
+                      {x.derniere_commande ?? '—'}
+                    </td>
+                    <td style={{ ...cellule, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      {x.etat_fichier === 'modifie' ? (
+                        <button title="Le fichier est à jour, annuler le signalement"
+                                onClick={() => e.marquerEtat(x.id, 'a_jour')}
+                                style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+                          <Check size={11} />
+                        </button>
+                      ) : (
+                        <button title="Signaler un changement de visuel"
+                                onClick={() => e.marquerEtat(x.id, 'modifie')}
+                                style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+                          <AlertTriangle size={11} />
+                        </button>
                       )}
-                      {g.formats.map(f => (
-                        <div key={f.id} style={{ border: '2px solid var(--ink)', borderRadius: 8, overflow: 'hidden' }}>
-                          <div className="flex items-center justify-between gap-2"
-                               style={{ padding: '8px 10px', cursor: 'pointer' }}
-                               onClick={() => setFormatOuvert(formatOuvert === f.id ? null : f.id)}>
-                            <div style={{ minWidth: 0 }}>
-                              <p style={{ ...DF, fontWeight: 800, fontSize: 12 }}>
-                                {f.contenance}{f.variante ? ` · ${f.variante}` : ''}
-                                {f.dimensions && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> — {f.dimensions}</span>}
-                              </p>
-                              {f.specification && (
-                                <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{f.specification}</p>
-                              )}
-                            </div>
-                            <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                              {f.etiquettes.length} saveurs
-                            </span>
-                          </div>
+                      <button title="Supprimer" style={{ marginLeft: 4, padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}
+                              onClick={async () => { if (confirm(`Supprimer « ${x.saveur} » ?`)) await e.supprimerEtiquette(x.id) }}>
+                        <Trash2 size={11} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-                          {formatOuvert === f.id && (
-                            <div style={{ borderTop: '2px solid var(--ink)', padding: 10, display: 'grid', gap: 4 }}>
-                              {f.etiquettes.map(x => {
-                                const et = ETATS[x.etat_fichier]
-                                return (
-                                  <div key={x.id} className="flex items-center justify-between gap-2"
-                                       style={{ fontSize: 12, padding: '4px 0', borderBottom: '1px solid var(--border)' }}>
-                                    <span>{x.saveur}</span>
-                                    <span className="flex items-center gap-2">
-                                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                                        {x.derniere_commande ? `commandée ${x.derniere_commande}` : 'jamais commandée'}
-                                      </span>
-                                      <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
-                                                     border: '2px solid var(--ink)', background: et.couleur, color: 'var(--ink-dark)' }}>
-                                        {et.label}
-                                      </span>
-                                      {x.etat_fichier === 'modifie' ? (
-                                        <button title="Annuler le signalement" onClick={() => e.marquerEtat(x.id, 'a_jour')}
-                                                style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
-                                          <Check size={10} />
-                                        </button>
-                                      ) : (
-                                        <button title="Signaler un changement de visuel" onClick={() => e.marquerEtat(x.id, 'modifie')}
-                                                style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
-                                          <AlertTriangle size={10} />
-                                        </button>
-                                      )}
-                                      <button title="Supprimer" onClick={async () => {
-                                        if (confirm(`Supprimer l’étiquette « ${x.saveur} » ?`)) await e.supprimerEtiquette(x.id)
-                                      }} style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
-                                        <Trash2 size={10} />
-                                      </button>
-                                    </span>
-                                  </div>
-                                )
-                              })}
-                              <div className="flex gap-2" style={{ marginTop: 6 }}>
-                                <input value={nouvelleSaveur} onChange={ev => setNouvelleSaveur(ev.target.value)}
-                                       placeholder="Ajouter une saveur…" style={petit} />
-                                <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
-                                  if (!nouvelleSaveur.trim()) return
-                                  await e.ajouterEtiquette(f.id, nouvelleSaveur.trim())
-                                  setNouvelleSaveur('')
-                                }}>
-                                  <Plus size={12} />
-                                </StickerButton>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+          {fFormat && (
+            <div className="flex gap-2" style={{ marginTop: 10 }}>
+              <input value={saveurNouvelle} onChange={ev => setSaveurNouvelle(ev.target.value)}
+                     placeholder="Ajouter une saveur à ce format…" style={{ ...champ, flex: '1 1 240px' }} />
+              <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
+                if (!saveurNouvelle.trim()) return
+                await e.ajouterEtiquette(fFormat, saveurNouvelle.trim())
+                setSaveurNouvelle('')
+              }}><Plus size={12} /> Ajouter</StickerButton>
             </div>
           )}
         </SectionCard>
@@ -281,8 +300,7 @@ export default function EtiquettesPage() {
 
       {onglet === 'commandes' && (
         <SectionCard
-          title="Commandes"
-          accent={ACCENT}
+          title="Bons de commande" accent={ACCENT}
           action={
             <StickerButton accent={ACCENT} onClick={() => setEdition({ statut: 'brouillon', date_commande: new Date().toISOString().slice(0, 10) })}>
               <Plus size={13} /> Nouvelle commande
@@ -290,25 +308,26 @@ export default function EtiquettesPage() {
           }
         >
           {e.commandes.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune commande enregistrée.</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune commande.</p>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>
               {e.commandes.map(c => {
                 const st = STATUTS.find(s => s.value === c.statut) ?? STATUTS[0]
                 const alerte = (c.lignes ?? []).filter(l => l.etiquette?.etat_fichier === 'modifie')
                 const total = (c.lignes ?? []).reduce((s, l) => s + l.quantite, 0)
+                const ouverte = cmdOuverte === c.id
                 return (
                   <div key={c.id} style={{ border: '2px solid var(--ink)', borderRadius: 'var(--radius-md)',
                                            background: 'var(--bg-card)', overflow: 'hidden' }}>
                     <div className="flex items-center justify-between gap-3" style={{ padding: '10px 12px', cursor: 'pointer' }}
-                         onClick={() => setCmdOuverte(cmdOuverte === c.id ? null : c.id)}>
+                         onClick={() => ouvrirCommande(c)}>
                       <div style={{ minWidth: 0 }}>
                         <p style={{ ...DF, fontWeight: 800, fontSize: 13 }}>
                           {c.reference || 'Sans référence'}
                           {c.imprimeur && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> · {c.imprimeur}</span>}
                         </p>
                         <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                          {c.date_commande ?? 'sans date'} · {(c.lignes ?? []).length} lignes · {total} étiquettes
+                          {c.date_commande ?? 'sans date'} · {(c.lignes ?? []).length} références · {total} étiquettes
                           {c.numero_facture ? ` · facture ${c.numero_facture}` : ''}
                         </p>
                       </div>
@@ -317,7 +336,7 @@ export default function EtiquettesPage() {
                           <span className="flex items-center gap-1" style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px',
                                          borderRadius: 999, border: '2px solid var(--ink)',
                                          background: 'var(--accent-recettes)', color: 'var(--ink-dark)' }}>
-                            <AlertTriangle size={10} /> {alerte.length} fichier{alerte.length > 1 ? 's' : ''}
+                            <AlertTriangle size={10} /> {alerte.length}
                           </span>
                         )}
                         <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
@@ -327,64 +346,71 @@ export default function EtiquettesPage() {
                       </span>
                     </div>
 
-                    {cmdOuverte === c.id && (
+                    {ouverte && (
                       <div style={{ borderTop: '2px solid var(--ink)', padding: 12, display: 'grid', gap: 10 }}>
                         {alerte.length > 0 && c.statut === 'brouillon' && (
                           <p style={{ fontSize: 12, padding: 8, border: '2px solid var(--ink)', borderRadius: 8,
                                       background: 'var(--accent-recettes)', color: 'var(--ink-dark)' }}>
-                            <strong>Envoyer les fichiers</strong> — {alerte.map(l => l.etiquette?.saveur).join(', ')}.
+                            <strong>Joindre les fichiers</strong> — {alerte.map(l => l.etiquette?.saveur).join(', ')}.
                             À la confirmation, ces étiquettes passeront en « changement envoyé ».
                           </p>
                         )}
 
-                        <div style={{ display: 'grid', gap: 3 }}>
-                          {(c.lignes ?? []).map(l => (
-                            <div key={l.id} className="flex items-center justify-between gap-2"
-                                 style={{ fontSize: 12, padding: '3px 0', borderBottom: '1px solid var(--border)' }}>
-                              <span>
-                                {l.etiquette?.saveur ?? '—'}
-                                {l.fichier_envoye && (
-                                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}> · fichier envoyé</span>
-                                )}
-                                {!l.fichier_envoye && l.etiquette?.etat_fichier === 'modifie' && (
-                                  <span style={{ fontSize: 10, color: 'var(--accent-recettes)', fontWeight: 700 }}> · fichier à envoyer</span>
-                                )}
-                              </span>
-                              <span className="flex items-center gap-2">
-                                <strong>{l.quantite}</strong>
-                                <button title="Retirer" onClick={() => e.retirerLigne(l.id)}
-                                        style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
-                                  <Trash2 size={10} />
-                                </button>
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                          <select value={ajoutLigne.etiquetteId}
-                                  onChange={ev => setAjoutLigne({ ...ajoutLigne, etiquetteId: ev.target.value })}
-                                  style={{ ...petit, flex: '1 1 240px' }}>
-                            <option value="">— choisir une étiquette —</option>
-                            {toutes.map(x => (
-                              <option key={x.id} value={x.id}>
-                                {x.gamme} · {x.format.contenance}{x.format.variante ? ` ${x.format.variante}` : ''} · {x.saveur}
-                                {x.etat_fichier === 'modifie' ? '  ⚠ fichier à envoyer' : ''}
-                              </option>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <select value={grilleFormat} onChange={ev => setGrilleFormat(ev.target.value)}
+                                  style={{ ...champ, flex: '1 1 280px' }}>
+                            <option value="">— choisir un format —</option>
+                            {formatsAplat.map(f => (
+                              <option key={f.id} value={f.id}>{f.libelle} — {f.nb} saveurs</option>
                             ))}
                           </select>
-                          <input type="number" min={1} value={ajoutLigne.quantite} placeholder="Qté"
-                                 onChange={ev => setAjoutLigne({ ...ajoutLigne, quantite: ev.target.value })}
-                                 style={{ ...petit, width: 90 }} />
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                            {totalSaisi} étiquette{totalSaisi > 1 ? 's' : ''} saisie{totalSaisi > 1 ? 's' : ''}
+                          </span>
                           <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
-                            const n = Number(ajoutLigne.quantite)
-                            if (!ajoutLigne.etiquetteId || !n) return
-                            await e.ajouterLigne(c.id, ajoutLigne.etiquetteId, n)
-                            setAjoutLigne({ etiquetteId: '', quantite: '' })
+                            setEnregistrement(true)
+                            const n: Record<string, number> = {}
+                            for (const [k, v] of Object.entries(quantites)) n[k] = Number(v) || 0
+                            await e.enregistrerQuantites(c.id, n)
+                            setEnregistrement(false)
                           }}>
-                            <Plus size={12} /> Ajouter
+                            {enregistrement ? 'Enregistrement…' : 'Enregistrer les quantités'}
                           </StickerButton>
                         </div>
+
+                        {grille.length > 0 ? (
+                          <div style={{ display: 'grid', gap: 0,
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+                                        border: '2px solid var(--ink)', borderRadius: 8, overflow: 'hidden' }}>
+                            {grille.map(x => {
+                              const alerteLigne = x.etat_fichier === 'modifie'
+                              return (
+                                <label key={x.id}
+                                       className="flex items-center justify-between gap-2"
+                                       style={{ padding: '4px 8px', borderBottom: '1px solid var(--border)',
+                                                borderRight: '1px solid var(--border)', fontSize: 12,
+                                                background: alerteLigne ? 'var(--bg-input)' : undefined }}>
+                                  <span className="flex items-center gap-1" style={{ minWidth: 0 }}>
+                                    {alerteLigne && <AlertTriangle size={10} style={{ color: 'var(--accent-recettes)', flexShrink: 0 }} />}
+                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {x.saveur}
+                                    </span>
+                                  </span>
+                                  <input type="number" min={0} inputMode="numeric"
+                                         value={quantites[x.id] ?? ''}
+                                         onChange={ev => setQuantites({ ...quantites, [x.id]: ev.target.value })}
+                                         style={{ width: 66, padding: '3px 5px', fontSize: 12, textAlign: 'right',
+                                                  color: 'var(--text)', background: 'var(--bg-input)',
+                                                  border: '1px solid var(--ink)', borderRadius: 5 }} />
+                                </label>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                            Choisis un format pour afficher ses saveurs et saisir les quantités.
+                          </p>
+                        )}
 
                         {!!c.fichiers?.length && (
                           <div className="flex flex-wrap gap-2">
@@ -401,7 +427,7 @@ export default function EtiquettesPage() {
                             <Pencil size={12} /> Modifier
                           </StickerButton>
                           <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={async () => {
-                            if (confirm(`Supprimer la commande « ${c.reference || 'sans référence'} » ?`)) await e.supprimerCommande(c.id)
+                            if (confirm(`Supprimer « ${c.reference || 'sans référence'} » ?`)) await e.supprimerCommande(c.id)
                           }}>
                             <Trash2 size={12} /> Supprimer
                           </StickerButton>
@@ -432,25 +458,19 @@ export default function EtiquettesPage() {
                 <X size={13} />
               </button>
             </div>
-
             <div style={{ display: 'grid', gap: 10 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>
-                  Référence
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Référence
                   <input value={edition.reference ?? ''} onChange={ev => setEdition({ ...edition, reference: ev.target.value })}
-                         style={{ ...champ, marginTop: 4 }} />
-                </label>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>
-                  Imprimeur
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Imprimeur
                   <input value={edition.imprimeur ?? ''} onChange={ev => setEdition({ ...edition, imprimeur: ev.target.value })}
-                         style={{ ...champ, marginTop: 4 }} />
-                </label>
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
               </div>
-              <label style={{ fontSize: 12, fontWeight: 700 }}>
-                Statut
+              <label style={{ fontSize: 12, fontWeight: 700 }}>Statut
                 <select value={edition.statut ?? 'brouillon'}
                         onChange={ev => setEdition({ ...edition, statut: ev.target.value as CommandeEtiquetteStatut })}
-                        style={{ ...champ, marginTop: 4 }}>
+                        style={{ ...champ, width: '100%', marginTop: 4 }}>
                   {STATUTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
                 <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--text-muted)' }}>
@@ -458,47 +478,41 @@ export default function EtiquettesPage() {
                 </span>
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>
-                  Commandée le
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Commandée le
                   <input type="date" value={edition.date_commande ?? ''}
                          onChange={ev => setEdition({ ...edition, date_commande: ev.target.value || undefined })}
-                         style={{ ...champ, marginTop: 4 }} />
-                </label>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>
-                  Reçue le
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Reçue le
                   <input type="date" value={edition.date_reception ?? ''}
                          onChange={ev => setEdition({ ...edition, date_reception: ev.target.value || undefined })}
-                         style={{ ...champ, marginTop: 4 }} />
-                </label>
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>
-                  N° de facture
+                <label style={{ fontSize: 12, fontWeight: 700 }}>N° de facture
                   <input value={edition.numero_facture ?? ''} onChange={ev => setEdition({ ...edition, numero_facture: ev.target.value })}
-                         style={{ ...champ, marginTop: 4 }} />
-                </label>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>
-                  Montant €
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Montant €
                   <input type="number" step="0.01" value={edition.montant ?? ''}
                          onChange={ev => setEdition({ ...edition, montant: ev.target.value ? Number(ev.target.value) : undefined })}
-                         style={{ ...champ, marginTop: 4 }} />
-                </label>
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
               </div>
-              <label style={{ fontSize: 12, fontWeight: 700 }}>
-                Notes
+              <label style={{ fontSize: 12, fontWeight: 700 }}>Notes
                 <textarea rows={2} value={edition.notes ?? ''} onChange={ev => setEdition({ ...edition, notes: ev.target.value })}
-                          style={{ ...champ, marginTop: 4, resize: 'vertical' }} />
-              </label>
+                          style={{ ...champ, width: '100%', marginTop: 4, resize: 'vertical' }} /></label>
             </div>
-
             <div className="flex justify-end gap-2" style={{ marginTop: 16 }}>
               <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setEdition(null)}>
                 Annuler
               </StickerButton>
               <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
-                await e.enregistrerCommande(edition)
+                const { data } = await e.enregistrerCommande(edition)
                 setEdition(null)
                 setOnglet('commandes')
+                if (data && !edition.id) {
+                  setCmdOuverte(data.id)
+                  setQuantites({})
+                  setGrilleFormat(formatsAplat[0]?.id ?? '')
+                }
               }}>
                 {edition.id ? 'Enregistrer' : 'Créer'}
               </StickerButton>
