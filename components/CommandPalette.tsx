@@ -20,6 +20,7 @@ const DESTINATIONS: Dest[] = [
   { label: 'Clients',       href: '/clients',            emoji: '🏪', key: 'l' },
   { label: 'Demandes',      href: '/demandes',           emoji: '📦', key: 'q' },
   { label: 'Imprimantes',   href: '/imprimantes',        emoji: '🖨️', key: 'i' },
+  { label: 'Étiquettes',    href: '/etiquettes',         emoji: '🏷️', key: 'a' },
   { label: 'Running',       href: '/sport',              emoji: '🏃', key: 'u' },
   { label: 'Health',        href: '/health',             emoji: '❤️', key: 'e' },
   { label: 'Recettes',      href: '/recettes',           emoji: '🍽', key: 'r' },
