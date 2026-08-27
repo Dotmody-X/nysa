@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/icons'
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useEtiquettes } from '@/hooks/useEtiquettes'
+import { santeCode, type SanteCode } from '@/lib/ean'
 import type {
   EtatFichier, EtiquetteCommande, CommandeEtiquetteStatut,
   EtiquetteFichier, EtiquetteFichierCategorie, EtiquetteFormat, EtiquetteGamme,
@@ -18,6 +19,14 @@ const ETATS: Record<EtatFichier, { label: string; court: string; couleur: string
   a_jour:            { label: 'À jour',            court: 'À jour',  couleur: 'var(--accent-sport)' },
   modifie:           { label: 'Fichier à envoyer', court: 'À envoyer', couleur: 'var(--accent-recettes)' },
   changement_envoye: { label: 'Changement envoyé', court: 'Envoyé',  couleur: 'var(--accent-calendar)' },
+}
+
+const SANTE: Record<SanteCode, { label: string; couleur: string; aide: string }> = {
+  absent:       { label: '—',          couleur: 'var(--bg-input)',        aide: 'Aucun code saisi' },
+  conforme:     { label: 'Conforme',   couleur: 'var(--accent-sport)',    aide: 'Clé juste, préfixe de la marque, code unique' },
+  cle_invalide: { label: 'Clé fausse', couleur: 'var(--accent-recettes)', aide: 'Le 13e chiffre ne correspond pas — le code ne passera pas en caisse' },
+  prefixe:      { label: 'Hors 370/376', couleur: 'var(--accent-todo)',   aide: 'Préfixe non attribué à la marque' },
+  partage:      { label: 'Partagé',    couleur: 'var(--accent-clients)',  aide: 'Le même code se trouve sur au moins deux références' },
 }
 
 const STATUTS: { value: CommandeEtiquetteStatut; label: string; couleur: string }[] = [
@@ -39,6 +48,36 @@ const entete: React.CSSProperties = {
   ...cellule, ...DF, fontWeight: 800, fontSize: 11, textTransform: 'uppercase',
   letterSpacing: .4, color: 'var(--text-muted)', borderBottom: '2px solid var(--ink)',
   position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 1,
+}
+
+/** Saisie directe du code-barres, enregistrée à la sortie du champ. */
+function ChampCode({ valeur, sante, portee, onEnregistrer }: {
+  valeur?: string
+  sante: SanteCode
+  portee: number
+  onEnregistrer: (v: string | null) => void
+}) {
+  const [texte, setTexte] = useState(valeur ?? '')
+  useEffect(() => { setTexte(valeur ?? '') }, [valeur])
+  const s = SANTE[sante]
+  return (
+    <span className="flex items-center gap-1">
+      <input value={texte} inputMode="numeric" placeholder="—" maxLength={14}
+             onChange={ev => setTexte(ev.target.value.replace(/\D/g, ''))}
+             onBlur={() => { if ((valeur ?? '') !== texte) onEnregistrer(texte || null) }}
+             onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur() }}
+             style={{ width: 112, padding: '2px 5px', fontSize: 11, textAlign: 'right',
+                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                      color: 'var(--text)', background: 'var(--bg-input)',
+                      border: '1px solid var(--ink)', borderRadius: 5 }} />
+      <span title={portee > 1 ? `${s.aide} (${portee} références)` : s.aide}
+            style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 999,
+                     border: '2px solid var(--ink)', background: s.couleur,
+                     color: 'var(--ink-dark)', whiteSpace: 'nowrap' }}>
+        {s.label}{portee > 1 ? ` ×${portee}` : ''}
+      </span>
+    </span>
+  )
 }
 
 function Etat({ e }: { e: EtatFichier }) {
@@ -204,6 +243,7 @@ export default function EtiquettesPage() {
   const [fGamme, setFGamme] = useState('')
   const [fFormat, setFFormat] = useState('')
   const [fEtat, setFEtat] = useState<EtatFichier | ''>('')
+  const [fSante, setFSante] = useState<SanteCode | ''>('')
   const [saveurNouvelle, setSaveurNouvelle] = useState('')
 
   // ── Grille de commande ──────────────────────────────────────────────────
@@ -234,16 +274,26 @@ export default function EtiquettesPage() {
     }))),
     [e.gammes])
 
+  /** Combien de références portent chaque code : un EAN doit être unique. */
+  const portees = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const x of lignes) if (x.code_barre) m.set(x.code_barre, (m.get(x.code_barre) ?? 0) + 1)
+    return m
+  }, [lignes])
+
   const visibles = useMemo(() => {
     const q = recherche.trim().toLowerCase()
     return lignes.filter(x =>
       (!fGamme  || x.gammeNom === fGamme) &&
       (!fFormat || x.formatId === fFormat) &&
       (!fEtat   || x.etat_fichier === fEtat) &&
-      (!q || `${x.saveur} ${x.gammeNom} ${x.formatNom} ${x.dimensions}`.toLowerCase().includes(q)))
-  }, [lignes, recherche, fGamme, fFormat, fEtat])
+      (!fSante  || santeCode(x.code_barre, portees.get(x.code_barre ?? '') ?? 0) === fSante) &&
+      (!q || `${x.saveur} ${x.gammeNom} ${x.formatNom} ${x.dimensions} ${x.code_barre ?? ''}`.toLowerCase().includes(q)))
+  }, [lignes, recherche, fGamme, fFormat, fEtat, fSante, portees])
 
   const aRenvoyer = lignes.filter(x => x.etat_fichier === 'modifie')
+  const codesDefectueux = lignes.filter(x =>
+    santeCode(x.code_barre, portees.get(x.code_barre ?? '') ?? 0) === 'cle_invalide').length
 
   /** Saveurs du format choisi, dans l'ordre — la grille reprend le bon papier. */
   const grille = useMemo(
@@ -275,7 +325,8 @@ export default function EtiquettesPage() {
       <KpiGrid>
         <KpiCard label="Étiquettes" value={String(lignes.length)} accent={ACCENT} />
         <KpiCard label="Formats"    value={String(formatsAplat.length)} accent={ACCENT} />
-        <KpiCard label="Commandes"  value={String(e.commandes.length)} accent={ACCENT} />
+        <KpiCard label="Codes fautifs" value={String(codesDefectueux)} sub="clé EAN invalide"
+                 accent={codesDefectueux ? 'var(--accent-recettes)' : ACCENT} />
         <KpiCard label="À renvoyer" value={String(aRenvoyer.length)} sub="fichier modifié"
                  accent={aRenvoyer.length ? 'var(--accent-recettes)' : ACCENT} />
       </KpiGrid>
@@ -310,7 +361,7 @@ export default function EtiquettesPage() {
             <div className="flex items-center gap-2" style={{ ...champ, flex: '1 1 200px' }}>
               <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <input value={recherche} onChange={ev => setRecherche(ev.target.value)}
-                     placeholder="Saveur, gamme, format…"
+                     placeholder="Saveur, gamme, format, code-barres…"
                      style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: 13, color: 'var(--text)' }} />
             </div>
             <select value={fGamme} onChange={ev => setFGamme(ev.target.value)} style={champ}>
@@ -320,6 +371,10 @@ export default function EtiquettesPage() {
             <select value={fFormat} onChange={ev => setFFormat(ev.target.value)} style={champ}>
               <option value="">Tous les formats</option>
               {formatsAplat.map(f => <option key={f.id} value={f.id}>{f.libelle}</option>)}
+            </select>
+            <select value={fSante} onChange={ev => setFSante(ev.target.value as SanteCode | '')} style={champ}>
+              <option value="">Tous les codes</option>
+              {(Object.keys(SANTE) as SanteCode[]).map(k => <option key={k} value={k}>{SANTE[k].label}</option>)}
             </select>
             <select value={fEtat} onChange={ev => setFEtat(ev.target.value as EtatFichier | '')} style={champ}>
               <option value="">Tous les états</option>
@@ -339,6 +394,7 @@ export default function EtiquettesPage() {
                   <th style={entete}>Gamme</th>
                   <th style={entete}>Format</th>
                   <th style={entete}>Dimensions</th>
+                  <th style={entete}>Code-barres</th>
                   <th style={entete}>État</th>
                   <th style={entete}>Dernière commande</th>
                   <th style={{ ...entete, textAlign: 'right' }}>Actions</th>
@@ -351,6 +407,12 @@ export default function EtiquettesPage() {
                     <td style={{ ...cellule, color: 'var(--text-muted)' }}>{x.gammeNom}</td>
                     <td style={cellule}>{x.formatNom}</td>
                     <td style={{ ...cellule, color: 'var(--text-muted)', fontSize: 11 }}>{x.dimensions}</td>
+                    <td style={{ ...cellule, whiteSpace: 'nowrap' }}>
+                      <ChampCode valeur={x.code_barre}
+                                 portee={portees.get(x.code_barre ?? '') ?? 0}
+                                 sante={santeCode(x.code_barre, portees.get(x.code_barre ?? '') ?? 0)}
+                                 onEnregistrer={v => e.modifierEtiquette(x.id, { code_barre: v ?? undefined })} />
+                    </td>
                     <td style={cellule}><Etat e={x.etat_fichier} /></td>
                     <td style={{ ...cellule, color: 'var(--text-muted)' }}>
                       {x.derniere_commande ?? '—'}

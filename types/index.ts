@@ -441,6 +441,9 @@ export interface Etiquette {
   format_id: string
   format?: EtiquetteFormat
   saveur: string
+  /** EAN-13 du produit fini : le même parfum a un code par contenance. */
+  code_barre?: string
+  code_barre_note?: string
   etat_fichier: EtatFichier
   date_modification?: string
   derniere_commande?: string
