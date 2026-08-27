@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, X, TrendingUp,
-  Clock, CheckSquare, DollarSign,
+  Clock, CheckSquare, CheckCircle2,
   Zap, Heart, Flame, Star,
   BarChart2, ChevronRight,
 } from '@/components/ui/icons'
@@ -52,7 +52,7 @@ function aggregateByN(stats: DayStat[], n: number): DayStat[] {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type PeriodKey  = '7d' | '30d' | '3m' | 'year'
-type PanelType  = 'activite'|'repartition'|'tt'|'sante'|'finances'|'equilibre'|'progression'|'realisations'|'ia'|null
+type PanelType  = 'activite'|'repartition'|'tt'|'progression'|'realisations'|null
 
 // ── Shared card style ──────────────────────────────────────────────────────
 const LBL: React.CSSProperties = {
@@ -260,14 +260,12 @@ export default function RapportsPage() {
   const actualHours       = (data?.totalSeconds ?? 0) / 3600
   const scoreProductivite = Math.min(100, Math.round(actualHours / (days * targetHoursPerDay) * 100))
 
-  const runsTarget = activePeriod === '7d' ? 2 : activePeriod === '30d' ? 8 : activePeriod === '3m' ? 24 : 96
-  const scoreSante = Math.min(100, Math.round((data?.totalRuns ?? 0) / runsTarget * 100))
+  const heuresPrestees = Math.round((data?.totalSeconds ?? 0) / 3600)
+  const joursPrestes   = (data?.dailyStats ?? []).filter(d => d.seconds > 0).length
+  const partFacturable = data?.totalSeconds
+    ? Math.round((data.billableSeconds / data.totalSeconds) * 100) : 0
 
   const balance        = (data?.totalIncome ?? 0) - (data?.totalExpense ?? 0)
-  const scoreFinances  = data?.totalIncome
-    ? Math.min(100, Math.max(0, Math.round(50 + (balance / data.totalIncome) * 50)))
-    : 50
-  const scoreEquilibre = Math.round((scoreProductivite + scoreSante + scoreFinances) / 3)
 
   // ── Period label ────────────────────────────────────────────────────────
   const periodeLabel = activePeriod === '7d' ? 'cette semaine'
@@ -445,93 +443,8 @@ export default function RapportsPage() {
     </div>
   )
 
-  const PanelSante = (
-    <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {[
-          { l: 'Séances', v: String(data?.totalRuns ?? 0), c: TEAL },
-          { l: 'Distance', v: data?.totalKm ? data.totalKm.toFixed(1) + ' km' : '— km', c: ORANGE },
-          { l: 'Poids actuel', v: health.latestWeight ? `${health.latestWeight} kg` : '—', c: WHEAT },
-          { l: 'Allure moy.', v: avgPace ? `${Math.floor(avgPace)}:${String(Math.round((avgPace % 1) * 60)).padStart(2,'0')} /km` : '—', c: WHEAT },
-        ].map(s => (
-          <div key={s.l} style={{ background: 'var(--bg-input)', borderRadius: 10, padding: '14px 16px' }}>
-            <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: s.c, lineHeight: 1 }}>{s.v}</p>
-            <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>{s.l}</p>
-          </div>
-        ))}
-      </div>
-      <p style={{ ...LBL, color: 'var(--text-muted)', marginTop: 4 }}>Dernières sorties</p>
-      {health.activities.slice(0, 8).map((a, i) => (
-        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
-          <span style={{ fontSize: 12, color: 'var(--text)' }}>{a.date}</span>
-          <div style={{ display: 'flex', gap: 14 }}>
-            {a.distance_km && <span style={{ ...DF, fontSize: 11, fontWeight: 700, color: TEAL }}>{a.distance_km.toFixed(2)} km</span>}
-            {a.duration_seconds && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtSec(a.duration_seconds)}</span>}
-          </div>
-        </div>
-      ))}
-      {!health.activities.length && <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>Aucune sortie enregistrée</p>}
-      <Link href="/health" style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center', marginTop: 4, color: TEAL, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
-        Voir Health <ArrowRight size={12} />
-      </Link>
-    </div>
-  )
 
-  const PanelFinances = (
-    <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {[
-          { l: 'Revenus',   v: fmtEur(data?.totalIncome  ?? 0), c: TEAL   },
-          { l: 'Dépenses',  v: fmtEur(data?.totalExpense ?? 0), c: ORANGE  },
-          { l: 'Solde',     v: fmtEur(balance),                 c: balance >= 0 ? TEAL : ORANGE },
-          { l: 'Taux épargne', v: data?.totalIncome ? `${pct(balance, data.totalIncome)}%` : '—', c: WHEAT },
-        ].map(s => (
-          <div key={s.l} style={{ background: 'var(--bg-input)', borderRadius: 10, padding: '14px 16px' }}>
-            <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: s.c, lineHeight: 1 }}>{s.v}</p>
-            <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>{s.l}</p>
-          </div>
-        ))}
-      </div>
-      <p style={{ ...LBL, color: 'var(--text-muted)', marginTop: 4 }}>Flux de trésorerie (6 mois)</p>
-      <ProgressionChart months={multiMonth} />
-      <Link href="/budget" style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center', marginTop: 4, color: TEAL, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
-        Ouvrir Budget <ArrowRight size={12} />
-      </Link>
-    </div>
-  )
 
-  const PanelEquilibre = (
-    <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Répartition pro / perso basée sur les temps trackés par projet.</p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {[
-          { l: 'Temps pro', v: fmtSec(data?.totalSeconds ?? 0), c: TEAL },
-          { l: 'Score équilibre', v: `${scoreEquilibre}%`, c: scoreEquilibre >= 60 ? TEAL : ORANGE },
-        ].map(s => (
-          <div key={s.l} style={{ background: 'var(--bg-input)', borderRadius: 10, padding: '14px 16px' }}>
-            <p style={{ ...DF, fontSize: 20, fontWeight: 900, color: s.c, lineHeight: 1 }}>{s.v}</p>
-            <p style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>{s.l}</p>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-        {[
-          { l: 'Productivité', v: scoreProductivite, c: ORANGE },
-          { l: 'Santé', v: scoreSante, c: TEAL },
-          { l: 'Finances', v: scoreFinances, c: '#9B72CF' },
-          { l: 'Équilibre global', v: scoreEquilibre, c: WHEAT },
-        ].map(s => (
-          <div key={s.l}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: 'var(--text)' }}>{s.l}</span>
-              <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: s.c }}>{s.v}%</span>
-            </div>
-            <ScoreBar value={s.v} color={s.c} />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
 
   const PanelProgression = (
     <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -578,57 +491,13 @@ export default function RapportsPage() {
     </div>
   )
 
-  const PanelIA = (
-    <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Analyse automatique de votre activité {periodeLabel}.</p>
-      <div style={{ background: 'rgba(14,149,148,0.08)', borderRadius: 12, padding: '16px', border: '1px solid rgba(14,149,148,0.2)' }}>
-        <p style={{ ...LBL, color: TEAL, marginBottom: 10 }}>Insights</p>
-        {loading ? <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Analyse en cours…</p> : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <p style={{ fontSize: 13, color: WHEAT, lineHeight: 1.6 }}>
-              Vous avez tracké <strong style={{ color: TEAL }}>{fmtSec(data?.totalSeconds ?? 0)}</strong> {periodeLabel}, soit{' '}
-              <strong style={{ color: scoreProductivite >= 70 ? TEAL : ORANGE }}>{scoreProductivite}%</strong> de votre objectif.
-            </p>
-            {(data?.tasksDone ?? 0) > 0 && (
-              <p style={{ fontSize: 13, color: WHEAT, lineHeight: 1.6 }}>
-                <strong style={{ color: ORANGE }}>{data!.tasksDone}</strong> tâches terminées sur{' '}
-                <strong>{data!.tasksTotal}</strong> — taux de complétion{' '}
-                <strong style={{ color: data!.tasksTotal ? (pct(data!.tasksDone, data!.tasksTotal) >= 70 ? TEAL : ORANGE) : WHEAT }}>
-                  {data?.tasksTotal ? `${pct(data.tasksDone, data.tasksTotal)}%` : '—'}
-                </strong>.
-              </p>
-            )}
-            {(data?.totalRuns ?? 0) > 0 && (
-              <p style={{ fontSize: 13, color: WHEAT, lineHeight: 1.6 }}>
-                <strong style={{ color: TEAL }}>{data!.totalRuns} sorties</strong> pour{' '}
-                <strong>{data!.totalKm.toFixed(1)} km</strong> parcourus.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-      <div style={{ background: 'var(--bg-input)', borderRadius: 12, padding: '16px' }}>
-        <p style={{ ...LBL, color: 'var(--text-muted)', marginBottom: 10 }}>Recommandations</p>
-        <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, listStyle: 'none', padding: 0, margin: 0 }}>
-          {scoreProductivite < 70 && <li style={{ fontSize: 12, color: 'var(--text)', paddingLeft: 14, position: 'relative' }}><span style={{ position: 'absolute', left: 0, color: TEAL }}>→</span> Planifiez vos tâches importantes entre 9h et 11h pour maximiser la productivité.</li>}
-          {scoreSante < 70 && <li style={{ fontSize: 12, color: 'var(--text)', paddingLeft: 14, position: 'relative' }}><span style={{ position: 'absolute', left: 0, color: ORANGE }}>→</span> Augmentez votre fréquence de running — viser {Math.ceil(runsTarget / (days / 7))} séances/semaine.</li>}
-          {balance < 0 && <li style={{ fontSize: 12, color: 'var(--text)', paddingLeft: 14, position: 'relative' }}><span style={{ position: 'absolute', left: 0, color: ORANGE }}>→</span> Vos dépenses dépassent vos revenus. Revoyez vos charges fixes dans Budget.</li>}
-          {scoreEquilibre >= 70 && <li style={{ fontSize: 12, color: 'var(--text)', paddingLeft: 14, position: 'relative' }}><span style={{ position: 'absolute', left: 0, color: TEAL }}>→</span> Excellent équilibre global. Continuez sur cette lancée 🔥</li>}
-        </ul>
-      </div>
-    </div>
-  )
 
   const PANELS: Record<NonNullable<PanelType>, { title: string; content: React.ReactNode; width?: number }> = {
     activite:     { title: 'Aperçu de l\'activité',     content: PanelActivite,    width: 500 },
     repartition:  { title: 'Répartition du temps',      content: PanelRepartition, width: 460 },
     tt:           { title: 'Time Trackers — détail',    content: PanelTT,          width: 460 },
-    sante:        { title: 'Rapport Santé & Running',   content: PanelSante,       width: 460 },
-    finances:     { title: 'Rapport Financier',         content: PanelFinances,    width: 460 },
-    equilibre:    { title: 'Équilibre de vie',          content: PanelEquilibre,   width: 440 },
     progression:  { title: 'Progression Globale',       content: PanelProgression, width: 500 },
     realisations: { title: 'Réalisations',              content: PanelRealisations, width: 440 },
-    ia:           { title: 'Insight de l\'Agent IA',   content: PanelIA,          width: 460 },
   }
 
   const activePanel = panel && PANELS[panel]
@@ -657,7 +526,7 @@ export default function RapportsPage() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: 'minmax(280px,auto) auto minmax(480px,auto) minmax(360px,auto) minmax(260px,auto) auto',
+        gridTemplateRows: 'minmax(280px,auto) auto minmax(480px,auto) minmax(360px,auto) minmax(260px,auto)',
         gap: 12,
       }}>
 
@@ -697,16 +566,16 @@ export default function RapportsPage() {
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, flex: 1 }}>
             {[
-              { icon: <Zap size={16} />,         label: 'Productivité', value: scoreProductivite },
-              { icon: <Heart size={16} />,        label: 'Santé',        value: scoreSante       },
-              { icon: <DollarSign size={16} />,   label: 'Finances',     value: scoreFinances    },
-              { icon: <BarChart2 size={16} />,    label: 'Équilibre',    value: scoreEquilibre   },
+              { icon: <Zap size={16} />,       label: 'Productivité', value: scoreProductivite, unite: '%',  sous: 'vs objectif' },
+              { icon: <Clock size={16} />,     label: 'Heures',       value: heuresPrestees,    unite: 'h',  sous: `${joursPrestes} jours prestés` },
+              { icon: <CheckCircle2 size={16} />, label: 'Tâches',    value: data?.tasksDone ?? 0, unite: '', sous: `${data?.tasksLate ?? 0} en retard` },
+              { icon: <BarChart2 size={16} />, label: 'Facturable',   value: partFacturable,    unite: '%',  sous: 'du temps suivi' },
             ].map((s, i) => (
               <div key={i} style={{ padding: '18px 22px', borderRight: i % 2 === 0 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none', borderBottom: i < 2 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none' }}>
                 <div style={{ color: 'rgba(var(--text-rgb),0.7)', marginBottom: 6 }}>{s.icon}</div>
                 <p style={{ fontSize: 10, color: 'rgba(var(--text-rgb),0.75)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</p>
-                <p style={{ ...DF, fontSize: 30, fontWeight: 900, color: 'var(--ink-dark)', lineHeight: 1 }}>{loading ? '—' : `${s.value}%`}</p>
-                <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginTop: 3 }}>vs objectif</p>
+                <p style={{ ...DF, fontSize: 30, fontWeight: 900, color: 'var(--ink-dark)', lineHeight: 1 }}>{loading ? '—' : `${s.value}${s.unite}`}</p>
+                <p style={{ fontSize: 9, color: 'rgba(var(--text-rgb),0.6)', marginTop: 3 }}>{s.sous}</p>
               </div>
             ))}
           </div>
@@ -800,7 +669,7 @@ export default function RapportsPage() {
         {/* ── R4 C1 : Time Trackers ────────────────────────────────────── */}
         <SectionCard
           title="Time Trackers" num="04" accent="var(--accent-rapports)" titleColor={TEAL}
-          style={{ gridColumn: '1/2', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
+          style={{ gridColumn: '1/3', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
         >
           <div style={{ padding: '16px 20px', flex: 1 }}>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{loading ? '…' : fmtSec(data?.totalSeconds ?? 0)}</p>
@@ -823,41 +692,11 @@ export default function RapportsPage() {
           <FooterLink label="Voir le rapport complet" onClick={() => setPanel('tt')} />
         </SectionCard>
 
-        {/* ── R4 C2 : Santé ───────────────────────────────────────────── */}
-        <SectionCard
-          title="Santé" num="05" accent="var(--accent-rapports)" titleColor={ORANGE}
-          style={{ gridColumn: '2/3', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
-        >
-          <div style={{ padding: '16px 20px', flex: 1 }}>
-            <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{loading ? '…' : `${scoreSante}`}<span style={{ fontSize: 14, color: 'var(--text-muted)', marginLeft: 2 }}>/100</span></p>
-            <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Score moyen</p>
-            <p style={{ fontSize: 10, color: scoreSante >= 60 ? TEAL : ORANGE, marginTop: 2 }}>
-              {scoreSante >= 70 ? '+5%' : scoreSante >= 40 ? '±0%' : '-5%'} vs période préc.
-            </p>
-            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 7 }}>
-              {[
-                { l: 'Courses',    v: loading ? '…' : `${(data?.totalKm ?? 0).toFixed(1)} km`, d: data?.totalRuns ? `+${data.totalRuns} séances` : '0 séance' },
-                { l: 'Allure moy.', v: avgPace ? `${Math.floor(avgPace)}:${String(Math.round((avgPace % 1) * 60)).padStart(2,'0')} /km` : '—', d: '' },
-                { l: 'Séances',    v: loading ? '…' : String(data?.totalRuns ?? 0), d: '' },
-                { l: 'Poids',      v: health.latestWeight ? `${health.latestWeight} kg` : '—', d: '' },
-              ].map(r => (
-                <div key={r.l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.l}</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: WHEAT }}>{r.v}</span>
-                    {r.d && <span style={{ fontSize: 9, color: TEAL, marginLeft: 6 }}>{r.d}</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <FooterLink label="Voir le rapport santé" onClick={() => setPanel('sante')} />
-        </SectionCard>
 
         {/* ── R4 C3 : Tâches & Activité ───────────────────────────────── */}
         <SectionCard
           title="Tâches & Activité" num="06" accent="var(--accent-rapports)" titleColor="var(--accent-rapports)"
-          style={{ gridColumn: '3/4', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
+          style={{ gridColumn: '3/5', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
         >
           <div style={{ padding: '16px 20px', flex: 1 }}>
             <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{loading ? '…' : String(data?.tasksDone ?? 0)}</p>
@@ -882,63 +721,7 @@ export default function RapportsPage() {
           <FooterLink label="Voir les tâches" href="/todo" />
         </SectionCard>
 
-        {/* ── R4 C4 : Finances ────────────────────────────────────────── */}
-        <SectionCard
-          title="Finances" num="07" accent="var(--accent-rapports)" titleColor={TEAL}
-          style={{ gridColumn: '4/5', gridRow: '4/5', display: 'flex', flexDirection: 'column' }}
-        >
-          <div style={{ padding: '16px 20px', flex: 1 }}>
-            <p style={{ ...DF, fontSize: 26, fontWeight: 900, color: balance >= 0 ? TEAL : ORANGE, lineHeight: 1 }}>{loading ? '…' : fmtEur(balance)}</p>
-            <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Épargne {periodeLabel}</p>
-            <p style={{ fontSize: 10, color: balance >= 0 ? TEAL : ORANGE, marginTop: 2 }}>
-              {data?.totalIncome ? `${pct(balance, data.totalIncome)}% taux d'épargne` : '—'}
-            </p>
-            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 7 }}>
-              {[
-                { l: 'Taux épargne',       v: data?.totalIncome ? `${pct(balance, data.totalIncome)}%` : '—', delta: '+2%'  },
-                { l: 'Dép. moy. / jour',   v: data ? fmtEur(Math.round(data.totalExpense / days)) : '—',      delta: '-3%'  },
-                { l: 'Revenus',            v: loading ? '…' : fmtEur(data?.totalIncome ?? 0),                 delta: ''     },
-                { l: 'Dépenses',           v: loading ? '…' : fmtEur(data?.totalExpense ?? 0),                delta: ''     },
-              ].map(r => (
-                <div key={r.l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.l}</span>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: WHEAT }}>{r.v}</span>
-                    {r.delta && <span style={{ fontSize: 9, color: r.delta.startsWith('+') ? TEAL : ORANGE }}>{r.delta}</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <FooterLink label="Voir le rapport financier" onClick={() => setPanel('finances')} />
-        </SectionCard>
 
-        {/* ── R5 C1 : Équilibre de vie ─────────────────────────────────── */}
-        <SectionCard
-          title="Équilibre de vie" num="08" accent="var(--accent-rapports)" titleColor={WHEAT}
-          style={{ gridColumn: '1/2', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
-        >
-          <div style={{ padding: '16px 20px', flex: 1 }}>
-            <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>Répartition scores</p>
-            <p style={{ ...DF, fontSize: 32, fontWeight: 900, color: WHEAT, lineHeight: 1 }}>{scoreEquilibre}%</p>
-            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                { l: 'Productivité', v: scoreProductivite, c: ORANGE },
-                { l: 'Santé',        v: scoreSante,        c: TEAL   },
-                { l: 'Finances',     v: scoreFinances,     c: '#9B72CF' },
-              ].map(s => (
-                <div key={s.l}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{s.l}</span>
-                    <span style={{ ...DF, fontSize: 10, fontWeight: 700, color: s.c }}>{s.v}%</span>
-                  </div>
-                  <ScoreBar value={s.v} color={s.c} />
-                </div>
-              ))}
-            </div>
-          </div>
-          <FooterLink label="Voir l'analyse complète" onClick={() => setPanel('equilibre')} />
-        </SectionCard>
 
         {/* ── R5 C2-3 : Progression globale ───────────────────────────── */}
         <SectionCard
@@ -953,7 +736,7 @@ export default function RapportsPage() {
               </span>
             </div>
           }
-          style={{ gridColumn: '2/4', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
+          style={{ gridColumn: '1/3', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
         >
           <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <ProgressionChart months={multiMonth} />
@@ -964,7 +747,7 @@ export default function RapportsPage() {
         {/* ── R5 C4 : Réalisations ────────────────────────────────────── */}
         <SectionCard
           title="Réalisations" num="10" accent="var(--accent-rapports)" titleColor={ORANGE}
-          style={{ gridColumn: '4/5', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
+          style={{ gridColumn: '3/5', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
         >
           <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {realisations.length === 0 && (
@@ -988,53 +771,6 @@ export default function RapportsPage() {
           <FooterLink label="Voir toutes les réalisations" onClick={() => setPanel('realisations')} />
         </SectionCard>
 
-        {/* ── R6 : Insight IA ─────────────────────────────────────────── */}
-        <div className="nb-card" style={{ gridColumn: '1/5', gridRow: '6/7', display: 'flex', flexDirection: 'row', overflow: 'hidden', minHeight: 160, background: '#0E1630', '--text-rgb': '255, 255, 255', '--text': '#ffffff', '--text-muted': 'rgba(255, 255, 255, 0.72)' } as React.CSSProperties}>
-          <div style={{ flex: 1.2, padding: '20px 28px', borderRight: '1px solid rgba(14,149,148,0.2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(14,149,148,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Zap size={16} style={{ color: TEAL }} />
-              </div>
-              <p style={{ ...LBL, color: TEAL }}>Insight de l'Agent IA</p>
-            </div>
-            <p style={{ fontSize: 13, color: WHEAT, lineHeight: 1.7 }}>
-              {loading ? 'Analyse en cours…' : (
-                <>
-                  {scoreProductivite >= 70
-                    ? `Vous avez été très productif ${periodeLabel} avec ${fmtSec(data?.totalSeconds ?? 0)} trackés. `
-                    : `Votre productivité ${periodeLabel} est à ${scoreProductivite}% de l'objectif. `}
-                  {(data?.tasksDone ?? 0) > 0 && `${data!.tasksDone} tâches terminées sur ${data!.tasksTotal}. `}
-                  {balance > 0
-                    ? `Bon équilibre financier avec ${fmtEur(balance)} d'excédent.`
-                    : balance < 0 ? `Attention : dépenses supérieures aux revenus de ${fmtEur(Math.abs(balance))}.` : ''}
-                </>
-              )}
-            </p>
-          </div>
-          <div style={{ flex: 2, padding: '20px 28px' }}>
-            <p style={{ ...LBL, color: 'var(--text-muted)', marginBottom: 12 }}>Recommandations personnalisées</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
-              {[
-                scoreProductivite < 70 && 'Planifiez vos tâches importantes entre 9h et 11h.',
-                scoreSante < 60        && `Visez ${Math.ceil(runsTarget / (days / 7))} séances de running par semaine.`,
-                balance < 0            && 'Réduisez vos charges fixes — consultez votre Budget.',
-                (data?.tasksLate ?? 0) > 3 && 'Réduisez votre backlog en triant les tâches en retard.',
-                scoreEquilibre >= 70   && 'Excellent équilibre global. Continuez sur cette lancée 🔥',
-                actualHours < 10       && 'Augmentez votre temps de focus journalier progressivement.',
-              ].filter(Boolean).slice(0, 4).map((tip, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <ChevronRight size={12} style={{ color: TEAL, marginTop: 2, flexShrink: 0 }} />
-                  <p style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.5 }}>{tip as string}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', borderLeft: '1px solid rgba(14,149,148,0.2)' }}>
-            <StickerButton onClick={() => setPanel('ia')} accent={TEAL} ink="var(--ink-light)" tilt="l" title="Ouvrir l'analyse complète de l'Agent IA">
-              Voir tout <ArrowRight size={12} />
-            </StickerButton>
-          </div>
-        </div>
 
       </div>
     </div>
