@@ -19,6 +19,8 @@ export type DayStat = {
   label: string
   seconds: number
   tasks_done: number
+  /** Nombre de chronomètres du jour : distingue une journée dense d'un long bloc. */
+  entries_count: number
 }
 
 export type RapportData = {
@@ -149,12 +151,11 @@ export function useRapports(period: RapportPeriod, ref: Date) {
       } else {
         label = i % 30 === 0 ? d.toLocaleDateString('fr-FR', { month: 'short' }) : ''
       }
-      const seconds = entries
-        .filter(e => e.started_at?.slice(0, 10) === dateStr)
-        .reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+      const duJour = entries.filter(e => e.started_at?.slice(0, 10) === dateStr)
+      const seconds = duJour.reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
       const tasks_done = (tasks ?? [])
         .filter(t => t.completed_at?.slice(0, 10) === dateStr).length
-      return { date: dateStr, label, seconds, tasks_done }
+      return { date: dateStr, label, seconds, tasks_done, entries_count: duJour.length }
     })
 
     // ── Tasks ──
