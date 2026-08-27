@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react'
 import { Printer, Plus, Search, Trash2, Pencil, X, Eye, EyeOff, Copy, Check } from '@/components/ui/icons'
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
-import { useImprimantes, useClientAcces } from '@/hooks/useImprimantes'
+import { useImprimantes, useClientAcces, useMagasins } from '@/hooks/useImprimantes'
 import { useClients } from '@/hooks/useClients'
 import type { Imprimante, ImprimanteStatut, ClientAcces } from '@/types'
 
@@ -175,32 +175,42 @@ function AccesClient({ clientId }: { clientId: string }) {
 }
 
 export default function ImprimantesPage() {
-  const { imprimantes, loading, create, update, remove } = useImprimantes()
+  const { loading: chargeParc, create, update, remove } = useImprimantes()
+  const { magasins, loading: chargeMagasins, refetch } = useMagasins()
   const { clients } = useClients()
   const [recherche, setRecherche] = useState('')
   const [filtre, setFiltre] = useState<ImprimanteStatut | 'tous'>('tous')
   const [edition, setEdition] = useState<Brouillon | null>(null)
   const [ouverte, setOuverte] = useState<string | null>(null)
   const [enCours, setEnCours] = useState(false)
+  const loading = chargeParc || chargeMagasins
 
   const visibles = useMemo(() => {
     const q = recherche.trim().toLowerCase()
-    return imprimantes.filter(i => {
-      if (filtre !== 'tous' && i.statut !== filtre) return false
+    return magasins.filter(m => {
+      // Le filtre de statut porte sur les machines : un magasin sans aucune
+      // imprimante du statut demande n'a rien a montrer.
+      if (filtre !== 'tous' && !m.imprimantes.some(i => i.statut === filtre)) return false
       if (!q) return true
-      return [i.magasin, i.serial, i.adresse, i.client?.name].some(v => v?.toLowerCase().includes(q))
+      const champs = [
+        m.nom, m.ville,
+        ...m.imprimantes.flatMap(i => [i.magasin, i.serial, i.adresse]),
+        ...m.acces.flatMap(a => [a.identifiant, a.service, a.notes]),
+      ]
+      return champs.some(v => v?.toLowerCase().includes(q))
     })
-  }, [imprimantes, recherche, filtre])
+  }, [magasins, recherche, filtre])
 
-  const enService = imprimantes.filter(i => i.statut === 'en_service').length
-  const total = imprimantes.reduce((s, i) => s + (i.nombre ?? 1), 0)
-  const orphelines = imprimantes.filter(i => !i.client_id).length
+  const machines = magasins.reduce((s, m) => s + m.imprimantes.length, 0)
+  const comptes = magasins.reduce((s, m) => s + m.acces.length, 0)
+  const sansMachine = magasins.filter(m => m.imprimantes.length === 0).length
 
   async function enregistrer() {
     if (!edition?.magasin.trim() || enCours) return
     setEnCours(true)
     if (edition.id) await update(edition.id, edition)
     else await create(edition)
+    await refetch()
     setEnCours(false)
     setEdition(null)
   }
@@ -209,21 +219,21 @@ export default function ImprimantesPage() {
     <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 14 }}>
       <PageTitle
         title="Imprimantes"
-        sub="Parc mis à disposition des magasins · étiquettes DGCCRF"
+        sub="Une fiche par magasin · machines et accès au site d’étiquettes"
         accent={ACCENT}
         icon={Printer}
         iconInk="var(--ink-light)"
       />
 
       <KpiGrid>
-        <KpiCard label="Machines"     value={String(total)} sub={`${imprimantes.length} lignes`} accent={ACCENT} />
-        <KpiCard label="En service"   value={String(enService)} accent={ACCENT} />
-        <KpiCard label="Sans client"  value={String(orphelines)} sub="à rattacher" accent={ACCENT} />
-        <KpiCard label="Affichées"    value={String(visibles.length)} accent={ACCENT} />
+        <KpiCard label="Magasins"        value={String(magasins.length)} accent={ACCENT} />
+        <KpiCard label="Machines"        value={String(machines)} accent={ACCENT} />
+        <KpiCard label="Accès au site"   value={String(comptes)} accent={ACCENT} />
+        <KpiCard label="Sans imprimante" value={String(sansMachine)} sub="accès seul" accent={ACCENT} />
       </KpiGrid>
 
       <SectionCard
-        title="Parc"
+        title="Magasins équipés"
         accent={ACCENT}
         action={
           <StickerButton accent={ACCENT} onClick={() => setEdition({ ...VIDE })}>
@@ -235,7 +245,7 @@ export default function ImprimantesPage() {
           <div className="flex items-center gap-2" style={{ ...champ, width: 'auto', flex: '1 1 220px' }}>
             <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
             <input value={recherche} onChange={e => setRecherche(e.target.value)}
-                   placeholder="Magasin, n° de série, adresse…"
+                   placeholder="Magasin, n° de série, adresse, identifiant…"
                    style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: 13, color: 'var(--text)' }} />
           </div>
           <select value={filtre} onChange={e => setFiltre(e.target.value as ImprimanteStatut | 'tous')}
@@ -249,64 +259,100 @@ export default function ImprimantesPage() {
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Chargement…</p>
         ) : visibles.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            {imprimantes.length === 0
-              ? "Aucune imprimante enregistrée. Ajoute la première, ou importe la liste existante."
-              : 'Aucune imprimante ne correspond à cette recherche.'}
+            {magasins.length === 0
+              ? 'Aucun magasin équipé. Ajoute une première imprimante.'
+              : 'Aucun magasin ne correspond à cette recherche.'}
           </p>
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
-            {visibles.map(i => {
-              const st = STATUTS.find(s => s.value === i.statut) ?? STATUTS[3]
-              const dépliée = ouverte === i.id
+            {visibles.map(m => {
+              const dépliée = ouverte === m.clientId
               return (
-                <div key={i.id} style={{ border: '2px solid var(--ink)', borderRadius: 'var(--radius-md)', background: 'var(--bg-card)', overflow: 'hidden' }}>
+                <div key={m.clientId} style={{ border: '2px solid var(--ink)', borderRadius: 'var(--radius-md)', background: 'var(--bg-card)', overflow: 'hidden' }}>
                   <div className="flex items-center justify-between gap-3" style={{ padding: '10px 12px', cursor: 'pointer' }}
-                       onClick={() => setOuverte(dépliée ? null : i.id)}>
+                       onClick={() => setOuverte(dépliée ? null : m.clientId)}>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ ...DF, fontWeight: 800, fontSize: 13 }}>
-                        {i.magasin}
-                        {i.nombre > 1 && <span style={{ color: 'var(--text-muted)' }}> ×{i.nombre}</span>}
-                      </p>
+                      <p style={{ ...DF, fontWeight: 800, fontSize: 13 }}>{m.nom}</p>
                       <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {i.serial ? <code>{i.serial}</code> : 'sans n° de série'}
-                        {i.client?.name ? ` · ${i.client.name}` : ' · non rattachée'}
-                        {i.adresse ? ` · ${i.adresse}` : ''}
+                        {m.ville ?? 'ville inconnue'}
+                        {' · '}
+                        {m.imprimantes.length === 0
+                          ? 'aucune machine'
+                          : `${m.imprimantes.length} machine${m.imprimantes.length > 1 ? 's' : ''}`}
+                        {' · '}
+                        {m.acces.length} accès
                       </p>
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap',
-                                   border: '2px solid var(--ink)', background: st.couleur, color: 'var(--ink-dark)' }}>
-                      {st.label}
+                                   border: '2px solid var(--ink)',
+                                   background: m.imprimantes.length ? 'var(--accent-sport)' : 'var(--bg-input)',
+                                   color: 'var(--ink-dark)' }}>
+                      {m.imprimantes.length ? 'Équipé' : 'Accès seul'}
                     </span>
                   </div>
 
                   {dépliée && (
                     <div style={{ borderTop: '2px solid var(--ink)', padding: 12, display: 'grid', gap: 12 }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8, fontSize: 12 }}>
-                        <div><strong>Modèle</strong><br />{i.modele}</div>
-                        <div><strong>N° de série</strong><br />{i.serial ? <code>{i.serial}</code> : '—'}</div>
-                        <div><strong>Mise à disposition</strong><br />{i.date_mise_a_dispo ?? '—'}</div>
-                        <div><strong>Document signé</strong><br />{i.document_signe ? 'oui' : 'non'}</div>
+                      <div>
+                        <p style={{ ...DF, fontWeight: 800, fontSize: 12, marginBottom: 6 }}>
+                          Imprimantes ({m.imprimantes.length})
+                        </p>
+                        {m.imprimantes.length === 0 ? (
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                            Ce magasin a un accès au site mais aucune machine mise à disposition.
+                          </p>
+                        ) : (
+                          <div style={{ display: 'grid', gap: 6 }}>
+                            {m.imprimantes.map(i => {
+                              const st = STATUTS.find(s => s.value === i.statut) ?? STATUTS[3]
+                              return (
+                                <div key={i.id} style={{ display: 'grid', gap: 4, padding: 8, fontSize: 12,
+                                                         border: '2px solid var(--ink)', borderRadius: 8 }}>
+                                  <div className="flex items-center justify-between gap-2">
+                                    <code style={{ fontWeight: 700 }}>{i.serial ?? 'sans n° de série'}</code>
+                                    <span className="flex items-center gap-1">
+                                      <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
+                                                     border: '2px solid var(--ink)', background: st.couleur, color: 'var(--ink-dark)' }}>
+                                        {st.label}
+                                      </span>
+                                      <button onClick={() => setEdition({ ...i })} title="Modifier"
+                                              style={{ padding: 3, border: '2px solid var(--ink)', borderRadius: 6, background: 'var(--bg-card)' }}>
+                                        <Pencil size={11} />
+                                      </button>
+                                      <button title="Supprimer"
+                                              onClick={async () => {
+                                                if (confirm(`Supprimer la machine ${i.serial ?? ''} de « ${m.nom} » ?`)) {
+                                                  await remove(i.id); await refetch()
+                                                }
+                                              }}
+                                              style={{ padding: 3, border: '2px solid var(--ink)', borderRadius: 6, background: 'var(--bg-card)' }}>
+                                        <Trash2 size={11} />
+                                      </button>
+                                    </span>
+                                  </div>
+                                  <div style={{ color: 'var(--text-muted)' }}>
+                                    {i.modele}
+                                    {i.date_mise_a_dispo ? ` · envoyée le ${i.date_mise_a_dispo}` : ''}
+                                    {` · document ${i.document_signe ? 'signé' : 'non signé'}`}
+                                  </div>
+                                  {i.adresse && <div>{i.adresse}</div>}
+                                  {i.notes && <div style={{ color: 'var(--text-muted)' }}>{i.notes}</div>}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
                       </div>
-                      {i.adresse && <div style={{ fontSize: 12 }}><strong>Adresse</strong><br />{i.adresse}</div>}
-                      {i.notes && <div style={{ fontSize: 12 }}><strong>Notes</strong><br />{i.notes}</div>}
 
                       <div style={{ borderTop: '1px dashed var(--ink)', paddingTop: 10 }}>
-                        <p style={{ ...DF, fontWeight: 800, fontSize: 12, marginBottom: 6 }}>Accès au site d’étiquettes</p>
-                        {i.client_id
-                          ? <AccesClient clientId={i.client_id} />
-                          : <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                              Rattache d’abord cette imprimante à un client : les accès appartiennent au magasin, pas à la machine.
-                            </p>}
-                      </div>
-
-                      <div className="flex gap-2">
-                        <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setEdition({ ...i })}>
-                          <Pencil size={12} /> Modifier
-                        </StickerButton>
-                        <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none"
-                                       onClick={async () => { if (confirm(`Supprimer l’imprimante de « ${i.magasin} » ?`)) await remove(i.id) }}>
-                          <Trash2 size={12} /> Supprimer
-                        </StickerButton>
+                        <p style={{ ...DF, fontWeight: 800, fontSize: 12, marginBottom: 6 }}>
+                          Accès au site d’étiquettes ({m.acces.length})
+                        </p>
+                        {m.clientId.startsWith('sans-client:')
+                          ? <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                              Rattache d’abord ces machines à un client : les accès appartiennent au magasin, pas à la machine.
+                            </p>
+                          : <AccesClient clientId={m.clientId} />}
                       </div>
                     </div>
                   )}

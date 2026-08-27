@@ -107,3 +107,72 @@ export function useClientAcces(clientId?: string) {
 
   return { acces, loading, save, remove, refetch: fetch }
 }
+
+/** Un magasin et tout ce qui lui est mis à disposition. */
+export interface Magasin {
+  clientId: string
+  nom: string
+  ville?: string
+  imprimantes: Imprimante[]
+  acces: ClientAcces[]
+}
+
+/**
+ * Regroupe le parc par magasin plutôt que par machine.
+ *
+ * Un magasin apparaît dès qu'il a une imprimante **ou** un accès au site :
+ * Vapland n'a jamais reçu de machine mais dispose d'un compte, et il n'y a
+ * aucune raison qu'il soit absent de cet écran.
+ *
+ * Les deux tables sont chargées entièrement — quelques dizaines de lignes
+ * chacune — puis regroupées ici. Une jointure par magasin coûterait un
+ * aller-retour par fiche pour le même résultat.
+ */
+export function useMagasins() {
+  const [magasins, setMagasins] = useState<Magasin[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const supabase = createClient()
+
+  const fetch = useCallback(async () => {
+    setLoading(true)
+    const [parc, comptes] = await Promise.all([
+      supabase.from('imprimantes')
+        .select('*, client:clients(id, name, ville)')
+        .order('date_mise_a_dispo', { ascending: true }),
+      supabase.from('client_acces')
+        .select('*, client:clients(id, name, ville)')
+        .order('service').order('identifiant'),
+    ])
+
+    if (parc.error || comptes.error) {
+      setError(parc.error?.message ?? comptes.error?.message ?? null)
+      setLoading(false)
+      return
+    }
+
+    const par = new Map<string, Magasin>()
+    const fiche = (c: { id: string; name: string; ville?: string } | null, repli: string) => {
+      const id = c?.id ?? `sans-client:${repli}`
+      if (!par.has(id)) {
+        par.set(id, { clientId: id, nom: c?.name ?? repli, ville: c?.ville, imprimantes: [], acces: [] })
+      }
+      return par.get(id)!
+    }
+
+    for (const i of (parc.data ?? []) as Imprimante[]) {
+      fiche(i.client ?? null, i.magasin).imprimantes.push(i)
+    }
+    for (const a of (comptes.data ?? []) as (ClientAcces & { client?: { id: string; name: string; ville?: string } })[]) {
+      fiche(a.client ?? null, a.identifiant ?? 'compte').acces.push(a)
+    }
+
+    setMagasins([...par.values()].sort((a, b) => a.nom.localeCompare(b.nom, 'fr')))
+    setError(null)
+    setLoading(false)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { fetch() }, [fetch])
+
+  return { magasins, loading, error, refetch: fetch }
+}
