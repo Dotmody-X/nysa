@@ -362,3 +362,42 @@ export type StatCard = {
   trend?: number
   color?: 'fiery' | 'cyan' | 'wheat' | 'teal'
 }
+
+export type DemandeStatut = 'nouvelle' | 'en_cours' | 'en_attente' | 'livree' | 'facturee' | 'annulee'
+export type FichierCategorie = 'visuel' | 'facture' | 'brief' | 'autre'
+
+export interface DemandeFichier {
+  id: string
+  user_id: string
+  demande_id: string
+  categorie: FichierCategorie
+  filename: string
+  file_path: string
+  file_size?: number
+  file_type?: string
+  created_at: string
+}
+
+export interface Demande {
+  id: string
+  user_id: string
+  client_id?: string
+  client?: Pick<Client, 'id' | 'name' | 'ville'>
+  titre: string
+  demande?: string
+  statut: DemandeStatut
+  numero_facture?: string
+  montant?: number
+  date_demande?: string
+  date_livraison?: string
+  task_id?: string
+  task?: Pick<Task, 'id' | 'title' | 'status'>
+  project_id?: string
+  project?: Pick<Project, 'id' | 'name'>
+  /** Chemin relatif dans le Dropbox : les sources y restent, Nysa n'en garde que l'adresse. */
+  dossier_dropbox?: string
+  notes?: string
+  fichiers?: DemandeFichier[]
+  created_at: string
+  updated_at?: string
+}
