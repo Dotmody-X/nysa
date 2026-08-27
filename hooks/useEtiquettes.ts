@@ -96,6 +96,13 @@ export function useEtiquettes() {
     return { error }
   }
 
+  async function modifierEtiquette(id: string, champs: Partial<Etiquette>) {
+    const { error } = await supabase.from('etiquettes')
+      .update({ ...champs, updated_at: new Date().toISOString() }).eq('id', id)
+    if (!error) await fetch()
+    return { error }
+  }
+
   async function ajouterEtiquette(formatId: string, saveur: string) {
     const { error } = await supabase.from('etiquettes')
       .insert({ user_id: await uid(), format_id: formatId, saveur })
@@ -293,7 +300,7 @@ export function useEtiquettes() {
 
   return {
     gammes, commandes, loading, error, refetch: fetch,
-    marquerEtat, ajouterEtiquette, supprimerEtiquette,
+    marquerEtat, modifierEtiquette, ajouterEtiquette, supprimerEtiquette,
     enregistrerFormat, supprimerFormat, deplacerFormat, enregistrerGamme, supprimerGamme,
     enregistrerCommande, supprimerCommande, ajouterLigne, retirerLigne, enregistrerQuantites,
     televerser, supprimerFichier, lien,
