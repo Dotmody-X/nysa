@@ -7,7 +7,7 @@ import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/compo
 import { useEtiquettes } from '@/hooks/useEtiquettes'
 import type {
   EtatFichier, EtiquetteCommande, CommandeEtiquetteStatut,
-  EtiquetteFichier, EtiquetteFichierCategorie,
+  EtiquetteFichier, EtiquetteFichierCategorie, EtiquetteFormat, EtiquetteGamme,
 } from '@/types'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
@@ -103,7 +103,9 @@ function Depot({ commandeId, categorie, label, onEnvoi }: {
 
 export default function EtiquettesPage() {
   const e = useEtiquettes()
-  const [onglet, setOnglet] = useState<'etiquettes' | 'commandes'>('etiquettes')
+  const [onglet, setOnglet] = useState<'etiquettes' | 'formats' | 'commandes'>('etiquettes')
+  const [editFormat, setEditFormat] = useState<Partial<EtiquetteFormat> | null>(null)
+  const [editGamme, setEditGamme] = useState<Partial<EtiquetteGamme> | null>(null)
 
   // ── Table des étiquettes ────────────────────────────────────────────────
   const [recherche, setRecherche] = useState('')
@@ -200,6 +202,7 @@ export default function EtiquettesPage() {
 
       <div className="flex gap-2">
         {([['etiquettes', `Étiquettes (${lignes.length})`],
+           ['formats',    `Gammes et formats (${formatsAplat.length})`],
            ['commandes',  `Commandes (${e.commandes.length})`]] as const).map(([o, l]) => (
           <StickerButton key={o} tilt="none"
                          accent={onglet === o ? ACCENT : 'var(--bg-input)'}
@@ -295,6 +298,98 @@ export default function EtiquettesPage() {
               }}><Plus size={12} /> Ajouter</StickerButton>
             </div>
           )}
+        </SectionCard>
+      )}
+
+      {onglet === 'formats' && (
+        <SectionCard
+          title="Gammes et formats" accent={ACCENT}
+          action={
+            <span className="flex gap-2">
+              <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none"
+                             onClick={() => setEditGamme({ nom: '', ordre: (e.gammes.at(-1)?.ordre ?? 0) + 10 })}>
+                <Plus size={13} /> Gamme
+              </StickerButton>
+              <StickerButton accent={ACCENT}
+                             onClick={() => setEditFormat({ gamme_id: e.gammes[0]?.id, contenance: '' })}>
+                <Plus size={13} /> Format
+              </StickerButton>
+            </span>
+          }
+        >
+          <div style={{ overflowX: 'auto', border: '2px solid var(--ink)', borderRadius: 8 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
+              <thead>
+                <tr>
+                  <th style={entete}>Gamme</th>
+                  <th style={entete}>Contenance</th>
+                  <th style={entete}>Variante</th>
+                  <th style={entete}>Dimensions</th>
+                  <th style={entete}>Spécification</th>
+                  <th style={{ ...entete, textAlign: 'right' }}>Saveurs</th>
+                  <th style={{ ...entete, textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {e.gammes.flatMap(g => g.formats.length === 0
+                  ? [(
+                      <tr key={g.id}>
+                        <td style={{ ...cellule, fontWeight: 700 }}>{g.nom}</td>
+                        <td style={{ ...cellule, color: 'var(--text-muted)' }} colSpan={5}>
+                          Aucun format renseigné.
+                        </td>
+                        <td style={{ ...cellule, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <button title="Ajouter un format à cette gamme"
+                                  onClick={() => setEditFormat({ gamme_id: g.id, contenance: '' })}
+                                  style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+                            <Plus size={11} />
+                          </button>
+                          <button title="Renommer la gamme" onClick={() => setEditGamme({ ...g })}
+                                  style={{ marginLeft: 4, padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+                            <Pencil size={11} />
+                          </button>
+                          <button title="Supprimer la gamme"
+                                  onClick={async () => { if (confirm(`Supprimer la gamme « ${g.nom} » ?`)) await e.supprimerGamme(g.id) }}
+                                  style={{ marginLeft: 4, padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+                            <Trash2 size={11} />
+                          </button>
+                        </td>
+                      </tr>
+                    )]
+                  : g.formats.map((f, i) => (
+                      <tr key={f.id}>
+                        <td style={{ ...cellule, fontWeight: 700 }}>{i === 0 ? g.nom : ''}</td>
+                        <td style={cellule}>{f.contenance}</td>
+                        <td style={{ ...cellule, color: 'var(--text-muted)' }}>{f.variante ?? '—'}</td>
+                        <td style={cellule}>{f.dimensions ?? '—'}</td>
+                        <td style={{ ...cellule, color: 'var(--text-muted)', fontSize: 11, maxWidth: 320 }}>
+                          {f.specification ?? '—'}
+                        </td>
+                        <td style={{ ...cellule, textAlign: 'right' }}>{f.etiquettes.length}</td>
+                        <td style={{ ...cellule, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <button title="Modifier" onClick={() => setEditFormat({ ...f })}
+                                  style={{ padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+                            <Pencil size={11} />
+                          </button>
+                          <button title="Supprimer" style={{ marginLeft: 4, padding: 2, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}
+                                  onClick={async () => {
+                                    const n = f.etiquettes.length
+                                    const avertissement = n
+                                      ? `Supprimer ce format et ses ${n} étiquettes ?`
+                                      : 'Supprimer ce format ?'
+                                    if (confirm(avertissement)) await e.supprimerFormat(f.id)
+                                  }}>
+                            <Trash2 size={11} />
+                          </button>
+                        </td>
+                      </tr>
+                    )))}
+              </tbody>
+            </table>
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>
+            Supprimer un format emporte ses étiquettes, et supprimer une gamme emporte ses formats.
+          </p>
         </SectionCard>
       )}
 
@@ -440,6 +535,114 @@ export default function EtiquettesPage() {
             </div>
           )}
         </SectionCard>
+      )}
+
+      {editFormat && (
+        <div onClick={() => setEditFormat(null)}
+             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 60 }}>
+          <div onClick={ev => ev.stopPropagation()}
+               style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', borderRadius: 'var(--radius-lg)',
+                        boxShadow: '6px 6px 0 var(--ink)', padding: 20, width: 'min(560px, 100%)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+              <p style={{ ...DF, fontWeight: 800, fontSize: 15 }}>
+                {editFormat.id ? 'Modifier le format' : 'Nouveau format'}
+              </p>
+              <button onClick={() => setEditFormat(null)}
+                      style={{ padding: 5, border: '2px solid var(--ink)', borderRadius: 7, background: 'var(--bg-card)' }}>
+                <X size={13} />
+              </button>
+            </div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              <label style={{ fontSize: 12, fontWeight: 700 }}>Gamme *
+                <select value={editFormat.gamme_id ?? ''}
+                        onChange={ev => setEditFormat({ ...editFormat, gamme_id: ev.target.value })}
+                        style={{ ...champ, width: '100%', marginTop: 4 }}>
+                  {e.gammes.map(g => <option key={g.id} value={g.id}>{g.nom}</option>)}
+                </select></label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Contenance *
+                  <input autoFocus value={editFormat.contenance ?? ''} placeholder="30 ml"
+                         onChange={ev => setEditFormat({ ...editFormat, contenance: ev.target.value })}
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Variante
+                  <input value={editFormat.variante ?? ''} placeholder="avec livret"
+                         onChange={ev => setEditFormat({ ...editFormat, variante: ev.target.value || undefined })}
+                         style={{ ...champ, width: '100%', marginTop: 4 }} />
+                  <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--text-muted)' }}>
+                    À remplir seulement si la même contenance existe en deux déclinaisons.
+                  </span></label>
+              </div>
+              <label style={{ fontSize: 12, fontWeight: 700 }}>Dimensions
+                <input value={editFormat.dimensions ?? ''} placeholder="167 x 90 mm"
+                       onChange={ev => setEditFormat({ ...editFormat, dimensions: ev.target.value || undefined })}
+                       style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+              <label style={{ fontSize: 12, fontWeight: 700 }}>Spécification pour l’imprimeur
+                <textarea rows={4} value={editFormat.specification ?? ''}
+                          placeholder="pp transparent avec blanc de soutien - NORMAL - Sens de sortie : gauche en avant"
+                          onChange={ev => setEditFormat({ ...editFormat, specification: ev.target.value || undefined })}
+                          style={{ ...champ, width: '100%', marginTop: 4, resize: 'vertical' }} /></label>
+            </div>
+            <div className="flex justify-end gap-2" style={{ marginTop: 16 }}>
+              <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setEditFormat(null)}>
+                Annuler
+              </StickerButton>
+              <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
+                if (!editFormat.gamme_id || !editFormat.contenance?.trim()) return
+                await e.enregistrerFormat(editFormat as EtiquetteFormat)
+                setEditFormat(null)
+              }}>
+                {editFormat.id ? 'Enregistrer' : 'Créer'}
+              </StickerButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editGamme && (
+        <div onClick={() => setEditGamme(null)}
+             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 60 }}>
+          <div onClick={ev => ev.stopPropagation()}
+               style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', borderRadius: 'var(--radius-lg)',
+                        boxShadow: '6px 6px 0 var(--ink)', padding: 20, width: 'min(420px, 100%)' }}>
+            <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+              <p style={{ ...DF, fontWeight: 800, fontSize: 15 }}>
+                {editGamme.id ? 'Modifier la gamme' : 'Nouvelle gamme'}
+              </p>
+              <button onClick={() => setEditGamme(null)}
+                      style={{ padding: 5, border: '2px solid var(--ink)', borderRadius: 7, background: 'var(--bg-card)' }}>
+                <X size={13} />
+              </button>
+            </div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              <label style={{ fontSize: 12, fontWeight: 700 }}>Nom *
+                <input autoFocus value={editGamme.nom ?? ''}
+                       onChange={ev => setEditGamme({ ...editGamme, nom: ev.target.value })}
+                       style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+              <label style={{ fontSize: 12, fontWeight: 700 }}>Ordre d’affichage
+                <input type="number" value={editGamme.ordre ?? 0}
+                       onChange={ev => setEditGamme({ ...editGamme, ordre: Number(ev.target.value) })}
+                       style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+              <label style={{ fontSize: 12, fontWeight: 700 }}>Notes
+                <textarea rows={2} value={editGamme.notes ?? ''}
+                          onChange={ev => setEditGamme({ ...editGamme, notes: ev.target.value || undefined })}
+                          style={{ ...champ, width: '100%', marginTop: 4, resize: 'vertical' }} /></label>
+            </div>
+            <div className="flex justify-end gap-2" style={{ marginTop: 16 }}>
+              <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setEditGamme(null)}>
+                Annuler
+              </StickerButton>
+              <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
+                if (!editGamme.nom?.trim()) return
+                await e.enregistrerGamme(editGamme as EtiquetteGamme)
+                setEditGamme(null)
+              }}>
+                {editGamme.id ? 'Enregistrer' : 'Créer'}
+              </StickerButton>
+            </div>
+          </div>
+        </div>
       )}
 
       {edition && (
