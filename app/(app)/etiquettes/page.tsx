@@ -195,6 +195,8 @@ export default function EtiquettesPage() {
   const [onglet, setOnglet] = useState<'etiquettes' | 'formats' | 'commandes'>('etiquettes')
   const [editFormat, setEditFormat] = useState<Partial<EtiquetteFormat> | null>(null)
   const [editGamme, setEditGamme] = useState<Partial<EtiquetteGamme> | null>(null)
+  const [souciFormat, setSouciFormat] = useState<string | null>(null)
+  const [souciGamme, setSouciGamme] = useState<string | null>(null)
 
   // ── Table des étiquettes ────────────────────────────────────────────────
   const [recherche, setRecherche] = useState('')
@@ -448,7 +450,24 @@ export default function EtiquettesPage() {
                     )]
                   : g.formats.map((f, i) => (
                       <tr key={f.id}>
-                        <td style={{ ...cellule, fontWeight: 700 }}>{i === 0 ? g.nom : ''}</td>
+                        <td style={{ ...cellule, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          {i === 0 && (
+                            <span className="flex items-center gap-1">
+                              {g.nom}
+                              <button title="Modifier la gamme" onClick={() => setEditGamme({ ...g })}
+                                      style={{ padding: 1, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+                                <Pencil size={9} />
+                              </button>
+                              <button title="Supprimer la gamme et ses formats"
+                                      onClick={async () => {
+                                        if (confirm(`Supprimer « ${g.nom} » et ses ${g.formats.length} formats ?`)) await e.supprimerGamme(g.id)
+                                      }}
+                                      style={{ padding: 1, border: '2px solid var(--ink)', borderRadius: 5, background: 'var(--bg-card)' }}>
+                                <Trash2 size={9} />
+                              </button>
+                            </span>
+                          )}
+                        </td>
                         <td style={cellule}>{f.contenance}</td>
                         <td style={{ ...cellule, color: 'var(--text-muted)' }}>{f.variante ?? '—'}</td>
                         <td style={cellule}>{f.dimensions ?? '—'}</td>
@@ -677,13 +696,24 @@ export default function EtiquettesPage() {
                           onChange={ev => setEditFormat({ ...editFormat, specification: ev.target.value || undefined })}
                           style={{ ...champ, width: '100%', marginTop: 4, resize: 'vertical' }} /></label>
             </div>
+            {souciFormat && (
+              <p style={{ marginTop: 10, fontSize: 12, padding: 8, borderRadius: 8,
+                          border: '2px solid var(--ink)', background: 'var(--accent-recettes)', color: 'var(--ink-dark)' }}>
+                {souciFormat}
+              </p>
+            )}
             <div className="flex justify-end gap-2" style={{ marginTop: 16 }}>
-              <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setEditFormat(null)}>
+              <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => { setSouciFormat(null); setEditFormat(null) }}>
                 Annuler
               </StickerButton>
               <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
-                if (!editFormat.gamme_id || !editFormat.contenance?.trim()) return
-                await e.enregistrerFormat(editFormat as EtiquetteFormat)
+                if (!editFormat.gamme_id || !editFormat.contenance?.trim()) {
+                  setSouciFormat('La gamme et la contenance sont obligatoires.')
+                  return
+                }
+                const { error } = await e.enregistrerFormat(editFormat as EtiquetteFormat)
+                if (error) { setSouciFormat(error.message); return }
+                setSouciFormat(null)
                 setEditFormat(null)
               }}>
                 {editFormat.id ? 'Enregistrer' : 'Créer'}
@@ -723,13 +753,21 @@ export default function EtiquettesPage() {
                           onChange={ev => setEditGamme({ ...editGamme, notes: ev.target.value || undefined })}
                           style={{ ...champ, width: '100%', marginTop: 4, resize: 'vertical' }} /></label>
             </div>
+            {souciGamme && (
+              <p style={{ marginTop: 10, fontSize: 12, padding: 8, borderRadius: 8,
+                          border: '2px solid var(--ink)', background: 'var(--accent-recettes)', color: 'var(--ink-dark)' }}>
+                {souciGamme}
+              </p>
+            )}
             <div className="flex justify-end gap-2" style={{ marginTop: 16 }}>
-              <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => setEditGamme(null)}>
+              <StickerButton accent="var(--bg-input)" ink="var(--text)" tilt="none" onClick={() => { setSouciGamme(null); setEditGamme(null) }}>
                 Annuler
               </StickerButton>
               <StickerButton accent={ACCENT} tilt="none" onClick={async () => {
-                if (!editGamme.nom?.trim()) return
-                await e.enregistrerGamme(editGamme as EtiquetteGamme)
+                if (!editGamme.nom?.trim()) { setSouciGamme('Le nom est obligatoire.'); return }
+                const { error } = await e.enregistrerGamme(editGamme as EtiquetteGamme)
+                if (error) { setSouciGamme(error.message); return }
+                setSouciGamme(null)
                 setEditGamme(null)
               }}>
                 {editGamme.id ? 'Enregistrer' : 'Créer'}

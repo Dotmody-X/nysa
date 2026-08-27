@@ -112,7 +112,18 @@ export function useEtiquettes() {
   // ── Formats ───────────────────────────────────────────────────────────────
 
   async function enregistrerFormat(f: Partial<EtiquetteFormat> & { gamme_id: string; contenance: string }) {
-    const ligne = { ...f, user_id: await uid() }
+    // Liste blanche des colonnes : l'objet reçu de l'écran porte aussi ses
+    // étiquettes, que PostgREST rejetterait — il n'existe pas de colonne de ce
+    // nom. Un spread complet suffisait à faire échouer toute modification.
+    const ligne = {
+      user_id: await uid(),
+      gamme_id: f.gamme_id,
+      contenance: f.contenance.trim(),
+      variante: f.variante?.trim() || null,
+      dimensions: f.dimensions?.trim() || null,
+      specification: f.specification?.trim() || null,
+      actif: f.actif ?? true,
+    }
     const req = f.id
       ? supabase.from('etiquette_formats').update({ ...ligne, updated_at: new Date().toISOString() }).eq('id', f.id)
       : supabase.from('etiquette_formats').insert(ligne)
@@ -130,7 +141,14 @@ export function useEtiquettes() {
   // ── Gammes ────────────────────────────────────────────────────────────────
 
   async function enregistrerGamme(g: Partial<EtiquetteGamme> & { nom: string }) {
-    const ligne = { ...g, user_id: await uid() }
+    // Même précaution : la gamme reçue de l'écran porte ses formats.
+    const ligne = {
+      user_id: await uid(),
+      nom: g.nom.trim(),
+      ordre: g.ordre ?? 0,
+      actif: g.actif ?? true,
+      notes: g.notes?.trim() || null,
+    }
     const req = g.id
       ? supabase.from('etiquette_gammes').update({ ...ligne, updated_at: new Date().toISOString() }).eq('id', g.id)
       : supabase.from('etiquette_gammes').insert(ligne)
