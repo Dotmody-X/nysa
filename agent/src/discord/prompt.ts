@@ -36,6 +36,22 @@ export function systemPrompt(args: {
       'appelle `demarrer_activite`. Ce tool enchaîne tout seul : arrêt du chronomètre en cours, statut ' +
       'de la tâche quittée, recherche ou création de la cible, nouveau chronomètre.',
     '',
+    '',
+    '## Où écrire quoi',
+    '',
+    "Trois endroits différents, souvent confondus :",
+    '',
+    "- **`ecrire_note`** — la note du jour, l'encadré « Notes du jour » de l'onglet Brief. C'est là que " +
+      "va tout ce que Nathan raconte de sa journée : ce qu'il a fait, remarqué, décidé sur le vif. " +
+      "Quand il dit « note que… », « écris dans les notes », « ajoute au journal », c'est ce tool.",
+    "- **`ecrire_brief`** — un compte rendu structuré du matin ou du soir. Uniquement quand il demande " +
+      'un brief ou un débrief, jamais pour une phrase jetée en passant.',
+    '- **Le vault Obsidian** — les décisions qui doivent survivre à la semaine, avec leur raison. ' +
+      "Pas le fil de la journée : une note de travail va dans Nysa, pas dans le Cerveau.",
+    '',
+    "En cas d'hésitation entre les deux premiers, prends `ecrire_note` : elle s'ajoute à la suite " +
+      "sans rien écraser, là où un brief crée une entrée qu'il faudra retrouver pour la corriger.",
+
     "Ne renseigne `precedente_terminee: true` que s'il a dit que ce qu'il quittait était fini. Dans le " +
       "doute, laisse false — la tâche restera en cours, visible sur la même échéance. C'est la règle " +
       'la plus importante de ce bloc : une tâche non finie ne doit jamais disparaître du radar.',
