@@ -7,6 +7,7 @@ import {
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useEtiquettes } from '@/hooks/useEtiquettes'
 import { santeCode, type SanteCode } from '@/lib/ean'
+import { ecartDevis, anneeDe, type EcartDevis } from '@/lib/etiquettes'
 import type {
   EtatFichier, EtiquetteCommande, CommandeEtiquetteStatut,
   EtiquetteDocument, EtiquetteDocCategorie, EtiquetteFormat, EtiquetteGamme,
@@ -21,6 +22,14 @@ const ETATS: Record<EtatFichier, { label: string; court: string; couleur: string
   changement_envoye: { label: 'Changement envoyé', court: 'Envoyé',  couleur: 'var(--accent-calendar)' },
 }
 
+const ECART: Record<EcartDevis, { label: string; couleur: string; aide: string }> = {
+  sans_devis:   { label: 'Sans devis',   couleur: 'var(--bg-input)',        aide: 'Aucun devis saisi : rien à comparer' },
+  sans_facture: { label: 'Devis seul',   couleur: 'var(--accent-todo)',     aide: 'Devis saisi, facture pas encore reçue' },
+  conforme:     { label: 'Conforme',     couleur: 'var(--accent-sport)',    aide: 'La facture correspond au devis' },
+  economie:     { label: 'Sous le devis', couleur: 'var(--accent-sport)',   aide: 'Facturé moins que le devis — rien à signaler' },
+  depassement:  { label: 'Dépassement',  couleur: 'var(--accent-recettes)', aide: 'Facturé PLUS que le devis — à vérifier avec l’imprimeur' },
+}
+
 const SANTE: Record<SanteCode, { label: string; couleur: string; aide: string }> = {
   absent:       { label: '—',          couleur: 'var(--bg-input)',        aide: 'Aucun code saisi' },
   conforme:     { label: 'Conforme',   couleur: 'var(--accent-sport)',    aide: 'Clé juste, préfixe de la marque, code unique' },
@@ -32,6 +41,7 @@ const SANTE: Record<SanteCode, { label: string; couleur: string; aide: string }>
 const STATUTS: { value: CommandeEtiquetteStatut; label: string; couleur: string }[] = [
   { value: 'brouillon',     label: 'Brouillon',     couleur: 'var(--bg-input)' },
   { value: 'confirmee',     label: 'Confirmée',     couleur: 'var(--accent-calendar)' },
+  { value: 'passee',        label: 'Passée',        couleur: 'var(--accent-clients)' },
   { value: 'en_production', label: 'En production', couleur: 'var(--accent-todo)' },
   { value: 'recue',         label: 'Reçue',         couleur: 'var(--accent-sport)' },
   { value: 'annulee',       label: 'Annulée',       couleur: 'var(--accent-recettes)' },
@@ -302,6 +312,8 @@ export default function EtiquettesPage() {
   const [fFormat, setFFormat] = useState('')
   const [fEtat, setFEtat] = useState<EtatFichier | ''>('')
   const [fSante, setFSante] = useState<SanteCode | ''>('')
+  const [annee, setAnnee] = useState(new Date().getFullYear())
+  const [fDoc, setFDoc] = useState<EtiquetteDocCategorie | ''>('')
   const [saveurNouvelle, setSaveurNouvelle] = useState('')
 
   // ── Grille de commande ──────────────────────────────────────────────────
@@ -350,6 +362,31 @@ export default function EtiquettesPage() {
   }, [lignes, recherche, fGamme, fFormat, fEtat, fSante, portees])
 
   const aRenvoyer = lignes.filter(x => x.etat_fichier === 'modifie')
+
+  /**
+   * Bilan de l'année civile, pas des 365 derniers jours : c'est l'exercice
+   * comptable qui compte, et une commande de janvier ne doit pas sortir du
+   * total parce qu'on est en décembre.
+   */
+  const annees = useMemo(() => {
+    const s = new Set(e.commandes.map(c => anneeDe(c.date_commande)))
+    s.add(new Date().getFullYear())
+    return [...s].sort((a, b) => b - a)
+  }, [e.commandes])
+
+  const bilan = useMemo(() => {
+    const retenues = e.commandes.filter(c =>
+      anneeDe(c.date_commande) === annee && c.statut !== 'annulee' && c.statut !== 'brouillon')
+    return {
+      commandes: retenues.length,
+      etiquettes: retenues.reduce((s, c) => s + (c.lignes ?? []).reduce((n, l) => n + l.quantite, 0), 0),
+      // Ce qu'on a réellement payé : les factures. Les devis ne sont qu'une
+      // annonce, et les additionner gonflerait la dépense.
+      depense: retenues.reduce((s, c) => s + (c.documents ?? [])
+        .filter(d => d.categorie === 'facture')
+        .reduce((n, d) => n + (d.montant ?? 0), 0), 0),
+    }
+  }, [e.commandes, annee])
   const codesDefectueux = lignes.filter(x =>
     santeCode(x.code_barre, portees.get(x.code_barre ?? '') ?? 0) === 'cle_invalide').length
 
@@ -387,7 +424,20 @@ export default function EtiquettesPage() {
                  accent={codesDefectueux ? 'var(--accent-recettes)' : ACCENT} />
         <KpiCard label="À renvoyer" value={String(aRenvoyer.length)} sub="fichier modifié"
                  accent={aRenvoyer.length ? 'var(--accent-recettes)' : ACCENT} />
+        <KpiCard label={`Commandées en ${annee}`} value={bilan.etiquettes.toLocaleString('fr-BE')}
+                 sub={`${bilan.commandes} commande${bilan.commandes > 1 ? 's' : ''}`} accent={ACCENT} />
+        <KpiCard label={`Dépensé en ${annee}`}
+                 value={`${bilan.depense.toLocaleString('fr-BE', { maximumFractionDigits: 0 })} €`}
+                 sub="factures reçues" accent={ACCENT} />
       </KpiGrid>
+
+      <div className="flex items-center gap-2">
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Année du bilan</span>
+        <select value={annee} onChange={ev => setAnnee(Number(ev.target.value))}
+                style={{ ...champ, width: 'auto' }}>
+          {annees.map(a => <option key={a} value={a}>{a}</option>)}
+        </select>
+      </div>
 
       {aRenvoyer.length > 0 && (
         <div style={{ padding: 10, border: '2px solid var(--ink)', borderRadius: 'var(--radius-md)',
@@ -662,8 +712,16 @@ export default function EtiquettesPage() {
                 const total = (c.lignes ?? []).reduce((s, l) => s + l.quantite, 0)
                 const docs = c.documents ?? []
                 const factures = docs.filter(d => d.categorie === 'facture')
+                const devis = docs.filter(d => d.categorie === 'devis')
                 const bls = docs.filter(d => d.categorie === 'bl')
                 const totalFacture = factures.reduce((s, d) => s + (d.montant ?? 0), 0)
+                const totalDevis = devis.reduce((s, d) => s + (d.montant ?? 0), 0)
+                // Tant qu'aucune facture n'est arrivée, c'est le devis qui
+                // annonce le montant. Dès qu'elles arrivent, c'est elles qui
+                // font foi : le devis n'était qu'une promesse.
+                const montantAffiche = totalFacture || totalDevis
+                const ecart = ecartDevis(totalDevis, totalFacture)
+                const docsVus = fDoc ? docs.filter(d => d.categorie === fDoc) : docs
                 const ouverte = cmdOuverte === c.id
                 return (
                   <div key={c.id} style={{ border: '2px solid var(--ink)', borderRadius: 'var(--radius-md)',
@@ -677,8 +735,9 @@ export default function EtiquettesPage() {
                         </p>
                         <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                           {c.date_commande ?? 'sans date'} · {(c.lignes ?? []).length} références · {total} étiquettes
-                          {factures.length > 0 && ` · ${factures.length} facture${factures.length > 1 ? 's' : ''}`}
-                          {totalFacture > 0 && ` · ${totalFacture.toLocaleString('fr-BE')} €`}
+                          {montantAffiche > 0 && ` · ${montantAffiche.toLocaleString('fr-BE')} €`}
+                          {montantAffiche > 0 && (totalFacture ? ' facturés' : ' devisés')}
+                          {factures.length > 1 && ` (${factures.length} factures)`}
                           {bls.length > 0 && ` · ${bls.length} BL`}
                         </p>
                       </div>
@@ -690,10 +749,27 @@ export default function EtiquettesPage() {
                             <AlertTriangle size={10} /> {alerte.length}
                           </span>
                         )}
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-                                       border: '2px solid var(--ink)', background: st.couleur, color: 'var(--ink-dark)' }}>
-                          {st.label}
-                        </span>
+                        {ecart !== 'sans_devis' && (
+                          <span title={ECART[ecart].aide}
+                                style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 999,
+                                         border: '2px solid var(--ink)', background: ECART[ecart].couleur,
+                                         color: 'var(--ink-dark)', whiteSpace: 'nowrap' }}>
+                            {ECART[ecart].label}
+                            {ecart === 'depassement' && ` +${(totalFacture - totalDevis).toLocaleString('fr-BE')} €`}
+                            {ecart === 'economie' && ` −${(totalDevis - totalFacture).toLocaleString('fr-BE')} €`}
+                          </span>
+                        )}
+                        {/* Le statut se change ici : c'est le geste le plus
+                            fréquent d'une commande, il n'a pas à passer par
+                            un formulaire. */}
+                        <select value={c.statut} onClick={ev => ev.stopPropagation()}
+                                onChange={ev => e.enregistrerCommande({
+                                  id: c.id, statut: ev.target.value as CommandeEtiquetteStatut })}
+                                style={{ fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 999,
+                                         border: '2px solid var(--ink)', background: st.couleur,
+                                         color: 'var(--ink-dark)', cursor: 'pointer' }}>
+                          {STATUTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                        </select>
                       </span>
                     </div>
 
@@ -769,11 +845,22 @@ export default function EtiquettesPage() {
 
                         <div>
                           <div className="flex items-center justify-between gap-2" style={{ marginBottom: 4 }}>
-                            <p style={{ ...DF, fontWeight: 800, fontSize: 12 }}>
-                              Factures, BL et documents ({docs.length})
-                            </p>
+                            <span className="flex items-center gap-2">
+                              <p style={{ ...DF, fontWeight: 800, fontSize: 12 }}>
+                                Documents ({fDoc ? `${docsVus.length} / ${docs.length}` : docs.length})
+                              </p>
+                              <select value={fDoc} onChange={ev => setFDoc(ev.target.value as EtiquetteDocCategorie | '')}
+                                      style={{ ...petit, width: 'auto' }}>
+                                <option value="">Tous les types</option>
+                                {TYPES_DOC.map(x => (
+                                  <option key={x.value} value={x.value}>
+                                    {x.label} ({docs.filter(d => d.categorie === x.value).length})
+                                  </option>
+                                ))}
+                              </select>
+                            </span>
                             <StickerButton accent={ACCENT} tilt="none" onClick={() =>
-                              e.enregistrerDocument({ commande_id: c.id, categorie: 'facture', numero: 'à compléter' })}>
+                              e.enregistrerDocument({ commande_id: c.id, categorie: fDoc || 'devis', numero: 'à compléter' })}>
                               <Plus size={12} /> Ajouter
                             </StickerButton>
                           </div>
@@ -796,18 +883,40 @@ export default function EtiquettesPage() {
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {docs.map(d => (
+                                  {docsVus.map(d => (
                                     <LigneDocument key={d.id} d={d} lien={e.lien}
                                                    onEnregistrer={e.enregistrerDocument}
                                                    onSupprimer={e.supprimerDocument}
                                                    onJoindre={e.televerser}
                                                    onDetacher={e.retirerFichier} />
                                   ))}
+                                  {totalDevis > 0 && (
+                                    <tr>
+                                      <td style={{ ...cellule, fontWeight: 700 }} colSpan={3}>Total devisé</td>
+                                      <td style={{ ...cellule, textAlign: 'right', fontWeight: 700 }}>
+                                        {totalDevis.toLocaleString('fr-BE')} €
+                                      </td>
+                                      <td style={cellule} colSpan={2} />
+                                    </tr>
+                                  )}
                                   {totalFacture > 0 && (
                                     <tr>
                                       <td style={{ ...cellule, fontWeight: 700 }} colSpan={3}>Total facturé</td>
                                       <td style={{ ...cellule, textAlign: 'right', fontWeight: 700 }}>
                                         {totalFacture.toLocaleString('fr-BE')} €
+                                      </td>
+                                      <td style={cellule} colSpan={2} />
+                                    </tr>
+                                  )}
+                                  {(ecart === 'depassement' || ecart === 'economie') && (
+                                    <tr>
+                                      <td style={{ ...cellule, fontWeight: 700 }} colSpan={3}>
+                                        {ecart === 'depassement' ? 'Dépassement du devis' : 'Sous le devis'}
+                                      </td>
+                                      <td style={{ ...cellule, textAlign: 'right', fontWeight: 700,
+                                                   color: ecart === 'depassement' ? 'var(--accent-recettes)' : 'var(--accent-sport)' }}>
+                                        {ecart === 'depassement' ? '+' : '−'}
+                                        {Math.abs(totalFacture - totalDevis).toLocaleString('fr-BE')} €
                                       </td>
                                       <td style={cellule} colSpan={2} />
                                     </tr>

@@ -55,14 +55,13 @@ export default function SauvegardePage() {
       const { data: entries } = await supabase.from('time_entries').select('*, projects(name)').order('started_at', { ascending: false })
       if (!entries) { setCsvStatus('error'); return }
       const rows = [
-        ['Date','Projet','Description','Catégorie','Durée (min)','Facturable','Début','Fin'],
+        ['Date','Projet','Description','Catégorie','Durée (min)','Début','Fin'],
         ...(entries as Array<Record<string, unknown> & { projects?: { name: string } }>).map(e => [
           String(e.started_at ?? '').slice(0,10),
           String((e.projects as { name?: string })?.name ?? ''),
           String(e.description ?? ''),
           String(e.category ?? ''),
           String(Math.round(Number(e.duration_seconds ?? 0) / 60)),
-          e.is_billable ? 'Oui' : 'Non',
           String(e.started_at ?? ''),
           String(e.ended_at ?? ''),
         ]),

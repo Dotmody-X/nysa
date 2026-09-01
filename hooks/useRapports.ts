@@ -10,7 +10,6 @@ export type ProjectStat = {
   project_name: string
   color: string
   total_seconds: number
-  billable_seconds: number
   entries_count: number
 }
 
@@ -26,7 +25,6 @@ export type DayStat = {
 export type RapportData = {
   // Time
   totalSeconds: number
-  billableSeconds: number
   projectStats: ProjectStat[]
   dailyStats: DayStat[]
   // Tasks
@@ -114,7 +112,6 @@ export function useRapports(period: RapportPeriod, ref: Date) {
     // ── Time ──
     const entries          = timeEntries ?? []
     const totalSeconds     = entries.reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
-    const billableSeconds  = entries.filter(e => e.is_billable).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
 
     const projectStatsMap: Record<string, ProjectStat> = {}
     entries.forEach(e => {
@@ -126,12 +123,10 @@ export function useRapports(period: RapportPeriod, ref: Date) {
           project_name:     proj?.name ?? 'Sans projet',
           color:            proj?.color ?? '#888',
           total_seconds:    0,
-          billable_seconds: 0,
           entries_count:    0,
         }
       }
       projectStatsMap[key].total_seconds    += e.duration_seconds ?? 0
-      projectStatsMap[key].billable_seconds += e.is_billable ? (e.duration_seconds ?? 0) : 0
       projectStatsMap[key].entries_count    += 1
     })
     const projectStats = Object.values(projectStatsMap).sort((a, b) => b.total_seconds - a.total_seconds)
@@ -177,7 +172,7 @@ export function useRapports(period: RapportPeriod, ref: Date) {
     const latestWeight = weights?.[0]?.weight_kg ?? null
 
     setData({
-      totalSeconds, billableSeconds, projectStats, dailyStats,
+      totalSeconds, projectStats, dailyStats,
       tasksDone, tasksTotal, tasksLate,
       totalIncome, totalExpense,
       totalRuns, totalKm, latestWeight,

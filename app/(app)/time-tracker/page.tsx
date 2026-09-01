@@ -85,12 +85,11 @@ function toLocalTimeStr(iso: string) {
 
 function exportCSV(entries: TimeEntry[], projects: Array<{ id: string; name: string }>) {
   const rows = [
-    ['Description','Projet','Catégorie','Facturable','Début','Fin','Durée (s)'],
+    ['Description','Projet','Catégorie','Début','Fin','Durée (s)'],
     ...entries.filter(e => e.duration_seconds).map(e => {
       const proj = projects.find(p => p.id === e.project_id)
       return [
         e.description ?? '', proj?.name ?? '', e.category ?? '',
-        e.is_billable ? 'Oui' : 'Non',
         e.started_at, e.ended_at ?? '', String(e.duration_seconds ?? 0),
       ]
     }),
@@ -324,7 +323,7 @@ function EditEntryModal({
   projects: Array<{ id: string; name: string; color: string }>
   categories: string[]
   onAddCategory: (v: string) => void
-  onSave:   (id: string, patch: Partial<Pick<TimeEntry,'description'|'project_id'|'client_id'|'category'|'started_at'|'ended_at'|'is_billable'>>) => Promise<unknown>
+  onSave:   (id: string, patch: Partial<Pick<TimeEntry,'description'|'project_id'|'client_id'|'category'|'started_at'|'ended_at'>>) => Promise<unknown>
   onDelete: (id: string) => Promise<void>
   onClose:  () => void
 }) {
@@ -333,7 +332,6 @@ function EditEntryModal({
     projectId:   entry.project_id  ?? '',
     clientId:    entry.client_id   ?? '',
     category:    entry.category    ?? '',
-    billable:    entry.is_billable,
     startDate:   toLocalDate(entry.started_at),
     startTime:   toLocalTimeStr(entry.started_at),
     endDate:     entry.ended_at ? toLocalDate(entry.ended_at)    : toLocalDate(entry.started_at),
@@ -346,7 +344,7 @@ function EditEntryModal({
     setSaving(true)
     const startedAt = new Date(`${form.startDate}T${form.startTime}:00`).toISOString()
     const endedAt   = form.endTime ? new Date(`${form.endDate}T${form.endTime}:00`).toISOString() : entry.ended_at
-    await onSave(entry.id, { description: form.description || undefined, project_id: form.projectId || undefined, client_id: form.clientId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
+    await onSave(entry.id, { description: form.description || undefined, project_id: form.projectId || undefined, client_id: form.clientId || undefined, category: form.category || undefined, started_at: startedAt, ended_at: endedAt })
     setSaving(false); onClose()
   }
 
@@ -379,13 +377,6 @@ function EditEntryModal({
             <input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={{ ...inp, marginBottom: 4 }} />
             <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} placeholder="—" style={inp} /></div>
         </div>
-        <button onClick={() => setForm(f => ({ ...f, billable: !f.billable }))}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${form.billable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`, background: form.billable ? 'rgba(14,149,148,0.08)' : 'transparent', cursor: 'pointer', ...DF }}>
-          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? 'var(--azul)' : 'var(--border)'}`, background: form.billable ? 'var(--azul)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {form.billable && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
-          </div>
-          <span style={{ fontSize: 12, color: form.billable ? 'var(--azul)' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
-        </button>
         <div className="flex gap-2 justify-between">
           {!confirm ? (
             <button onClick={() => setConfirm(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--accent-brand)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -414,14 +405,14 @@ function ManualEntryModal({
   projects: Array<{ id: string; name: string; color: string }>
   categories: string[]
   onAddCategory: (v: string) => void
-  onCreate: (patch: { description?: string; project_id?: string; client_id?: string; category?: string; is_billable?: boolean; started_at: string; ended_at?: string }) => Promise<unknown>
+  onCreate: (patch: { description?: string; project_id?: string; client_id?: string; category?: string; started_at: string; ended_at?: string }) => Promise<unknown>
   onClose:  () => void
 }) {
   const today = new Date()
   const yd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
   const currentTime = `${String(today.getHours()).padStart(2,'0')}:${String(today.getMinutes()).padStart(2,'0')}`
   const [form, setForm] = useState({
-    description: '', projectId: '', clientId: '', category: readDefaultLabel(), billable: true,
+    description: '', projectId: '', clientId: '', category: readDefaultLabel(),
     startDate: yd(today), startTime: currentTime, endDate: '', endTime: '',
   })
   const [saving, setSaving] = useState(false)
@@ -437,7 +428,7 @@ function ManualEntryModal({
     }
     const startedAt = parseLocalDate(form.startDate, form.startTime)
     const endedAt   = form.endDate && form.endTime ? parseLocalDate(form.endDate, form.endTime) : undefined
-    await onCreate({ description: form.description || undefined, project_id: form.projectId || undefined, client_id: form.clientId || undefined, category: form.category || undefined, is_billable: form.billable, started_at: startedAt, ended_at: endedAt })
+    await onCreate({ description: form.description || undefined, project_id: form.projectId || undefined, client_id: form.clientId || undefined, category: form.category || undefined, started_at: startedAt, ended_at: endedAt })
     setSaving(false); onClose()
   }
   const inp: React.CSSProperties = { background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12, outline: 'none', width: '100%' }
@@ -469,13 +460,6 @@ function ManualEntryModal({
             <input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={{ ...inp, marginBottom: 4 }} />
             <input type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} placeholder="—" style={inp} /></div>
         </div>
-        <button onClick={() => setForm(f => ({ ...f, billable: !f.billable }))}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: `1px solid ${form.billable ? 'rgba(14,149,148,0.3)' : 'var(--border)'}`, background: form.billable ? 'rgba(14,149,148,0.08)' : 'transparent', cursor: 'pointer', ...DF }}>
-          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${form.billable ? 'var(--azul)' : 'var(--border)'}`, background: form.billable ? 'var(--azul)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {form.billable && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
-          </div>
-          <span style={{ fontSize: 12, color: form.billable ? 'var(--azul)' : 'var(--text-muted)', fontWeight: 600 }}>Facturable</span>
-        </button>
         <div className="flex gap-2 justify-end">
           <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer' }}>Annuler</button>
           <button onClick={submit} disabled={saving || !form.startDate || !form.startTime} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'var(--accent-brand)', color: '#fff', border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1 }}>
@@ -499,7 +483,6 @@ export default function TimeTrackerPage() {
   const [manualOpen,   setManualOpen]   = useState(false)
   const [desc,    setDesc]    = useState('')
   const [projId,  setProjId]  = useState('')
-  const [billable, setBillable] = useState(true)
   const [addToCalendar, setAddToCalendar] = useState(true)
   const [calendarLabel, setCalendarLabel] = useState('')
   const [showLabelPicker, setShowLabelPicker] = useState(false)
@@ -557,8 +540,6 @@ export default function TimeTrackerPage() {
   const workingDays = chartDays.slice(0, 5).filter((_, i) => secPerDay[i] > 0).length
   const avgSec     = workingDays > 0 ? totalSec / workingDays : 0
   const activeProjs = new Set(entries.filter(e => e.project_id).map(e => e.project_id)).size
-  const billableSec = entries.filter(e => e.is_billable && e.duration_seconds).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
-  const prodPct    = totalSec > 0 ? Math.round(billableSec / totalSec * 100) : 0
 
   /* ── Grouped rows (selon groupBy) ─────────────────────────────────────── */
   type Row = { id: string; name: string; color: string; seconds: number; desc: string; category: string | null }
@@ -623,7 +604,7 @@ export default function TimeTrackerPage() {
 
   async function handleStart() {
     if (!desc.trim()) return
-    await start(projId || null, desc.trim(), billable)
+    await start(projId || null, desc.trim())
     setDesc('')
   }
   async function handleStop() {
@@ -635,7 +616,7 @@ export default function TimeTrackerPage() {
     // Démarre une session pour ce projet/catégorie
     const projectId = row.id !== 'none' && groupBy === 'project' ? row.id : null
     const description = row.desc || row.name
-    await start(projectId, description, true)
+    await start(projectId, description)
   }
 
   /* ── Shared styles ───────────────────────────────────────────────────────── */
@@ -671,7 +652,6 @@ export default function TimeTrackerPage() {
         <KpiCard label="Temps total"     value={fmtDur(totalSec)}    sub={PERIOD_LABELS[period]} accent="var(--accent-time)" />
         <KpiCard label="Moyenne / jour"  value={fmtDur(avgSec)}      sub={`${workingDays} jour${workingDays > 1 ? 's' : ''} travaillé${workingDays > 1 ? 's' : ''}`} accent="var(--accent-time)" />
         <KpiCard label="Projets actifs"  value={String(activeProjs)} sub={PERIOD_LABELS[period]} accent="var(--accent-brand)" color="var(--accent-brand)" />
-        <KpiCard label="Taux facturable" value={`${prodPct}%`}       accent="var(--azul)" color="var(--azul)" progress={prodPct / 100} />
       </KpiGrid>
 
       {/* ─── Session en cours ─────────────────────────────────────────────── */}
@@ -755,9 +735,6 @@ export default function TimeTrackerPage() {
               <select value={projId} onChange={e => setProjId(e.target.value)} style={{ flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12 }}>
                 <option value="">Sans projet</option>{activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
-              <button onClick={() => setBillable(b => !b)} className="nb-press" style={{ minHeight: 40, padding: '8px 14px', borderRadius: 8, background: billable ? 'rgba(14,149,148,0.15)' : 'var(--bg-input)', color: billable ? 'var(--azul)' : 'var(--text-muted)', border: '1px solid var(--border)', ...DF, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-                {billable ? '€ Fact.' : 'Non fact.'}
-              </button>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
               <button onClick={handleStart} disabled={!desc.trim()} className="nb-press" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 10, background: desc.trim() ? 'var(--accent-brand)' : 'var(--bg-input)', color: desc.trim() ? 'var(--ink-dark)' : 'var(--text-muted)', border: desc.trim() ? '2px solid var(--ink)' : '1px solid var(--border)', boxShadow: desc.trim() ? '4px 4px 0 var(--ink)' : 'none', cursor: desc.trim() ? 'pointer' : 'default', ...DF, fontWeight: 700, fontSize: 13 }}>
@@ -973,7 +950,7 @@ export default function TimeTrackerPage() {
                                   onClose={() => setOpenMenu(null)}
                                   items={[
                                     { label: 'Modifier', icon: <Pencil size={10} />, onClick: () => setEditingEntry(e as TimeEntry) },
-                                    { label: 'Dupliquer', icon: <Plus size={10} />, onClick: () => createManual({ description: e.description ?? undefined, project_id: e.project_id ?? undefined, category: e.category ?? undefined, is_billable: e.is_billable, started_at: new Date().toISOString() }) },
+                                    { label: 'Dupliquer', icon: <Plus size={10} />, onClick: () => createManual({ description: e.description ?? undefined, project_id: e.project_id ?? undefined, category: e.category ?? undefined, started_at: new Date().toISOString() }) },
                                     { label: 'Supprimer', icon: <Trash2 size={10} />, danger: true, onClick: () => remove(e.id) },
                                   ]}
                                 />
@@ -1151,7 +1128,7 @@ export default function TimeTrackerPage() {
                       items={[
                         { label: 'Modifier', icon: <Pencil size={10} />, onClick: () => setEditingEntry(e as TimeEntry) },
                         { label: 'Dupliquer', icon: <Plus size={10} />, onClick: () => {
-                            createManual({ description: e.description ?? undefined, project_id: e.project_id ?? undefined, category: e.category ?? undefined, is_billable: e.is_billable, started_at: new Date().toISOString() })
+                            createManual({ description: e.description ?? undefined, project_id: e.project_id ?? undefined, category: e.category ?? undefined, started_at: new Date().toISOString() })
                           }},
                         { label: 'Supprimer', icon: <Trash2 size={10} />, danger: true, onClick: () => remove(e.id) },
                       ]}

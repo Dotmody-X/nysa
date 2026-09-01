@@ -46,7 +46,7 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
 
   useEffect(() => { fetch() }, [fetch])
 
-  async function start(projectId: string | null, description: string, isbillable = true) {
+  async function start(projectId: string | null, description: string) {
     const { data: { user } } = await supabase.auth.getUser()
     const { data, error } = await supabase
       .from('time_entries')
@@ -54,7 +54,6 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
         user_id:     user!.id,
         project_id:  projectId,
         description,
-        is_billable: isbillable,
         started_at:  new Date().toISOString(),
       })
       .select('*, projects(name, color)')
@@ -105,7 +104,7 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
     return { data, error, calendarEvent }
   }
 
-  async function update(id: string, patch: Partial<Pick<TimeEntry, 'description' | 'project_id' | 'category' | 'started_at' | 'ended_at' | 'is_billable'>>) {
+  async function update(id: string, patch: Partial<Pick<TimeEntry, 'description' | 'project_id' | 'category' | 'started_at' | 'ended_at'>>) {
     // Recalculate duration if times changed
     const payload: Record<string, unknown> = { ...patch }
     const entry = entries.find(e => e.id === id)
@@ -133,7 +132,6 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
     description?: string
     project_id?: string
     category?: string
-    is_billable?: boolean
     started_at: string
     ended_at?: string
   }) {
@@ -148,7 +146,6 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
         description:      patch.description ?? null,
         project_id:       patch.project_id ?? null,
         category:         patch.category ?? null,
-        is_billable:      patch.is_billable ?? true,
         started_at:       patch.started_at,
         ended_at:         patch.ended_at ?? null,
         duration_seconds: duration ?? null,
