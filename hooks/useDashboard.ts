@@ -26,7 +26,6 @@ export type DashboardData = {
     project_name: string | null
     project_color: string | null
     duration_seconds: number | null
-    is_billable: boolean
     started_at: string
   }>
   todaySeconds: number
@@ -98,7 +97,7 @@ export function useDashboard() {
         supabase.from('tasks').select('id,title,status,priority,due_date,due_time,project_id,estimated_minutes')
           .eq('due_date', todayStr).neq('status', 'cancelled'),
         supabase.from('projects').select('id,name,color,progress,deadline,status').eq('status', 'active').order('deadline', { ascending: true }),
-        supabase.from('time_entries').select('id,description,project_id,duration_seconds,is_billable,started_at')
+        supabase.from('time_entries').select('id,description,project_id,duration_seconds,started_at')
           .gte('started_at', todayStr + 'T00:00:00').lt('started_at', todayStr + 'T23:59:59').order('started_at', { ascending: false }),
         supabase.from('time_entries').select('duration_seconds')
           .gte('started_at', monDate.toISOString()).lt('started_at', sunDate.toISOString()),

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/icons'
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useRapports } from '@/hooks/useRapports'
+import { useBilanEtiquettes } from '@/hooks/useBilanEtiquettes'
 import { useHealth }   from '@/hooks/useHealth'
 import { useMultiMonthSummary } from '@/hooks/useBudget'
 import type { DayStat, ProjectStat } from '@/hooks/useRapports'
@@ -242,6 +243,10 @@ export default function RapportsPage() {
   }, [activePeriod])
 
   const { data, loading }  = useRapports(rapportPeriod, ref)
+  // Bilan sur l'annee civile : il ne suit pas la periode choisie plus haut,
+  // qui va de sept jours a un an glissant. Un exercice comptable ne glisse pas.
+  const [anneeEtiq, setAnneeEtiq] = useState(new Date().getFullYear())
+  const { bilan: bilanEtiq } = useBilanEtiquettes(anneeEtiq)
   const health             = useHealth()
   const now                = new Date()
   const multiMonth         = useMultiMonthSummary(now.getFullYear(), now.getMonth() + 1, 6)
@@ -261,9 +266,11 @@ export default function RapportsPage() {
   const scoreProductivite = Math.min(100, Math.round(actualHours / (days * targetHoursPerDay) * 100))
 
   const heuresPrestees = Math.round((data?.totalSeconds ?? 0) / 3600)
+  const moyenneParJour = (() => {
+    const j = (data?.dailyStats ?? []).filter(d => d.seconds > 0)
+    return j.length ? Math.round((j.reduce((s, d) => s + d.seconds, 0) / j.length / 3600) * 10) / 10 : 0
+  })()
   const joursPrestes   = (data?.dailyStats ?? []).filter(d => d.seconds > 0).length
-  const partFacturable = data?.totalSeconds
-    ? Math.round((data.billableSeconds / data.totalSeconds) * 100) : 0
 
   const balance        = (data?.totalIncome ?? 0) - (data?.totalExpense ?? 0)
 
@@ -414,7 +421,6 @@ export default function RapportsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {[
           { l: 'Total', v: fmtSec(data?.totalSeconds ?? 0), c: TEAL },
-          { l: 'Facturable', v: fmtSec(data?.billableSeconds ?? 0), c: ORANGE },
           { l: 'Moy. / jour', v: fmtSec(Math.round((data?.totalSeconds ?? 0) / days)), c: WHEAT },
           { l: 'Projets actifs', v: String(data?.projectStats?.length ?? 0), c: WHEAT },
         ].map(s => (
@@ -526,7 +532,7 @@ export default function RapportsPage() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gridTemplateRows: 'minmax(280px,auto) auto minmax(480px,auto) minmax(360px,auto) minmax(260px,auto)',
+        gridTemplateRows: 'minmax(280px,auto) auto minmax(480px,auto) minmax(360px,auto) minmax(260px,auto) auto',
         gap: 12,
       }}>
 
@@ -569,7 +575,7 @@ export default function RapportsPage() {
               { icon: <Zap size={16} />,       label: 'Productivité', value: scoreProductivite, unite: '%',  sous: 'vs objectif' },
               { icon: <Clock size={16} />,     label: 'Heures',       value: heuresPrestees,    unite: 'h',  sous: `${joursPrestes} jours prestés` },
               { icon: <CheckCircle2 size={16} />, label: 'Tâches',    value: data?.tasksDone ?? 0, unite: '', sous: `${data?.tasksLate ?? 0} en retard` },
-              { icon: <BarChart2 size={16} />, label: 'Facturable',   value: partFacturable,    unite: '%',  sous: 'du temps suivi' },
+              { icon: <BarChart2 size={16} />, label: 'Moy. / jour',  value: moyenneParJour,    unite: 'h',  sous: 'sur les jours prestés' },
             ].map((s, i) => (
               <div key={i} style={{ padding: '18px 22px', borderRight: i % 2 === 0 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none', borderBottom: i < 2 ? '1px solid rgba(var(--text-rgb),0.2)' : 'none' }}>
                 <div style={{ color: 'rgba(var(--text-rgb),0.7)', marginBottom: 6 }}>{s.icon}</div>
@@ -769,6 +775,39 @@ export default function RapportsPage() {
             ))}
           </div>
           <FooterLink label="Voir toutes les réalisations" onClick={() => setPanel('realisations')} />
+        </SectionCard>
+
+        {/* ── R6 : Étiquettes commandées sur l'année civile ─────────────── */}
+        <SectionCard
+          title="Étiquettes" num="09" accent="var(--accent-rapports)" titleColor={TEAL}
+          action={
+            <select value={anneeEtiq} onChange={e => setAnneeEtiq(Number(e.target.value))}
+                    style={{ fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 6,
+                             border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)' }}>
+              {Array.from({ length: 4 }, (_, i) => new Date().getFullYear() - i)
+                .map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          }
+          style={{ gridColumn: '1/5', gridRow: '6/7', display: 'flex', flexDirection: 'column' }}
+        >
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, flex: 1 }}>
+            {[
+              { l: 'Étiquettes commandées', v: (bilanEtiq?.etiquettes ?? 0).toLocaleString('fr-BE'), c: TEAL,
+                s: `${bilanEtiq?.commandes ?? 0} commande${(bilanEtiq?.commandes ?? 0) > 1 ? 's' : ''}` },
+              { l: 'Dépensé',  v: fmtEur(bilanEtiq?.depense ?? 0), c: WHEAT, s: 'factures reçues' },
+              { l: 'Devisé',   v: fmtEur(bilanEtiq?.devise ?? 0),  c: ORANGE, s: 'devis émis' },
+              { l: 'Coût moyen', c: TEAL, s: 'par étiquette',
+                v: bilanEtiq?.etiquettes
+                  ? `${(bilanEtiq.depense / bilanEtiq.etiquettes).toFixed(3)} €` : '—' },
+            ].map((k, i) => (
+              <div key={k.l} style={{ padding: '14px 18px',
+                                      borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}>
+                <p style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k.l}</p>
+                <p style={{ ...DF, fontSize: 24, fontWeight: 900, color: k.c, lineHeight: 1.2 }}>{k.v}</p>
+                <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{k.s}</p>
+              </div>
+            ))}
+          </div>
         </SectionCard>
 
 

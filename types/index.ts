@@ -161,7 +161,6 @@ export interface TimeEntry {
   started_at: string
   ended_at?: string
   duration_seconds?: number
-  is_billable: boolean
   created_at: string
 }
 
@@ -404,7 +403,7 @@ export interface Demande {
 
 export type EtatFichier = 'a_jour' | 'modifie' | 'changement_envoye'
 export type CommandeEtiquetteStatut =
-  'brouillon' | 'confirmee' | 'en_production' | 'recue' | 'annulee'
+  'brouillon' | 'confirmee' | 'passee' | 'en_production' | 'recue' | 'annulee'
 export type EtiquetteDocCategorie = 'bat' | 'facture' | 'bl' | 'devis' | 'autre'
 
 export interface EtiquetteGamme {
