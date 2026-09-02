@@ -11,10 +11,7 @@ import {
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { useRapports } from '@/hooks/useRapports'
 import { useBilanEtiquettes } from '@/hooks/useBilanEtiquettes'
-import { useHealth }   from '@/hooks/useHealth'
-import { useMultiMonthSummary } from '@/hooks/useBudget'
 import type { DayStat, ProjectStat } from '@/hooks/useRapports'
-import type { MonthSummary } from '@/hooks/useBudget'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const ORANGE  = 'var(--accent-brand)'
@@ -53,7 +50,7 @@ function aggregateByN(stats: DayStat[], n: number): DayStat[] {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type PeriodKey  = '7d' | '30d' | '3m' | 'year'
-type PanelType  = 'activite'|'repartition'|'tt'|'progression'|'realisations'|null
+type PanelType  = 'activite'|'repartition'|'tt'|'realisations'|null
 
 // ── Shared card style ──────────────────────────────────────────────────────
 const LBL: React.CSSProperties = {
@@ -190,33 +187,6 @@ function DonutChart({ segments, total, size = 160 }: {
   )
 }
 
-// ── ProgressionChart ───────────────────────────────────────────────────────
-function ProgressionChart({ months }: { months: MonthSummary[] }) {
-  if (months.length < 2) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}><span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Données insuffisantes — il faut au moins 2 mois</span></div>
-  const W = 460, H = 140
-  const pL = 10, pR = 10, pT = 10, pB = 22
-  const cW = W - pL - pR, cH = H - pT - pB
-  const maxVal = Math.max(...months.flatMap(m => [m.income, m.expense]), 1)
-  const xStep  = cW / (months.length - 1)
-  const iPts = months.map((m, i) => ({ x: pL + i * xStep, y: pT + cH - (m.income / maxVal)  * cH }))
-  const ePts = months.map((m, i) => ({ x: pL + i * xStep, y: pT + cH - (m.expense / maxVal) * cH }))
-  const toD  = (pts: {x:number;y:number}[]) => pts.map((p, i) => `${i===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H }}>
-      {[0.33, 0.66].map(p => (
-        <line key={p} x1={pL} x2={W - pR} y1={pT + cH * (1 - p)} y2={pT + cH * (1 - p)} stroke="rgba(var(--text-rgb),0.07)" strokeWidth="1" />
-      ))}
-      <path d={toD(iPts)} fill="none" stroke={TEAL}   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={toD(ePts)} fill="none" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {iPts.map((p, i) => <circle key={`i${i}`} cx={p.x} cy={p.y} r="3" fill={TEAL}   />)}
-      {ePts.map((p, i) => <circle key={`e${i}`} cx={p.x} cy={p.y} r="3" fill={ORANGE} />)}
-      {months.map((m, i) => (
-        <text key={i} x={pL + i * xStep} y={H - 4} textAnchor="middle" fontSize="8" fill="rgba(var(--text-rgb),0.45)">{m.label}</text>
-      ))}
-    </svg>
-  )
-}
-
 // ── ScoreBar ───────────────────────────────────────────────────────────────
 function ScoreBar({ value, color = TEAL }: { value: number; color?: string }) {
   return (
@@ -247,9 +217,6 @@ export default function RapportsPage() {
   // qui va de sept jours a un an glissant. Un exercice comptable ne glisse pas.
   const [anneeEtiq, setAnneeEtiq] = useState(new Date().getFullYear())
   const { bilan: bilanEtiq } = useBilanEtiquettes(anneeEtiq)
-  const health             = useHealth()
-  const now                = new Date()
-  const multiMonth         = useMultiMonthSummary(now.getFullYear(), now.getMonth() + 1, 6)
 
   // ── Aggregated chart data ───────────────────────────────────────────────
   const chartData = useMemo(() => {
@@ -272,7 +239,6 @@ export default function RapportsPage() {
   })()
   const joursPrestes   = (data?.dailyStats ?? []).filter(d => d.seconds > 0).length
 
-  const balance        = (data?.totalIncome ?? 0) - (data?.totalExpense ?? 0)
 
   // ── Period label ────────────────────────────────────────────────────────
   const periodeLabel = activePeriod === '7d' ? 'cette semaine'
@@ -280,27 +246,16 @@ export default function RapportsPage() {
     : activePeriod === '3m'   ? 'ces 3 mois'
     : 'cette année'
 
-  // ── Top running pace ────────────────────────────────────────────────────
-  const avgPace = health.activities.length
-    ? health.activities.reduce((s, a) => {
-        if (!a.distance_km || !a.duration_seconds) return s
-        return s + (a.duration_seconds / 60 / a.distance_km)
-      }, 0) / health.activities.filter(a => a.distance_km && a.duration_seconds).length
-    : null
 
   // ── Réalisations (computed from data) ───────────────────────────────────
   const realisations = useMemo(() => {
     const list: { icon: React.ReactNode; text: string; sub: string; color: string }[] = []
-    if ((data?.totalRuns ?? 0) >= 10)
-      list.push({ icon: <Flame size={14} />, text: `${data!.totalRuns} séances de course`, sub: 'Record personnel !', color: ORANGE })
     if ((data?.tasksDone ?? 0) >= 20)
       list.push({ icon: <CheckSquare size={14} />, text: `${data!.tasksDone} tâches terminées`, sub: 'Excellent focus !', color: TEAL })
-    if (balance > 0)
-      list.push({ icon: <Star size={14} />, text: `${fmtEur(balance)} économisés`, sub: 'Bonne discipline !', color: '#9B72CF' })
     if (actualHours >= 100)
       list.push({ icon: <Clock size={14} />, text: `${fmtSec(data!.totalSeconds)} travaillés`, sub: 'Focus au top !', color: TEAL })
     return list
-  }, [data, balance, actualHours])
+  }, [data, actualHours])
 
   // ── Donut segments ──────────────────────────────────────────────────────
   const donutSegments = useMemo(() => {
@@ -452,28 +407,6 @@ export default function RapportsPage() {
 
 
 
-  const PanelProgression = (
-    <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Revenus (teal) vs Dépenses (orange) sur 6 mois.</p>
-      <ProgressionChart months={multiMonth} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 1fr', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-          {['Mois', 'Revenus', 'Dépenses', 'Solde'].map(h => (
-            <span key={h} style={{ ...LBL, fontSize: 9, color: 'var(--text-muted)' }}>{h}</span>
-          ))}
-        </div>
-        {multiMonth.map((m, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 1fr', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(var(--text-rgb),0.04)' }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{m.label}</span>
-            <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: TEAL }}>{fmtEur(m.income)}</span>
-            <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: ORANGE }}>{fmtEur(m.expense)}</span>
-            <span style={{ ...DF, fontSize: 12, fontWeight: 700, color: m.balance >= 0 ? TEAL : ORANGE }}>{fmtEur(m.balance)}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-
   const PanelRealisations = (
     <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
       <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Vos accomplissements {periodeLabel}.</p>
@@ -502,7 +435,6 @@ export default function RapportsPage() {
     activite:     { title: 'Aperçu de l\'activité',     content: PanelActivite,    width: 500 },
     repartition:  { title: 'Répartition du temps',      content: PanelRepartition, width: 460 },
     tt:           { title: 'Time Trackers — détail',    content: PanelTT,          width: 460 },
-    progression:  { title: 'Progression Globale',       content: PanelProgression, width: 500 },
     realisations: { title: 'Réalisations',              content: PanelRealisations, width: 440 },
   }
 
@@ -601,14 +533,9 @@ export default function RapportsPage() {
               progress={data?.tasksTotal ? data.tasksDone / data.tasksTotal : 0}
             />
             <KpiCard
-              label="Courses" accent="var(--accent-rapports)" color="var(--accent-rapports)"
-              value={loading ? '…' : `${data?.totalRuns ?? 0} sorties`}
-              sub={loading ? '' : `${(data?.totalKm ?? 0).toFixed(1)} km parcourus`}
-            />
-            <KpiCard
-              label="Solde financier" accent={balance >= 0 ? TEAL : ORANGE} color={balance >= 0 ? TEAL : ORANGE}
-              value={loading ? '…' : fmtEur(balance)}
-              sub={loading ? '' : `Revenus ${fmtEur(data?.totalIncome ?? 0)}`}
+              label="Jours prestés" accent="var(--accent-rapports)" color="var(--accent-rapports)"
+              value={loading ? '…' : `${joursPrestes} jours`}
+              sub={loading ? '' : `${moyenneParJour} h en moyenne`}
             />
           </KpiGrid>
         </div>
@@ -728,32 +655,10 @@ export default function RapportsPage() {
         </SectionCard>
 
 
-
-        {/* ── R5 C2-3 : Progression globale ───────────────────────────── */}
-        <SectionCard
-          title="Progression globale" num="09" accent="var(--accent-rapports)" titleColor={TEAL}
-          action={
-            <div style={{ display: 'flex', gap: 10 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-muted)' }}>
-                <span style={{ width: 6, height: 6, borderRadius: 99, background: TEAL, display: 'inline-block' }} /> Revenus
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-muted)' }}>
-                <span style={{ width: 6, height: 6, borderRadius: 99, background: ORANGE, display: 'inline-block' }} /> Dépenses
-              </span>
-            </div>
-          }
-          style={{ gridColumn: '1/3', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
-        >
-          <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <ProgressionChart months={multiMonth} />
-          </div>
-          <FooterLink label="Voir les tendances" onClick={() => setPanel('progression')} />
-        </SectionCard>
-
         {/* ── R5 C4 : Réalisations ────────────────────────────────────── */}
         <SectionCard
           title="Réalisations" num="10" accent="var(--accent-rapports)" titleColor={ORANGE}
-          style={{ gridColumn: '3/5', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
+          style={{ gridColumn: '1/5', gridRow: '5/6', display: 'flex', flexDirection: 'column' }}
         >
           <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {realisations.length === 0 && (

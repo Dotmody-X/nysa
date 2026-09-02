@@ -38,14 +38,12 @@ export default function ConfidentialitePage() {
 
   async function exportData() {
     const supabase = createClient()
-    const [tasks, entries, txs, runs, health] = await Promise.all([
+    const [tasks, entries, projets] = await Promise.all([
       supabase.from('tasks').select('*'),
       supabase.from('time_entries').select('*'),
-      supabase.from('transactions').select('*'),
-      supabase.from('running_activities').select('*'),
-      supabase.from('health_metrics').select('*'),
+      supabase.from('projects').select('*'),
     ])
-    const blob = new Blob([JSON.stringify({ tasks: tasks.data, time_entries: entries.data, transactions: txs.data, running: runs.data, health: health.data }, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify({ tasks: tasks.data, time_entries: entries.data, projects: projets.data }, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = `nysa-export-${new Date().toISOString().slice(0,10)}.json`
     a.click(); URL.revokeObjectURL(url)
@@ -57,7 +55,6 @@ export default function ConfidentialitePage() {
     await Promise.all([
       supabase.from('tasks').delete().neq('id','00000000-0000-0000-0000-000000000000'),
       supabase.from('time_entries').delete().neq('id','00000000-0000-0000-0000-000000000000'),
-      supabase.from('transactions').delete().neq('id','00000000-0000-0000-0000-000000000000'),
     ])
     await supabase.auth.signOut()
     router.push('/login')

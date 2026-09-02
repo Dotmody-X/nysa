@@ -6,7 +6,7 @@ import { isDemoModeEnabled, toggleDemoMode } from '@/lib/demo-mode'
 import { PageTitle } from '@/components/ui/PageTitle'
 import { createClient } from '@/lib/supabase/client'
 import { loadNotifPrefs, saveNotifPrefs, NOTIF_DEFS, type NotifPrefs } from '@/lib/notifPrefs'
-import { exportAllJson, exportTasksCsv, exportFinancesCsv, deleteAllData } from '@/lib/dataExport'
+import { exportAllJson, exportTasksCsv, deleteAllData } from '@/lib/dataExport'
 import { userKey } from '@/lib/userStore'
 import { useDefaultLabel } from '@/hooks/useDefaultLabel'
 import { useTimeCategories } from '@/hooks/useTimeCategories'
@@ -294,12 +294,11 @@ function DonneesTab() {
     setDemoEnabled(!demoEnabled)
   }
 
-  async function runExport(kind: 'json' | 'tasks' | 'finances') {
+  async function runExport(kind: 'json' | 'tasks') {
     setBusy(kind); setMsg(null)
     try {
       if (kind === 'json') await exportAllJson()
-      else if (kind === 'tasks') await exportTasksCsv()
-      else await exportFinancesCsv()
+      else await exportTasksCsv()
       setMsg('✅ Export téléchargé')
     } catch { setMsg('❌ Échec de l\'export') }
     finally { setBusy(null); setTimeout(() => setMsg(null), 3000) }
@@ -357,7 +356,6 @@ function DonneesTab() {
       {([
         { label:'Exporter toutes les données', desc:'Export JSON complet', action:'json'    as const, btn:'Exporter' },
         { label:'Exporter les tâches',         desc:'Format CSV',          action:'tasks'   as const, btn:'Exporter' },
-        { label:'Exporter les finances',       desc:'Format CSV (Excel)',  action:'finances'as const, btn:'Exporter' },
       ]).map(a => (
         <div key={a.label} className="flex items-center justify-between py-3" style={{ borderBottom:'1px solid var(--border)' }}>
           <div>
@@ -375,7 +373,7 @@ function DonneesTab() {
       <div style={{ marginTop:18, padding:'14px 16px', borderRadius:'var(--radius-lg)', border:'2px solid var(--accent-brand)', background:'rgba(242,84,45,0.06)' }}>
         <p style={{ fontSize:12, color:'var(--accent-brand)', ...({fontFamily:'var(--font-display)'} as React.CSSProperties), fontWeight:800 }}>Zone dangereuse</p>
         <div className="flex items-center justify-between" style={{ marginTop:8, gap:12, flexWrap:'wrap' }}>
-          <p style={{ fontSize:11, color:'var(--text-muted)', flex:1, minWidth:180 }}>Supprimer toutes tes données (tâches, finances, runs, recettes, courses…). Irréversible.</p>
+          <p style={{ fontSize:11, color:'var(--text-muted)', flex:1, minWidth:180 }}>Supprimer toutes tes données (tâches, temps, projets, clients, étiquettes…). Irréversible.</p>
           {!confirmDel ? (
             <button onClick={()=>setConfirmDel(true)} className="nb-press"
               style={{ fontSize:11, color:'var(--accent-brand)', fontFamily:'var(--font-display)', fontWeight:800, padding:'6px 14px', borderRadius:'var(--radius-lg)', border:'2px solid var(--ink)', boxShadow:'3px 3px 0 var(--ink)', background:'var(--bg-card)', cursor:'pointer' }}>

@@ -20,21 +20,17 @@ export default function SauvegardePage() {
     setJsonStatus('loading')
     try {
       const supabase = createClient()
-      const [tasks, entries, txs, runs, health] = await Promise.all([
+      const [tasks, entries, projets] = await Promise.all([
         supabase.from('tasks').select('*'),
         supabase.from('time_entries').select('*'),
-        supabase.from('transactions').select('*'),
-        supabase.from('running_activities').select('*'),
-        supabase.from('health_metrics').select('*'),
+        supabase.from('projects').select('*'),
       ])
       const blob = new Blob([JSON.stringify({
         exportedAt: new Date().toISOString(),
         version: '1.0',
         tasks: tasks.data,
         time_entries: entries.data,
-        transactions: txs.data,
-        running: runs.data,
-        health: health.data,
+        projects: projets.data,
       }, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -89,7 +85,7 @@ export default function SauvegardePage() {
         const json = JSON.parse(ev.target?.result as string)
         if (!json.version) { setImportMsg('❌ Format non reconnu — fichier invalide'); return }
         // Dry run: just validate structure
-        const keys = ['tasks','time_entries','transactions','running','health']
+        const keys = ['tasks','time_entries','projects']
         const found = keys.filter(k => Array.isArray(json[k]))
         setImportMsg(`✅ Fichier valide — ${found.join(', ')} détectés (${found.length}/5 tables). Importation désactivée en preview.`)
       } catch {

@@ -32,11 +32,6 @@ const navItems: NavItem[] = [
   { href: '/demandes',     label: 'Demandes',      Icon: Package,      group: 'Le Mixologue' },
   { href: '/imprimantes',  label: 'Imprimantes',   Icon: Printer,      group: 'Le Mixologue' },
   { href: '/etiquettes',   label: 'Étiquettes',    Icon: Barcode,      group: 'Le Mixologue' },
-  { href: '/sport',        label: 'Running',       Icon: Activity,     group: 'Quotidien' },
-  { href: '/health',       label: 'Health',        Icon: HeartPulse,   group: 'Quotidien' },
-  { href: '/recettes',     label: 'Recettes',      Icon: UtensilsCrossed, group: 'Quotidien' },
-  { href: '/courses',      label: 'Courses',       Icon: ShoppingCart, group: 'Quotidien' },
-  { href: '/budget',       label: 'Budget',        Icon: Wallet,       group: 'Analyser' },
   { href: '/rapports',     label: 'Rapports',      Icon: BarChart2,    group: 'Analyser' },
   // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
