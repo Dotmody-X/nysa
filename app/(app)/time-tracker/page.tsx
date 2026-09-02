@@ -502,8 +502,15 @@ export default function TimeTrackerPage() {
 
   useEffect(() => {
     if (running) {
-      setElapsed(Math.floor((Date.now() - new Date(running.started_at).getTime()) / 1000))
-      timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000)
+      // Recalculé depuis la date de départ à chaque battement, jamais
+      // incrémenté : les navigateurs brident setInterval dans un onglet en
+      // arrière-plan — parfois à un battement par minute — et chaque battement
+      // manqué serait une seconde perdue pour de bon. Sur une heure et demie,
+      // la dérive atteignait la minute.
+      const rafraichir = () =>
+        setElapsed(Math.floor((Date.now() - new Date(running.started_at).getTime()) / 1000))
+      rafraichir()
+      timerRef.current = setInterval(rafraichir, 1000)
     } else {
       if (timerRef.current) clearInterval(timerRef.current)
       setElapsed(0)
