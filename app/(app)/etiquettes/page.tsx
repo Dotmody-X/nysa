@@ -338,6 +338,9 @@ export default function EtiquettesPage() {
   const [fSante, setFSante] = useState<SanteCode | ''>('')
   const [annee, setAnnee] = useState(new Date().getFullYear())
   const [fDoc, setFDoc] = useState<EtiquetteDocCategorie | ''>('')
+  const [rechCmd, setRechCmd] = useState('')
+  const [fStatut, setFStatut] = useState<CommandeEtiquetteStatut | ''>('')
+  const [anneeCmd, setAnneeCmd] = useState<number | ''>('')
   const [saveurNouvelle, setSaveurNouvelle] = useState('')
 
   // ── Grille de commande ──────────────────────────────────────────────────
@@ -432,6 +435,26 @@ export default function EtiquettesPage() {
   }
 
   const totalSaisi = Object.values(quantites).reduce((s, v) => s + (Number(v) || 0), 0)
+
+  /**
+   * La liste des commandes se filtre : l'import de l'archive Tompla l'a fait
+   * passer de quelques unités à une centaine, et une liste qu'on ne peut plus
+   * parcourir des yeux a besoin d'une recherche.
+   */
+  const commandesVues = useMemo(() => {
+    const q = rechCmd.trim().toLowerCase()
+    return e.commandes.filter(c => {
+      if (fStatut && c.statut !== fStatut) return false
+      if (anneeCmd !== '' && anneeDe(c.date_commande) !== anneeCmd) return false
+      if (!q) return true
+      const champs = [
+        c.reference, c.imprimeur, c.contact, c.notes, c.dossier, c.date_commande,
+        ...(c.documents ?? []).map(d => d.numero),
+        ...(c.lignes ?? []).map(l => l.etiquette?.saveur),
+      ]
+      return champs.some(v => v?.toLowerCase().includes(q))
+    })
+  }, [e.commandes, rechCmd, fStatut, anneeCmd])
 
   return (
     <div style={{ padding: 30, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -726,11 +749,36 @@ export default function EtiquettesPage() {
             </StickerButton>
           }
         >
-          {e.commandes.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune commande.</p>
+          <div className="flex flex-wrap gap-2" style={{ marginBottom: 10 }}>
+            <div className="flex items-center gap-2" style={{ ...champ, flex: '1 1 220px' }}>
+              <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+              <input value={rechCmd} onChange={ev => setRechCmd(ev.target.value)}
+                     placeholder="Référence, n° de BL ou de facture, saveur, dossier…"
+                     style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: 13, color: 'var(--text)' }} />
+            </div>
+            <select value={fStatut} onChange={ev => setFStatut(ev.target.value as CommandeEtiquetteStatut | '')}
+                    style={champ}>
+              <option value="">Tous les statuts</option>
+              {STATUTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+            <select value={anneeCmd} onChange={ev => setAnneeCmd(ev.target.value ? Number(ev.target.value) : '')}
+                    style={champ}>
+              <option value="">Toutes les années</option>
+              {annees.map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+            {commandesVues.length} sur {e.commandes.length}
+          </p>
+
+          {commandesVues.length === 0 ? (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+              {e.commandes.length === 0 ? 'Aucune commande.' : 'Aucune commande ne correspond.'}
+            </p>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>
-              {e.commandes.map(c => {
+              {commandesVues.map(c => {
                 const st = STATUTS.find(s => s.value === c.statut) ?? STATUTS[0]
                 const alerte = (c.lignes ?? []).filter(l => l.etiquette?.etat_fichier === 'modifie')
                 const total = (c.lignes ?? []).reduce((s, l) => s + l.quantite, 0)
