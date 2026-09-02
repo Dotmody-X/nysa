@@ -5,7 +5,7 @@ import {
   Settings, Bell, Palette, Lock, Keyboard, Download,
   ChevronRight, Flame, Star, TrendingUp, Activity,
   CheckSquare, Wallet, Clock, Utensils, Zap, Shield,
-  ExternalLink, AlertTriangle, X, Check, User,
+  ExternalLink, AlertTriangle, X, Check, User, Smartphone,
 } from '@/components/ui/icons'
 import { PageTitle, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { createClient } from '@/lib/supabase/client'
@@ -248,6 +248,7 @@ export default function ComptePage() {
     { icon: Lock,      label:'Confidentialité',  sub:'Données et confidentialité',      href:'/compte/confidentialite' },
     { icon: Keyboard,  label:'Raccourcis',       sub:'Gérer vos raccourcis clavier',    href:'/compte/raccourcis' },
     { icon: Download,  label:'Sauvegarde',       sub:'Exporter ou importer vos données',href:'/compte/sauvegarde' },
+    { icon: Smartphone, label:'Widget iPhone',    sub:'Voir Nysa sur l’écran d’accueil',  href:'/compte/widget' },
   ]
 
   // ─────────────────────────────────────────────────────────────────────────────

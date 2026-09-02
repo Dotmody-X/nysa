@@ -82,6 +82,7 @@ export {
   Truck as Truck,
   UploadSimple as Upload,
   User as User,
+  DeviceMobile as Smartphone,
   Printer as Printer,
   Copy as Copy,
   Users as Users,
