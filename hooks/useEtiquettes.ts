@@ -204,9 +204,15 @@ export function useEtiquettes() {
   // ── Commandes ─────────────────────────────────────────────────────────────
 
   async function enregistrerCommande(c: Partial<EtiquetteCommande>) {
-    const ligne = { ...c, user_id: await uid() }
-    delete (ligne as Record<string, unknown>).lignes
-    delete (ligne as Record<string, unknown>).fichiers
+    // Liste blanche : l'objet reçu de l'écran porte aussi ses lignes et ses
+    // documents, que PostgREST rejetterait. Un « delete » nommant les champs
+    // à retirer a déjà lâché une fois, quand « fichiers » est devenu
+    // « documents » — l'inverse ne peut pas lâcher.
+    const ligne: Record<string, unknown> = { user_id: await uid() }
+    for (const k of ['reference','imprimeur','contact','statut','date_commande',
+                     'date_reception','dossier','notes'] as const) {
+      if (k in c) ligne[k] = c[k] ?? null
+    }
     const req = c.id
       ? supabase.from('etiquette_commandes').update({ ...ligne, updated_at: new Date().toISOString() }).eq('id', c.id)
       : supabase.from('etiquette_commandes').insert(ligne)

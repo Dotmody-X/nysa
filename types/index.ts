@@ -490,6 +490,10 @@ export interface EtiquetteCommande {
   user_id: string
   reference?: string
   imprimeur?: string
+  /** La personne à qui le message s'adresse : jamais un service. */
+  contact?: string
+  /** Dossier d'archive de la commande, relatif à la racine de l'archive. */
+  dossier?: string
   statut: CommandeEtiquetteStatut
   date_commande?: string
   date_reception?: string

@@ -210,71 +210,83 @@ function LigneDocument({ d, lien, onEnregistrer, onSupprimer, onJoindre, onDetac
 }
 
 /**
- * Le texte à envoyer à l'imprimeur.
+ * Le message à envoyer à l'imprimeur.
  *
- * Une commande peut porter plusieurs formats : chacun ouvre sa section avec sa
- * spécification technique intégrale, puisque c'est elle qui décrit le support à
- * produire. Suivent ses saveurs et leurs quantités.
+ * Il suit à la lettre les règles établies avec Tompla / G9 sur six ans
+ * d'échanges : un destinataire nommé, le tutoiement, un bloc par palier de
+ * quantité, la ligne Format recopiée intégralement sous chaque bloc, et les
+ * saveurs listées verticalement sans puce ni virgule.
  *
- * Les fichiers à joindre sont listés à part : l'imprimeur conserve les autres,
- * et c'est le seul point où une omission coûte un retirage entier.
+ * Ces règles ne sont pas cosmétiques. Un bloc qui mélange deux quantités ou
+ * une ligne Format abrégée oblige l'imprimeur à revenir poser la question,
+ * et c'est une journée perdue à chaque fois.
  */
 function texteCommande(
   c: EtiquetteCommande,
   formats: { id: string; libelle: string; specification: string; dimensions: string }[],
 ): string {
-  const parFormat = new Map<string, { saveur: string; quantite: number; aEnvoyer: boolean }[]>()
+  // Un bloc par couple (format, quantité) : on ne fusionne jamais deux paliers.
+  const paliers = new Map<string, { fid: string; qte: number; saveurs: string[]; aEnvoyer: boolean }>()
   for (const l of c.lignes ?? []) {
     const fid = l.etiquette?.format_id
     if (!fid) continue
-    const liste = parFormat.get(fid) ?? []
-    liste.push({
-      saveur: l.etiquette?.saveur ?? '—',
-      quantite: l.quantite,
-      aEnvoyer: l.fichier_envoye || l.etiquette?.etat_fichier === 'modifie',
-    })
-    parFormat.set(fid, liste)
+    const cle = `${fid}|${l.quantite}`
+    if (!paliers.has(cle)) paliers.set(cle, { fid, qte: l.quantite, saveurs: [], aEnvoyer: false })
+    const p = paliers.get(cle)!
+    p.saveurs.push(l.etiquette?.saveur ?? '—')
+    if (l.fichier_envoye || l.etiquette?.etat_fichier === 'modifie') p.aEnvoyer = true
   }
 
-  const lignes: string[] = ['Bonjour,', '']
-  lignes.push(c.reference
-    ? `Merci de préparer le retirage suivant (${c.reference}) :`
-    : 'Merci de préparer le retirage suivant :')
+  const modifiees = (c.lignes ?? [])
+    .filter(l => l.fichier_envoye || l.etiquette?.etat_fichier === 'modifie')
+    .map(l => l.etiquette?.saveur ?? '')
+    .filter(Boolean)
 
-  let total = 0
-  const aJoindre: string[] = []
+  const L: string[] = []
+  L.push(`Bonjour ${c.contact || '…'},`, '', "J'espère que tu vas bien.", '')
 
-  for (const [fid, items] of parFormat) {
-    const f = formats.find(x => x.id === fid)
-    lignes.push('', (f?.libelle ?? 'Format inconnu').toUpperCase())
-    if (f?.specification) lignes.push(f.specification)
-    else if (f?.dimensions) lignes.push(`Format : ${f.dimensions}`)
-    lignes.push('')
-
-    const largeur = Math.max(...items.map(i => i.saveur.length), 10)
-    for (const i of items.sort((a, b) => a.saveur.localeCompare(b.saveur, 'fr'))) {
-      lignes.push(`  ${i.saveur.padEnd(largeur, ' ')}  ${String(i.quantite).padStart(6, ' ')}`)
-      total += i.quantite
-      if (i.aEnvoyer) aJoindre.push(`${i.saveur} (${f?.libelle ?? ''})`)
-    }
+  if (modifiees.length) {
+    const g = formats.find(f => f.id === [...paliers.values()][0]?.fid)
+    L.push(`Voici ci-joint les étiquettes ${g?.libelle ?? ''} qui ont reçu des modifications.`, '')
   }
 
-  lignes.push('', `Total : ${total.toLocaleString('fr-BE')} étiquettes`)
-
-  if (aJoindre.length) {
-    lignes.push('', 'Fichiers joints — ces visuels ont changé depuis le dernier tirage :')
-    for (const x of aJoindre) lignes.push(`  · ${x}`)
-    lignes.push('', 'Les autres fichiers sont déjà en votre possession, inchangés.')
-  } else {
-    lignes.push('', 'Aucun fichier à joindre : tous les visuels sont inchangés depuis le dernier tirage.')
+  let premier = true
+  for (const p of paliers.values()) {
+    const f = formats.find(x => x.id === p.fid)
+    const nature = p.aEnvoyer ? 'devis' : 'retirage'
+    L.push(premier
+      ? `On voudrait un ${nature} de ${p.qte} étiquettes par réf. :`
+      : `On voudrait aussi un ${nature} de ${p.qte} étiquettes par réf. :`)
+    // La ligne Format est recopiée en entier sous CHAQUE bloc, même identique
+    // au précédent : « même format que ci-dessus » est proscrit.
+    L.push(f?.specification || `Format : ${f?.dimensions ?? '…'}`, '')
+    for (const s of p.saveurs.sort((x, y) => x.localeCompare(y, 'fr'))) L.push(s)
+    L.push('')
+    premier = false
   }
 
-  lignes.push('', 'Merci d’avance,')
-  return lignes.join('\n')
+  if (!paliers.size) L.push('(aucune ligne saisie dans cette commande)', '')
+
+  L.push('Merci à toi,', '', 'Cordialement,', 'Nathan')
+  return L.join('\n')
 }
 
-function Recapitulatif({ texte }: { texte: string }) {
+/** L'objet du mail : gamme, format et date, jamais le n° de commande. */
+function objetCommande(
+  c: EtiquetteCommande,
+  formats: { id: string; libelle: string }[],
+): string {
+  const gammes = [...new Set((c.lignes ?? [])
+    .map(l => formats.find(f => f.id === l.etiquette?.format_id)?.libelle)
+    .filter(Boolean))]
+  const jour = (c.date_commande ?? new Date().toISOString().slice(0, 10))
+    .split('-').reverse().join('/')
+  return `Commande BAT ${gammes.join(' + ') || '…'} — ${jour}`
+}
+
+function Recapitulatif({ objet, texte }: { objet: string; texte: string }) {
   const [copie, setCopie] = useState(false)
+  const [copieObjet, setCopieObjet] = useState(false)
   return (
     <div style={{ display: 'grid', gap: 6 }}>
       <div className="flex items-center justify-between gap-2">
@@ -286,6 +298,18 @@ function Recapitulatif({ texte }: { texte: string }) {
         }}>
           {copie ? <><Check size={12} /> Copié</> : <><Copy size={12} /> Copier</>}
         </StickerButton>
+      </div>
+      <div className="flex items-center gap-2" style={{ fontSize: 11 }}>
+        <strong style={{ ...DF }}>Objet</strong>
+        <code style={{ flex: 1, padding: '4px 8px', background: 'var(--bg-input)',
+                       border: '2px solid var(--ink)', borderRadius: 6, overflow: 'hidden',
+                       textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{objet}</code>
+        <button title="Copier l’objet" onClick={async () => {
+          await navigator.clipboard.writeText(objet)
+          setCopieObjet(true); setTimeout(() => setCopieObjet(false), 1600)
+        }} style={{ padding: 3, border: '2px solid var(--ink)', borderRadius: 6, background: 'var(--bg-card)' }}>
+          {copieObjet ? <Check size={11} /> : <Copy size={11} />}
+        </button>
       </div>
       <pre style={{ margin: 0, padding: 10, fontSize: 11, lineHeight: 1.5,
                     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
@@ -840,7 +864,8 @@ export default function EtiquettesPage() {
                         )}
 
                         {(c.lignes ?? []).length > 0 && (
-                          <Recapitulatif texte={texteCommande(c, formatsAplat)} />
+                          <Recapitulatif objet={objetCommande(c, formatsAplat)}
+                                         texte={texteCommande(c, formatsAplat)} />
                         )}
 
                         <div>
@@ -1106,6 +1131,19 @@ export default function EtiquettesPage() {
                          style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
                 <label style={{ fontSize: 12, fontWeight: 700 }}>Imprimeur
                   <input value={edition.imprimeur ?? ''} onChange={ev => setEdition({ ...edition, imprimeur: ev.target.value })}
+                         style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Contact
+                  <input value={edition.contact ?? ''} placeholder="Malo"
+                         onChange={ev => setEdition({ ...edition, contact: ev.target.value })}
+                         style={{ ...champ, width: '100%', marginTop: 4 }} />
+                  <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--text-muted)' }}>
+                    Le prénom qui ouvre le message. On écrit à une personne, jamais à un service.
+                  </span></label>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Dossier d’archive
+                  <input value={edition.dossier ?? ''} placeholder="2026-08-13_CMD-34017_84X125"
+                         onChange={ev => setEdition({ ...edition, dossier: ev.target.value })}
                          style={{ ...champ, width: '100%', marginTop: 4 }} /></label>
               </div>
               <label style={{ fontSize: 12, fontWeight: 700 }}>Statut
