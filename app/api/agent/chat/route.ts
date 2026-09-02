@@ -71,12 +71,6 @@ async function loadUserContext(supabase: SupabaseServerClient) {
     .lt('start_at', next7days.toISOString())
     .order('start_at', { ascending: true })
 
-  // Budget
-  const { data: budgetEntries } = await supabase
-    .from('budgets')
-    .select('*')
-    .eq('date_month', new Date().toISOString().slice(0, 7))
-
   // Time entries
   const { data: timeEntries } = await supabase
     .from('time_entries')
@@ -87,7 +81,6 @@ async function loadUserContext(supabase: SupabaseServerClient) {
     tasks: tasks || [],
     projects: projects || [],
     events: events || [],
-    budget: budgetEntries || [],
     timeEntries: timeEntries || []
   }
 }

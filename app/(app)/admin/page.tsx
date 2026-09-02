@@ -31,9 +31,9 @@ const SECTIONS = [
   { href: '/budget', label: 'Budget' }, { href: '/rapports', label: 'Rapports' }, { href: '/agent', label: 'Agent IA' },
 ]
 const TABLE_LABELS: Record<string, string> = {
-  recipes: 'Recettes', transactions: 'Transactions', projects: 'Projets', tasks: 'Tâches',
-  shopping_items: 'Articles courses', running_activities: 'Runs', product_prices: 'Prix produits',
-  events: 'Événements', time_entries: 'Sessions temps', health_metrics: 'Mesures santé',
+  projects: 'Projets', tasks: 'Tâches',
+  product_prices: 'Prix produits',
+  events: 'Événements', time_entries: 'Sessions temps', 
 }
 
 type Overview = { userCount: number; counts: Record<string, number>; recentUsers: { id: string; email: string; created_at: string; last_sign_in_at: string | null }[] }

@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/icons'
 import { PageTitle, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { createClient } from '@/lib/supabase/client'
-import { useHealth } from '@/hooks/useHealth'
 import { useDashboard } from '@/hooks/useDashboard'
 import { useRapports } from '@/hooks/useRapports'
 import { saveTheme, loadTheme, type ThemeMode } from '@/lib/theme'
@@ -46,8 +45,8 @@ const FIELD_INPUT: React.CSSProperties = {
 }
 
 // ─── XP / Level ──────────────────────────────────────────────────────────────
-function computeLevel(tasksDone: number, totalKm: number, totalSec: number) {
-  const xp      = tasksDone * 10 + Math.round(totalKm * 5) + Math.floor(totalSec / 3600) * 2
+function computeLevel(tasksDone: number, totalSec: number) {
+  const xp      = tasksDone * 10 + Math.floor(totalSec / 3600) * 4
   const perLevel = 500
   const level   = Math.floor(xp / perLevel) + 1
   const xpInLvl = xp % perLevel
@@ -61,7 +60,6 @@ function computeLevel(tasksDone: number, totalKm: number, totalSec: number) {
 export default function ComptePage() {
   const router   = useRouter()
   const { data: dash }            = useDashboard()
-  const { activities, metrics }   = useHealth()
   const { data: yearly, loading: rLoading } = useRapports('year', new Date())
 
   // auth
@@ -150,16 +148,13 @@ export default function ComptePage() {
   // ── Recent activity feed ───────────────────────────────────────────────────
   useEffect(() => {
     const feed: Array<{icon:string;label:string;sub:string;color:string}> = []
-    if (activities[0]) feed.push({ icon:'🏃', label:`Course ${activities[0].distance_km?.toFixed(1)} km`, sub: activities[0].date ? new Date(activities[0].date+'T12:00').toLocaleDateString('fr-FR',{weekday:'long'}) : 'Récemment', color: TEAL })
     if (dash?.todayTasks?.filter(t=>t.status==='done')[0]) {
       const t = dash.todayTasks.find(t=>t.status==='done')!
       feed.push({ icon:'✅', label:`Tâche "${t.title.slice(0,30)}" terminée`, sub:"Aujourd'hui", color: ORANGE })
     }
-    if ((dash?.monthExpense ?? 0) > 0) feed.push({ icon:'💳', label:`Dépense — ${Math.round(dash!.monthExpense)} €`, sub: "Ce mois", color: '#E8A838' })
     if (dash?.activeProjects?.[0]) feed.push({ icon:'📁', label:`Projet "${dash.activeProjects[0].name}"`, sub:'Actif', color: '#9B72CF' })
-    if ((yearly?.totalKm ?? 0) > 0) feed.push({ icon:'📍', label:`${yearly!.totalKm.toFixed(0)} km cette année`, sub:'Running total', color: TEAL })
     setRecentActivity(feed)
-  }, [activities, dash, yearly])
+  }, [dash, yearly])
 
   // ── Save profile ───────────────────────────────────────────────────────────
   const saveProfile = useCallback(async () => {
@@ -188,14 +183,12 @@ export default function ComptePage() {
   // ── Export data ────────────────────────────────────────────────────────────
   async function exportData() {
     const supabase = createClient()
-    const [tasks, entries, txs, runs, weights] = await Promise.all([
+    const [tasks, entries, projets] = await Promise.all([
       supabase.from('tasks').select('*'),
       supabase.from('time_entries').select('*'),
-      supabase.from('transactions').select('*'),
-      supabase.from('running_activities').select('*'),
-      supabase.from('health_metrics').select('*'),
+      supabase.from('projects').select('*'),
     ])
-    const blob = new Blob([JSON.stringify({ tasks: tasks.data, time_entries: entries.data, transactions: txs.data, running: runs.data, health: weights.data }, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify({ tasks: tasks.data, time_entries: entries.data, projects: projets.data }, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = `nysa-export-${new Date().toISOString().slice(0,10)}.json`
     a.click(); URL.revokeObjectURL(url)
@@ -225,23 +218,16 @@ export default function ComptePage() {
   }
 
   // ── Computed ───────────────────────────────────────────────────────────────
-  const totalKm      = activities.reduce((s,a) => s+(a.distance_km??0), 0)
   const totalSec     = yearly?.totalSeconds ?? 0
   const tasksDone    = yearly?.tasksDone ?? 0
-  const latestW      = metrics[0]?.weight_kg ?? null
-  const balance      = (dash?.monthIncome??0) - (dash?.monthExpense??0)
-  const lvl          = computeLevel(tasksDone, totalKm, totalSec)
+  const lvl          = computeLevel(tasksDone, totalSec)
 
   const days         = period === 'week' ? 7 : 30
   const hrs          = periodData ? periodData.totalSeconds / 3600 : 0
   const target       = days * 4 // 4h/day target
   const scoreProductivite = Math.min(100, Math.round((hrs / target) * 100))
-  const scoreHealth  = Math.min(100, Math.round(((periodData?.totalRuns??0) / (days/7 * 3)) * 100))
-  const scoreFinances = periodData?.totalIncome ? Math.min(100, Math.max(0, Math.round(50 + ((periodData.totalIncome - periodData.totalExpense) / periodData.totalIncome) * 50))) : 50
-  const scoreEquilibre = Math.round((scoreProductivite + scoreHealth + scoreFinances) / 3)
 
   const badges = [
-    { icon:'🏃', label:'Premiers pas',  sub:'Courir 10 km au total',      unlocked: totalKm >= 10,      color: TEAL },
     { icon:'🔥', label:'Régularité',    sub:'7 jours consécutifs',         unlocked: streak >= 7,        color: ORANGE },
     { icon:'⭐', label:'Productivité',  sub:'100 tâches accomplies',       unlocked: tasksDone >= 100,   color: '#E8A838' },
     { icon:'📊', label:'Équilibre',     sub:'Tracker 4 domaines',          unlocked: true,               color: '#9B72CF' },
@@ -458,10 +444,6 @@ export default function ComptePage() {
             {[
               { icon: Clock,       label:'Temps total tracké',   value: fmtH(totalSec) },
               { icon: CheckSquare, label:'Tâches accomplies',    value: String(tasksDone) },
-              { icon: Activity,    label:'Distance courue',      value: `${totalKm.toFixed(1)} km` },
-              { icon: Flame,       label:'Calories brûlées',     value: `${(totalKm * 65).toFixed(0)} kcal` },
-              { icon: Utensils,    label:'Recettes créées',      value: '—' },
-              { icon: Wallet,      label:'Épargné cette année',  value: `${Math.max(0, Math.round((yearly?.totalIncome??0)-(yearly?.totalExpense??0)))} €` },
             ].map(s => {
               const Icon = s.icon
               return (
@@ -524,9 +506,7 @@ export default function ComptePage() {
           <div style={{ padding:20, display:'flex', flexDirection:'column', gap:12, flex:1 }}>
           {[
             { label:'Productivité', value: scoreProductivite, color: TEAL },
-            { label:'Santé',        value: scoreHealth,       color: '#9B72CF' },
-            { label:'Finances',     value: scoreFinances,     color: ORANGE },
-            { label:'Équilibre',    value: scoreEquilibre,    color: '#E8A838' },
+            { label:'Régularité',   value: Math.min(100, streak * 10), color: ORANGE },
           ].map(s => (
             <div key={s.label}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>

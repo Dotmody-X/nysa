@@ -13,8 +13,8 @@ function download(name: string, content: string, type: string) {
 const stamp = () => new Date().toISOString().slice(0, 10)
 
 const EXPORT_TABLES = [
-  'tasks', 'time_entries', 'transactions', 'budget_categories', 'product_prices',
-  'running_activities', 'health_metrics', 'recipes', 'shopping_lists', 'shopping_items',
+  'tasks', 'time_entries', 'product_prices',
+  
   'projects', 'events',
 ]
 
@@ -46,24 +46,13 @@ export async function exportTasksCsv(): Promise<void> {
   download(`nysa-taches-${stamp()}.csv`, toCsv((data ?? []) as Record<string, unknown>[]), 'text/csv;charset=utf-8')
 }
 
-/** Export des finances en CSV (aplati, lisible Excel). */
-export async function exportFinancesCsv(): Promise<void> {
-  const { data } = await createClient().from('transactions').select('*, budget_categories(name)')
-  const rows = (data ?? []).map((t: Record<string, unknown>) => ({
-    date: t.date, type: t.type, montant: t.amount,
-    categorie: (t.budget_categories as { name?: string } | null)?.name ?? '',
-    description: t.description ?? '', compte: t.account ?? '',
-  }))
-  download(`nysa-finances-${stamp()}.csv`, toCsv(rows), 'text/csv;charset=utf-8')
-}
-
 /** Supprime toutes les données utilisateur (irréversible). */
 export async function deleteAllData(): Promise<void> {
   const supabase = createClient()
   const sentinel = '00000000-0000-0000-0000-000000000000'
   const tables = [
-    'tasks', 'time_entries', 'transactions', 'running_activities', 'health_metrics',
-    'recipes', 'shopping_items', 'shopping_lists', 'product_prices', 'events', 'projects',
+    'tasks', 'time_entries',
+    'product_prices', 'events', 'projects',
   ]
   for (const t of tables) {
     await supabase.from(t).delete().neq('id', sentinel)

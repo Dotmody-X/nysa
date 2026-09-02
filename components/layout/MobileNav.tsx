@@ -24,11 +24,6 @@ const ALL_SECTIONS = [
   { href: '/demandes',     label: 'Demandes',     Icon: Package },
   { href: '/imprimantes',  label: 'Imprimantes',  Icon: Printer },
   { href: '/etiquettes',   label: 'Étiquettes',   Icon: Barcode },
-  { href: '/sport',        label: 'Running',      Icon: Activity },
-  { href: '/health',       label: 'Health',       Icon: HeartPulse },
-  { href: '/recettes',     label: 'Recettes',     Icon: UtensilsCrossed },
-  { href: '/courses',      label: 'Courses',      Icon: ShoppingCart },
-  { href: '/budget',       label: 'Budget',       Icon: Wallet },
   { href: '/rapports',     label: 'Rapports',     Icon: BarChart2 },
   // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
@@ -36,7 +31,6 @@ const ALL_SECTIONS = [
 const QUICK_LINKS = [
   { href: '/todo',         label: 'Tâche',  color: 'var(--accent-brand)',    lightBg: true  },
   { href: '/time-tracker', label: 'Timer',  color: 'var(--azul)',            lightBg: false },
-  { href: '/budget',       label: 'Budget', color: 'var(--accent-rapports)', lightBg: false },
   { href: '/projets',      label: 'Projet', color: 'var(--accent-todo)',     lightBg: true  },
 ]
 

@@ -32,12 +32,7 @@ export type RapportData = {
   tasksTotal: number
   tasksLate: number
   // Budget
-  totalIncome: number
-  totalExpense: number
   // Health
-  totalRuns: number
-  totalKm: number
-  latestWeight: number | null
 }
 
 function getSupabase() {
@@ -94,16 +89,10 @@ export function useRapports(period: RapportPeriod, ref: Date) {
       { data: timeEntries },
       { data: projects },
       { data: tasks },
-      { data: transactions },
-      { data: runs },
-      { data: weights },
     ] = await Promise.all([
       supabase.from('time_entries').select('*').gte('started_at', start + 'T00:00:00').lt('started_at', end + 'T00:00:00'),
       supabase.from('projects').select('id, name, color'),
       supabase.from('tasks').select('id, status, due_date, completed_at').gte('created_at', start + 'T00:00:00').lt('created_at', end + 'T23:59:59'),
-      supabase.from('transactions').select('amount, type').gte('date', start).lt('date', end),
-      supabase.from('running_activities').select('date, distance_km, duration_seconds').gte('date', start).lt('date', end),
-      supabase.from('health_metrics').select('date, weight_kg').order('date', { ascending: false }).limit(1),
     ])
 
     const projectMap: Record<string, { name: string; color: string }> = {}
@@ -161,21 +150,12 @@ export function useRapports(period: RapportPeriod, ref: Date) {
     const tasksLate  = allTasks.filter(t => t.status !== 'done' && t.due_date && t.due_date < today).length
 
     // ── Budget ──
-    const txs         = transactions ?? []
-    const totalIncome  = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
-    const totalExpense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 
     // ── Health ──
-    const runList      = runs ?? []
-    const totalRuns    = runList.length
-    const totalKm      = runList.reduce((s, r) => s + (r.distance_km ?? 0), 0)
-    const latestWeight = weights?.[0]?.weight_kg ?? null
 
     setData({
       totalSeconds, projectStats, dailyStats,
       tasksDone, tasksTotal, tasksLate,
-      totalIncome, totalExpense,
-      totalRuns, totalKm, latestWeight,
     })
     setLoading(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps

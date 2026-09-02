@@ -49,11 +49,7 @@ export type DashboardData = {
     color: string | null
   }>
   // Health
-  latestWeight: number | null
-  lastRun: { distance_km: number; duration_seconds: number | null; date: string } | null
   // Budget (current month)
-  monthIncome: number
-  monthExpense: number
 }
 
 function getSupabase() {
@@ -90,9 +86,6 @@ export function useDashboard() {
         { data: todayEntriesRaw },
         { data: weekEntriesRaw },
         { data: events },
-        { data: weights },
-        { data: runs },
-        { data: transactions },
       ] = await Promise.all([
         supabase.from('tasks').select('id,title,status,priority,due_date,due_time,project_id,estimated_minutes')
           .eq('due_date', todayStr).neq('status', 'cancelled'),
@@ -103,9 +96,6 @@ export function useDashboard() {
           .gte('started_at', monDate.toISOString()).lt('started_at', sunDate.toISOString()),
         supabase.from('events').select('id,title,start_at,end_at,category,color')
           .gte('start_at', todayStr + 'T00:00:00').lt('start_at', todayStr + 'T23:59:59').order('start_at', { ascending: true }),
-        supabase.from('health_metrics').select('weight_kg').order('date', { ascending: false }).limit(1),
-        supabase.from('running_activities').select('date,distance_km,duration_seconds').order('date', { ascending: false }).limit(1),
-        supabase.from('transactions').select('amount,type').gte('date', monthStart).lt('date', monthEnd),
       ])
 
       // Build project map
@@ -133,13 +123,8 @@ export function useDashboard() {
       const weekSeconds  = (weekEntriesRaw ?? []).reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
 
       // Health
-      const latestWeight = weights?.[0]?.weight_kg ?? null
-      const lastRun      = runs?.[0] ?? null
 
       // Budget
-      const txs         = transactions ?? []
-      const monthIncome  = txs.filter(t => t.type === 'income').reduce((s, t)  => s + t.amount, 0)
-      const monthExpense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 
       setData({
         todayTasks,
@@ -150,10 +135,6 @@ export function useDashboard() {
         weekSeconds,
         activeProjects: projects ?? [],
         todayEvents: events ?? [],
-        latestWeight,
-        lastRun,
-        monthIncome,
-        monthExpense,
       })
       setLoading(false)
     }

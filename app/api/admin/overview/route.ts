@@ -4,8 +4,8 @@ import { getAdmin, serviceClient } from '@/lib/admin'
 export const runtime = 'nodejs'
 
 const TABLES = [
-  'recipes', 'transactions', 'projects', 'tasks', 'shopping_items',
-  'running_activities', 'product_prices', 'events', 'time_entries', 'health_metrics',
+  'projects', 'tasks',
+  'product_prices', 'events', 'time_entries',
 ]
 
 // Statistiques globales du site (tous comptes confondus).

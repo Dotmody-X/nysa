@@ -53,7 +53,6 @@ export default function DashboardPage() {
   })
   const todayCapitalized = todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)
 
-  const balance    = data ? data.monthIncome - data.monthExpense : 0
   const tasks      = data?.todayTasks ?? []
   const doneTasks  = tasks.filter(t => t.status === 'done').length
   const openTasks  = tasks.filter(t => t.status !== 'done')
@@ -105,7 +104,6 @@ export default function DashboardPage() {
           `${tasks.length - doneTasks} tâche${tasks.length - doneTasks > 1 ? 's' : ''} à faire`,
           `${events.length} événement${events.length > 1 ? 's' : ''}`,
           `${fmtSeconds(data?.todaySeconds ?? 0)} tracké aujourd'hui`,
-          `solde ${fmtEur(balance)}`,
           `${projects.length} projet${projects.length > 1 ? 's' : ''} en cours`,
         ]
         // Chaque piste contient 3× les items : elle dépasse toujours la
@@ -134,8 +132,6 @@ export default function DashboardPage() {
              progress={tasks.length > 0 ? doneTasks / tasks.length : undefined} />
         <Kpi icon={FolderKanban} label="Projets actifs"   value={loading ? '…' : String(projects.length)}              sub={loading ? '' : deadlineLabel} accent="var(--accent-projets)" href="/projets" iconInk="var(--ink-light)"
              subColor={overdue.length > 0 ? 'var(--danger)' : undefined} />
-        <Kpi icon={Wallet}      label="Solde du mois"     value={loading ? '…' : fmtEur(balance)}                      sub={loading ? '' : `${fmtEur(data?.monthIncome ?? 0)} in · ${fmtEur(data?.monthExpense ?? 0)} out`} accent="var(--accent-budget)" href="/budget"
-             valueColor={balance < 0 ? 'var(--danger)' : undefined} />
       </div>
 
       {/* ── Aujourd'hui : tâches + agenda côte à côte ─────────────────── */}
@@ -264,15 +260,6 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* ── Signal santé/sport discret ────────────────────────────────── */}
-      {!loading && data?.lastRun && (
-        <Link href="/sport" className="flex items-center gap-2 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-          <Activity size={13} style={{ color: 'var(--accent-sport)' }} />
-          Dernière sortie : {data.lastRun.distance_km.toFixed(1)} km
-          {data.lastRun.duration_seconds ? ` · ${fmtSeconds(data.lastRun.duration_seconds)}` : ''}
-          <ArrowRight size={12} />
-        </Link>
-      )}
     </div>
   )
 }
