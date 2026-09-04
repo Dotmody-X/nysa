@@ -56,7 +56,9 @@ function messageErreur(sortie: SortieClaude | null, stderr: string, code: number
  */
 function remede(message: string): string | null {
   if (/oauth|authenticate|credential|session expired/i.test(message)) {
-    return "La session Claude Code a expiré sur le Pi. Rebranche-la avec `claude setup-token`, " +
+    // `claude setup-token` lance sa propre procédure OAuth et ne rebranche pas
+    // la session du compte Max : le service repartait en échec identique.
+    return "La session Claude Code a expiré sur le Pi. Rebranche-la avec `claude auth login --claudeai`, " +
       'puis `sudo systemctl restart nysa-agent`.'
   }
   if (/usage limit|rate.?limit|quota|too many requests/i.test(message)) {
