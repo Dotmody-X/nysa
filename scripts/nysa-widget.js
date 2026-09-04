@@ -90,11 +90,15 @@ async function releve() {
 
   const secondes = duJour.reduce((s, e) => s + (e.duration_seconds || 0), 0)
   const chrono = enCours[0]
-  // Le chronometre en cours n'a pas encore de duree : on la calcule.
   const depuis = chrono ? Math.floor((Date.now() - new Date(chrono.started_at)) / 1000) : 0
 
   return {
-    chrono: chrono ? { titre: chrono.description || 'Sans titre', secondes: depuis } : null,
+    // On conserve la date de depart : c'est elle qui permet a iOS de faire
+    // avancer le compteur sans redessiner. La duree calculee ne sert qu'au
+    // total du jour, ou la seconde pres n'a pas d'importance.
+    chrono: chrono
+      ? { titre: chrono.description || 'Sans titre', debut: new Date(chrono.started_at) }
+      : null,
     secondes: secondes + depuis,
     taches,
     faites: taches.filter(t => t.status === 'done').length,
@@ -130,7 +134,10 @@ function petit(d) {
   if (d.chrono) {
     titre(w, 'en cours', TEAL)
     w.addSpacer(4)
-    const h = w.addText(duree(d.chrono.secondes))
+    // applyTimerStyle : le systeme fait avancer le compteur lui-meme, meme
+    // quand il n'a pas redessine le widget depuis une demi-heure.
+    const h = w.addDate(d.chrono.debut)
+    h.applyTimerStyle()
     h.font = Font.boldSystemFont(26)
     h.textColor = ENCRE
     w.addSpacer(2)
@@ -169,7 +176,8 @@ function moyen(d) {
   const lbl = g.addText(d.chrono ? 'EN COURS' : "AUJOURD'HUI")
   lbl.font = Font.boldSystemFont(9)
   lbl.textColor = d.chrono ? TEAL : GRIS
-  const h = g.addText(duree(d.chrono ? d.chrono.secondes : d.secondes))
+  const h = d.chrono ? g.addDate(d.chrono.debut) : g.addText(duree(d.secondes))
+  if (d.chrono) h.applyTimerStyle()
   h.font = Font.boldSystemFont(24)
   h.textColor = ENCRE
   entete.addSpacer()
