@@ -6,7 +6,7 @@ import {
   Settings, Sun, Moon, Monitor, User,
   Home, BarChart2, Calendar, Clock, FolderKanban, CheckSquare, Activity,
   HeartPulse, UtensilsCrossed, ShoppingCart, Wallet, List, Send, Award, Shield,
-  Users, Printer, Package, Barcode,
+  Users, Printer, Package, Barcode, Radar,
 } from '@/components/ui/icons'
 import { NysaLogo } from '@/components/ui/NysaLogo'
 import { useState, useEffect, useRef } from 'react'
@@ -33,6 +33,7 @@ const navItems: NavItem[] = [
   { href: '/imprimantes',  label: 'Imprimantes',   Icon: Printer,      group: 'Le Mixologue' },
   { href: '/etiquettes',   label: 'Étiquettes',    Icon: Barcode,      group: 'Le Mixologue' },
   { href: '/rapports',     label: 'Rapports',      Icon: BarChart2,    group: 'Analyser' },
+  { href: '/radar',        label: 'Radar',         Icon: Radar,        group: 'Analyser' },
   // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
 

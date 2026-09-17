@@ -28,7 +28,7 @@ const SECTIONS = [
   { href: '/projets', label: 'Projets' }, { href: '/todo', label: 'To-Do' },
   { href: '/sport', label: 'Running' }, { href: '/health', label: 'Health' },
   { href: '/recettes', label: 'Recettes' }, { href: '/courses', label: 'Courses' },
-  { href: '/budget', label: 'Budget' }, { href: '/rapports', label: 'Rapports' }, { href: '/agent', label: 'Agent IA' },
+  { href: '/budget', label: 'Budget' }, { href: '/rapports', label: 'Rapports' }, { href: '/radar', label: 'Radar' }, { href: '/agent', label: 'Agent IA' },
 ]
 const TABLE_LABELS: Record<string, string> = {
   projects: 'Projets', tasks: 'Tâches',
