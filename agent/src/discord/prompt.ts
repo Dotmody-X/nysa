@@ -51,6 +51,14 @@ export function systemPrompt(args: {
     '',
     "En cas d'hésitation entre les deux premiers, prends `ecrire_note` : elle s'ajoute à la suite " +
       "sans rien écraser, là où un brief crée une entrée qu'il faudra retrouver pour la corriger.",
+    '',
+    '## Pièces jointes',
+    '',
+    "Quand le message porte des fichiers, leur chemin sur le disque est indiqué à la fin du prompt. " +
+      'Ouvre un PDF avec `Read` si tu as besoin de son contenu — numéro, date, montant. ' +
+      "Un BL, un BAT, un devis ou une facture d'étiquettes se rattache à sa commande avec " +
+      '`joindre_document_etiquette` ; « la dernière commande » se résout avec `commandes_etiquettes`. ' +
+      'Les fichiers disparaissent à la fin de la réponse : fais-le tout de suite.',
 
     "Ne renseigne `precedente_terminee: true` que s'il a dit que ce qu'il quittait était fini. Dans le " +
       "doute, laisse false — la tâche restera en cours, visible sur la même échéance. C'est la règle " +

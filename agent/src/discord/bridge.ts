@@ -1,4 +1,5 @@
-import { writeFileSync, mkdtempSync } from 'node:fs'
+import { writeFileSync, mkdtempSync, rmSync } from 'node:fs'
+import { writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -92,6 +93,33 @@ async function handleLink(message: Message, email: string) {
   }
 }
 
+/**
+ * Les pièces jointes Discord vivent sur un CDN, pas dans le message : Claude
+ * ne les verrait jamais. On les dépose sur le disque le temps de la
+ * conversation, et le prompt dit où. Le répertoire est ajouté aux dossiers
+ * autorisés pour que `Read` puisse ouvrir un PDF, et
+ * `joindre_document_etiquette` les envoie dans le bucket depuis ce chemin.
+ */
+async function deposerPiecesJointes(message: Message): Promise<{ dossier: string | null; lignes: string[] }> {
+  if (message.attachments.size === 0) return { dossier: null, lignes: [] }
+  const dossier = mkdtempSync(join(tmpdir(), 'nysa-pj-'))
+  const lignes: string[] = []
+  for (const pj of message.attachments.values()) {
+    const nom = (pj.name ?? 'fichier').replace(/[^\w.\-]/g, '_')
+    const chemin = join(dossier, nom)
+    try {
+      const rep = await fetch(pj.url)
+      if (!rep.ok) throw new Error(`HTTP ${rep.status}`)
+      await writeFile(chemin, Buffer.from(await rep.arrayBuffer()))
+      lignes.push(`- ${chemin} (${pj.contentType ?? 'type inconnu'}, ${Math.round(pj.size / 1024)} ko)`)
+    } catch (e) {
+      log.warn(`Pièce jointe ${pj.name} non récupérée`, e)
+      lignes.push(`- ${pj.name} : téléchargement impossible`)
+    }
+  }
+  return { dossier, lignes }
+}
+
 async function handleAgent(message: Message, text: string) {
   const channelId = message.channelId
 
@@ -121,15 +149,20 @@ async function handleAgent(message: Message, text: string) {
   busy.add(channelId)
   if (message.channel.isSendable()) await message.channel.sendTyping()
 
+  const pieces = await deposerPiecesJointes(message)
+  const prompt = pieces.lignes.length
+    ? `${text || '(message sans texte, seulement des pièces jointes)'}\n\nPièces jointes déposées sur le disque :\n${pieces.lignes.join('\n')}`
+    : text
+
   try {
     const run = await runClaude({
       bin: config.CLAUDE_BIN,
       cwd: config.NYSA_REPO,
-      prompt: text,
+      prompt,
       timeoutMs: config.CLAUDE_TIMEOUT_MS,
       resumeSessionId: sessions.get(channelId) ?? null,
       mcpConfigPath,
-      extraDirs: config.OBSIDIAN_VAULT ? [config.OBSIDIAN_VAULT] : [],
+      extraDirs: [config.OBSIDIAN_VAULT, pieces.dossier].filter((d): d is string => Boolean(d)),
       systemPrompt: systemPrompt({
         channelName,
         brand,
@@ -165,6 +198,8 @@ async function handleAgent(message: Message, text: string) {
     await message.reply(`Erreur : ${e instanceof Error ? e.message : String(e)}`)
   } finally {
     busy.delete(channelId)
+    // Les fichiers ne restent que le temps de la réponse : ils sont déjà dans le bucket s'ils devaient y aller.
+    if (pieces.dossier) rmSync(pieces.dossier, { recursive: true, force: true })
   }
 }
 
@@ -271,7 +306,7 @@ client.on(Events.MessageCreate, async message => {
   if (message.author.bot) return
 
   const content = message.content.trim()
-  if (!content) return
+  if (!content && message.attachments.size === 0) return
 
   if (content.startsWith('!lier ')) {
     await handleLink(message, content.slice('!lier '.length).trim())
@@ -297,7 +332,7 @@ client.on(Events.MessageCreate, async message => {
     ? content.replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '').trim()
     : content
 
-  if (text) await handleAgent(message, text)
+  if (text || message.attachments.size > 0) await handleAgent(message, text)
 })
 
 client.login(config.DISCORD_TOKEN)
