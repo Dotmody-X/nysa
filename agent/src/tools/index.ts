@@ -6,6 +6,7 @@ import { agendaTools } from './agenda.js'
 import { inboxTools } from './inbox.js'
 import { digestTools } from './digest.js'
 import { noteTools } from './notes.js'
+import { etiquetteTools } from './etiquettes.js'
 import { macTools } from './mac.js'
 
 /**
@@ -28,6 +29,7 @@ export function allTools(): ToolDef[] {
     ...inboxTools,
     ...digestTools,
     ...noteTools,
+    ...etiquetteTools,
     ...macTools(),
   ]
 }
