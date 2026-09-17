@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export type DigestKind = 'brief' | 'debrief'
+export type DigestKind = 'brief' | 'debrief' | 'radar' | 'review'
 export type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'accent'
 export type PriorityLevel = 'urgent' | 'high' | 'medium' | 'low'
 
@@ -27,18 +27,25 @@ export interface DigestPayload {
 
 export interface Digest {
   id: number
-  kind: string          // 'brief' | 'debrief' (la vue ne renvoie que ces deux-là)
+  kind: string          // DigestKind (la vue ne renvoie que ces quatre-là)
   content: string       // markdown (secours)
   generated_at: string  // ISO timestamptz
   payload: DigestPayload | null  // structuré, à privilégier
 }
 
+const QUOTIDIENS: DigestKind[] = ['brief', 'debrief']
+
 /**
- * Briefs & débriefs quotidiens — LECTURE SEULE via la vue public.v_digests
- * (fenêtre curée sur work.digests, déjà filtrée sur kind ∈ {brief, debrief}).
+ * Digests — LECTURE SEULE via la vue public.v_digests (fenêtre curée sur
+ * work.digests, filtrée sur kind ∈ {brief, debrief, radar, review} et sur
+ * l'utilisateur). Par défaut on ne demande que les quotidiens : la page Brief
+ * et son dock ne doivent pas voir arriver un radar dans leur historique.
  * Réutilise le client Supabase existant (anon, RLS respectée). On n'écrit jamais.
  */
-export function useDigests() {
+export function useDigests(kinds: DigestKind[] = QUOTIDIENS) {
+  // Un tableau passé en ligne change d'identité à chaque rendu : on dépend
+  // de sa forme sérialisée, pas de la référence.
+  const cle = kinds.join(',')
   const [digests, setDigests] = useState<Digest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -50,16 +57,18 @@ export function useDigests() {
     const { data, error } = await supabase
       .from('v_digests')
       .select('id, kind, content, generated_at, payload')
+      .in('kind', cle.split(','))
       .order('generated_at', { ascending: false })
     if (error) setError(error.message)
     else setDigests((data as Digest[]) ?? [])
     setLoading(false)
-  }, [])
+  }, [cle])
 
   useEffect(() => { fetchDigests() }, [fetchDigests])
 
   const latestBrief   = digests.find(d => d.kind === 'brief')   ?? null
   const latestDebrief = digests.find(d => d.kind === 'debrief') ?? null
+  const latestRadar   = digests.find(d => d.kind === 'radar')   ?? null
 
-  return { digests, loading, error, refetch: fetchDigests, latestBrief, latestDebrief }
+  return { digests, loading, error, refetch: fetchDigests, latestBrief, latestDebrief, latestRadar }
 }

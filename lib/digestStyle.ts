@@ -3,8 +3,8 @@
 
 import {
   Activity, AlertCircle, AlertTriangle, Award, BarChart2, Bell, Calendar, Check, CheckCircle2,
-  CheckSquare, Circle, Clock, Database, DollarSign, Download, Droplets, Eye, FolderKanban, Flame,
-  Heart, HeartPulse, Home, Info, Link2, List, Lock, MapPin, Moon, Package, PenLine, Play, Search,
+  Book, CheckSquare, Circle, Clock, Database, DollarSign, Download, Droplets, Eye, FolderKanban, Flame,
+  Gavel, Heart, HeartPulse, History, Home, Info, Link2, List, Lock, MapPin, Moon, Package, PenLine, Play, Radar, Search,
   Send, Settings, Shield, ShoppingCart, Sparkles, Star, Store, Sun, Tag, Target, TrendingDown,
   TrendingUp, Upload, User, Users, Utensils, Wallet, Wind, Zap,
 } from '@/components/ui/icons'
@@ -43,7 +43,8 @@ const ICON_MAP: Record<string, IconType> = {
   flame: Flame, fire: Flame, bolt: Zap, zap: Zap, flash: Zap, rocket: Zap,
   'alert-triangle': AlertTriangle, alert: AlertTriangle, warning: AlertTriangle,
   'alert-circle': AlertCircle, 'exclamation-circle': AlertCircle, 'exclamation-mark': AlertCircle, info: Info,
-  bell: Bell, calendar: Calendar, 'calendar-event': Calendar, clock: Clock, hourglass: Clock,
+  bell: Bell, calendar: Calendar, 'calendar-event': Calendar, 'calendar-due': Calendar, clock: Clock, hourglass: Clock,
+  history: History, 'clock-counter-clockwise': History, book: Book, 'book-2': Book, gavel: Gavel, radar: Radar,
   'trending-up': TrendingUp, 'arrow-up-right': TrendingUp, 'trending-down': TrendingDown, 'arrow-down-right': TrendingDown,
   'chart-bar': BarChart2, chart: BarChart2, 'chart-line': BarChart2, target: Target, focus: Target,
   flag: Tag, tag: Tag, bookmark: Tag, star: Star, 'star-filled': Star, award: Award, trophy: Award,

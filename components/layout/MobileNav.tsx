@@ -6,7 +6,7 @@ import {
   Home, BarChart2, User, Plus, LayoutGrid, X,
   Calendar, Clock, FolderKanban, CheckSquare, Activity, HeartPulse,
   UtensilsCrossed, ShoppingCart, Wallet, List, Send, Award,
-  Users, Printer, Package, Barcode,
+  Users, Printer, Package, Barcode, Radar,
 } from '@/components/ui/icons'
 import { useState } from 'react'
 import { useAppConfig } from '@/hooks/useAppConfig'
@@ -25,6 +25,7 @@ const ALL_SECTIONS = [
   { href: '/imprimantes',  label: 'Imprimantes',  Icon: Printer },
   { href: '/etiquettes',   label: 'Étiquettes',   Icon: Barcode },
   { href: '/rapports',     label: 'Rapports',     Icon: BarChart2 },
+  { href: '/radar',        label: 'Radar',        Icon: Radar },
   // Agent IA masqué tant qu'il n'est pas opérationnel
 ]
 

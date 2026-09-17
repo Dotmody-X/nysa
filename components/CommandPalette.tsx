@@ -22,6 +22,7 @@ const DESTINATIONS: Dest[] = [
   { label: 'Imprimantes',   href: '/imprimantes',        emoji: '🖨️', key: 'i' },
   { label: 'Étiquettes',    href: '/etiquettes',         emoji: '🏷️', key: 'a' },
   { label: 'Rapports',      href: '/rapports',           emoji: '📊' },
+  { label: 'Radar',         href: '/radar',              emoji: '📡', key: 'r' },
   { label: 'Réglages',      href: '/reglages',           emoji: '⚙️', key: 's' },
   { label: 'Profil',        href: '/compte',             emoji: '👤' },
 ]

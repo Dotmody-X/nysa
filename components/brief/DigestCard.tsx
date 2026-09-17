@@ -1,11 +1,11 @@
 'use client'
 
-import { Sun, Moon } from '@/components/ui/icons'
+import { Sun, Moon, Radar, Gavel } from '@/components/ui/icons'
 import { toneColor, priorityColor, PRIORITY_LABEL, brandColor, digestIcon } from '@/lib/digestStyle'
 import type { Digest, DigestPayload, DigestStat, DigestPriority, DigestSection, DigestItem, DigestFlag } from '@/hooks/useDigests'
 
 /* ============================================================
-   Rendu ÉDITORIAL d'un brief/débrief.
+   Rendu ÉDITORIAL d'un digest (brief, débrief, radar, revue).
    Parti pris : la hiérarchie vient de la typo et des filets,
    pas de l'empilement de boîtes. Une seule surface encadrée —
    la carte elle-même. Tout le reste est du texte réglé.
@@ -15,10 +15,18 @@ const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const WHEAT = 'var(--text)'
 const BRIEF_COLOR = 'var(--azul)'
 const DEBRIEF_COLOR = 'var(--accent-brand)'
+const RADAR_COLOR = 'var(--accent-rapports)'
 
-const kindMeta = (kind: string) => kind === 'debrief'
-  ? { label: 'Débrief', color: DEBRIEF_COLOR, Icon: Moon }
-  : { label: 'Brief', color: BRIEF_COLOR, Icon: Sun }
+// Radar et revue partagent le violet d'« Analyser » : ce sont des bilans,
+// pas des journées.
+const kindMeta = (kind: string) => {
+  switch (kind) {
+    case 'debrief': return { label: 'Débrief', color: DEBRIEF_COLOR, Icon: Moon }
+    case 'radar':   return { label: 'Radar mensuel', color: RADAR_COLOR, Icon: Radar }
+    case 'review':  return { label: 'Revue hebdo', color: RADAR_COLOR, Icon: Gavel }
+    default:        return { label: 'Brief', color: BRIEF_COLOR, Icon: Sun }
+  }
+}
 
 function fmtDateTime(iso: string): string {
   return new Date(iso).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
