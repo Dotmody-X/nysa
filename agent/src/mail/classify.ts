@@ -68,7 +68,7 @@ function extrait(m: MailBrut): string {
 }
 
 /** null = à ignorer. */
-export function classer(m: MailBrut, marque: MarqueMail, zone = 'Europe/Brussels'): Evenement | null {
+export function classer(m: MailBrut, marque: MarqueMail, zone = 'Europe/Brussels', boite?: string): Evenement | null {
   const objet = m.subject || ''
   const sujet = objet.toLowerCase()
   if (IGNORER.some(k => sujet.includes(k))) return null
@@ -130,7 +130,7 @@ export function classer(m: MailBrut, marque: MarqueMail, zone = 'Europe/Brussels
     p_source: 'imap-ovh',
     p_title: objet || '(sans objet)',
     // `from` seul suffisait aux briefs ; le poste veut aussi lire de quoi il s'agit.
-    p_payload: { from: m.from, to: m.to, snippet: extrait(m), attachments: m.attachments },
+    p_payload: { from: m.from, to: m.to, snippet: extrait(m), attachments: m.attachments, ...(boite ? { mailbox: boite } : {}) },
     p_urgency: urgent ? 1 : 3,
     p_external_id: String(mid).slice(0, 200),
   }
