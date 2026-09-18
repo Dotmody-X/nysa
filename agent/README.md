@@ -124,6 +124,41 @@ Arborescence suggérée :
 #contenu    #rapports
 ```
 
+## Le courrier : `nysa-mail`
+
+Un second service, dans le même dépôt et le même `.env`, tient les boîtes OVH en
+écoute permanente (IMAP IDLE : le serveur pousse le mail à l'instant où il
+arrive). Chaque mail est classé — commande WooCommerce, rendez-vous Amelia,
+mail urgent ou ordinaire — et déposé dans `work.events` par `log_work_event`,
+exactement comme le faisait le workflow n8n qu'il remplace. C'est ce qui
+alimente les briefs et le flux de courrier du poste iPad.
+
+Il écrit sous une identité de service (`bot_identities`, provider `service`),
+créée au premier démarrage à partir du compte Discord lié du propriétaire.
+Son jeton n'est partagé avec personne.
+
+```bash
+# dans agent/.env : MAIL_ACCOUNTS, MAIL_PASS_MIXOLOGUE, MAIL_PASS_AETERNA
+sudo cp /home/pi/nysa/agent/nysa-mail.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now nysa-mail
+journalctl -u nysa-mail -f
+```
+
+Le dernier UID vu par boîte est dans `~/.nysa-mail.json` ; le supprimer fait
+reprendre `MAIL_BACKFILL_DAYS` jours de courrier (la base dédoublonne, ça ne
+crée rien en double).
+
+## Les demandes depuis l'application
+
+L'application (l'iPad du bureau, page Poste) peut poser une question à Claude
+sans passer par Discord : elle dépose une ligne dans `work.agent_requests`
+(`ask_agent`), le worker de la passerelle la prend à la seconde (Realtime sous
+le JWT de l'utilisateur), lance Claude Code avec les mêmes tools, et rend la
+réponse dans la même ligne — que l'application voit arriver en temps réel.
+Jamais de contrôle du Mac par ce chemin : une demande peut contenir un mail
+écrit par un tiers.
+
 ## Suivi du temps en conversant
 
 C'est le cœur de l'usage quotidien. Tu annonces ce que tu commences, le reste suit :

@@ -68,6 +68,42 @@ const bridgeSchema = supabaseSchema.extend({
   MAC_SSH_KEY: z.string().optional(),
 })
 
+/**
+ * Le service de courrier (`src/mail/service.ts`) : IMAP en écoute permanente
+ * sur les boîtes OVH, dépôt dans work.events au nom du propriétaire.
+ * Il n'a pas besoin de Discord ni de Claude Code.
+ */
+const mailSchema = supabaseSchema.extend({
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  /** Le premier identifiant est le propriétaire : sa session sert au dépôt. */
+  AGENT_ALLOWED_DISCORD_IDS: z
+    .string()
+    .min(1)
+    .transform(s => s.split(',').map(v => v.trim()).filter(Boolean)),
+  MAIL_HOST: z.string().default('ssl0.ovh.net'),
+  MAIL_PORT: z.coerce.number().int().default(993),
+  /**
+   * Les boîtes à suivre : `marque=adresse`, séparées par des virgules. Le mot
+   * de passe de chaque boîte est dans MAIL_PASS_<MARQUE> (en majuscules).
+   */
+  MAIL_ACCOUNTS: z
+    .string()
+    .min(1)
+    .transform(s =>
+      s.split(',').map(v => v.trim()).filter(Boolean).map(paire => {
+        const [marque, adresse] = paire.split('=').map(x => x.trim())
+        if (!marque || !adresse || !['mixologue', 'aeterna'].includes(marque)) {
+          throw new Error(`MAIL_ACCOUNTS : « ${paire} » n'est pas de la forme mixologue=adresse ou aeterna=adresse`)
+        }
+        return { marque: marque as 'mixologue' | 'aeterna', adresse }
+      }),
+    ),
+  /** Au premier démarrage (ou si la boîte change d'UIDVALIDITY) : combien de jours reprendre. */
+  MAIL_BACKFILL_DAYS: z.coerce.number().int().min(0).default(1),
+  /** Dernier UID vu par boîte, pour reprendre où on s'était arrêté. */
+  MAIL_STATE_FILE: z.string().default(''),
+})
+
 function parseOrDie<T extends z.ZodTypeAny>(schema: T, what: string): z.infer<T> {
   const parsed = schema.safeParse(process.env)
   if (!parsed.success) {
@@ -86,4 +122,8 @@ export function mcpConfig() {
 
 export function bridgeConfig() {
   return parseOrDie(bridgeSchema, 'passerelle')
+}
+
+export function mailConfig() {
+  return parseOrDie(mailSchema, 'courrier')
 }
