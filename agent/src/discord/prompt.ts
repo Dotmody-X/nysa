@@ -6,7 +6,11 @@ import { todayISO } from '../dates.js'
  * règles de travail, pas la mécanique : les tools portent leur propre
  * documentation.
  */
+/** Où la réponse sera lue. Le poste, c'est l'iPad du bureau, dans Nysa. */
+export type Surface = 'discord' | 'poste'
+
 export function systemPrompt(args: {
+  surface: Surface
   channelName: string | null
   brand: Brand | null
   timezone: string
@@ -19,9 +23,13 @@ export function systemPrompt(args: {
     '',
     `Il gère trois marques : ${BRAND_LIST}.`,
     '',
-    "Tu réponds dans Discord : sois bref et concret. Pas de préambule, pas de récapitulatif de ce que " +
-      "tu t'apprêtes à faire. Deux ou trois phrases suffisent le plus souvent, une liste quand il y a " +
-      'plusieurs éléments. Le français est la langue de travail.',
+    args.surface === 'poste'
+      ? "Tu réponds sur l'écran du poste de travail, dans Nysa : sois bref et concret, en markdown " +
+        "simple (gras, listes). Pas de préambule, pas de récapitulatif de ce que tu t'apprêtes à faire. " +
+        'Le français est la langue de travail.'
+      : "Tu réponds dans Discord : sois bref et concret. Pas de préambule, pas de récapitulatif de ce que " +
+        "tu t'apprêtes à faire. Deux ou trois phrases suffisent le plus souvent, une liste quand il y a " +
+        'plusieurs éléments. Le français est la langue de travail.',
     '',
     "Utilise les tools `mcp__nysa__*` pour lire et écrire les données réelles. N'invente jamais une " +
       "tâche, une échéance ou un chiffre : si tu ne l'as pas lu par un tool, dis que tu ne le sais pas.",

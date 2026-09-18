@@ -1,9 +1,7 @@
-import { writeFileSync, mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve as resolvePath } from 'node:path'
 import {
   Client,
   Events,
@@ -16,36 +14,19 @@ import { bridgeConfig } from '../config.js'
 import { linkAccount, resolveSession } from '../identity.js'
 import { brandFromChannel } from '../brands.js'
 import { userClient } from '../supabase.js'
-import { runClaude } from './claude.js'
+import { runNysaAgent } from '../agent/run.js'
+import { MCP_ENTRY } from '../agent/mcpConfig.js'
+import { startRequestWorker } from '../requests/worker.js'
 import { commandData, commands } from './commands.js'
-import { systemPrompt } from './prompt.js'
 import type { AgentContext } from '../context.js'
 import { log } from '../log.js'
 
 const config = bridgeConfig()
 
-const here = dirname(fileURLToPath(import.meta.url))
-/** Le serveur MCP compilé, lancé par Claude Code en sous-processus. */
-const MCP_ENTRY = resolvePath(here, '../mcp/server.js')
-
 /** Fil de conversation par salon, pour que l'agent garde le contexte. */
 const sessions = new Map<string, string>()
 /** Un seul appel à la fois par salon : les limites d'usage de l'abonnement ne sont pas infinies. */
 const busy = new Set<string>()
-
-const mcpConfigPath = (() => {
-  const dir = mkdtempSync(join(tmpdir(), 'nysa-mcp-'))
-  const path = join(dir, 'mcp.json')
-  writeFileSync(
-    path,
-    JSON.stringify({
-      mcpServers: {
-        nysa: { command: process.execPath, args: [MCP_ENTRY] },
-      },
-    }),
-  )
-  return path
-})()
 
 const client = new Client({
   intents: [
@@ -144,7 +125,6 @@ async function handleAgent(message: Message, text: string) {
   }
 
   const channelName = channelNameOf(message)
-  const brand = brandFromChannel(channelName)
 
   busy.add(channelId)
   if (message.channel.isSendable()) await message.channel.sendTyping()
@@ -155,40 +135,16 @@ async function handleAgent(message: Message, text: string) {
     : text
 
   try {
-    const run = await runClaude({
-      bin: config.CLAUDE_BIN,
-      cwd: config.NYSA_REPO,
+    const run = await runNysaAgent({
+      config,
+      session,
       prompt,
-      timeoutMs: config.CLAUDE_TIMEOUT_MS,
+      surface: 'discord',
+      channelName,
       resumeSessionId: sessions.get(channelId) ?? null,
-      mcpConfigPath,
-      extraDirs: [config.OBSIDIAN_VAULT, pieces.dossier].filter((d): d is string => Boolean(d)),
-      systemPrompt: systemPrompt({
-        channelName,
-        brand,
-        timezone: config.AGENT_TIMEZONE,
-        vaultPath: config.OBSIDIAN_VAULT ?? null,
-        macEnabled: Boolean(config.MAC_SSH_HOST && config.MAC_SSH_USER),
-      }),
-      env: {
-        NYSA_ACCESS_TOKEN: session.accessToken,
-        NYSA_USER_ID: session.userId,
-        NYSA_CHANNEL: channelName ?? '',
-        SUPABASE_URL: config.SUPABASE_URL,
-        SUPABASE_ANON_KEY: config.SUPABASE_ANON_KEY,
-        AGENT_TIMEZONE: config.AGENT_TIMEZONE,
-        LOG_LEVEL: config.LOG_LEVEL,
-
-        // Séparation des contextes de confiance : le contrôle du Mac n'est
-        // accordé qu'ici, où c'est l'utilisateur lui-même qui écrit. Les
-        // sessions planifiées qui lisent du contenu tiers (triage d'inbox)
-        // ne posent jamais ce drapeau — sans quoi un e-mail piégé
-        // deviendrait une exécution de commande sur la machine principale.
-        NYSA_ALLOW_MAC: '1',
-        ...(config.MAC_SSH_HOST ? { MAC_SSH_HOST: config.MAC_SSH_HOST } : {}),
-        ...(config.MAC_SSH_USER ? { MAC_SSH_USER: config.MAC_SSH_USER } : {}),
-        ...(config.MAC_SSH_KEY ? { MAC_SSH_KEY: config.MAC_SSH_KEY } : {}),
-      },
+      extraDirs: pieces.dossier ? [pieces.dossier] : [],
+      // Ici c'est Nathan lui-même qui écrit : le contrôle du Mac est permis.
+      allowMac: true,
     })
 
     if (run.sessionId) sessions.set(channelId, run.sessionId)
@@ -295,6 +251,8 @@ client.once(Events.ClientReady, async c => {
   log.info(`Passerelle Discord connectée en tant que ${c.user.tag}`)
   log.info(`Dépôt Nysa : ${config.NYSA_REPO} — MCP : ${MCP_ENTRY}`)
   await registerCommands(c)
+  // Les demandes déposées depuis l'application (l'iPad) : même processus, même session.
+  startRequestWorker(config)
 })
 
 client.on(Events.InteractionCreate, async interaction => {
