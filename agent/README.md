@@ -149,6 +149,24 @@ Le dernier UID vu par boîte est dans `~/.nysa-mail.json` ; le supprimer fait
 reprendre `MAIL_BACKFILL_DAYS` jours de courrier (la base dédoublonne, ça ne
 crée rien en double).
 
+## Les alarmes
+
+Ce qui se tait doit crier ailleurs. Trois chemins vers `#alertes-systeme` :
+
+- `OnFailure=nysa-alerte@%n.service` sur `nysa-mail` et `nysa-agent` : quand
+  systemd renonce à relancer un service, un message dit lequel et où regarder.
+- Le **pouls du matin** (`nysa-pouls.timer`, 8 h) : services actifs, dernier mail,
+  courrier à traiter, travail de Claude la veille, et la date d'expiration de la
+  session Claude Code du Pi.
+- En direct : une session Claude expirée (triage ou demande) ou une boîte IMAP qui
+  refuse ses identifiants — une fois par heure, pas par mail.
+
+```bash
+sudo cp nysa-alerte@.service nysa-pouls.service nysa-pouls.timer /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now nysa-pouls.timer
+node dist/alerte-cli.js "test"   # vérifie que le bot trouve le salon
+```
+
 ## Envoyer un mail depuis Discord
 
 L'outil `envoyer_mail` expédie depuis une des boîtes (SMTP déduit de l'hôte IMAP :

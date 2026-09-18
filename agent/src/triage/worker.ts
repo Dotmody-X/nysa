@@ -5,6 +5,7 @@ import { serviceClient, userClient } from '../supabase.js'
 import { runNysaAgent } from '../agent/run.js'
 import { promptTriage, lireFiche } from './prompt.js'
 import { log } from '../log.js'
+import { alerter } from '../alertes.js'
 
 type Config = ReturnType<typeof bridgeConfig>
 
@@ -166,6 +167,8 @@ async function trier(config: Config, session: Session, db: SupabaseClient, ev: E
     // On marque l'échec pour ne pas retenter en boucle ; l'humain lira le mail tel quel.
     const message = e instanceof Error ? e.message : String(e)
     log.error(`Triage #${ev.id} : Claude Code a échoué`, message)
+    // La panne qui bloque tout : la session du compte Max a expiré. Une fois par heure, pas par mail.
+    if (/session Claude Code a expiré|oauth|authenticate/i.test(message)) void alerter(`🔴 ${message.split('\n')[0]}\n${message.split('\n\n')[1] ?? ''}`, 'claude-session')
     await db.rpc('annotate_work_event', { p_id: ev.id, p_ai: { echec: message.slice(0, 200), le: new Date().toISOString() }, p_urgency: null })
   }
 }

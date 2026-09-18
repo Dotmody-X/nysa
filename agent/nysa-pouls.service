@@ -1,0 +1,12 @@
+[Unit]
+Description=Nysa — pouls du matin dans #alertes-systeme
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+WorkingDirectory=/home/pi/nysa/agent
+EnvironmentFile=/home/pi/nysa/agent/.env
+Environment=HOME=/home/pi
+ExecStart=/usr/bin/node dist/pouls.js

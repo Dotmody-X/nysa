@@ -1,0 +1,9 @@
+[Unit]
+Description=Nysa — alerte Discord quand %i tombe
+
+[Service]
+Type=oneshot
+User=pi
+WorkingDirectory=/home/pi/nysa/agent
+EnvironmentFile=/home/pi/nysa/agent/.env
+ExecStart=/usr/bin/node dist/alerte-cli.js "🔴 **%i** est tombé sur le Pi et systemd a renoncé à le relancer. Regarder : `journalctl -u %i -n 50`, puis `sudo systemctl restart %i`."
