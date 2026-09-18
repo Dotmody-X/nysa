@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export type VeilleBrand = 'E-Smoker' | 'Aeterna'
+export type VeilleBrand = 'Le Mixologue' | 'Aeterna'
 export type VeilleCategory = 'loi' | 'marche' | 'tendance' | 'news'
 export type VeilleCountry = 'BE' | 'FR' | 'LU' | 'CH' | 'IT' | 'EU'
 

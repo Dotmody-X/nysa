@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export type DigestKind = 'brief' | 'debrief' | 'radar' | 'review' | 'veille_esmoker' | 'veille_aeterna'
+export type DigestKind = 'brief' | 'debrief' | 'radar' | 'review' | 'veille_mixologue' | 'veille_aeterna'
 export type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'accent'
 export type PriorityLevel = 'urgent' | 'high' | 'medium' | 'low'
 
