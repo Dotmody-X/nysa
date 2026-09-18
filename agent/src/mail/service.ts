@@ -7,6 +7,7 @@ import { mailConfig } from '../config.js'
 import { serviceSession } from '../identity.js'
 import { userClient } from '../supabase.js'
 import { classer, type MailBrut, type MarqueMail } from './classify.js'
+import { comptesMail } from './comptes.js'
 import { envoyerPush, pushActif } from '../push/envoyer.js'
 import { log } from '../log.js'
 
@@ -287,17 +288,17 @@ async function main() {
   const session = await serviceSession(SERVICE, PROPRIETAIRE)
   log.info(`nysa-mail : dépôt au nom de ${session.email ?? session.userId} — notifications push ${pushActif() ? 'actives' : 'inactives (VAPID absent)'}`)
 
-  const boites = config.MAIL_ACCOUNTS.map(({ marque, adresse }) => {
-    const local = adresse.split('@')[0]!.toUpperCase().replace(/[^A-Z0-9]/g, '_')
-    const MARQUE = marque.toUpperCase()
-    const motDePasse = process.env[`MAIL_PASS_${local}`] || process.env[`MAIL_PASS_${MARQUE}`]
-    if (!motDePasse) {
-      console.error(`Mot de passe manquant pour ${adresse} : MAIL_PASS_${local} (ou MAIL_PASS_${MARQUE}) dans agent/.env`)
+  const boites = comptesMail().map(c => {
+    if (!c.motDePasse) {
+      console.error(`Mot de passe manquant pour ${c.adresse} : MAIL_PASS_${c.adresse.split('@')[0]!.toUpperCase().replace(/[^A-Z0-9]/g, '_')} dans agent/.env`)
       process.exit(1)
     }
-    const hote = process.env[`MAIL_HOST_${local}`] || process.env[`MAIL_HOST_${MARQUE}`] || config.MAIL_HOST
-    return new Boite(marque, adresse, motDePasse, hote)
+    return new Boite(c.marque, c.adresse, c.motDePasse, c.imap.host)
   })
+  if (boites.length === 0) {
+    console.error('Aucune boîte dans MAIL_ACCOUNTS.')
+    process.exit(1)
+  }
 
   await Promise.all(boites.map(b => b.demarrer()))
 }

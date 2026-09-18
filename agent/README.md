@@ -149,6 +149,15 @@ Le dernier UID vu par boîte est dans `~/.nysa-mail.json` ; le supprimer fait
 reprendre `MAIL_BACKFILL_DAYS` jours de courrier (la base dédoublonne, ça ne
 crée rien en double).
 
+## Envoyer un mail depuis Discord
+
+L'outil `envoyer_mail` expédie depuis une des boîtes (SMTP déduit de l'hôte IMAP :
+MX Plan 465 SSL, Email Pro 587 STARTTLS ; `MAIL_SMTP_<PARTIE_LOCALE>=hôte:port` pour
+forcer). En réponse à un mail reçu (`en_reponse_a`), le destinataire, l'objet et le fil
+(`In-Reply-To`) sont repris, une copie va dans « Envoyés », et le mail sort de
+l'inbox. Claude ne l'appelle que sur un « envoie » explicite de Nathan ; le triage
+n'y a pas accès.
+
 ## Les notifications push
 
 Le Pi envoie aussi les notifications Web Push : `nysa-mail` à chaque mail déposé

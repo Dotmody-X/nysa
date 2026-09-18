@@ -7,6 +7,7 @@ import { inboxTools } from './inbox.js'
 import { digestTools } from './digest.js'
 import { noteTools } from './notes.js'
 import { etiquetteTools } from './etiquettes.js'
+import { mailTools } from './mail.js'
 import { macTools } from './mac.js'
 
 /**
@@ -30,6 +31,7 @@ export function allTools(): ToolDef[] {
     ...digestTools,
     ...noteTools,
     ...etiquetteTools,
+    ...mailTools,
     ...macTools(),
   ]
 }
