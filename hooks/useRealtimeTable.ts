@@ -22,6 +22,16 @@ export function useRealtimeTable(table: string, onChange: () => void, schema = '
       .channel(`rt:${schema}.${table}:${suffixe.current}`)
       .on('postgres_changes', { event: '*', schema, table }, () => onChange())
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    // L'iPad met Safari en veille : au réveil, la socket peut avoir raté des
+    // événements. On recharge quand la page redevient visible ou que le
+    // réseau revient — c'est ce qui rend le poste fiable toute la journée.
+    const reveil = () => { if (document.visibilityState === 'visible') onChange() }
+    document.addEventListener('visibilitychange', reveil)
+    window.addEventListener('online', reveil)
+    return () => {
+      document.removeEventListener('visibilitychange', reveil)
+      window.removeEventListener('online', reveil)
+      supabase.removeChannel(channel)
+    }
   }, [table, schema, onChange])
 }

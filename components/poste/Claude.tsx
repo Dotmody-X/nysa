@@ -73,7 +73,7 @@ export function Claude({ demandes }: { demandes: ReturnType<typeof useAgentReque
       </div>
 
       <form onSubmit={envoyer} style={{ padding: '0 16px 10px', display: 'flex', gap: 8 }}>
-        <input value={texte} onChange={e => setTexte(e.target.value)} placeholder="Demande quelque chose…" aria-label="Question à Claude"
+        <input value={texte} onChange={e => setTexte(e.target.value)} placeholder="Une question rapide (sinon, Discord)…" aria-label="Question à Claude"
           style={{ flex: 1, minWidth: 0, background: 'var(--bg-input)', border: '2px solid var(--ink)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', minHeight: 40, color: WHEAT, fontSize: 13 }} />
         <button type="submit" className="nb-press" disabled={envoi || !texte.trim()} style={bouton('var(--azul)', 'var(--ink-light)', { padding: '10px 12px' })} aria-label="Envoyer">
           {envoi ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
@@ -87,7 +87,7 @@ export function Claude({ demandes }: { demandes: ReturnType<typeof useAgentReque
           : requests.map(r => <Echange key={r.id} r={r} />)}
       </div>
       <div style={{ padding: '6px 14px', borderTop: '1px solid var(--border)', fontSize: 10, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
-        <RotateCcw size={10} /> Claude garde le fil d’une demande à l’autre.
+        <RotateCcw size={10} /> « → #salon » : la réponse est dans Discord, la suite se dit là-bas.
       </div>
     </section>
   )
