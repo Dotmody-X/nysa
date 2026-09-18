@@ -7,6 +7,7 @@ import { mailConfig } from '../config.js'
 import { serviceSession } from '../identity.js'
 import { userClient } from '../supabase.js'
 import { classer, type MailBrut, type MarqueMail } from './classify.js'
+import { envoyerPush, pushActif } from '../push/envoyer.js'
 import { log } from '../log.js'
 
 /**
@@ -27,6 +28,8 @@ const PROPRIETAIRE = config.AGENT_ALLOWED_DISCORD_IDS[0]!
 const FICHIER_ETAT = config.MAIL_STATE_FILE || join(homedir(), '.nysa-mail.json')
 /** Taille maximale lue par message : au-delà, ce sont des pièces jointes qu'on ne stocke pas. */
 const SOURCE_MAX = 1_000_000
+/** Urgence maximale notifiée (1 = urgent … 3 = ordinaire). 3 = tout. */
+const PUSH_URGENCE_MAX = Number(process.env.PUSH_MAX_URGENCY ?? 3)
 
 type Etat = Record<string, { lastUid: number; uidValidity: number }>
 
@@ -173,9 +176,11 @@ class Boite {
     const memo = etat[this.cle]!
 
     let plage: string | { since: Date }
+    let rattrapage = false
     if (memo.lastUid > 0) {
       plage = `${memo.lastUid + 1}:*`
     } else if (config.MAIL_BACKFILL_DAYS > 0) {
+      rattrapage = true
       plage = { since: new Date(Date.now() - config.MAIL_BACKFILL_DAYS * 86_400_000) }
     } else {
       // Rien à reprendre : on se cale sur le dernier message et on attend la suite.
@@ -205,6 +210,17 @@ class Boite {
           if (data !== null) {
             deposes++
             log.info(`[${this.nom}] ${ev.p_type} ${ev.p_urgency === 1 ? '!' : ''}« ${ev.p_title.slice(0, 70)} »`)
+            // Pas de notification pendant un rattrapage : trente-cinq jours
+            // de courrier d'un coup ne sont pas trente-cinq jours d'alertes.
+            if (!rattrapage && ev.p_urgency <= PUSH_URGENCE_MAX) {
+              const marque = this.marque === 'mixologue' ? 'Mixologue' : 'Aeterna'
+              const de = (brut.from || '').replace(/\s*<[^>]*>\s*$/, '')
+              void envoyerPush(db, {
+                title: `${ev.p_urgency === 1 ? '⚠️ ' : ''}${marque} · ${ev.p_type === 'order' ? 'Commande' : ev.p_type === 'appointment' ? 'Rendez-vous' : de || 'Mail'}`,
+                body: ev.p_title.slice(0, 120),
+                tag: `event-${ev.p_external_id.slice(0, 40)}`,
+              })
+            }
           }
         }
       } catch (e) {
@@ -238,7 +254,7 @@ async function main() {
   // La session du service est créée au premier démarrage, à partir du compte
   // Discord lié du propriétaire : on vérifie tout de suite qu'elle s'ouvre.
   const session = await serviceSession(SERVICE, PROPRIETAIRE)
-  log.info(`nysa-mail : dépôt au nom de ${session.email ?? session.userId}`)
+  log.info(`nysa-mail : dépôt au nom de ${session.email ?? session.userId} — notifications push ${pushActif() ? 'actives' : 'inactives (VAPID absent)'}`)
 
   const boites = config.MAIL_ACCOUNTS.map(({ marque, adresse }) => {
     const local = adresse.split('@')[0]!.toUpperCase().replace(/[^A-Z0-9]/g, '_')

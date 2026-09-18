@@ -7,6 +7,7 @@ import { Courrier } from '@/components/poste/Courrier'
 import { Journee } from '@/components/poste/Journee'
 import { Claude } from '@/components/poste/Claude'
 import { Raccourcis } from '@/components/poste/Raccourcis'
+import { BoutonPush } from '@/components/poste/BoutonPush'
 import { useAgentRequests } from '@/hooks/useAgentRequests'
 import { useTasks } from '@/hooks/useTasks'
 import { useWakeLock } from '@/hooks/useWakeLock'
@@ -71,7 +72,8 @@ export default function PostePage() {
         <span style={{ ...DF, fontSize: 15, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: WHEAT }}>Poste</span>
         <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>Nysa · l’écran du bureau</span>
         <span style={{ flex: 1 }} />
-        <span style={{ ...DF, fontSize: 22, fontWeight: 900, color: WHEAT, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>{heure}</span>
+        <BoutonPush />
+        <span style={{ ...DF, fontSize: 22, fontWeight: 900, color: WHEAT, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', marginLeft: 6 }}>{heure}</span>
       </header>
 
       <div className="poste-grille" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 300px) minmax(0, 1fr) minmax(300px, 340px)', gap: 12, minHeight: 0 }}>

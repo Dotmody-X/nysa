@@ -4,6 +4,7 @@ import { resolveSession, type Session } from '../identity.js'
 import { serviceClient, userClient } from '../supabase.js'
 import { runNysaAgent } from '../agent/run.js'
 import { BRANDS, type Brand } from '../brands.js'
+import { envoyerPush } from '../push/envoyer.js'
 import { log } from '../log.js'
 
 type Config = ReturnType<typeof bridgeConfig>
@@ -158,6 +159,9 @@ async function repondre(config: Config, session: Session, db: ReturnType<typeof 
       p_id: d.id, p_reply: run.reply, p_error: null, p_session_id: run.sessionId,
     })
     if (error) log.error(`Demande #${d.id} : réponse non enregistrée (${error.message})`)
+    // L'iPad en veille apprend que la réponse est là ; la même notification
+    // se remplace si plusieurs réponses se suivent.
+    void envoyerPush(db, { title: 'Claude a répondu', body: run.reply.replace(/\s+/g, ' ').slice(0, 140), tag: 'claude-reponse' })
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     log.error(`Demande #${d.id} : Claude Code a échoué`, message)

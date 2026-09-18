@@ -13,7 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#ffffff',
     theme_color: '#ffffff',
     lang: 'fr',
-    orientation: 'portrait',
+    // L'iPad du bureau vit en paysage ; le téléphone reste libre de tourner.
+    orientation: 'any',
     icons: [
       { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
       { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },

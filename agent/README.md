@@ -149,6 +149,26 @@ Le dernier UID vu par boîte est dans `~/.nysa-mail.json` ; le supprimer fait
 reprendre `MAIL_BACKFILL_DAYS` jours de courrier (la base dédoublonne, ça ne
 crée rien en double).
 
+## Les notifications push
+
+Le Pi envoie aussi les notifications Web Push : `nysa-mail` à chaque mail déposé
+(hors rattrapage), la passerelle quand Claude a répondu à une demande. Les
+appareils s'abonnent depuis la PWA (bouton dans le poste ou dans Compte →
+Notifications) ; les abonnements sont dans `public.push_subscriptions`, lus
+avec le JWT de l'utilisateur. Sur iPhone et iPad, il faut l'app sur l'écran
+d'accueil.
+
+Clés VAPID, une fois pour toutes, sur le Pi :
+
+```bash
+cd ~/nysa/agent
+node -e "const k=require('web-push').generateVAPIDKeys(); console.log('VAPID_PUBLIC_KEY='+k.publicKey); console.log('VAPID_PRIVATE_KEY='+k.privateKey)" >> .env
+```
+
+La clé publique va aussi dans `app_config` (`key = 'push'`,
+`value = {"vapid_public_key": "…"}`) : c'est là que la PWA la lit.
+`PUSH_MAX_URGENCY=1` limite le courrier notifié aux urgents.
+
 ## Les demandes depuis l'application
 
 L'application (l'iPad du bureau, page Poste) peut poser une question à Claude
