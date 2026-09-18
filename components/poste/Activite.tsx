@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Play, Square, Clock } from '@/components/ui/icons'
+import { Play, Square, Clock, Pause } from '@/components/ui/icons'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useProjects } from '@/hooks/useProjects'
 import type { TimeEntry, Project } from '@/types'
@@ -19,14 +19,16 @@ export function Activite() {
   const { activeProjects } = useProjects()
   const [tick, setTick] = useState(Date.now())
   const [enCours, setEnCours] = useState(false)
+  /** Ce qu'on a mis en pause : le même projet et la même description, prêts à repartir. */
+  const [pause, setPause] = useState<{ projet: Project; description: string; depuis: number } | null>(null)
 
   const running = entries.find(e => !e.ended_at) as Entree | undefined
 
   useEffect(() => {
-    if (!running) return
+    if (!running && !pause) return
     const t = setInterval(() => setTick(Date.now()), 1000)
     return () => clearInterval(t)
-  }, [running])
+  }, [running, pause])
 
   const ecoule = running ? Math.floor((tick - new Date(running.started_at).getTime()) / 1000) : 0
 
@@ -52,7 +54,18 @@ export function Activite() {
   async function arreter() {
     if (!running || enCours) return
     setEnCours(true)
-    try { await stop(running.id, running.started_at) } finally { setEnCours(false) }
+    try { await stop(running.id, running.started_at); setPause(null) } finally { setEnCours(false) }
+  }
+
+  /** Pause : le compteur s'arrête, mais on garde de quoi repartir d'un geste. */
+  async function mettreEnPause() {
+    if (!running || enCours) return
+    const projet = activeProjects.find(p => p.id === running.project_id)
+    setEnCours(true)
+    try {
+      await stop(running.id, running.started_at)
+      if (projet) setPause({ projet, description: running.description ?? '', depuis: Date.now() })
+    } finally { setEnCours(false) }
   }
 
   async function demarrer(projet: Project, description: string) {
@@ -61,10 +74,11 @@ export function Activite() {
     try {
       if (running) await stop(running.id, running.started_at)
       await start(projet.id, description || projet.name)
+      setPause(null)
     } finally { setEnCours(false) }
   }
 
-  const couleur = running?.projects?.color || 'var(--azul)'
+  const couleur = running?.projects?.color || pause?.projet.color || 'var(--azul)'
 
   return (
     <section style={panneau()}>
@@ -88,8 +102,26 @@ export function Activite() {
             <div style={{ fontSize: 13, color: WHEAT, marginTop: 4, opacity: 0.9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {running.description || '—'}
             </div>
-            <button className="nb-press" onClick={arreter} disabled={enCours} style={{ ...bouton('var(--accent-brand)'), marginTop: 12, width: '100%' }}>
-              <Square size={13} /> Arrêter
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button className="nb-press" onClick={mettreEnPause} disabled={enCours} style={{ ...bouton('var(--bg-input)', WHEAT), flex: 1 }}>
+                <Pause size={13} /> Pause
+              </button>
+              <button className="nb-press" onClick={arreter} disabled={enCours} style={{ ...bouton('var(--accent-brand)'), flex: 1 }}>
+                <Square size={13} /> Arrêter
+              </button>
+            </div>
+          </>
+        ) : pause ? (
+          <>
+            <div style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              En pause · {pause.projet.name}
+            </div>
+            <div style={{ ...DF, fontSize: 30, fontWeight: 900, color: 'var(--text-muted)', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+              {fmtDuree(Math.floor((tick - pause.depuis) / 1000))}
+            </div>
+            <div style={{ fontSize: 13, color: WHEAT, marginTop: 4, opacity: 0.9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pause.description || '—'}</div>
+            <button className="nb-press" onClick={() => demarrer(pause.projet, pause.description)} disabled={enCours} style={{ ...bouton(pause.projet.color || 'var(--azul)'), marginTop: 12, width: '100%' }}>
+              <Play size={13} /> Reprendre
             </button>
           </>
         ) : (

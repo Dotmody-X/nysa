@@ -101,12 +101,12 @@ export default function PostePage() {
       <div className="poste-grille" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 300px) minmax(0, 1fr) minmax(300px, 340px)', gap: 12, minHeight: 0 }}>
         <div style={{ display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 12, minHeight: 0 }}>
           <Activite />
-          <Actions demandes={demandes} />
+          <Claude demandes={demandes} />
         </div>
         <Courrier inbox={inbox} onTache={versTache} onDiscord={versDiscord} onBrouillon={brouillon} />
-        <div style={{ display: 'grid', gridTemplateRows: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, minHeight: 0 }}>
-          <Journee />
-          <Claude demandes={demandes} />
+        <div style={{ display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', gap: 12, minHeight: 0 }}>
+          <Journee demandes={demandes} />
+          <Actions demandes={demandes} />
         </div>
       </div>
     </div>

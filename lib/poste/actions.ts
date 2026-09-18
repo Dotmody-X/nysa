@@ -85,3 +85,25 @@ export const QUESTION_MAIL_DISCORD =
 export const QUESTION_BROUILLON =
   "Rédige un brouillon de réponse au mail juste au-dessus dans ce salon : en français (ou dans la langue du mail), " +
   'ton professionnel et chaleureux, court, signé Nathan. Je te dirai ici les corrections, puis je le copierai dans le webmail.'
+
+/** Le salon d'une marque, d'après `projects.groupe` ou une catégorie libre. */
+export function salonDuGroupe(groupe: string | null): string {
+  const g = (groupe ?? '').toLowerCase()
+  if (g.includes('mixo')) return 'mixologue'
+  if (g.includes('aeterna')) return 'aeterna'
+  if (g.includes('smoker')) return 'esmoker'
+  return 'brief'
+}
+
+/** « Prépare-moi » avant un rendez-vous. */
+export function questionPreparation(titre: string, heure: string | null, lieu: string | null, description: string | null, projet: string | null): string {
+  const quoi = [
+    `Rendez-vous « ${titre} »${heure ? ` à ${heure}` : " aujourd'hui"}`,
+    lieu ? `lieu : ${lieu}` : null,
+    projet ? `projet : ${projet}` : null,
+    description ? `note : ${description.slice(0, 300)}` : null,
+  ].filter(Boolean).join(' · ')
+  return `Prépare-moi pour ce rendez-vous — ${quoi}. En dix lignes maximum : qui, quoi, ce qu'il faut avoir en tête ` +
+    '(tâches ouvertes liées, derniers mails de cette personne ou de cette marque dans l\'inbox, dernière commande ou devis), ' +
+    "et les deux ou trois points à aborder. Rien d'inventé : si tu ne trouves rien, dis-le."
+}
