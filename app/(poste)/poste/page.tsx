@@ -8,15 +8,14 @@ import { Journee } from '@/components/poste/Journee'
 import { Claude } from '@/components/poste/Claude'
 import { Actions } from '@/components/poste/Actions'
 import { BoutonPush } from '@/components/poste/BoutonPush'
-import { Toasts, type Toast } from '@/components/poste/Toast'
+import { PopupMail } from '@/components/poste/PopupMail'
 import { useAgentRequests } from '@/hooks/useAgentRequests'
 import { useTasks } from '@/hooks/useTasks'
 import { useWakeLock } from '@/hooks/useWakeLock'
 import { useInbox, type InboxItem } from '@/hooks/useInbox'
-import { brandColor } from '@/lib/digestStyle'
 import { salonDe, carteMail, contexteMail, QUESTION_MAIL_DISCORD, QUESTION_BROUILLON } from '@/lib/poste/actions'
 import { armerSon, jouerSon } from '@/lib/poste/son'
-import { DF, WHEAT, BRAND_LABEL, BRAND_NAME } from '@/components/poste/ui'
+import { DF, WHEAT } from '@/components/poste/ui'
 
 /**
  * Le poste : l'iPad Pro 11" en paysage sur le bras du bureau, allumé toute
@@ -33,7 +32,8 @@ export default function PostePage() {
   const inbox = useInbox(avecTraites)
   const { marquerTraite } = inbox
   const [heure, setHeure] = useState('')
-  const [toasts, setToasts] = useState<Toast[]>([])
+  /** Les mails arrivés pendant que le poste est ouvert, à montrer au centre, le plus récent d'abord. */
+  const [aMontrer, setAMontrer] = useState<number[]>([])
   const vus = useRef<Set<number> | null>(null)
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function PostePage() {
     return () => clearInterval(t)
   }, [])
 
-  // Un mail qui n'était pas là au dernier passage : bannière et petit son.
+  // Un mail qui n'était pas là au dernier passage : fenêtre au centre et petit son.
   useEffect(() => {
     if (inbox.loading) return
     const ids = new Set(inbox.items.map(i => i.id))
@@ -54,15 +54,16 @@ export default function PostePage() {
     vus.current = ids
     if (nouveaux.length === 0) return
     jouerSon()
-    const ajout: Toast[] = nouveaux.slice(0, 3).map(i => ({
-      id: i.id,
-      titre: `${i.brand ? BRAND_LABEL[i.brand] : 'Courrier'} · ${i.type === 'order' ? 'commande' : i.type === 'appointment' ? 'rendez-vous' : 'nouveau mail'}`,
-      texte: `${(i.expediteur ?? '').replace(/\s*<[^>]*>\s*$/, '') || '?'} — ${i.title || '(sans objet)'}`,
-      couleur: i.brand ? brandColor(BRAND_NAME[i.brand]) : 'var(--azul)',
-    }))
-    setToasts(cur => [...ajout, ...cur].slice(0, 4))
-    for (const t of ajout) setTimeout(() => setToasts(cur => cur.filter(x => x.id !== t.id)), 8_000)
+    setAMontrer(cur => [...nouveaux.map(i => i.id).filter(id => !cur.includes(id)), ...cur])
   }, [inbox.items, inbox.loading])
+
+  // La fenêtre lit la ligne vivante : la fiche de Claude y apparaît quand elle arrive.
+  const enFenetre = aMontrer.length > 0 ? inbox.items.find(i => i.id === aMontrer[0]) ?? null : null
+  const fermerFenetre = useCallback(() => setAMontrer(cur => cur.slice(1)), [])
+  useEffect(() => {
+    // Un mail traité ailleurs (Discord, autre écran) ne reste pas affiché.
+    if (aMontrer.length > 0 && !inbox.loading && !inbox.items.some(i => i.id === aMontrer[0] && !i.processed)) fermerFenetre()
+  }, [inbox.items, inbox.loading, aMontrer, fermerFenetre])
 
   // « Tâche » : le sujet devient une tâche due aujourd'hui ; le mail sort de l'inbox.
   const versTache = useCallback(async (item: InboxItem) => {
@@ -88,7 +89,13 @@ export default function PostePage() {
 
   return (
     <div style={{ height: '100%', display: 'grid', gridTemplateRows: 'auto 1fr', gap: 12, padding: '12px 16px 14px', boxSizing: 'border-box' }}>
-      <Toasts toasts={toasts} fermer={id => setToasts(cur => cur.filter(t => t.id !== id))} />
+      {enFenetre && (
+        <PopupMail item={enFenetre} reste={aMontrer.length - 1} onFermer={fermerFenetre}
+          onTraite={() => { void marquerTraite([enFenetre.id]); fermerFenetre() }}
+          onTache={() => { void versTache(enFenetre); fermerFenetre() }}
+          onDiscord={() => { void versDiscord(enFenetre); fermerFenetre() }}
+          onBrouillon={() => { void brouillon(enFenetre); fermerFenetre() }} />
+      )}
 
       {/* En-tête : mince, il ne sert qu'à situer */}
       <header style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
