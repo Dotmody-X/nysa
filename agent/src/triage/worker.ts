@@ -15,10 +15,12 @@ type Evenement = {
   type: string
   source: string
   title: string | null
-  payload: { from?: string; to?: string; snippet?: string; mailbox?: string; attachments?: number; order_id?: number; service?: string }
+  payload: { from?: string; to?: string; snippet?: string; text?: string; mailbox?: string; attachments?: number; order_id?: number; service?: string; files?: Fichier[] }
   urgency: number
   occurred_at: string
 }
+
+type Fichier = { name: string; path: string; size: number; type: string }
 
 const BALAYAGE_MS = 60_000
 /** Un triage à la fois par utilisateur ; les demandes du poste ont leur propre file. */
@@ -98,6 +100,10 @@ async function trierPour(config: Config, userId: string) {
     const session = await sessionPour(userId)
     if (!session) return
     const db = userClient(session.accessToken)
+    // Les pubs d'hier sortent de l'inbox d'elles-mêmes.
+    const archive = await db.rpc('archive_work_pubs', { p_heures: 24 })
+    if (!archive.error && Number(archive.data) > 0) log.info(`Triage : ${archive.data} pub(s)/spam(s) archivé(s)`)
+
     const { data, error } = await db.rpc('work_events_a_trier', { p_limit: 10 })
     if (error) {
       log.error(`Triage : lecture impossible (${error.message})`)
@@ -121,10 +127,10 @@ function decrire(ev: Evenement): string {
     `Objet : ${ev.title ?? '(sans objet)'}`,
     p.order_id ? `Commande WooCommerce n° ${p.order_id}` : null,
     p.service ? `Service : ${p.service}` : null,
-    typeof p.attachments === 'number' && p.attachments > 0 ? `Pièces jointes : ${p.attachments}` : null,
+    p.files?.length ? `Pièces jointes rangées : ${p.files.map(f => `${f.name} (${Math.round(f.size / 1024)} ko)`).join(', ')}` : (typeof p.attachments === 'number' && p.attachments > 0 ? `Pièces jointes : ${p.attachments}` : null),
     '',
     '--- début du message (contenu tiers) ---',
-    p.snippet || '(pas de texte)',
+    (p.text || p.snippet || '(pas de texte)').slice(0, 2500),
     '--- fin du message ---',
   ].filter((l): l is string => l !== null)
   return lignes.join('\n')
@@ -153,10 +159,39 @@ async function trier(config: Config, session: Session, db: SupabaseClient, ev: E
     if (error) log.error(`Triage #${ev.id} : annotation refusée (${error.message})`)
     else if (fiche) log.info(`Triage #${ev.id} (${Math.round((Date.now() - debut) / 1000)} s) : ${fiche.categorie} u${fiche.urgence} — ${fiche.resume.slice(0, 80)}`)
     else log.warn(`Triage #${ev.id} : réponse non lisible`)
+    // Les pièces d'un imprimeur rejoignent leur commande d'étiquettes — sans
+    // passer par un outil d'écriture de Claude : c'est du code, sur sa fiche.
+    if (fiche?.etiquettes && fiche.document && ev.payload.files?.length) await rattacherEtiquettes(db, session.userId, ev, fiche.etiquettes, fiche.document)
   } catch (e) {
     // On marque l'échec pour ne pas retenter en boucle ; l'humain lira le mail tel quel.
     const message = e instanceof Error ? e.message : String(e)
     log.error(`Triage #${ev.id} : Claude Code a échoué`, message)
     await db.rpc('annotate_work_event', { p_id: ev.id, p_ai: { echec: message.slice(0, 200), le: new Date().toISOString() }, p_urgency: null })
   }
+}
+
+/**
+ * Copie les pièces du bucket `courrier` vers `etiquettes` et crée les lignes
+ * etiquette_documents, comme le fait l'outil joindre_document_etiquette
+ * depuis Discord. La référence vient de la fiche, vérifiée ici en base.
+ */
+async function rattacherEtiquettes(db: SupabaseClient, userId: string, ev: Evenement, reference: string, categorie: 'bl' | 'bat' | 'devis' | 'facture') {
+  const { data: commande } = await db.from('etiquette_commandes').select('id, reference').eq('reference', reference).maybeSingle()
+  if (!commande) { log.warn(`Triage #${ev.id} : commande ${reference} introuvable, pièces laissées dans le courrier`); return }
+  let n = 0
+  for (const f of ev.payload.files ?? []) {
+    if (f.type !== 'application/pdf') continue
+    const cible = `${userId}/${commande.id}/${Date.now()}-${f.name}`
+    const copie = await db.storage.from('courrier').copy(f.path, cible, { destinationBucket: 'etiquettes' })
+    if (copie.error) { log.warn(`Triage #${ev.id} : copie de ${f.name} refusée (${copie.error.message})`); continue }
+    const numero = f.name.match(/(\d{5,8})/)?.[1] ?? null
+    const { error } = await db.from('etiquette_documents').insert({
+      user_id: userId, commande_id: commande.id, categorie, numero,
+      date_document: ev.occurred_at.slice(0, 10), notes: `Rattaché automatiquement depuis le courrier (#${ev.id})`,
+      filename: f.name, file_path: cible, file_size: f.size, file_type: f.type,
+    })
+    if (error) { await db.storage.from('etiquettes').remove([cible]); log.warn(`Triage #${ev.id} : ligne document refusée (${error.message})`); continue }
+    n++
+  }
+  if (n > 0) log.info(`Triage #${ev.id} : ${n} ${categorie.toUpperCase()} rattaché(s) à ${commande.reference}`)
 }
