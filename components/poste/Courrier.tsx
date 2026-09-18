@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Send, Check, CheckSquare, Sparkles, Package, Calendar, Link2, Loader2 } from '@/components/ui/icons'
+import { Send, Check, CheckSquare, Sparkles, Package, Calendar, PenLine, Loader2 } from '@/components/ui/icons'
 import type { useInbox, InboxItem } from '@/hooks/useInbox'
 import { brandColor, toneColor } from '@/lib/digestStyle'
 import { DF, WHEAT, panneau, titrePanneau, boutonDiscret, depuis, BRAND_LABEL, BRAND_NAME } from './ui'
@@ -17,17 +17,12 @@ const CATEGORIE_LABEL: Record<string, string> = {
 /** Ce qu'on peut laisser dormir : Claude l'a dit, on l'atténue sans le cacher. */
 const SANS_INTERET = new Set(['pub', 'spam'])
 
-/** Où répondre : le webmail de la boîte d'arrivée. */
-function webmail(boite: string | null): string {
-  if (boite?.endsWith('le-mixologue.com')) return 'https://pro1.mail.ovh.net/owa/'
-  return 'https://mail.ovh.net/'
-}
-
-function Ligne({ item, onTraite, onTache, onClaude }: {
+function Ligne({ item, onTraite, onTache, onDiscord, onBrouillon }: {
   item: InboxItem
   onTraite: () => void
   onTache: () => void
-  onClaude: () => void
+  onDiscord: () => void
+  onBrouillon: () => void
 }) {
   const Icon = TYPE_ICON[item.type] ?? Send
   const couleur = item.brand ? brandColor(BRAND_NAME[item.brand]) : 'var(--text-muted)'
@@ -85,11 +80,13 @@ function Ligne({ item, onTraite, onTache, onClaude }: {
         <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
           <button className="nb-press" onClick={onTraite} style={boutonDiscret()}><Check size={11} /> Traité</button>
           <button className="nb-press" onClick={onTache} style={boutonDiscret()}><CheckSquare size={11} /> Tâche</button>
-          <button className="nb-press" onClick={onClaude} style={boutonDiscret({ color: 'var(--azul)' })}><Sparkles size={11} /> Claude</button>
+          <button className="nb-press" onClick={onDiscord} style={boutonDiscret({ color: 'var(--azul)' })} title="Envoyer le mail dans le salon Discord de la marque, et en parler là-bas">
+            <Sparkles size={11} /> Discord
+          </button>
           {item.type === 'mail' && (
-            <a href={webmail(item.boite)} target="_blank" rel="noopener noreferrer" style={{ ...boutonDiscret(), textDecoration: 'none', marginLeft: 'auto' }}>
-              <Link2 size={11} /> Répondre
-            </a>
+            <button className="nb-press" onClick={onBrouillon} style={boutonDiscret({ color: 'var(--azul)' })} title="Claude rédige un brouillon de réponse dans Discord">
+              <PenLine size={11} /> Brouillon
+            </button>
           )}
         </div>
       </div>
@@ -99,13 +96,14 @@ function Ligne({ item, onTraite, onTache, onClaude }: {
 
 /**
  * Le courrier en direct : ce que nysa-mail dépose dans work.events, trié
- * urgence puis date. Trois gestes par ligne — traité, tâche, Claude — et
- * le webmail pour répondre : Nysa trie, il n'écrit pas de mails.
+ * urgence puis date. Quatre gestes par ligne — traité, tâche, Discord,
+ * brouillon — et rien à taper : ce qui demande des mots se dit dans Discord.
  */
-export function Courrier({ inbox, onTache, onClaude }: {
+export function Courrier({ inbox, onTache, onDiscord, onBrouillon }: {
   inbox: ReturnType<typeof useInbox>
   onTache: (item: InboxItem) => Promise<void>
-  onClaude: (item: InboxItem) => Promise<void>
+  onDiscord: (item: InboxItem) => Promise<void>
+  onBrouillon: (item: InboxItem) => Promise<void>
 }) {
   const { items, pulse, loading, error, marquerTraite } = inbox
   const [filtre, setFiltre] = useState<Filtre>('tous')
@@ -159,7 +157,8 @@ export function Courrier({ inbox, onTache, onClaude }: {
             <Ligne key={item.id} item={item}
               onTraite={() => marquerTraite([item.id])}
               onTache={() => onTache(item)}
-              onClaude={() => onClaude(item)} />
+              onDiscord={() => onDiscord(item)}
+              onBrouillon={() => onBrouillon(item)} />
           ))
         )}
       </div>

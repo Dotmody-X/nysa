@@ -16,7 +16,7 @@ import { brandFromChannel } from '../brands.js'
 import { userClient } from '../supabase.js'
 import { runNysaAgent } from '../agent/run.js'
 import { MCP_ENTRY } from '../agent/mcpConfig.js'
-import { startRequestWorker } from '../requests/worker.js'
+import { startRequestWorker, type Livreur } from '../requests/worker.js'
 import { startTriageWorker } from '../triage/worker.js'
 import { commandData, commands } from './commands.js'
 import type { AgentContext } from '../context.js'
@@ -248,12 +248,48 @@ async function registerCommands(c: Client<true>) {
   }
 }
 
+/** Un salon textuel par son nom, sur n'importe quel serveur où le bot est. */
+function trouverSalon(nom: string) {
+  const voulu = nom.toLowerCase().replace(/^#/, '')
+  for (const guild of client.guilds.cache.values()) {
+    const salon = guild.channels.cache.find(ch => ch.isTextBased() && 'name' in ch && ch.name.toLowerCase() === voulu)
+    if (salon && salon.isTextBased() && salon.isSendable()) return salon
+  }
+  return null
+}
+
+/**
+ * Ce que le worker des demandes reçoit pour livrer dans Discord. Le verrou
+ * `busy` est partagé avec les messages : un salon n'a qu'un Claude à la fois,
+ * et le fil de session est le même — Nathan reprend la conversation là où
+ * le poste l'a laissée.
+ */
+const livreur: Livreur = {
+  salonId: nom => trouverSalon(nom)?.id ?? null,
+  async envoyer(nom, texte) {
+    const salon = trouverSalon(nom)
+    if (!salon) throw new Error(`Salon #${nom} introuvable`)
+    for (const part of chunk(texte)) await salon.send(part)
+  },
+  sessionDe: salonId => sessions.get(salonId) ?? null,
+  setSession: (salonId, id) => { sessions.set(salonId, id) },
+  async avec(salonId, fn) {
+    const limite = Date.now() + 120_000
+    while (busy.has(salonId)) {
+      if (Date.now() > limite) throw new Error('Le salon est occupé depuis plus de deux minutes.')
+      await new Promise(r => setTimeout(r, 1_000))
+    }
+    busy.add(salonId)
+    try { return await fn() } finally { busy.delete(salonId) }
+  },
+}
+
 client.once(Events.ClientReady, async c => {
   log.info(`Passerelle Discord connectée en tant que ${c.user.tag}`)
   log.info(`Dépôt Nysa : ${config.NYSA_REPO} — MCP : ${MCP_ENTRY}`)
   await registerCommands(c)
   // Les demandes déposées depuis l'application (l'iPad) : même processus, même session.
-  startRequestWorker(config)
+  startRequestWorker(config, livreur)
   // Chaque mail déposé par nysa-mail passe par Claude : résumé, catégorie, urgence.
   startTriageWorker(config)
 })
