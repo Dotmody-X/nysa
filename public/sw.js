@@ -56,3 +56,36 @@ self.addEventListener('fetch', event => {
     })())
   }
 })
+
+// ── Web Push ──
+// Le Pi envoie { title, body, url, tag } ; on affiche, et le tap ramène sur
+// la page (le poste par défaut) en réutilisant la fenêtre ouverte s'il y en a une.
+self.addEventListener('push', event => {
+  let data = {}
+  try { data = event.data ? event.data.json() : {} } catch { data = { title: 'Nysa', body: event.data ? event.data.text() : '' } }
+  const title = data.title || 'Nysa'
+  const options = {
+    body: data.body || '',
+    tag: data.tag || undefined,
+    renotify: Boolean(data.tag),
+    icon: '/icon.svg',
+    badge: '/icon.svg',
+    data: { url: data.url || '/poste' },
+  }
+  event.waitUntil(self.registration.showNotification(title, options))
+})
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  const cible = new URL((event.notification.data && event.notification.data.url) || '/poste', self.location.origin).href
+  event.waitUntil((async () => {
+    const fenetres = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    const ouverte = fenetres.find(c => c.url.startsWith(self.location.origin))
+    if (ouverte) {
+      await ouverte.focus()
+      if (!ouverte.url.startsWith(cible) && 'navigate' in ouverte) await ouverte.navigate(cible)
+      return
+    }
+    await self.clients.openWindow(cible)
+  })())
+})

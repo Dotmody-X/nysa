@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Bell, CheckSquare, Activity, Wallet, TrendingUp, Zap } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
+import { usePush } from '@/hooks/usePush'
 
 const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const TEAL = 'var(--azul)', ORANGE = 'var(--accent-brand)', WHEAT = 'var(--text)'
@@ -34,6 +35,41 @@ function Toggle({ value, onChange, label, sub, icon: Icon, color }: {
         style={{ width: 42, height: 24, borderRadius: 99, background: value ? color : 'var(--bg-input)', border: '2px solid var(--ink)', boxShadow: '2px 2px 0 var(--ink)', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
         <div style={{ position: 'absolute', top: 2, left: value ? 20 : 2, width: 16, height: 16, borderRadius: '50%', background: 'var(--ink)', transition: 'left 0.2s' }} />
       </button>
+    </div>
+  )
+}
+
+/**
+ * Les notifications push de CET appareil : un mail qui arrive, Claude qui
+ * répond — même quand Nysa est fermée. Sur iPhone/iPad, uniquement depuis
+ * l'app ajoutée à l'écran d'accueil.
+ */
+function BlocPush() {
+  const { etat, occupe, erreur, activer, desactiver } = usePush()
+  if (!etat) return null
+  const actif = etat === 'actif'
+  const texte: Record<string, string> = {
+    indisponible: "Ce navigateur ne sait pas recevoir de notifications push.",
+    installer: "Sur iPhone et iPad, ajoute d'abord Nysa à l'écran d'accueil (Partager → Sur l'écran d'accueil), puis reviens ici.",
+    refuse: 'Les notifications ont été refusées pour Nysa : rouvre-les dans les réglages du navigateur ou de l\'appareil.',
+    inactif: "Un mail qui arrive, Claude qui répond : notifié ici même quand Nysa est fermée.",
+    actif: 'Cet appareil reçoit les notifications de Nysa.',
+  }
+  return (
+    <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
+      <span className="nb-tile" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, background: actif ? TEAL : 'var(--bg-input)', boxShadow: '2px 2px 0 var(--ink)', flexShrink: 0 }}>
+        <Bell size={16} style={{ color: actif ? 'var(--ink-light)' : 'var(--text-muted)' }} />
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ ...DF, fontSize: 13, fontWeight: 800, color: WHEAT }}>Notifications push sur cet appareil</p>
+        <p style={{ fontSize: 11.5, color: erreur ? ORANGE : 'var(--text-muted)', lineHeight: 1.45 }}>{erreur ?? texte[etat]}</p>
+      </div>
+      {(etat === 'inactif' || actif) && (
+        <button onClick={() => (actif ? desactiver() : activer())} disabled={occupe} className="nb-press"
+          style={{ ...DF, fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '9px 14px', border: '2px solid var(--ink)', boxShadow: '3px 3px 0 var(--ink)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: actif ? 'var(--bg-input)' : TEAL, color: actif ? 'var(--text)' : 'var(--ink-light)', whiteSpace: 'nowrap' }}>
+          {occupe ? '…' : actif ? 'Désactiver' : 'Activer'}
+        </button>
+      )}
     </div>
   )
 }
@@ -89,6 +125,8 @@ export default function NotificationsPage() {
 
       <h1 style={{ ...DF, fontWeight: 900, fontSize: 36, color: WHEAT, letterSpacing: '-0.02em', marginBottom: 4 }}>NOTIFICATIONS.</h1>
       <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 28 }}>Gérer vos préférences de notifications</p>
+
+      <BlocPush />
 
       <div style={{ background: 'var(--bg-card)', border: '2px solid var(--ink)', boxShadow: '4px 4px 0 var(--ink)', borderRadius: 'var(--radius-lg)', padding: '4px 20px 4px', marginBottom: 16 }}>
         {items.map(item => (
