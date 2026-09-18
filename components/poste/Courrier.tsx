@@ -6,7 +6,7 @@ import type { useInbox, InboxItem } from '@/hooks/useInbox'
 import { brandColor, toneColor } from '@/lib/digestStyle'
 import { DF, WHEAT, panneau, titrePanneau, boutonDiscret, depuis, BRAND_LABEL, BRAND_NAME } from './ui'
 
-type Filtre = 'tous' | 'mixologue' | 'aeterna'
+type Filtre = 'tous' | 'mixologue' | 'aeterna' | 'urgents'
 
 const TYPE_ICON: Record<string, typeof Send> = { mail: Send, order: Package, appointment: Calendar }
 
@@ -105,10 +105,16 @@ export function Courrier({ inbox, onTache, onDiscord, onBrouillon }: {
   onDiscord: (item: InboxItem) => Promise<void>
   onBrouillon: (item: InboxItem) => Promise<void>
 }) {
-  const { items, pulse, loading, error, marquerTraite } = inbox
+  const { items, pulse, loading, error, direct, marquerTraite } = inbox
   const [filtre, setFiltre] = useState<Filtre>('tous')
 
-  const visibles = useMemo(() => items.filter(i => filtre === 'tous' || i.brand === filtre), [items, filtre])
+  // Le plus récent en tête — la vue trie par urgence pour l'agent, mais ici un
+  // mail qui vient d'arriver doit être la première chose qu'on voit. L'urgence
+  // reste marquée en rouge, et le filtre « Urgents » les isole.
+  const visibles = useMemo(() => items
+    .filter(i => filtre === 'tous' || (filtre === 'urgents' ? i.urgency === 1 : i.brand === filtre))
+    .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at)), [items, filtre])
+  const nbUrgents = useMemo(() => items.filter(i => i.urgency === 1).length, [items])
   const anciens = useMemo(() => {
     const limite = Date.now() - 7 * 86_400_000
     return items.filter(i => new Date(i.occurred_at).getTime() < limite).map(i => i.id)
@@ -129,6 +135,11 @@ export function Courrier({ inbox, onTache, onDiscord, onBrouillon }: {
         <span style={titrePanneau}>Courrier</span>
         <span style={{ ...DF, fontSize: 11, fontWeight: 900, color: 'var(--ink-light)', background: 'var(--azul)', border: '2px solid var(--ink)', borderRadius: 'var(--radius-sm)', padding: '1px 7px' }}>{items.length}</span>
         <span style={{ flex: 1 }} />
+        <span title={direct === 'SUBSCRIBED' ? 'Connexion temps réel active' : 'Temps réel interrompu : la liste se recharge au réveil de la page'}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: direct === 'SUBSCRIBED' ? toneColor('success') : toneColor('danger') }}>
+          <span style={{ width: 7, height: 7, borderRadius: 99, background: 'currentColor' }} />
+          {direct === 'SUBSCRIBED' ? 'en direct' : direct ? 'coupé' : '…'}
+        </span>
         <span title="Dernier mail reçu par nysa-mail" style={{ fontSize: 10.5, fontWeight: 700, color: silence ? toneColor('danger') : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
           dernier mail {depuis(dernier)}{silence ? ' — le service se tait ?' : ''}
         </span>
@@ -138,6 +149,7 @@ export function Courrier({ inbox, onTache, onDiscord, onBrouillon }: {
         <button className="nb-press" style={chip(filtre === 'tous', 'var(--ink-dark)')} onClick={() => setFiltre('tous')}>Tout</button>
         <button className="nb-press" style={chip(filtre === 'mixologue', brandColor('Le Mixologue'))} onClick={() => setFiltre('mixologue')}>Mixologue</button>
         <button className="nb-press" style={chip(filtre === 'aeterna', brandColor('Aeterna'))} onClick={() => setFiltre('aeterna')}>Aeterna</button>
+        <button className="nb-press" style={chip(filtre === 'urgents', toneColor('danger'))} onClick={() => setFiltre('urgents')}>Urgents · {nbUrgents}</button>
         <span style={{ flex: 1 }} />
         {anciens.length > 0 && (
           <button className="nb-press" onClick={() => marquerTraite(anciens)} style={boutonDiscret()} title="Marquer traité tout ce qui a plus de sept jours">

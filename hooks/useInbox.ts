@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRealtimeTable } from './useRealtimeTable'
+import { useRealtimeTable, type EtatRealtime } from './useRealtimeTable'
 
 /** Une ligne de work.v_inbox (via get_work_inbox). */
 export interface InboxItem {
@@ -50,6 +50,8 @@ export function useInbox() {
   const [pulse, setPulse] = useState<InboxPulse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  /** La connexion temps réel : si elle tombe, le poste doit le dire. */
+  const [direct, setDirect] = useState<EtatRealtime | null>(null)
 
   const fetchAll = useCallback(async () => {
     const supabase = createClient()
@@ -61,7 +63,7 @@ export function useInbox() {
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])
-  useRealtimeTable('events', fetchAll, 'work')
+  useRealtimeTable('events', fetchAll, 'work', setDirect)
 
   /** « Traité » : la ligne sort de l'inbox, l'événement reste pour les briefs. */
   const marquerTraite = useCallback(async (ids: number[]) => {
@@ -73,5 +75,5 @@ export function useInbox() {
     if (error) { setError(error.message); await fetchAll() }
   }, [fetchAll])
 
-  return { items, pulse, loading, error, refetch: fetchAll, marquerTraite }
+  return { items, pulse, loading, error, direct, refetch: fetchAll, marquerTraite }
 }
