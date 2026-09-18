@@ -18,6 +18,19 @@ export interface InboxItem {
   extrait: string | null
   boite: string | null
   pieces: number
+  /** La fiche de triage de Claude (payload.ai), quand il est passé. */
+  ai: InboxTriage | null
+}
+
+export interface InboxTriage {
+  resume?: string
+  categorie?: 'commande' | 'fournisseur' | 'client' | 'facture' | 'admin' | 'rdv' | 'pub' | 'spam' | 'autre'
+  urgence?: 1 | 2 | 3
+  action?: string
+  lien?: string | null
+  /** Le triage a échoué : on affiche le mail tel quel. */
+  echec?: string
+  le?: string
 }
 
 export interface InboxPulse {

@@ -61,6 +61,7 @@ export default function PostePage() {
       mailbox: item.boite ?? undefined,
       extrait: item.extrait ?? undefined,
       recu_le: item.occurred_at,
+      ...(item.ai?.resume ? { triage: item.ai.resume, action_proposee: item.ai.action } : {}),
     })
   }, [demandes])
 

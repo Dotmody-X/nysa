@@ -19,6 +19,13 @@ export type RunAgentOptions = {
   brand?: Brand | null
   resumeSessionId: string | null
   extraDirs?: string[]
+  /** Outils autorisés (voir runClaude) ; par défaut tout. */
+  allowedTools?: string
+  model?: string
+  /** Remplace le prompt système de l'assistant — pour le triage, qui n'est pas une conversation. */
+  systemPromptOverride?: string
+  /** Sans le vault : un triage n'a pas à lire le Cerveau. */
+  sansVault?: boolean
   /**
    * Contrôle du Mac. Réservé aux sessions où c'est Nathan lui-même qui écrit
    * dans Discord ; jamais quand le prompt contient du contenu tiers (un mail).
@@ -44,8 +51,10 @@ export function runNysaAgent(o: RunAgentOptions): Promise<ClaudeRun> {
     timeoutMs: config.CLAUDE_TIMEOUT_MS,
     resumeSessionId: o.resumeSessionId,
     mcpConfigPath: mcpConfigPath(),
-    extraDirs: [config.OBSIDIAN_VAULT, ...(o.extraDirs ?? [])].filter((d): d is string => Boolean(d)),
-    systemPrompt: systemPrompt({
+    extraDirs: [o.sansVault ? null : config.OBSIDIAN_VAULT, ...(o.extraDirs ?? [])].filter((d): d is string => Boolean(d)),
+    allowedTools: o.allowedTools,
+    model: o.model,
+    systemPrompt: o.systemPromptOverride ?? systemPrompt({
       surface: o.surface,
       channelName,
       brand,
