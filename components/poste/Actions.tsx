@@ -43,17 +43,21 @@ export function Actions({ demandes }: { demandes: ReturnType<typeof useAgentRequ
         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>réponse dans Discord</span>
       </div>
 
-      <div style={{ padding: '0 16px 12px', display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto', minHeight: 0 }}>
+      <div style={{ padding: '0 16px 14px', display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', minHeight: 0 }}>
         {ACTIONS.map(a => {
           const etat = etatDe(a.id)
           const actif = enCours === a.id || etat === 'pending' || etat === 'running'
           const fini = !actif && etat === 'done' && dernier[a.id] && Date.now() - dernier[a.id]! < 120_000
           return (
             <button key={a.id} className="nb-press" disabled={Boolean(enCours)} onClick={() => lancer(a.id)}
-              style={{ ...boutonDiscret({ minHeight: 42, justifyContent: 'flex-start', textTransform: 'none', letterSpacing: 0, fontSize: 12.5, color: WHEAT, gap: 8 }) }}>
-              {actif ? <Loader2 size={12} className="animate-spin" style={{ color: 'var(--azul)' }} /> : fini ? <Check size={12} style={{ color: 'var(--azul)' }} /> : <Send size={12} style={{ color: 'var(--azul)' }} />}
-              <span style={{ flex: 1, textAlign: 'left' }}>{a.label}</span>
-              <span style={{ ...DF, fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', color: 'var(--text-muted)' }}>#{a.channel}</span>
+              style={{ ...boutonDiscret({ minHeight: 60, padding: '10px 16px', justifyContent: 'flex-start', textTransform: 'none', letterSpacing: 0, fontSize: 15, color: WHEAT, gap: 12, background: actif ? 'var(--bg)' : 'var(--bg-input)', boxShadow: '3px 3px 0 var(--ink)' }) }}>
+              <span className="nb-tile" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, background: fini ? 'var(--azul)' : 'var(--bg-card)', boxShadow: '2px 2px 0 var(--ink)', flexShrink: 0 }}>
+                {actif ? <Loader2 size={16} className="animate-spin" style={{ color: 'var(--azul)' }} /> : fini ? <Check size={16} style={{ color: 'var(--ink-light)' }} /> : <Send size={16} style={{ color: 'var(--azul)' }} />}
+              </span>
+              <span style={{ flex: 1, textAlign: 'left', lineHeight: 1.2 }}>
+                <span style={{ display: 'block', ...DF, fontWeight: 800 }}>{a.label}</span>
+                <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', marginTop: 2 }}>{actif ? 'Claude travaille…' : fini ? 'Posté' : 'réponse dans'} #{a.channel}</span>
+              </span>
             </button>
           )
         })}

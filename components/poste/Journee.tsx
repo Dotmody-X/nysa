@@ -69,13 +69,13 @@ export function Journee({ demandes }: { demandes: ReturnType<typeof useAgentRequ
   const dues = useMemo(() => tasks
     .filter(t => t.status !== 'done' && t.due_date && t.due_date <= aujourdhui)
     .sort((a, b) => (a.due_date! < b.due_date! ? -1 : a.due_date! > b.due_date! ? 1 : 0))
-    .slice(0, 8), [tasks, aujourdhui])
+    .slice(0, 5), [tasks, aujourdhui])
 
   const headline = latestBrief?.payload?.headline
 
   return (
-    <section style={panneau()}>
-      <div style={{ padding: '12px 16px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+    <section style={panneau({ maxHeight: 300 })}>
+      <div style={{ padding: '10px 16px 6px', display: 'flex', alignItems: 'center', gap: 8 }}>
         <Sun size={13} style={{ color: 'var(--azul)' }} />
         <span style={titrePanneau}>La journée</span>
         <span style={{ flex: 1 }} />
@@ -84,9 +84,9 @@ export function Journee({ demandes }: { demandes: ReturnType<typeof useAgentRequ
         </span>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '0 16px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '0 16px 10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {headline && (
-          <p style={{ fontSize: 13, color: WHEAT, lineHeight: 1.5, fontWeight: 500, padding: '10px 12px', borderLeft: '6px solid var(--azul)', background: 'var(--bg)', border: '2px solid var(--ink)', borderLeftWidth: 8, borderRadius: 'var(--radius-sm)' }}>
+          <p style={{ fontSize: 11.5, color: WHEAT, lineHeight: 1.4, fontWeight: 500, padding: '6px 10px', borderLeft: '6px solid var(--azul)', background: 'var(--bg)', borderRadius: 'var(--radius-sm)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {headline}
           </p>
         )}
@@ -102,7 +102,7 @@ export function Journee({ demandes }: { demandes: ReturnType<typeof useAgentRequ
             const passe = new Date(ev.end_at).getTime() < maintenant
             const prepare = dejaPrepare(ev.id)
             return (
-              <div key={ev.id} style={{ display: 'flex', gap: 10, padding: '5px 0', opacity: passe ? 0.5 : 1, alignItems: 'center' }}>
+              <div key={ev.id} style={{ display: 'flex', gap: 10, padding: '3px 0', opacity: passe ? 0.5 : 1, alignItems: 'center' }}>
                 <span style={{ ...DF, fontSize: 12, fontWeight: 900, color: ev.color || 'var(--azul)', minWidth: 44, fontVariantNumeric: 'tabular-nums' }}>
                   {ev.all_day ? 'Jour' : fmtHeure(ev.start_at)}
                 </span>
@@ -129,7 +129,7 @@ export function Journee({ demandes }: { demandes: ReturnType<typeof useAgentRequ
             const retard = t.due_date! < aujourdhui
             return (
               <button key={t.id} onClick={() => toggle(t.id, t.status)} title="Marquer fait"
-                style={{ display: 'flex', gap: 9, alignItems: 'flex-start', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '5px 0', cursor: 'pointer' }}>
+                style={{ display: 'flex', gap: 9, alignItems: 'flex-start', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '3px 0', cursor: 'pointer' }}>
                 <span style={{ width: 14, height: 14, border: '2px solid var(--ink)', borderRadius: 3, marginTop: 2, flexShrink: 0, background: 'var(--bg)' }} />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontSize: 12.5, color: WHEAT, display: 'block', lineHeight: 1.35 }}>{t.title}</span>
