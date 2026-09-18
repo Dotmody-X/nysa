@@ -29,7 +29,8 @@ export default function PostePage() {
   useWakeLock()
   const demandes = useAgentRequests('poste')
   const { create } = useTasks()
-  const inbox = useInbox()
+  const [avecTraites, setAvecTraites] = useState(false)
+  const inbox = useInbox(avecTraites)
   const { marquerTraite } = inbox
   const [heure, setHeure] = useState('')
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -48,7 +49,8 @@ export default function PostePage() {
     if (inbox.loading) return
     const ids = new Set(inbox.items.map(i => i.id))
     if (vus.current === null) { vus.current = ids; return }
-    const nouveaux = inbox.items.filter(i => !vus.current!.has(i.id))
+    // Basculer « voir traités » change la liste sans qu'un mail soit arrivé.
+    const nouveaux = inbox.items.filter(i => !vus.current!.has(i.id) && !i.processed && Date.now() - new Date(i.occurred_at).getTime() < 10 * 60_000)
     vus.current = ids
     if (nouveaux.length === 0) return
     jouerSon()
@@ -103,7 +105,7 @@ export default function PostePage() {
           <Activite />
           <Claude demandes={demandes} />
         </div>
-        <Courrier inbox={inbox} onTache={versTache} onDiscord={versDiscord} onBrouillon={brouillon} />
+        <Courrier inbox={inbox} avecTraites={avecTraites} setAvecTraites={setAvecTraites} onTache={versTache} onDiscord={versDiscord} onBrouillon={brouillon} />
         <div style={{ display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', gap: 12, minHeight: 0 }}>
           <Journee demandes={demandes} />
           <Actions demandes={demandes} />

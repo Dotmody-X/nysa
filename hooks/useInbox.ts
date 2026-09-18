@@ -20,6 +20,8 @@ export interface InboxItem {
   pieces: number
   /** La fiche de triage de Claude (payload.ai), quand il est passé. */
   ai: InboxTriage | null
+  /** Présent seulement quand on affiche aussi les traités. */
+  processed?: boolean
 }
 
 export interface InboxTriage {
@@ -45,7 +47,7 @@ export interface InboxPulse {
  * courrier déposé par nysa-mail — et son pouls. En Realtime : un mail qui
  * arrive sur le Pi est ici dans la seconde.
  */
-export function useInbox() {
+export function useInbox(avecTraites = false) {
   const [items, setItems] = useState<InboxItem[]>([])
   const [pulse, setPulse] = useState<InboxPulse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -55,12 +57,14 @@ export function useInbox() {
 
   const fetchAll = useCallback(async () => {
     const supabase = createClient()
-    const [inbox, pouls] = await Promise.all([supabase.rpc('get_work_inbox'), supabase.rpc('get_work_pulse')])
+    // Avec les traités : les sept derniers jours, tout compris ; sinon l'inbox.
+    const inboxQ = avecTraites ? supabase.rpc('get_work_courrier', { p_jours: 7 }) : supabase.rpc('get_work_inbox')
+    const [inbox, pouls] = await Promise.all([inboxQ, supabase.rpc('get_work_pulse')])
     if (inbox.error) setError(inbox.error.message)
     else { setError(null); setItems((inbox.data as InboxItem[]) ?? []) }
     if (!pouls.error) setPulse(pouls.data as InboxPulse)
     setLoading(false)
-  }, [])
+  }, [avecTraites])
 
   useEffect(() => { fetchAll() }, [fetchAll])
   useRealtimeTable('events', fetchAll, 'work', setDirect)
@@ -68,12 +72,12 @@ export function useInbox() {
   /** « Traité » : la ligne sort de l'inbox, l'événement reste pour les briefs. */
   const marquerTraite = useCallback(async (ids: number[]) => {
     if (ids.length === 0) return
-    // Optimiste : la ligne disparaît tout de suite, le Realtime confirme.
-    setItems(cur => cur.filter(i => !ids.includes(i.id)))
+    // Optimiste : la ligne disparaît (ou passe en « traité »), le Realtime confirme.
+    setItems(cur => avecTraites ? cur.map(i => ids.includes(i.id) ? { ...i, processed: true } : i) : cur.filter(i => !ids.includes(i.id)))
     const supabase = createClient()
     const { error } = await supabase.rpc('mark_work_events_processed', { p_ids: ids })
     if (error) { setError(error.message); await fetchAll() }
-  }, [fetchAll])
+  }, [fetchAll, avecTraites])
 
   return { items, pulse, loading, error, direct, refetch: fetchAll, marquerTraite }
 }
