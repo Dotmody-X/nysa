@@ -13,6 +13,14 @@ const cache = new Map<string, Session>()
 const REFRESH_MARGIN_MS = 60_000
 
 /**
+ * Qui détient la session : un compte Discord, ou un service du Pi (nysa-mail)
+ * qui agit pour le compte du propriétaire avec son propre jeton — deux
+ * processus ne doivent jamais se partager un refresh token, Supabase les
+ * fait tourner.
+ */
+export type Provider = 'discord' | 'telegram' | 'service'
+
+/**
  * Résout un identifiant Discord en session Supabase valide.
  * Retourne null si le compte n'est pas encore lié (voir `linkAccount`).
  *
@@ -20,16 +28,17 @@ const REFRESH_MARGIN_MS = 60_000
  * les requêtes : la RLS reste donc le garde-fou de bout en bout, y compris
  * quand c'est Claude Code qui pilote.
  */
-export async function resolveSession(discordUserId: string): Promise<Session | null> {
-  const cached = cache.get(discordUserId)
+export async function resolveSession(externalId: string, provider: Provider = 'discord'): Promise<Session | null> {
+  const cle = `${provider}:${externalId}`
+  const cached = cache.get(cle)
   if (cached && cached.expiresAt - REFRESH_MARGIN_MS > Date.now()) return cached
 
   const svc = serviceClient()
   const { data: identity, error } = await svc
     .from('bot_identities')
     .select('user_id, refresh_token')
-    .eq('provider', 'discord')
-    .eq('external_id', discordUserId)
+    .eq('provider', provider)
+    .eq('external_id', externalId)
     .maybeSingle()
 
   if (error) throw new Error(`Lecture de bot_identities impossible : ${error.message}`)
@@ -42,7 +51,7 @@ export async function resolveSession(discordUserId: string): Promise<Session | n
   })
 
   if (refreshError || !refreshed.session) {
-    cache.delete(discordUserId)
+    cache.delete(cle)
     throw new Error(
       `Session expirée pour ce compte — relance /lier. (${refreshError?.message ?? 'aucune session'})`,
     )
@@ -53,8 +62,8 @@ export async function resolveSession(discordUserId: string): Promise<Session | n
   await svc
     .from('bot_identities')
     .update({ refresh_token: session.refresh_token, last_used_at: new Date().toISOString() })
-    .eq('provider', 'discord')
-    .eq('external_id', discordUserId)
+    .eq('provider', provider)
+    .eq('external_id', externalId)
 
   const entry: Session = {
     userId: session.user.id,
@@ -62,7 +71,7 @@ export async function resolveSession(discordUserId: string): Promise<Session | n
     accessToken: session.access_token,
     expiresAt: (session.expires_at ?? Math.floor(Date.now() / 1000) + 3600) * 1000,
   }
-  cache.set(discordUserId, entry)
+  cache.set(cle, entry)
   return entry
 }
 
@@ -73,7 +82,7 @@ export async function resolveSession(discordUserId: string): Promise<Session | n
  * L'appelant DOIT avoir vérifié la liste blanche au préalable — c'est la seule
  * chose qui empêche un tiers de se rattacher à ton adresse.
  */
-export async function linkAccount(discordUserId: string, email: string): Promise<string> {
+export async function linkAccount(externalId: string, email: string, provider: Provider = 'discord'): Promise<string> {
   const svc = serviceClient()
 
   const { data: link, error: linkError } = await svc.auth.admin.generateLink({
@@ -96,8 +105,8 @@ export async function linkAccount(discordUserId: string, email: string): Promise
 
   const { error: upsertError } = await svc.from('bot_identities').upsert(
     {
-      provider: 'discord',
-      external_id: discordUserId,
+      provider,
+      external_id: externalId,
       user_id: verified.session.user.id,
       refresh_token: verified.session.refresh_token,
       last_used_at: new Date().toISOString(),
@@ -107,7 +116,38 @@ export async function linkAccount(discordUserId: string, email: string): Promise
 
   if (upsertError) throw new Error(`Enregistrement de la liaison impossible : ${upsertError.message}`)
 
-  cache.delete(discordUserId)
-  log.info(`Compte lié : discord:${discordUserId} -> ${verified.session.user.id}`)
+  cache.delete(`${provider}:${externalId}`)
+  log.info(`Compte lié : ${provider}:${externalId} -> ${verified.session.user.id}`)
   return verified.session.user.id
+}
+
+/**
+ * La session d'un service du Pi (ex. `nysa-mail`), au nom du propriétaire.
+ * Créée au premier appel à partir du compte Discord lié : on retrouve son
+ * adresse par l'API admin, puis on lie une identité `service` distincte —
+ * son refresh token n'est partagé avec personne.
+ */
+export async function serviceSession(name: string, ownerDiscordId: string): Promise<Session> {
+  const existante = await resolveSession(name, 'service').catch(e => {
+    log.warn(`Session du service ${name} à recréer : ${e instanceof Error ? e.message : String(e)}`)
+    return null
+  })
+  if (existante) return existante
+
+  const svc = serviceClient()
+  const { data: discord } = await svc
+    .from('bot_identities')
+    .select('user_id')
+    .eq('provider', 'discord')
+    .eq('external_id', ownerDiscordId)
+    .maybeSingle()
+  if (!discord) throw new Error(`Aucun compte Nysa lié au Discord ${ownerDiscordId} : envoie d'abord !lier dans Discord.`)
+
+  const { data: utilisateur, error } = await svc.auth.admin.getUserById(discord.user_id as string)
+  if (error || !utilisateur.user?.email) throw new Error(`Adresse du propriétaire introuvable : ${error?.message ?? 'pas d\'e-mail'}`)
+
+  await linkAccount(name, utilisateur.user.email, 'service')
+  const session = await resolveSession(name, 'service')
+  if (!session) throw new Error(`Session du service ${name} impossible à ouvrir.`)
+  return session
 }

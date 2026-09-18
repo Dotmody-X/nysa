@@ -1,0 +1,31 @@
+[Unit]
+Description=Nysa — courrier OVH en écoute (IMAP IDLE → work.events)
+Documentation=https://github.com/Dotmody-X/nysa/tree/main/agent
+After=network-online.target
+Wants=network-online.target
+
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/nysa/agent
+EnvironmentFile=/home/pi/nysa/agent/.env
+ExecStart=/usr/bin/node dist/mail/service.js
+Environment=HOME=/home/pi
+
+# Une connexion IMAP se perd ; le service se reconnecte seul, et systemd le
+# relance s'il tombe pour de bon.
+Restart=always
+RestartSec=15
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nysa-mail
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
