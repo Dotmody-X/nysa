@@ -64,7 +64,9 @@ function dateLocale(y: number, mo: number, d: number, h: number, mi: number, zon
 function extrait(m: MailBrut): string {
   const texte = (m.text || m.html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' '))
     .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
-  return texte.slice(0, 280)
+  // Couper par points de code, pas par unités UTF-16 : un emoji tranché en
+  // deux laisse un demi-surrogat, et PostgREST refuse alors tout le JSON.
+  return Array.from(texte).slice(0, 280).join('')
 }
 
 /** null = à ignorer. */
