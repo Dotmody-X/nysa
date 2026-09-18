@@ -534,3 +534,15 @@ h3 { font-size: 16px; }
     padding-bottom: 0;
   }
 }
+
+/* ── Le poste (iPad 11" paysage) ──
+   Trois colonnes à partir de 1000 px ; en dessous (iPad en portrait, iPhone),
+   tout s'empile et la page défile. */
+@media (max-width: 999px) {
+  .poste-grille {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: auto;
+    overflow-y: auto;
+  }
+  .poste-grille > * { min-height: 360px; }
+}
