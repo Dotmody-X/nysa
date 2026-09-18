@@ -106,7 +106,7 @@ export default function PostePage() {
           <Claude demandes={demandes} />
         </div>
         <Courrier inbox={inbox} avecTraites={avecTraites} setAvecTraites={setAvecTraites} onTache={versTache} onDiscord={versDiscord} onBrouillon={brouillon} />
-        <div style={{ display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 12, minHeight: 0 }}>
+        <div style={{ display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', gap: 12, minHeight: 0 }}>
           <Journee demandes={demandes} />
           <Actions demandes={demandes} />
         </div>

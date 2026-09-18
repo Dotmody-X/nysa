@@ -69,12 +69,12 @@ export function Journee({ demandes }: { demandes: ReturnType<typeof useAgentRequ
   const dues = useMemo(() => tasks
     .filter(t => t.status !== 'done' && t.due_date && t.due_date <= aujourdhui)
     .sort((a, b) => (a.due_date! < b.due_date! ? -1 : a.due_date! > b.due_date! ? 1 : 0))
-    .slice(0, 5), [tasks, aujourdhui])
+    .slice(0, 8), [tasks, aujourdhui])
 
   const headline = latestBrief?.payload?.headline
 
   return (
-    <section style={panneau({ maxHeight: 300 })}>
+    <section style={panneau()}>
       <div style={{ padding: '10px 16px 6px', display: 'flex', alignItems: 'center', gap: 8 }}>
         <Sun size={13} style={{ color: 'var(--azul)' }} />
         <span style={titrePanneau}>La journée</span>

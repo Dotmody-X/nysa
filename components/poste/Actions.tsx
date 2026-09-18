@@ -43,15 +43,15 @@ export function Actions({ demandes }: { demandes: ReturnType<typeof useAgentRequ
         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>réponse dans Discord</span>
       </div>
 
-      <div style={{ padding: '0 16px 14px', display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', minHeight: 0 }}>
+      <div style={{ padding: '0 16px 12px', display: 'flex', flexDirection: 'column', gap: 7 }}>
         {ACTIONS.map(a => {
           const etat = etatDe(a.id)
           const actif = enCours === a.id || etat === 'pending' || etat === 'running'
           const fini = !actif && etat === 'done' && dernier[a.id] && Date.now() - dernier[a.id]! < 120_000
           return (
             <button key={a.id} className="nb-press" disabled={Boolean(enCours)} onClick={() => lancer(a.id)}
-              style={{ ...boutonDiscret({ minHeight: 60, padding: '10px 16px', justifyContent: 'flex-start', textTransform: 'none', letterSpacing: 0, fontSize: 15, color: WHEAT, gap: 12, background: actif ? 'var(--bg)' : 'var(--bg-input)', boxShadow: '3px 3px 0 var(--ink)' }) }}>
-              <span className="nb-tile" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, background: fini ? 'var(--azul)' : 'var(--bg-card)', boxShadow: '2px 2px 0 var(--ink)', flexShrink: 0 }}>
+              style={{ ...boutonDiscret({ minHeight: 50, padding: '6px 14px', justifyContent: 'flex-start', textTransform: 'none', letterSpacing: 0, fontSize: 14, color: WHEAT, gap: 10, background: actif ? 'var(--bg)' : 'var(--bg-input)', boxShadow: '3px 3px 0 var(--ink)' }) }}>
+              <span className="nb-tile" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, background: fini ? 'var(--azul)' : 'var(--bg-card)', boxShadow: '2px 2px 0 var(--ink)', flexShrink: 0 }}>
                 {actif ? <Loader2 size={16} className="animate-spin" style={{ color: 'var(--azul)' }} /> : fini ? <Check size={16} style={{ color: 'var(--ink-light)' }} /> : <Send size={16} style={{ color: 'var(--azul)' }} />}
               </span>
               <span style={{ flex: 1, textAlign: 'left', lineHeight: 1.2 }}>
