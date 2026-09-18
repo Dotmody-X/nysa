@@ -12,6 +12,7 @@ import { PopupMail } from '@/components/poste/PopupMail'
 import { useAgentRequests } from '@/hooks/useAgentRequests'
 import { useTasks } from '@/hooks/useTasks'
 import { useWakeLock } from '@/hooks/useWakeLock'
+import { useClaudeUsage } from '@/hooks/useClaudeUsage'
 import { useInbox, type InboxItem } from '@/hooks/useInbox'
 import { salonDe, carteMail, contexteMail, QUESTION_MAIL_DISCORD, QUESTION_BROUILLON } from '@/lib/poste/actions'
 import { armerSon, jouerSon } from '@/lib/poste/son'
@@ -32,6 +33,7 @@ export default function PostePage() {
   const inbox = useInbox(avecTraites)
   const { marquerTraite } = inbox
   const [heure, setHeure] = useState('')
+  const { usage, refetch: refetchUsage } = useClaudeUsage()
   /** Les mails arrivés pendant que le poste est ouvert, à montrer au centre, le plus récent d'abord. */
   const [aMontrer, setAMontrer] = useState<number[]>([])
   const vus = useRef<Set<number> | null>(null)
@@ -56,6 +58,9 @@ export default function PostePage() {
     jouerSon()
     setAMontrer(cur => [...nouveaux.map(i => i.id).filter(id => !cur.includes(id)), ...cur])
   }, [inbox.items, inbox.loading])
+
+  // Le compteur suit les demandes qui se terminent.
+  useEffect(() => { void refetchUsage() }, [demandes.requests, refetchUsage])
 
   // La fenêtre lit la ligne vivante : la fiche de Claude y apparaît quand elle arrive.
   const enFenetre = aMontrer.length > 0 ? inbox.items.find(i => i.id === aMontrer[0]) ?? null : null
@@ -103,6 +108,12 @@ export default function PostePage() {
         <span style={{ ...DF, fontSize: 15, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: WHEAT }}>Poste</span>
         <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>Nysa · l’écran du bureau</span>
         <span style={{ flex: 1 }} />
+        {usage && (
+          <span title="Sessions Claude Code aujourd'hui : demandes (poste, Discord) + triages de mails — sur l'abonnement"
+            style={{ ...DF, fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginRight: 6 }}>
+            Claude · {usage.demandes + usage.triages} aujourd’hui
+          </span>
+        )}
         <BoutonPush />
         <span style={{ ...DF, fontSize: 22, fontWeight: 900, color: WHEAT, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', marginLeft: 6 }}>{heure}</span>
       </header>

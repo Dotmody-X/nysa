@@ -1,11 +1,14 @@
 'use client'
 
 import { useMemo, useState, useCallback, useEffect } from 'react'
-import { Calendar, CheckSquare, Sun, Sparkles, Loader2 } from '@/components/ui/icons'
+import { Calendar, CheckSquare, Sun, Sparkles, Loader2, Package } from '@/components/ui/icons'
 import { useCalendar } from '@/hooks/useCalendar'
 import { useTasks } from '@/hooks/useTasks'
 import { useDigests } from '@/hooks/useDigests'
 import { useProjects } from '@/hooks/useProjects'
+import { useCommandes } from '@/hooks/useCommandes'
+import { brandColor } from '@/lib/digestStyle'
+import { BRAND_LABEL, BRAND_NAME, depuis } from './ui'
 import type { useAgentRequests } from '@/hooks/useAgentRequests'
 import { questionPreparation, salonDuGroupe } from '@/lib/poste/actions'
 import { useRealtimeTable } from '@/hooks/useRealtimeTable'
@@ -34,6 +37,7 @@ export function Journee({ demandes }: { demandes: ReturnType<typeof useAgentRequ
   const { tasks, toggle, refetch } = useTasks()
   const { latestBrief } = useDigests(['brief'])
   const { projects } = useProjects()
+  const { commandes } = useCommandes(7)
   useRealtimeTable('tasks', refetch)
   const [prepEnCours, setPrepEnCours] = useState<string | null>(null)
 
@@ -117,6 +121,27 @@ export function Journee({ demandes }: { demandes: ReturnType<typeof useAgentRequ
             )
           })}
         </div>
+
+        {commandes.length > 0 && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+              <Package size={12} style={{ color: 'var(--text-muted)' }} />
+              <span style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Commandes · 7 jours</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>{commandes.length}</span>
+            </div>
+            {commandes.slice(0, 6).map(c => {
+              const ai = c.ai && !c.ai.echec ? c.ai : null
+              return (
+                <div key={c.id} style={{ display: 'flex', gap: 8, padding: '3px 0', alignItems: 'baseline', opacity: c.processed ? 0.5 : 1 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: c.brand ? brandColor(BRAND_NAME[c.brand]) : 'var(--azul)', border: '1.5px solid var(--ink)', flexShrink: 0, position: 'relative', top: -1 }} title={c.brand ? BRAND_LABEL[c.brand] : ''} />
+                  <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT, whiteSpace: 'nowrap' }}>{c.title}</span>
+                  <span style={{ fontSize: 11.5, color: WHEAT, opacity: 0.85, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ai?.resume ?? ''}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{c.processed ? '✓ ' : ''}{depuis(c.occurred_at)}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
