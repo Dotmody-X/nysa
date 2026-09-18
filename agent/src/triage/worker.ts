@@ -181,20 +181,24 @@ async function trier(config: Config, session: Session, db: SupabaseClient, ev: E
 async function rattacherEtiquettes(db: SupabaseClient, userId: string, ev: Evenement, reference: string, categorie: 'bl' | 'bat' | 'devis' | 'facture') {
   const { data: commande } = await db.from('etiquette_commandes').select('id, reference').eq('reference', reference).maybeSingle()
   if (!commande) { log.warn(`Triage #${ev.id} : commande ${reference} introuvable, pièces laissées dans le courrier`); return }
-  let n = 0
+  const rattaches: { id: string; categorie: string; filename: string }[] = []
   for (const f of ev.payload.files ?? []) {
     if (f.type !== 'application/pdf') continue
     const cible = `${userId}/${commande.id}/${Date.now()}-${f.name}`
     const copie = await db.storage.from('courrier').copy(f.path, cible, { destinationBucket: 'etiquettes' })
     if (copie.error) { log.warn(`Triage #${ev.id} : copie de ${f.name} refusée (${copie.error.message})`); continue }
     const numero = f.name.match(/(\d{5,8})/)?.[1] ?? null
-    const { error } = await db.from('etiquette_documents').insert({
+    const { data, error } = await db.from('etiquette_documents').insert({
       user_id: userId, commande_id: commande.id, categorie, numero,
       date_document: ev.occurred_at.slice(0, 10), notes: `Rattaché automatiquement depuis le courrier (#${ev.id})`,
       filename: f.name, file_path: cible, file_size: f.size, file_type: f.type,
-    })
-    if (error) { await db.storage.from('etiquettes').remove([cible]); log.warn(`Triage #${ev.id} : ligne document refusée (${error.message})`); continue }
-    n++
+    }).select('id').single()
+    if (error || !data) { await db.storage.from('etiquettes').remove([cible]); log.warn(`Triage #${ev.id} : ligne document refusée (${error?.message})`); continue }
+    rattaches.push({ id: data.id as string, categorie, filename: f.name })
   }
-  if (n > 0) log.info(`Triage #${ev.id} : ${n} ${categorie.toUpperCase()} rattaché(s) à ${commande.reference}`)
+  if (rattaches.length > 0) {
+    log.info(`Triage #${ev.id} : ${rattaches.length} ${categorie.toUpperCase()} rattaché(s) à ${commande.reference}`)
+    // Le poste s'en sert pour « Valider le BAT » : quels documents, quelle commande.
+    await db.rpc('merge_work_event_payload', { p_id: ev.id, p_patch: { etiquettes: { commande_id: commande.id, reference: commande.reference, documents: rattaches } } })
+  }
 }

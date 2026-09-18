@@ -5,6 +5,7 @@ import { Send, Check, CheckSquare, Sparkles, Package, Calendar, PenLine, Loader2
 import type { useInbox, InboxItem } from '@/hooks/useInbox'
 import { brandColor, toneColor } from '@/lib/digestStyle'
 import { DF, WHEAT, panneau, titrePanneau, boutonDiscret, depuis, BRAND_LABEL, BRAND_NAME } from './ui'
+import { estBat } from '@/lib/poste/actions'
 
 type Filtre = 'tous' | 'mixologue' | 'aeterna' | 'urgents'
 
@@ -17,12 +18,14 @@ const CATEGORIE_LABEL: Record<string, string> = {
 /** Ce qu'on peut laisser dormir : Claude l'a dit, on l'atténue sans le cacher. */
 const SANS_INTERET = new Set(['pub', 'spam'])
 
-function Ligne({ item, onTraite, onTache, onDiscord, onBrouillon }: {
+function Ligne({ item, onTraite, onTache, onDiscord, onBrouillon, onValiderBat, onRefuserBat }: {
   item: InboxItem
   onTraite: () => void
   onTache: () => void
   onDiscord: () => void
   onBrouillon: () => void
+  onValiderBat: () => void
+  onRefuserBat: () => void
 }) {
   const Icon = TYPE_ICON[item.type] ?? Send
   const couleur = item.brand ? brandColor(BRAND_NAME[item.brand]) : 'var(--text-muted)'
@@ -31,6 +34,7 @@ function Ligne({ item, onTraite, onTache, onDiscord, onBrouillon }: {
   const ai = item.ai && !item.ai.echec ? item.ai : null
   const traite = item.processed === true
   const dormant = traite || (ai?.categorie ? SANS_INTERET.has(ai.categorie) : false)
+  const bat = !traite && estBat(item) && Boolean(item.etiquettes?.reference)
   // Un mail des dernières 48 h sans fiche : le triage est en route.
   const recent = Date.now() - new Date(item.occurred_at).getTime() < 48 * 3_600_000
 
@@ -46,7 +50,8 @@ function Ligne({ item, onTraite, onTache, onDiscord, onBrouillon }: {
           <span style={{ ...DF, fontSize: 14, fontWeight: 800, color: WHEAT, lineHeight: 1.25, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {item.title || '(sans objet)'}
           </span>
-          {ai?.categorie && (
+          {bat && <span style={{ ...DF, fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', color: toneColor('success'), whiteSpace: 'nowrap' }}>BAT · {item.etiquettes!.reference}</span>}
+          {ai?.categorie && !bat && (
             <span style={{ ...DF, fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: dormant ? 'var(--text-muted)' : 'var(--azul)', whiteSpace: 'nowrap' }}>
               {CATEGORIE_LABEL[ai.categorie] ?? ai.categorie}{ai.lien ? ` · ${ai.lien}` : ''}
             </span>
@@ -80,6 +85,12 @@ function Ligne({ item, onTraite, onTache, onDiscord, onBrouillon }: {
           <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Loader2 size={9} className="animate-spin" /> Claude lit…</span>
         )}
         {!traite && <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+          {bat && (
+            <>
+              <button className="nb-press" onClick={onValiderBat} style={boutonDiscret({ background: toneColor('success'), color: 'var(--ink-light)', boxShadow: '2px 2px 0 var(--ink)' })}><Check size={11} /> Valider le BAT</button>
+              <button className="nb-press" onClick={onRefuserBat} style={boutonDiscret({ color: 'var(--accent-brand)' })}>Refuser</button>
+            </>
+          )}
           <button className="nb-press" onClick={onTraite} style={boutonDiscret()}><Check size={11} /> Traité</button>
           <button className="nb-press" onClick={onTache} style={boutonDiscret()}><CheckSquare size={11} /> Tâche</button>
           <button className="nb-press" onClick={onDiscord} style={boutonDiscret({ color: 'var(--azul)' })} title="Envoyer le mail dans le salon Discord de la marque, et en parler là-bas">
@@ -101,13 +112,15 @@ function Ligne({ item, onTraite, onTache, onDiscord, onBrouillon }: {
  * urgence puis date. Quatre gestes par ligne — traité, tâche, Discord,
  * brouillon — et rien à taper : ce qui demande des mots se dit dans Discord.
  */
-export function Courrier({ inbox, avecTraites, setAvecTraites, onTache, onDiscord, onBrouillon }: {
+export function Courrier({ inbox, avecTraites, setAvecTraites, onTache, onDiscord, onBrouillon, onValiderBat, onRefuserBat }: {
   inbox: ReturnType<typeof useInbox>
   avecTraites: boolean
   setAvecTraites: (v: boolean) => void
   onTache: (item: InboxItem) => Promise<void>
   onDiscord: (item: InboxItem) => Promise<void>
   onBrouillon: (item: InboxItem) => Promise<void>
+  onValiderBat: (item: InboxItem) => Promise<void>
+  onRefuserBat: (item: InboxItem) => Promise<void>
 }) {
   const { items, pulse, loading, error, direct, marquerTraite } = inbox
   const [filtre, setFiltre] = useState<Filtre>('tous')
@@ -178,7 +191,9 @@ export function Courrier({ inbox, avecTraites, setAvecTraites, onTache, onDiscor
               onTraite={() => marquerTraite([item.id])}
               onTache={() => onTache(item)}
               onDiscord={() => onDiscord(item)}
-              onBrouillon={() => onBrouillon(item)} />
+              onBrouillon={() => onBrouillon(item)}
+              onValiderBat={() => onValiderBat(item)}
+              onRefuserBat={() => onRefuserBat(item)} />
           ))
         )}
       </div>

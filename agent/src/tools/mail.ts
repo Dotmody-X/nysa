@@ -1,11 +1,8 @@
 import { z } from 'zod'
-import nodemailer from 'nodemailer'
-import MailComposer from 'nodemailer/lib/mail-composer/index.js'
-import { ImapFlow } from 'imapflow'
 import { tool } from './types.js'
 import { audit } from '../audit.js'
 import { comptesMail, compteDe } from '../mail/comptes.js'
-import { log } from '../log.js'
+import { envoyer } from '../mail/envoi.js'
 
 /**
  * Envoyer un mail depuis une des boîtes de Nathan — le dernier maillon du
@@ -23,21 +20,6 @@ type Evenement = {
   title: string | null
   external_id: string | null
   payload: { from?: string; mailbox?: string; to?: string; sent?: unknown }
-}
-
-/** Copie dans le dossier « Envoyés » de la boîte, pour que le webmail le voie aussi. Best effort. */
-async function copierDansEnvoyes(compte: ReturnType<typeof comptesMail>[number], message: Buffer) {
-  const client = new ImapFlow({ host: compte.imap.host, port: compte.imap.port, secure: true, auth: { user: compte.adresse, pass: compte.motDePasse }, logger: false })
-  try {
-    await client.connect()
-    const boites = await client.list()
-    const envoyes = boites.find(b => b.specialUse === '\\Sent') ?? boites.find(b => /sent|envoy/i.test(b.path))
-    if (envoyes) await client.append(envoyes.path, message, ['\\Seen'])
-    await client.logout()
-  } catch (e) {
-    log.warn(`envoyer_mail : copie dans Envoyés impossible (${e instanceof Error ? e.message : String(e)})`)
-    try { await client.logout() } catch { /* déjà fermé */ }
-  }
 }
 
 export const mailTools = [
@@ -78,21 +60,8 @@ export const mailTools = [
       const objet = (input.objet ?? (evenement?.title ? (/^re\s*:/i.test(evenement.title) ? evenement.title : `Re: ${evenement.title}`) : '')).trim()
       if (!objet) return "Il manque l'objet."
 
-      const transport = nodemailer.createTransport({
-        host: compte.smtp.host, port: compte.smtp.port, secure: compte.smtp.secure,
-        auth: { user: compte.adresse, pass: compte.motDePasse },
-      })
-      const enTetes = evenement?.external_id?.startsWith('<') ? { inReplyTo: evenement.external_id, references: evenement.external_id } : {}
-      const destinataires = [a, input.cc ?? ''].join(',').split(',').map(x => x.trim()).filter(Boolean)
-
       try {
-        // Le message est composé une fois : envoyé tel quel, puis copié tel
-        // quel dans « Envoyés » — même Message-ID, mêmes en-têtes.
-        const brut = await new MailComposer({
-          from: compte.adresse, to: a, cc: input.cc || undefined, subject: objet, text: input.corps, ...enTetes,
-        }).compile().build()
-        const info = await transport.sendMail({ envelope: { from: compte.adresse, to: destinataires }, raw: brut })
-        await copierDansEnvoyes(compte, brut)
+        const info = await envoyer(compte, { a, cc: input.cc, objet, texte: input.corps, enReponseA: evenement?.external_id ?? null })
 
         if (evenement) {
           await ctx.db.rpc('merge_work_event_payload', { p_id: evenement.id, p_patch: { sent: { at: new Date().toISOString(), from: compte.adresse, to: a, subject: objet, message_id: info.messageId } } })

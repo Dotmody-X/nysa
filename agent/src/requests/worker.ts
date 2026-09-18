@@ -5,6 +5,7 @@ import { serviceClient, userClient } from '../supabase.js'
 import { runNysaAgent } from '../agent/run.js'
 import { BRANDS, type Brand } from '../brands.js'
 import { envoyerPush } from '../push/envoyer.js'
+import { ACTIONS } from './actions.js'
 import { log } from '../log.js'
 import { alerter } from '../alertes.js'
 
@@ -163,6 +164,22 @@ function promptDe(d: Demande): string {
 
 async function repondre(config: Config, session: Session, db: ReturnType<typeof userClient>, d: Demande) {
   log.info(`Demande #${d.id} (${d.source}) : ${d.question.slice(0, 80)}`)
+
+  // Une action connue d'avance : pas de Claude, une suite d'opérations.
+  const action = typeof d.context.action === 'string' ? ACTIONS[d.context.action] : undefined
+  if (action) {
+    try {
+      const r = await action(db, d.context, livreur)
+      await db.rpc('agent_request_finish', { p_id: d.id, p_reply: r.salon ? `→ #${r.salon}\n\n${r.reply}` : r.reply, p_error: null, p_session_id: null })
+      void envoyerPush(db, { title: 'Nysa', body: r.reply.slice(0, 140), tag: `action-${d.id}` })
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      log.error(`Demande #${d.id} : action ${d.context.action} en échec`, message)
+      await db.rpc('agent_request_finish', { p_id: d.id, p_reply: null, p_error: message, p_session_id: null })
+    }
+    return
+  }
+
   const brand = marqueDuContexte(d.context)
   // Livraison dans Discord : la réponse est postée dans le salon et le fil
   // de ce salon est repris — Nathan enchaîne là-bas.

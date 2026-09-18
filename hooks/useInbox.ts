@@ -24,6 +24,8 @@ export interface InboxItem {
   texte: string | null
   /** Les pièces jointes rangées dans le bucket `courrier`. */
   fichiers: { name: string; path: string; size: number; type: string }[] | null
+  /** La commande d'étiquettes à laquelle le triage a rattaché les pièces. */
+  etiquettes: { commande_id: string; reference: string; documents: { id: string; categorie: string; filename: string }[] } | null
   /** Présent seulement quand on affiche aussi les traités. */
   processed?: boolean
 }
@@ -34,6 +36,8 @@ export interface InboxTriage {
   urgence?: 1 | 2 | 3
   action?: string
   lien?: string | null
+  etiquettes?: string | null
+  document?: 'bl' | 'bat' | 'devis' | 'facture' | null
   /** Le triage a échoué : on affiche le mail tel quel. */
   echec?: string
   le?: string

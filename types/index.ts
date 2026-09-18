@@ -324,6 +324,8 @@ export interface EtiquetteDocument {
   file_path?: string
   file_size?: number
   file_type?: string
+  /** BAT : date de validation (mail « bon pour impression » envoyé). */
+  valide_le?: string | null
   created_at: string
 }
 

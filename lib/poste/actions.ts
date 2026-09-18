@@ -109,3 +109,14 @@ export function questionPreparation(titre: string, heure: string | null, lieu: s
     '(tâches ouvertes liées, derniers mails de cette personne ou de cette marque dans l\'inbox, dernière commande ou devis), ' +
     "et les deux ou trois points à aborder. Rien d'inventé : si tu ne trouves rien, dis-le."
 }
+
+/** Un mail de BAT reconnu : la fiche le dit et le PDF est rattaché à une commande. */
+export function estBat(item: InboxItem): boolean {
+  const ai = item.ai && !item.ai.echec ? item.ai : null
+  return ai?.document === 'bat' || (item.etiquettes?.documents ?? []).some(d => d.categorie === 'bat')
+}
+
+export const QUESTION_BAT_REFUSE = (reference: string) =>
+  `Nathan refuse le BAT de la commande d'étiquettes ${reference} (le mail est juste au-dessus dans ce salon). ` +
+  "Il va écrire ici ce qu'il faut corriger. Prépare ensuite le mail de refus à l'imprimeur — en réponse à ce mail, " +
+  "depuis la boîte qui l'a reçu, ton professionnel, point par point — et envoie-le avec envoyer_mail quand il dit « envoie »."
