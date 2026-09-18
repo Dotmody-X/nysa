@@ -23,6 +23,7 @@ const DESTINATIONS: Dest[] = [
   { label: 'Étiquettes',    href: '/etiquettes',         emoji: '🏷️', key: 'a' },
   { label: 'Rapports',      href: '/rapports',           emoji: '📊' },
   { label: 'Radar',         href: '/radar',              emoji: '📡', key: 'r' },
+  { label: 'Poste (iPad)',  href: '/poste',              emoji: '🖥️', key: 'o' },
   { label: 'Réglages',      href: '/reglages',           emoji: '⚙️', key: 's' },
   { label: 'Profil',        href: '/compte',             emoji: '👤' },
 ]

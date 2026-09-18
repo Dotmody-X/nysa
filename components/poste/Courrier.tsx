@@ -1,0 +1,138 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+import { Send, Check, CheckSquare, Sparkles, Package, Calendar, Link2 } from '@/components/ui/icons'
+import type { useInbox, InboxItem } from '@/hooks/useInbox'
+import { brandColor, toneColor } from '@/lib/digestStyle'
+import { DF, WHEAT, panneau, titrePanneau, boutonDiscret, depuis, BRAND_LABEL, BRAND_NAME } from './ui'
+
+type Filtre = 'tous' | 'mixologue' | 'aeterna'
+
+const TYPE_ICON: Record<string, typeof Send> = { mail: Send, order: Package, appointment: Calendar }
+
+/** Où répondre : le webmail de la boîte d'arrivée. */
+function webmail(boite: string | null): string {
+  if (boite?.endsWith('le-mixologue.com')) return 'https://pro1.mail.ovh.net/owa/'
+  return 'https://mail.ovh.net/'
+}
+
+function Ligne({ item, onTraite, onTache, onClaude }: {
+  item: InboxItem
+  onTraite: () => void
+  onTache: () => void
+  onClaude: () => void
+}) {
+  const Icon = TYPE_ICON[item.type] ?? Send
+  const couleur = item.brand ? brandColor(BRAND_NAME[item.brand]) : 'var(--text-muted)'
+  const urgent = item.urgency === 1
+  const expediteur = (item.expediteur ?? '').replace(/\s*<[^>]*>\s*$/, '') || item.expediteur || '—'
+
+  return (
+    <div style={{ display: 'flex', gap: 12, padding: '11px 16px', borderBottom: '1px solid var(--border)', borderLeft: `6px solid ${urgent ? toneColor('danger') : 'transparent'}` }}>
+      <span className="nb-tile" title={item.brand ? BRAND_LABEL[item.brand] : ''}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, background: couleur, boxShadow: '2px 2px 0 var(--ink)', flexShrink: 0, marginTop: 1 }}>
+        <Icon size={13} style={{ color: 'var(--ink-light)' }} />
+      </span>
+
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ ...DF, fontSize: 14, fontWeight: 800, color: WHEAT, lineHeight: 1.25, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {item.title || '(sans objet)'}
+          </span>
+          {urgent && <span style={{ ...DF, fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', color: toneColor('danger') }}>URGENT</span>}
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{depuis(item.occurred_at)}</span>
+        </div>
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {expediteur}
+          {item.boite && <span style={{ opacity: 0.7 }}> → {item.boite.split('@')[0]}</span>}
+          {item.pieces > 0 && <span> · {item.pieces} pièce{item.pieces > 1 ? 's' : ''}</span>}
+        </div>
+        {item.extrait && (
+          <p style={{ fontSize: 12.5, color: WHEAT, opacity: 0.85, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {item.extrait}
+          </p>
+        )}
+        <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+          <button className="nb-press" onClick={onTraite} style={boutonDiscret()}><Check size={11} /> Traité</button>
+          <button className="nb-press" onClick={onTache} style={boutonDiscret()}><CheckSquare size={11} /> Tâche</button>
+          <button className="nb-press" onClick={onClaude} style={boutonDiscret({ color: 'var(--azul)' })}><Sparkles size={11} /> Claude</button>
+          {item.type === 'mail' && (
+            <a href={webmail(item.boite)} target="_blank" rel="noopener noreferrer" style={{ ...boutonDiscret(), textDecoration: 'none', marginLeft: 'auto' }}>
+              <Link2 size={11} /> Répondre
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Le courrier en direct : ce que nysa-mail dépose dans work.events, trié
+ * urgence puis date. Trois gestes par ligne — traité, tâche, Claude — et
+ * le webmail pour répondre : Nysa trie, il n'écrit pas de mails.
+ */
+export function Courrier({ inbox, onTache, onClaude }: {
+  inbox: ReturnType<typeof useInbox>
+  onTache: (item: InboxItem) => Promise<void>
+  onClaude: (item: InboxItem) => Promise<void>
+}) {
+  const { items, pulse, loading, error, marquerTraite } = inbox
+  const [filtre, setFiltre] = useState<Filtre>('tous')
+
+  const visibles = useMemo(() => items.filter(i => filtre === 'tous' || i.brand === filtre), [items, filtre])
+  const anciens = useMemo(() => {
+    const limite = Date.now() - 7 * 86_400_000
+    return items.filter(i => new Date(i.occurred_at).getTime() < limite).map(i => i.id)
+  }, [items])
+
+  // Le pouls : si nysa-mail se tait, c'est ici que ça se voit.
+  const dernier = pulse?.last_mail_at ?? null
+  const silence = dernier ? Date.now() - new Date(dernier).getTime() > 3 * 86_400_000 : false
+
+  const chip = (actif: boolean, couleur: string): React.CSSProperties => ({
+    ...boutonDiscret({ background: actif ? couleur : 'var(--bg-input)', color: actif ? 'var(--ink-light)' : 'var(--text-muted)', boxShadow: actif ? '2px 2px 0 var(--ink)' : 'none' }),
+  })
+
+  return (
+    <section style={panneau()}>
+      <div style={{ padding: '12px 16px 10px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '2px solid var(--ink)' }}>
+        <Send size={13} style={{ color: 'var(--azul)' }} />
+        <span style={titrePanneau}>Courrier</span>
+        <span style={{ ...DF, fontSize: 11, fontWeight: 900, color: 'var(--ink-light)', background: 'var(--azul)', border: '2px solid var(--ink)', borderRadius: 'var(--radius-sm)', padding: '1px 7px' }}>{items.length}</span>
+        <span style={{ flex: 1 }} />
+        <span title="Dernier mail reçu par nysa-mail" style={{ fontSize: 10.5, fontWeight: 700, color: silence ? toneColor('danger') : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+          dernier mail {depuis(dernier)}{silence ? ' — le service se tait ?' : ''}
+        </span>
+      </div>
+
+      <div style={{ padding: '8px 16px', display: 'flex', gap: 6, alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+        <button className="nb-press" style={chip(filtre === 'tous', 'var(--ink-dark)')} onClick={() => setFiltre('tous')}>Tout</button>
+        <button className="nb-press" style={chip(filtre === 'mixologue', brandColor('Le Mixologue'))} onClick={() => setFiltre('mixologue')}>Mixologue</button>
+        <button className="nb-press" style={chip(filtre === 'aeterna', brandColor('Aeterna'))} onClick={() => setFiltre('aeterna')}>Aeterna</button>
+        <span style={{ flex: 1 }} />
+        {anciens.length > 0 && (
+          <button className="nb-press" onClick={() => marquerTraite(anciens)} style={boutonDiscret()} title="Marquer traité tout ce qui a plus de sept jours">
+            <Check size={11} /> Archiver {anciens.length} anciens
+          </button>
+        )}
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+        {error && <p style={{ padding: 16, fontSize: 12, color: 'var(--accent-brand)' }}>Courrier indisponible : {error}</p>}
+        {loading ? (
+          <p style={{ padding: 24, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>Chargement…</p>
+        ) : visibles.length === 0 ? (
+          <p style={{ padding: 24, textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)' }}>Rien à traiter. Le prochain mail apparaîtra ici tout seul.</p>
+        ) : (
+          visibles.map(item => (
+            <Ligne key={item.id} item={item}
+              onTraite={() => marquerTraite([item.id])}
+              onTache={() => onTache(item)}
+              onClaude={() => onClaude(item)} />
+          ))
+        )}
+      </div>
+    </section>
+  )
+}
