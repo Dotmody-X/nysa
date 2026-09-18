@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export type DigestKind = 'brief' | 'debrief' | 'radar' | 'review'
+export type DigestKind = 'brief' | 'debrief' | 'radar' | 'review' | 'veille_esmoker' | 'veille_aeterna'
 export type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'accent'
 export type PriorityLevel = 'urgent' | 'high' | 'medium' | 'low'
 
@@ -27,7 +27,7 @@ export interface DigestPayload {
 
 export interface Digest {
   id: number
-  kind: string          // DigestKind (la vue ne renvoie que ces quatre-là)
+  kind: string          // DigestKind (la vue ne renvoie que ceux-là)
   content: string       // markdown (secours)
   generated_at: string  // ISO timestamptz
   payload: DigestPayload | null  // structuré, à privilégier
@@ -37,7 +37,7 @@ const QUOTIDIENS: DigestKind[] = ['brief', 'debrief']
 
 /**
  * Digests — LECTURE SEULE via la vue public.v_digests (fenêtre curée sur
- * work.digests, filtrée sur kind ∈ {brief, debrief, radar, review} et sur
+ * work.digests, filtrée sur les DigestKind et sur
  * l'utilisateur). Par défaut on ne demande que les quotidiens : la page Brief
  * et son dock ne doivent pas voir arriver un radar dans leur historique.
  * Réutilise le client Supabase existant (anon, RLS respectée). On n'écrit jamais.

@@ -1,6 +1,6 @@
 'use client'
 
-import { Sun, Moon, Radar, Gavel } from '@/components/ui/icons'
+import { Sun, Moon, Radar, Gavel, Binoculars } from '@/components/ui/icons'
 import { toneColor, priorityColor, PRIORITY_LABEL, brandColor, digestIcon } from '@/lib/digestStyle'
 import type { Digest, DigestPayload, DigestStat, DigestPriority, DigestSection, DigestItem, DigestFlag } from '@/hooks/useDigests'
 
@@ -24,6 +24,9 @@ const kindMeta = (kind: string) => {
     case 'debrief': return { label: 'Débrief', color: DEBRIEF_COLOR, Icon: Moon }
     case 'radar':   return { label: 'Radar mensuel', color: RADAR_COLOR, Icon: Radar }
     case 'review':  return { label: 'Revue hebdo', color: RADAR_COLOR, Icon: Gavel }
+    // La veille du lundi porte la couleur de sa marque, pas celle d'Analyser.
+    case 'veille_esmoker': return { label: 'Veille e-Smoker', color: brandColor('E-Smoker'), Icon: Binoculars }
+    case 'veille_aeterna': return { label: 'Veille Aeterna', color: brandColor('Aeterna'), Icon: Binoculars }
     default:        return { label: 'Brief', color: BRIEF_COLOR, Icon: Sun }
   }
 }

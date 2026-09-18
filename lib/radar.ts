@@ -28,3 +28,17 @@ export function moisCouvert(iso: string): string {
   const prec = new Date(d.getFullYear(), d.getMonth() - 1, 1)
   return prec.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
 }
+
+/** Le prochain lundi strictement après le jour de `depuis` — la veille tombe le lundi. */
+export function prochainLundi(depuis: Date = new Date()): Date {
+  const jour = new Date(depuis.getFullYear(), depuis.getMonth(), depuis.getDate())
+  const decalage = ((8 - jour.getDay()) % 7) || 7
+  return new Date(jour.getFullYear(), jour.getMonth(), jour.getDate() + decalage)
+}
+
+/** Lundi de la semaine d'une date ISO, à minuit local — pour grouper la veille par semaine. */
+export function lundiDe(iso: string): Date {
+  const d = new Date(iso)
+  const recul = (d.getDay() + 6) % 7 // lundi=0 … dimanche=6
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - recul)
+}
