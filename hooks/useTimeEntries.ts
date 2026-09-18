@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRealtimeTable } from './useRealtimeTable'
 import type { TimeEntry } from '@/types'
 
 export function useTimeEntries(fromDate?: string, toDate?: string) {
@@ -45,6 +46,9 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
   }, [effectiveFrom, toDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch() }, [fetch])
+  // Un compteur démarré ou arrêté ailleurs (Discord, iPad, autre onglet) se
+  // reflète ici sans rechargement.
+  useRealtimeTable('time_entries', fetch)
 
   async function start(projectId: string | null, description: string) {
     const { data: { user } } = await supabase.auth.getUser()
