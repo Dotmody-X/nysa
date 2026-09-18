@@ -83,8 +83,11 @@ const mailSchema = supabaseSchema.extend({
   MAIL_HOST: z.string().default('ssl0.ovh.net'),
   MAIL_PORT: z.coerce.number().int().default(993),
   /**
-   * Les boîtes à suivre : `marque=adresse`, séparées par des virgules. Le mot
-   * de passe de chaque boîte est dans MAIL_PASS_<MARQUE> (en majuscules).
+   * Les boîtes à suivre : `marque=adresse`, séparées par des virgules — une
+   * marque peut avoir plusieurs boîtes. Le mot de passe de chaque boîte est
+   * dans MAIL_PASS_<PARTIE_LOCALE> (`contact@…` → MAIL_PASS_CONTACT), à
+   * défaut MAIL_PASS_<MARQUE>. Même logique pour l'hôte : MAIL_HOST_<PARTIE_LOCALE>,
+   * puis MAIL_HOST_<MARQUE>, puis MAIL_HOST.
    */
   MAIL_ACCOUNTS: z
     .string()
@@ -92,7 +95,7 @@ const mailSchema = supabaseSchema.extend({
     .transform(s =>
       s.split(',').map(v => v.trim()).filter(Boolean).map(paire => {
         const [marque, adresse] = paire.split('=').map(x => x.trim())
-        if (!marque || !adresse || !['mixologue', 'aeterna'].includes(marque)) {
+        if (!marque || !adresse || !adresse.includes('@') || !['mixologue', 'aeterna'].includes(marque)) {
           throw new Error(`MAIL_ACCOUNTS : « ${paire} » n'est pas de la forme mixologue=adresse ou aeterna=adresse`)
         }
         return { marque: marque as 'mixologue' | 'aeterna', adresse }

@@ -79,15 +79,21 @@ class Boite {
   private aRefaire = false
   private delaiReconnexion = 5_000
 
+  /** Ce qui préfixe les logs : `aeterna/contact`. */
+  private readonly nom: string
+
   constructor(
     private readonly marque: MarqueMail,
     private readonly adresse: string,
     private readonly motDePasse: string,
     /** MX Plan = ssl0.ovh.net ; Email Pro = pro*.mail.ovh.net ; Exchange = ex*.mail.ovh.net. */
     private readonly hote: string,
-  ) {}
+  ) {
+    this.nom = `${marque}/${adresse.split('@')[0]}`
+  }
 
-  private get cle() { return this.marque }
+  /** L'état est par boîte : deux boîtes d'une même marque n'ont pas les mêmes UID. */
+  private get cle() { return this.adresse }
 
   async demarrer() {
     for (;;) {
@@ -95,9 +101,9 @@ class Boite {
         await this.tenir()
         this.delaiReconnexion = 5_000
       } catch (e) {
-        log.error(`[${this.marque}] connexion perdue : ${detailImap(e)}`)
+        log.error(`[${this.nom}] connexion perdue : ${detailImap(e)}`)
       }
-      log.info(`[${this.marque}] reconnexion dans ${Math.round(this.delaiReconnexion / 1000)} s`)
+      log.info(`[${this.nom}] reconnexion dans ${Math.round(this.delaiReconnexion / 1000)} s`)
       await new Promise(r => setTimeout(r, this.delaiReconnexion))
       this.delaiReconnexion = Math.min(this.delaiReconnexion * 2, 120_000)
     }
@@ -124,14 +130,14 @@ class Boite {
 
     await client.connect()
     const boite = await client.mailboxOpen('INBOX')
-    log.info(`[${this.marque}] connecté à ${this.hote} : ${this.adresse}, ${boite.exists} messages, UIDVALIDITY ${boite.uidValidity}`)
+    log.info(`[${this.nom}] connecté à ${this.hote} : ${this.adresse}, ${boite.exists} messages, UIDVALIDITY ${boite.uidValidity}`)
 
     const validity = Number(boite.uidValidity)
     const memo = etat[this.cle]
     if (!memo || memo.uidValidity !== validity) {
       etat[this.cle] = { lastUid: 0, uidValidity: validity }
       ecrireEtat(etat)
-      if (memo) log.warn(`[${this.marque}] UIDVALIDITY a changé : reprise sur ${config.MAIL_BACKFILL_DAYS} jour(s)`)
+      if (memo) log.warn(`[${this.nom}] UIDVALIDITY a changé : reprise sur ${config.MAIL_BACKFILL_DAYS} jour(s)`)
     }
 
     client.on('exists', (data: { count: number; prevCount: number }) => {
@@ -155,7 +161,7 @@ class Boite {
         await this.lireNouveaux()
       } while (this.aRefaire)
     } catch (e) {
-      log.error(`[${this.marque}] lecture des nouveaux messages : ${e instanceof Error ? e.message : String(e)}`)
+      log.error(`[${this.nom}] lecture des nouveaux messages : ${e instanceof Error ? e.message : String(e)}`)
     } finally {
       this.enCours = false
     }
@@ -192,23 +198,23 @@ class Boite {
       lus++
       try {
         const brut = await this.parser(msg.uid, msg.envelope, msg.source)
-        const ev = classer(brut, this.marque, config.AGENT_TIMEZONE)
+        const ev = classer(brut, this.marque, config.AGENT_TIMEZONE, this.adresse)
         if (ev) {
           const { data, error } = await db.rpc('log_work_event', ev)
           if (error) throw new Error(`log_work_event : ${error.message}`)
           if (data !== null) {
             deposes++
-            log.info(`[${this.marque}] ${ev.p_type} ${ev.p_urgency === 1 ? '!' : ''}« ${ev.p_title.slice(0, 70)} »`)
+            log.info(`[${this.nom}] ${ev.p_type} ${ev.p_urgency === 1 ? '!' : ''}« ${ev.p_title.slice(0, 70)} »`)
           }
         }
       } catch (e) {
         // On ne bloque pas la boîte sur un message : il est journalisé, on avance.
-        log.error(`[${this.marque}] message UID ${msg.uid} non traité : ${e instanceof Error ? e.message : String(e)}`)
+        log.error(`[${this.nom}] message UID ${msg.uid} non traité : ${e instanceof Error ? e.message : String(e)}`)
       }
       memo.lastUid = Math.max(memo.lastUid, msg.uid)
       ecrireEtat(etat)
     }
-    if (lus) log.info(`[${this.marque}] ${lus} message(s) lu(s), ${deposes} déposé(s)`)
+    if (lus) log.info(`[${this.nom}] ${lus} message(s) lu(s), ${deposes} déposé(s)`)
   }
 
   private async parser(uid: number, envelope: { subject?: string; date?: Date | string; messageId?: string } | undefined, source: Buffer | undefined): Promise<MailBrut> {
@@ -235,12 +241,14 @@ async function main() {
   log.info(`nysa-mail : dépôt au nom de ${session.email ?? session.userId}`)
 
   const boites = config.MAIL_ACCOUNTS.map(({ marque, adresse }) => {
-    const motDePasse = process.env[`MAIL_PASS_${marque.toUpperCase()}`]
+    const local = adresse.split('@')[0]!.toUpperCase().replace(/[^A-Z0-9]/g, '_')
+    const MARQUE = marque.toUpperCase()
+    const motDePasse = process.env[`MAIL_PASS_${local}`] || process.env[`MAIL_PASS_${MARQUE}`]
     if (!motDePasse) {
-      console.error(`MAIL_PASS_${marque.toUpperCase()} manquant dans agent/.env pour ${adresse}`)
+      console.error(`Mot de passe manquant pour ${adresse} : MAIL_PASS_${local} (ou MAIL_PASS_${MARQUE}) dans agent/.env`)
       process.exit(1)
     }
-    const hote = process.env[`MAIL_HOST_${marque.toUpperCase()}`] || config.MAIL_HOST
+    const hote = process.env[`MAIL_HOST_${local}`] || process.env[`MAIL_HOST_${MARQUE}`] || config.MAIL_HOST
     return new Boite(marque, adresse, motDePasse, hote)
   })
 
