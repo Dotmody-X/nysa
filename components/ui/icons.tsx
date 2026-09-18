@@ -59,6 +59,7 @@ export {
   DotsThreeVertical as MoreVertical,
   NavigationArrow as Navigation,
   Package as Package,
+  Pause as Pause,
   Palette as Palette,
   PencilSimpleLine as PenLine,
   Pencil as Pencil,

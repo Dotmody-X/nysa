@@ -1,22 +1,30 @@
 'use client'
 
-import { useMemo } from 'react'
-import { Calendar, CheckSquare, Sun } from '@/components/ui/icons'
+import { useMemo, useState, useCallback, useEffect } from 'react'
+import { Calendar, CheckSquare, Sun, Sparkles, Loader2 } from '@/components/ui/icons'
 import { useCalendar } from '@/hooks/useCalendar'
 import { useTasks } from '@/hooks/useTasks'
 import { useDigests } from '@/hooks/useDigests'
+import { useProjects } from '@/hooks/useProjects'
+import type { useAgentRequests } from '@/hooks/useAgentRequests'
+import { questionPreparation, salonDuGroupe } from '@/lib/poste/actions'
 import { useRealtimeTable } from '@/hooks/useRealtimeTable'
 import { priorityColor } from '@/lib/digestStyle'
-import { DF, WHEAT, panneau, titrePanneau, fmtHeure } from './ui'
+import { DF, WHEAT, panneau, titrePanneau, fmtHeure, boutonDiscret } from './ui'
 
 const cle = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
+/** Cinq minutes avant un rendez-vous, Claude fait le point dans Discord — une fois par rendez-vous. */
+const AVANCE_MS = 5 * 60_000
+const dejaPrepare = (id: string) => { try { return localStorage.getItem(`poste:prepare:${id}`) === '1' } catch { return false } }
+const marquerPrepare = (id: string) => { try { localStorage.setItem(`poste:prepare:${id}`, '1') } catch { /* rien */ } }
+
 /**
  * La journée : la phrase du brief du matin, les rendez-vous d'aujourd'hui
- * (Realtime, comme le time tracker), et ce qui est dû aujourd'hui ou en
- * retard. Lecture seule — les gestes se font dans les onglets.
+ * (Realtime, comme le time tracker) avec « Prépare-moi », et ce qui est dû
+ * aujourd'hui ou en retard.
  */
-export function Journee() {
+export function Journee({ demandes }: { demandes: ReturnType<typeof useAgentRequests> }) {
   const { debut, fin, aujourdhui } = useMemo(() => {
     const d = new Date(); d.setHours(0, 0, 0, 0)
     const f = new Date(d); f.setDate(f.getDate() + 1)
@@ -25,7 +33,36 @@ export function Journee() {
   const { events } = useCalendar(debut, fin)
   const { tasks, toggle, refetch } = useTasks()
   const { latestBrief } = useDigests(['brief'])
+  const { projects } = useProjects()
   useRealtimeTable('tasks', refetch)
+  const [prepEnCours, setPrepEnCours] = useState<string | null>(null)
+
+  /** « Prépare-moi » : Claude fait le point dans le salon de la marque du rendez-vous. */
+  const preparer = useCallback(async (ev: (typeof events)[number]) => {
+    if (prepEnCours) return
+    setPrepEnCours(ev.id)
+    try {
+      const projet = ev.project_id ? projects.find(p => p.id === ev.project_id) : undefined
+      const salon = salonDuGroupe(projet?.groupe ?? ev.category ?? null)
+      await demandes.ask(questionPreparation(ev.title, ev.all_day ? null : fmtHeure(ev.start_at), ev.location ?? null, ev.description ?? null, projet?.name ?? null), {
+        deliver: 'discord', channel: salon, event: ev.id, action: `prepare:${ev.id}`,
+      })
+      marquerPrepare(ev.id)
+    } finally { setPrepEnCours(null) }
+  }, [demandes, projects, prepEnCours])
+
+  // Le poste est allumé toute la journée : c'est lui qui déclenche, cinq minutes avant.
+  useEffect(() => {
+    const t = setInterval(() => {
+      const now = Date.now()
+      for (const ev of events) {
+        if (ev.all_day || dejaPrepare(ev.id)) continue
+        const debut = new Date(ev.start_at).getTime()
+        if (debut - now <= AVANCE_MS && debut - now > -60_000) { marquerPrepare(ev.id); void preparer(ev) }
+      }
+    }, 30_000)
+    return () => clearInterval(t)
+  }, [events, preparer])
 
   const maintenant = Date.now()
   const rdv = useMemo(() => [...events].sort((a, b) => a.start_at.localeCompare(b.start_at)), [events])
@@ -63,12 +100,19 @@ export function Journee() {
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Rien au calendrier.</p>
           ) : rdv.map(ev => {
             const passe = new Date(ev.end_at).getTime() < maintenant
+            const prepare = dejaPrepare(ev.id)
             return (
-              <div key={ev.id} style={{ display: 'flex', gap: 10, padding: '5px 0', opacity: passe ? 0.5 : 1, alignItems: 'baseline' }}>
+              <div key={ev.id} style={{ display: 'flex', gap: 10, padding: '5px 0', opacity: passe ? 0.5 : 1, alignItems: 'center' }}>
                 <span style={{ ...DF, fontSize: 12, fontWeight: 900, color: ev.color || 'var(--azul)', minWidth: 44, fontVariantNumeric: 'tabular-nums' }}>
                   {ev.all_day ? 'Jour' : fmtHeure(ev.start_at)}
                 </span>
                 <span style={{ fontSize: 12.5, color: WHEAT, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.title}</span>
+                {!passe && (
+                  <button className="nb-press" onClick={() => preparer(ev)} disabled={Boolean(prepEnCours)} title="Claude fait le point dans Discord"
+                    style={boutonDiscret({ minHeight: 28, padding: '4px 8px', fontSize: 9.5, color: prepare ? 'var(--text-muted)' : 'var(--azul)' })}>
+                    {prepEnCours === ev.id ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />} {prepare ? 'Refaire' : 'Prépare-moi'}
+                  </button>
+                )}
               </div>
             )
           })}

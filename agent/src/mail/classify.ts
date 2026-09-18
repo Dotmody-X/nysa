@@ -33,9 +33,6 @@ export type Evenement = {
   p_occurred_at?: string
 }
 
-/** Les mails que personne ne veut voir dans l'inbox. */
-const IGNORER = ['automatically updated', 'some plugins were', 'some themes were', 'newsletter']
-
 const URGENT: Record<MarqueMail, string[]> = {
   aeterna: ['urgent', 'relance', 'impayé', 'impaye', 'litige', 'rendez-vous'],
   mixologue: ['urgent', 'relance', 'impayé', 'impaye', 'litige', 'devis', 'commande ', 'bat'],
@@ -69,11 +66,13 @@ function extrait(m: MailBrut): string {
   return Array.from(texte).slice(0, 280).join('')
 }
 
-/** null = à ignorer. */
+/** null = à ignorer (plus rien aujourd'hui ; conservé pour la signature). */
 export function classer(m: MailBrut, marque: MarqueMail, zone = 'Europe/Brussels', boite?: string): Evenement | null {
+  // Tout entre — même les newsletters et les notifications de plugins que n8n
+  // écartait : c'est le triage de Claude qui les range en « pub », et le poste
+  // les atténue. Nathan veut voir passer chaque mail.
   const objet = m.subject || ''
   const sujet = objet.toLowerCase()
-  if (IGNORER.some(k => sujet.includes(k))) return null
 
   const pref = PREFIXE[marque]
   const mid = m.messageId || (m.uid ? `uid-${pref}-${m.uid}` : `${pref}|${m.date?.toISOString() ?? ''}|${objet}`)
