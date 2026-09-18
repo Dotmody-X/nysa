@@ -66,6 +66,13 @@ const bridgeSchema = supabaseSchema.extend({
   MAC_SSH_HOST: z.string().optional(),
   MAC_SSH_USER: z.string().optional(),
   MAC_SSH_KEY: z.string().optional(),
+
+  /**
+   * Modèle du triage des mails (alias Claude Code : sonnet, haiku, opus).
+   * Chaque mail coûte une session : un modèle léger suffit à classer.
+   * `off` désactive le triage.
+   */
+  TRIAGE_MODEL: z.string().default('sonnet'),
 })
 
 /**

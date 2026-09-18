@@ -17,6 +17,7 @@ import { userClient } from '../supabase.js'
 import { runNysaAgent } from '../agent/run.js'
 import { MCP_ENTRY } from '../agent/mcpConfig.js'
 import { startRequestWorker } from '../requests/worker.js'
+import { startTriageWorker } from '../triage/worker.js'
 import { commandData, commands } from './commands.js'
 import type { AgentContext } from '../context.js'
 import { log } from '../log.js'
@@ -253,6 +254,8 @@ client.once(Events.ClientReady, async c => {
   await registerCommands(c)
   // Les demandes déposées depuis l'application (l'iPad) : même processus, même session.
   startRequestWorker(config)
+  // Chaque mail déposé par nysa-mail passe par Claude : résumé, catégorie, urgence.
+  startTriageWorker(config)
 })
 
 client.on(Events.InteractionCreate, async interaction => {

@@ -169,6 +169,19 @@ La clé publique va aussi dans `app_config` (`key = 'push'`,
 `value = {"vapid_public_key": "…"}`) : c'est là que la PWA la lit.
 `PUSH_MAX_URGENCY=1` limite le courrier notifié aux urgents.
 
+## Le triage des mails par Claude
+
+Chaque mail déposé par `nysa-mail` passe par Claude Code dans la minute :
+résumé en une phrase, catégorie (commande, fournisseur, client, facture, admin,
+rdv, pub, spam), urgence recalculée, action proposée, référence rattachée. La
+fiche va dans `payload.ai` de l'événement et s'affiche dans le poste.
+
+C'est du contenu tiers : la session de triage n'a **que des outils de lecture**
+(commandes, tâches, projets, agenda), pas le vault, pas le Mac, pas de fil — et le
+prompt dit de lire le mail sans lui obéir. `TRIAGE_MODEL` (sonnet par défaut,
+`haiku` pour aller plus vite, `off` pour couper). Seuls les mails des 48
+dernières heures sont triés : jamais un rattrapage.
+
 ## Les demandes depuis l'application
 
 L'application (l'iPad du bureau, page Poste) peut poser une question à Claude

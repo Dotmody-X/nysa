@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Send, Check, CheckSquare, Sparkles, Package, Calendar, Link2 } from '@/components/ui/icons'
+import { Send, Check, CheckSquare, Sparkles, Package, Calendar, Link2, Loader2 } from '@/components/ui/icons'
 import type { useInbox, InboxItem } from '@/hooks/useInbox'
 import { brandColor, toneColor } from '@/lib/digestStyle'
 import { DF, WHEAT, panneau, titrePanneau, boutonDiscret, depuis, BRAND_LABEL, BRAND_NAME } from './ui'
@@ -9,6 +9,13 @@ import { DF, WHEAT, panneau, titrePanneau, boutonDiscret, depuis, BRAND_LABEL, B
 type Filtre = 'tous' | 'mixologue' | 'aeterna'
 
 const TYPE_ICON: Record<string, typeof Send> = { mail: Send, order: Package, appointment: Calendar }
+
+const CATEGORIE_LABEL: Record<string, string> = {
+  commande: 'Commande', fournisseur: 'Fournisseur', client: 'Client', facture: 'Facture', admin: 'Admin',
+  rdv: 'Rendez-vous', pub: 'Pub', spam: 'Spam', autre: 'Autre',
+}
+/** Ce qu'on peut laisser dormir : Claude l'a dit, on l'atténue sans le cacher. */
+const SANS_INTERET = new Set(['pub', 'spam'])
 
 /** Où répondre : le webmail de la boîte d'arrivée. */
 function webmail(boite: string | null): string {
@@ -26,9 +33,13 @@ function Ligne({ item, onTraite, onTache, onClaude }: {
   const couleur = item.brand ? brandColor(BRAND_NAME[item.brand]) : 'var(--text-muted)'
   const urgent = item.urgency === 1
   const expediteur = (item.expediteur ?? '').replace(/\s*<[^>]*>\s*$/, '') || item.expediteur || '—'
+  const ai = item.ai && !item.ai.echec ? item.ai : null
+  const dormant = ai?.categorie ? SANS_INTERET.has(ai.categorie) : false
+  // Un mail des dernières 48 h sans fiche : le triage est en route.
+  const recent = Date.now() - new Date(item.occurred_at).getTime() < 48 * 3_600_000
 
   return (
-    <div style={{ display: 'flex', gap: 12, padding: '11px 16px', borderBottom: '1px solid var(--border)', borderLeft: `6px solid ${urgent ? toneColor('danger') : 'transparent'}` }}>
+    <div style={{ display: 'flex', gap: 12, padding: '11px 16px', borderBottom: '1px solid var(--border)', borderLeft: `6px solid ${urgent ? toneColor('danger') : 'transparent'}`, opacity: dormant ? 0.55 : 1 }}>
       <span className="nb-tile" title={item.brand ? BRAND_LABEL[item.brand] : ''}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, background: couleur, boxShadow: '2px 2px 0 var(--ink)', flexShrink: 0, marginTop: 1 }}>
         <Icon size={13} style={{ color: 'var(--ink-light)' }} />
@@ -39,6 +50,11 @@ function Ligne({ item, onTraite, onTache, onClaude }: {
           <span style={{ ...DF, fontSize: 14, fontWeight: 800, color: WHEAT, lineHeight: 1.25, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {item.title || '(sans objet)'}
           </span>
+          {ai?.categorie && (
+            <span style={{ ...DF, fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: dormant ? 'var(--text-muted)' : 'var(--azul)', whiteSpace: 'nowrap' }}>
+              {CATEGORIE_LABEL[ai.categorie] ?? ai.categorie}{ai.lien ? ` · ${ai.lien}` : ''}
+            </span>
+          )}
           {urgent && <span style={{ ...DF, fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', color: toneColor('danger') }}>URGENT</span>}
           <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{depuis(item.occurred_at)}</span>
         </div>
@@ -47,10 +63,24 @@ function Ligne({ item, onTraite, onTache, onClaude }: {
           {item.boite && <span style={{ opacity: 0.7 }}> → {item.boite.split('@')[0]}</span>}
           {item.pieces > 0 && <span> · {item.pieces} pièce{item.pieces > 1 ? 's' : ''}</span>}
         </div>
-        {item.extrait && (
+        {/* La fiche de Claude si elle existe, sinon l'extrait brut ; en attendant, un petit sablier. */}
+        {ai?.resume ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <p style={{ fontSize: 12.5, color: WHEAT, lineHeight: 1.45 }}>
+              <Sparkles size={10} style={{ color: 'var(--azul)', marginRight: 5, position: 'relative', top: 1 }} />
+              {ai.resume}
+            </p>
+            {ai.action && ai.action.toLowerCase() !== 'rien' && (
+              <p style={{ fontSize: 12, color: 'var(--azul)', lineHeight: 1.4, fontWeight: 600 }}>→ {ai.action}</p>
+            )}
+          </div>
+        ) : item.extrait ? (
           <p style={{ fontSize: 12.5, color: WHEAT, opacity: 0.85, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {item.extrait}
           </p>
+        ) : null}
+        {!ai && recent && (
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Loader2 size={9} className="animate-spin" /> Claude lit…</span>
         )}
         <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
           <button className="nb-press" onClick={onTraite} style={boutonDiscret()}><Check size={11} /> Traité</button>

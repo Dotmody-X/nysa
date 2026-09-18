@@ -19,6 +19,14 @@ export type ClaudeOptions = {
   systemPrompt: string
   /** Répertoires supplémentaires accessibles — typiquement le vault Obsidian. */
   extraDirs?: string[]
+  /**
+   * Restreint les outils. Par défaut : tous les tools Nysa et les fichiers.
+   * Le triage d'un mail, qui lit du contenu écrit par un tiers, ne reçoit
+   * que des outils de lecture — un mail piégé ne doit rien pouvoir écrire.
+   */
+  allowedTools?: string
+  /** Modèle : alias Claude Code (sonnet, haiku, opus) ou identifiant complet. */
+  model?: string
 }
 
 /**
@@ -86,9 +94,10 @@ export function runClaude(options: ClaudeOptions): Promise<ClaudeRun> {
     // Les outils de fichiers natifs servent au vault Obsidian : c'est du
     // markdown, il n'a besoin d'aucun MCP.
     '--allowedTools',
-    'mcp__nysa,Read,Write,Edit,Glob,Grep',
+    options.allowedTools ?? 'mcp__nysa,Read,Write,Edit,Glob,Grep',
   ]
 
+  if (options.model) args.push('--model', options.model)
   for (const dir of options.extraDirs ?? []) args.push('--add-dir', dir)
 
   if (options.resumeSessionId) args.push('--resume', options.resumeSessionId)
