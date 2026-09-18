@@ -105,12 +105,12 @@ function ItemRow({ item, color, last }: { item: VeilleItem; color: string; last:
 
 export function Veille({ brand }: { brand: VeilleBrand }) {
   const color = brandColor(brand)
-  const kind = brand === 'E-Smoker' ? 'veille_esmoker' : 'veille_aeterna'
+  const kind = brand === 'Le Mixologue' ? 'veille_mixologue' : 'veille_aeterna'
   const recit = useDigests([kind])
   const { items, loading, error } = useVeille(brand)
   const [cat, setCat] = useState<VeilleCategory | 'tous'>('tous')
   const [pays, setPays] = useState<VeilleCountry | 'tous'>('tous')
-  const parPays = brand === 'E-Smoker' // Aeterna vend partout : pas de filtre pays
+  const parPays = brand === 'Le Mixologue' // les lois vape sont par pays ; Aeterna vend partout
 
   const dernier = recit.digests[0] ?? null
   const prochain = useMemo(() => prochainLundi(), [])
@@ -184,7 +184,7 @@ export function Veille({ brand }: { brand: VeilleBrand }) {
             </div>
           )}
 
-          {/* Filtres : catégories (avec compte), puis pays pour e-Smoker */}
+          {/* Filtres : catégories (avec compte), puis pays pour le Mixologue */}
           <div className="toolbar-scroll" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <button className="nb-press" style={chip(cat === 'tous', 'var(--ink-dark)')} onClick={() => setCat('tous')}>Tout · {items.length}</button>
             {CATEGORIES.map(c => (

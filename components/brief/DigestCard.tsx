@@ -25,7 +25,7 @@ const kindMeta = (kind: string) => {
     case 'radar':   return { label: 'Radar mensuel', color: RADAR_COLOR, Icon: Radar }
     case 'review':  return { label: 'Revue hebdo', color: RADAR_COLOR, Icon: Gavel }
     // La veille du lundi porte la couleur de sa marque, pas celle d'Analyser.
-    case 'veille_esmoker': return { label: 'Veille e-Smoker', color: brandColor('E-Smoker'), Icon: Binoculars }
+    case 'veille_mixologue': return { label: 'Veille Mixologue', color: brandColor('Le Mixologue'), Icon: Binoculars }
     case 'veille_aeterna': return { label: 'Veille Aeterna', color: brandColor('Aeterna'), Icon: Binoculars }
     default:        return { label: 'Brief', color: BRIEF_COLOR, Icon: Sun }
   }

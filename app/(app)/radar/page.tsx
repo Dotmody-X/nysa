@@ -13,7 +13,7 @@ const DF: React.CSSProperties = { fontFamily: 'var(--font-display)' }
 const WHEAT = 'var(--text)'
 const RADAR_COLOR = 'var(--accent-rapports)'
 
-type Vue = 'mois' | 'esmoker' | 'aeterna'
+type Vue = 'mois' | 'mixologue' | 'aeterna'
 
 const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({
   background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '2px solid var(--ink)',
@@ -55,12 +55,12 @@ export default function RadarPage() {
 
       <div className="toolbar-scroll" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <button className="nb-press" style={chip(vue === 'mois', RADAR_COLOR)} onClick={() => setVue('mois')}>Le mois</button>
-        <button className="nb-press" style={chip(vue === 'esmoker', brandColor('E-Smoker'))} onClick={() => setVue('esmoker')}>Veille e-Smoker</button>
+        <button className="nb-press" style={chip(vue === 'mixologue', brandColor('Le Mixologue'))} onClick={() => setVue('mixologue')}>Veille Mixologue</button>
         <button className="nb-press" style={chip(vue === 'aeterna', brandColor('Aeterna'))} onClick={() => setVue('aeterna')}>Veille Aeterna</button>
       </div>
 
       {vue === 'mois' && <RadarMensuel />}
-      {vue === 'esmoker' && <Veille brand="E-Smoker" />}
+      {vue === 'mixologue' && <Veille brand="Le Mixologue" />}
       {vue === 'aeterna' && <Veille brand="Aeterna" />}
     </div>
   )
