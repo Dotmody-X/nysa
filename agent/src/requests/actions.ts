@@ -25,10 +25,6 @@ type Evenement = {
 
 export type ResultatAction = { reply: string; salon?: string }
 
-const SIGNATURE: Record<string, string> = {
-  mixologue: 'Nathan\nLe Mixologue',
-  aeterna: 'Nathan\nAeterna',
-}
 
 /**
  * « Valider le BAT » : le mail « bon pour impression » part à l'imprimeur en
@@ -62,20 +58,20 @@ export async function validerBat(db: SupabaseClient, ctx: Record<string, unknown
   const a = ev.payload.from?.trim()
   if (!a) throw new Error("Le mail n'a pas d'expéditeur.")
 
+  // La référence reste chez nous : Tompla a la sienne dans l'objet du fil.
   const prenom = prenomDe(a)
-  const fichiers = docs.map(d => d.filename).filter(Boolean)
+  const marque = ev.brand === 'aeterna' ? 'aeterna' : 'mixologue'
   const texte = [
     `Bonjour${prenom ? ` ${prenom}` : ''},`,
     '',
-    `BAT validé pour la commande ${commande.reference} : bon pour impression.`,
-    fichiers.length ? `Fichier${fichiers.length > 1 ? 's' : ''} : ${fichiers.join(', ')}` : null,
+    'BAT validé : bon pour impression.',
     '',
     'Merci et bonne journée,',
-    SIGNATURE[ev.brand ?? 'mixologue'] ?? 'Nathan',
-  ].filter(l => l !== null).join('\n')
-  const objet = ev.title ? (/^re\s*:/i.test(ev.title) ? ev.title : `Re: ${ev.title}`) : `BAT validé — ${commande.reference}`
+    'Nathan',
+  ].join('\n')
+  const objet = ev.title ? (/^re\s*:/i.test(ev.title) ? ev.title : `Re: ${ev.title}`) : 'BAT validé'
 
-  const info = await envoyer(compte, { a, objet, texte, enReponseA: ev.external_id })
+  const info = await envoyer(compte, { a, objet, texte, enReponseA: ev.external_id, signature: marque })
   const maintenant = new Date().toISOString()
 
   if (docs.length > 0) await db.from('etiquette_documents').update({ valide_le: maintenant }).in('id', docs.map(d => d.id))
