@@ -46,6 +46,28 @@ function ecrireEtat(etat: Etat) {
 
 const etat = lireEtat()
 
+/**
+ * imapflow range le vrai motif dans des champs annexes : « Command failed »
+ * seul ne dit pas si c'est le mot de passe ou le serveur.
+ */
+function detailImap(e: unknown): string {
+  if (!(e instanceof Error)) return String(e)
+  const x = e as Error & { responseText?: string; serverResponseCode?: string; authenticationFailed?: boolean; code?: string }
+  if (x.authenticationFailed) return `identifiants refusés par le serveur (${x.responseText ?? x.message}) — vérifie l'adresse, le mot de passe et l'hôte IMAP`
+  return [x.message, x.code, x.serverResponseCode, x.responseText].filter(Boolean).join(' · ')
+}
+
+/**
+ * PostgREST refuse un JSON qui contient un caractère nul ou un demi-surrogat
+ * isolé — ça arrive dans des mails mal encodés. On nettoie tout ce qui part.
+ */
+function propre(texte: string): string {
+  const t = texte as string & { toWellFormed?: () => string }
+  const bienForme = typeof t.toWellFormed === 'function' ? t.toWellFormed() : texte
+  // eslint-disable-next-line no-control-regex
+  return bienForme.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g, '')
+}
+
 function adresseTexte(a: { text?: string } | { text?: string }[] | undefined): string {
   if (!a) return ''
   return Array.isArray(a) ? a.map(x => x.text ?? '').filter(Boolean).join(', ') : (a.text ?? '')
@@ -57,7 +79,13 @@ class Boite {
   private aRefaire = false
   private delaiReconnexion = 5_000
 
-  constructor(private readonly marque: MarqueMail, private readonly adresse: string, private readonly motDePasse: string) {}
+  constructor(
+    private readonly marque: MarqueMail,
+    private readonly adresse: string,
+    private readonly motDePasse: string,
+    /** MX Plan = ssl0.ovh.net ; Email Pro = pro*.mail.ovh.net ; Exchange = ex*.mail.ovh.net. */
+    private readonly hote: string,
+  ) {}
 
   private get cle() { return this.marque }
 
@@ -67,7 +95,7 @@ class Boite {
         await this.tenir()
         this.delaiReconnexion = 5_000
       } catch (e) {
-        log.error(`[${this.marque}] connexion perdue : ${e instanceof Error ? e.message : String(e)}`)
+        log.error(`[${this.marque}] connexion perdue : ${detailImap(e)}`)
       }
       log.info(`[${this.marque}] reconnexion dans ${Math.round(this.delaiReconnexion / 1000)} s`)
       await new Promise(r => setTimeout(r, this.delaiReconnexion))
@@ -78,7 +106,7 @@ class Boite {
   /** Une connexion, du début à la fin : résout quand elle se ferme. */
   private async tenir() {
     const client = new ImapFlow({
-      host: config.MAIL_HOST,
+      host: this.hote,
       port: config.MAIL_PORT,
       secure: true,
       auth: { user: this.adresse, pass: this.motDePasse },
@@ -96,7 +124,7 @@ class Boite {
 
     await client.connect()
     const boite = await client.mailboxOpen('INBOX')
-    log.info(`[${this.marque}] connecté : ${this.adresse}, ${boite.exists} messages, UIDVALIDITY ${boite.uidValidity}`)
+    log.info(`[${this.marque}] connecté à ${this.hote} : ${this.adresse}, ${boite.exists} messages, UIDVALIDITY ${boite.uidValidity}`)
 
     const validity = Number(boite.uidValidity)
     const memo = etat[this.cle]
@@ -188,13 +216,13 @@ class Boite {
     const dateEnveloppe = envelope?.date ? new Date(envelope.date) : null
     return {
       uid,
-      subject: parsed?.subject ?? envelope?.subject ?? '',
-      from: adresseTexte(parsed?.from),
-      to: adresseTexte(parsed?.to),
+      subject: propre(parsed?.subject ?? envelope?.subject ?? ''),
+      from: propre(adresseTexte(parsed?.from)),
+      to: propre(adresseTexte(parsed?.to)),
       date: parsed?.date ?? (dateEnveloppe && !Number.isNaN(dateEnveloppe.getTime()) ? dateEnveloppe : null),
       messageId: parsed?.messageId ?? envelope?.messageId ?? null,
-      text: parsed?.text ?? '',
-      html: typeof parsed?.html === 'string' ? parsed.html : '',
+      text: propre(parsed?.text ?? ''),
+      html: propre(typeof parsed?.html === 'string' ? parsed.html : ''),
       attachments: parsed?.attachments.length ?? 0,
     }
   }
@@ -212,7 +240,8 @@ async function main() {
       console.error(`MAIL_PASS_${marque.toUpperCase()} manquant dans agent/.env pour ${adresse}`)
       process.exit(1)
     }
-    return new Boite(marque, adresse, motDePasse)
+    const hote = process.env[`MAIL_HOST_${marque.toUpperCase()}`] || config.MAIL_HOST
+    return new Boite(marque, adresse, motDePasse, hote)
   })
 
   await Promise.all(boites.map(b => b.demarrer()))
