@@ -14,7 +14,7 @@ import { useTasks } from '@/hooks/useTasks'
 import { useWakeLock } from '@/hooks/useWakeLock'
 import { useClaudeUsage } from '@/hooks/useClaudeUsage'
 import { useInbox, type InboxItem } from '@/hooks/useInbox'
-import { salonDe, carteMail, contexteMail, QUESTION_MAIL_DISCORD, QUESTION_BROUILLON } from '@/lib/poste/actions'
+import { salonDe, carteMail, contexteMail, QUESTION_MAIL_DISCORD, QUESTION_BROUILLON, QUESTION_BAT_REFUSE } from '@/lib/poste/actions'
 import { armerSon, jouerSon } from '@/lib/poste/son'
 import { DF, WHEAT } from '@/components/poste/ui'
 
@@ -87,6 +87,16 @@ export default function PostePage() {
     await demandes.ask(QUESTION_MAIL_DISCORD, { ...contexteMail(item), deliver: 'discord', channel: salonDe(item), annonce: carteMail(item) })
   }, [demandes])
 
+  // « Valider le BAT » : pas de Claude — le Pi envoie « bon pour impression », date le BAT, passe la commande en production.
+  const validerBat = useCallback(async (item: InboxItem) => {
+    await demandes.ask(`Valider le BAT — ${item.etiquettes?.reference ?? ''}`, { action: 'valider_bat', event_id: item.id, reference: item.etiquettes?.reference })
+  }, [demandes])
+
+  // « Refuser » : le BAT part dans Discord, Nathan dit quoi corriger, Claude écrit à l'imprimeur.
+  const refuserBat = useCallback(async (item: InboxItem) => {
+    await demandes.ask(QUESTION_BAT_REFUSE(item.etiquettes?.reference ?? '?'), { ...contexteMail(item), deliver: 'discord', channel: salonDe(item), annonce: carteMail(item) })
+  }, [demandes])
+
   // « Brouillon » : même chemin, Claude rédige la réponse dans le salon.
   const brouillon = useCallback(async (item: InboxItem) => {
     await demandes.ask(QUESTION_BROUILLON, { ...contexteMail(item), deliver: 'discord', channel: salonDe(item), annonce: carteMail(item) })
@@ -99,7 +109,9 @@ export default function PostePage() {
           onTraite={() => { void marquerTraite([enFenetre.id]); fermerFenetre() }}
           onTache={() => { void versTache(enFenetre); fermerFenetre() }}
           onDiscord={() => { void versDiscord(enFenetre); fermerFenetre() }}
-          onBrouillon={() => { void brouillon(enFenetre); fermerFenetre() }} />
+          onBrouillon={() => { void brouillon(enFenetre); fermerFenetre() }}
+          onValiderBat={() => { void validerBat(enFenetre); fermerFenetre() }}
+          onRefuserBat={() => { void refuserBat(enFenetre); fermerFenetre() }} />
       )}
 
       {/* En-tête : mince, il ne sert qu'à situer */}
@@ -123,7 +135,7 @@ export default function PostePage() {
           <Activite />
           <Claude demandes={demandes} />
         </div>
-        <Courrier inbox={inbox} avecTraites={avecTraites} setAvecTraites={setAvecTraites} onTache={versTache} onDiscord={versDiscord} onBrouillon={brouillon} />
+        <Courrier inbox={inbox} avecTraites={avecTraites} setAvecTraites={setAvecTraites} onTache={versTache} onDiscord={versDiscord} onBrouillon={brouillon} onValiderBat={validerBat} onRefuserBat={refuserBat} />
         <div style={{ display: 'grid', gridTemplateRows: 'minmax(0, 1fr) auto', gap: 12, minHeight: 0 }}>
           <Journee demandes={demandes} />
           <Actions demandes={demandes} />

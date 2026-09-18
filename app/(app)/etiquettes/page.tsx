@@ -165,6 +165,12 @@ function LigneDocument({ d, lien, onEnregistrer, onSupprimer, onJoindre, onDetac
         <input value={form.numero} placeholder="n°" onBlur={enregistrer}
                onChange={ev => setForm({ ...form, numero: ev.target.value })}
                style={{ ...petit, width: 130 }} />
+        {d.categorie === 'bat' && d.valide_le && (
+          <span title={`Bon pour impression envoyé le ${new Date(d.valide_le).toLocaleString('fr-FR')}`}
+                style={{ ...DF, display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#16a34a', marginTop: 2 }}>
+            ✓ validé le {new Date(d.valide_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+          </span>
+        )}
       </td>
       <td style={cellule}>
         <input type="date" value={form.date_document} onBlur={enregistrer}

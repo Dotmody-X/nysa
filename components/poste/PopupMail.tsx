@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Send, Package, Calendar, Check, CheckSquare, Sparkles, PenLine, X, Loader2, Link2 } from '@/components/ui/icons'
 import { createClient } from '@/lib/supabase/client'
 import type { InboxItem } from '@/hooks/useInbox'
 import { brandColor, toneColor } from '@/lib/digestStyle'
 import { DF, WHEAT, bouton, boutonDiscret, depuis, BRAND_LABEL, BRAND_NAME } from './ui'
+import { estBat } from '@/lib/poste/actions'
 
 const TYPE_ICON: Record<string, typeof Send> = { mail: Send, order: Package, appointment: Calendar }
 const CATEGORIE_LABEL: Record<string, string> = {
@@ -19,7 +20,7 @@ const CATEGORIE_LABEL: Record<string, string> = {
  * après, la fenêtre se met à jour seule). Les mêmes gestes que dans la
  * liste, et rien ne se ferme tout seul : c'est Nathan qui décide.
  */
-export function PopupMail({ item, reste, onFermer, onTraite, onTache, onDiscord, onBrouillon }: {
+export function PopupMail({ item, reste, onFermer, onTraite, onTache, onDiscord, onBrouillon, onValiderBat, onRefuserBat }: {
   item: InboxItem
   /** Combien d'autres attendent derrière celui-ci. */
   reste: number
@@ -28,6 +29,8 @@ export function PopupMail({ item, reste, onFermer, onTraite, onTache, onDiscord,
   onTache: () => void
   onDiscord: () => void
   onBrouillon: () => void
+  onValiderBat: () => void
+  onRefuserBat: () => void
 }) {
   const Icon = TYPE_ICON[item.type] ?? Send
   const couleur = item.brand ? brandColor(BRAND_NAME[item.brand]) : 'var(--azul)'
@@ -36,6 +39,17 @@ export function PopupMail({ item, reste, onFermer, onTraite, onTache, onDiscord,
   const expediteur = (item.expediteur ?? '').replace(/\s*<[^>]*>\s*$/, '') || item.expediteur || '—'
   const adresse = item.expediteur?.match(/<([^>]+)>/)?.[1]
   const fichiers = item.fichiers ?? []
+  const bat = estBat(item)
+  const pdf = fichiers.find(f => f.type === 'application/pdf') ?? null
+  const [apercu, setApercu] = useState<string | null>(null)
+
+  // Un BAT se regarde avant de se valider : le PDF s'affiche dans la fenêtre.
+  useEffect(() => {
+    if (!bat || !pdf) { setApercu(null); return }
+    let vivant = true
+    createClient().storage.from('courrier').createSignedUrl(pdf.path, 600).then(({ data }) => { if (vivant && data?.signedUrl) setApercu(data.signedUrl) })
+    return () => { vivant = false }
+  }, [bat, pdf])
 
   // Le bucket est privé : une URL signée, valable dix minutes, ouverte dans un nouvel onglet.
   const ouvrir = useCallback(async (path: string) => {
@@ -73,6 +87,22 @@ export function PopupMail({ item, reste, onFermer, onTraite, onTache, onDiscord,
               <span>{item.boite}{item.pieces > 0 ? ` · ${item.pieces} pièce${item.pieces > 1 ? 's' : ''} jointe${item.pieces > 1 ? 's' : ''}` : ''}</span>
             </>}
           </div>
+
+          {bat && (
+            <div style={{ padding: '10px 14px', border: '2px solid var(--ink)', borderLeft: `8px solid ${toneColor('success')}`, borderRadius: 'var(--radius-sm)', background: 'var(--bg)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ ...DF, fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: toneColor('success') }}>Bon à tirer</span>
+                {item.etiquettes?.reference && <span style={{ ...DF, fontSize: 12, fontWeight: 800, color: WHEAT }}>{item.etiquettes.reference}</span>}
+                {!item.etiquettes?.reference && <span style={{ fontSize: 11.5, color: toneColor('warning'), fontWeight: 700 }}>pas encore rattaché à une commande</span>}
+              </div>
+              {apercu ? (
+                <iframe src={apercu} title={pdf?.name ?? 'BAT'} style={{ width: '100%', height: '38vh', border: '2px solid var(--ink)', borderRadius: 'var(--radius-sm)', background: '#fff' }} />
+              ) : pdf ? (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}><Loader2 size={12} className="animate-spin" /> Le BAT se charge…</p>
+              ) : null}
+              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Valider envoie « bon pour impression » à l’expéditeur, date le BAT et passe la commande en production. Refuser ouvre Discord pour dire quoi corriger.</p>
+            </div>
+          )}
 
           {/* La lecture de Claude, ou l'attente */}
           <div style={{ padding: '12px 14px', border: '2px solid var(--ink)', borderLeft: '8px solid var(--azul)', borderRadius: 'var(--radius-sm)', background: 'var(--bg)' }}>
@@ -116,6 +146,13 @@ export function PopupMail({ item, reste, onFermer, onTraite, onTache, onDiscord,
 
         {/* Les gestes */}
         <div style={{ padding: '14px 22px 18px', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', borderTop: '2px solid var(--ink)', marginTop: 14 }}>
+          {bat && item.etiquettes?.reference && (
+            <>
+              <button className="nb-press" onClick={onValiderBat} style={bouton(toneColor('success'), 'var(--ink-light)', { minHeight: 46, fontSize: 13 })}><Check size={15} /> Valider le BAT</button>
+              <button className="nb-press" onClick={onRefuserBat} style={bouton('var(--accent-brand)', 'var(--ink-light)', { minHeight: 46, fontSize: 13 })}><X size={15} /> Refuser</button>
+              <span style={{ width: 8 }} />
+            </>
+          )}
           <button className="nb-press" onClick={onTraite} style={bouton('var(--bg-input)', WHEAT)}><Check size={14} /> Traité</button>
           <button className="nb-press" onClick={onTache} style={bouton('var(--bg-input)', WHEAT)}><CheckSquare size={14} /> Tâche</button>
           <button className="nb-press" onClick={onDiscord} style={bouton('var(--azul)')}><Sparkles size={14} /> Discord</button>
