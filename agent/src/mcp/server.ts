@@ -35,7 +35,7 @@ async function main() {
   const ctx: AgentContext = {
     userId,
     db: userClient(accessToken),
-    surface: 'discord',
+    surface: process.env.NYSA_SURFACE === 'poste' ? 'poste' : 'discord',
     channelName,
     brand: brandFromChannel(channelName),
     timezone: config.AGENT_TIMEZONE,

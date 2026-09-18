@@ -9,7 +9,7 @@ import type { Brand } from './brands.js'
 export type AgentContext = {
   userId: string
   db: SupabaseClient
-  surface: 'discord'
+  surface: 'discord' | 'poste'
   channelName: string | null
   brand: Brand | null
   timezone: string
