@@ -26,12 +26,17 @@ const config = mailConfig()
 const SERVICE = 'nysa-mail'
 const PROPRIETAIRE = config.AGENT_ALLOWED_DISCORD_IDS[0]!
 const FICHIER_ETAT = config.MAIL_STATE_FILE || join(homedir(), '.nysa-mail.json')
-/** Taille maximale lue par message : au-delà, ce sont des pièces jointes qu'on ne stocke pas. */
-const SOURCE_MAX = 1_000_000
+/** Taille maximale lue par message — les pièces jointes comptent, on les garde désormais. */
+const SOURCE_MAX = 15_000_000
+/** Ce qu'on range dans le bucket `courrier` : documents et images, pas les signatures de 2 ko ni les .exe. */
+const TYPES_GARDES = /^(application\/pdf|image\/(png|jpeg|webp|gif|heic)|application\/vnd\.openxmlformats-officedocument\.(spreadsheetml\.sheet|wordprocessingml\.document)|application\/(vnd\.ms-excel|msword)|text\/(csv|plain))$/
+const PIECE_MIN = 8_000
+const PIECES_MAX = 6
 /** Urgence maximale notifiée (1 = urgent … 3 = ordinaire). 3 = tout. */
 const PUSH_URGENCE_MAX = Number(process.env.PUSH_MAX_URGENCY ?? 3)
 
 type Etat = Record<string, { lastUid: number; uidValidity: number }>
+type PieceJointe = { nom: string; type: string; taille: number; contenu: Buffer }
 
 function lireEtat(): Etat {
   try {
@@ -210,6 +215,7 @@ class Boite {
           if (data !== null) {
             deposes++
             log.info(`[${this.nom}] ${ev.p_type} ${ev.p_urgency === 1 ? '!' : ''}« ${ev.p_title.slice(0, 70)} »`)
+            await this.deposerPieces(db, session.userId, data as number, brut.pieces)
             // Pas de notification pendant un rattrapage : trente-cinq jours
             // de courrier d'un coup ne sont pas trente-cinq jours d'alertes.
             if (!rattrapage && ev.p_urgency <= PUSH_URGENCE_MAX) {
@@ -233,8 +239,12 @@ class Boite {
     if (lus) log.info(`[${this.nom}] ${lus} message(s) lu(s), ${deposes} déposé(s)`)
   }
 
-  private async parser(uid: number, envelope: { subject?: string; date?: Date | string; messageId?: string } | undefined, source: Buffer | undefined): Promise<MailBrut> {
+  private async parser(uid: number, envelope: { subject?: string; date?: Date | string; messageId?: string } | undefined, source: Buffer | undefined): Promise<MailBrut & { pieces: PieceJointe[] }> {
     const parsed = source ? await simpleParser(source) : null
+    const pieces: PieceJointe[] = (parsed?.attachments ?? [])
+      .filter(a => a.content && a.size >= PIECE_MIN && TYPES_GARDES.test(a.contentType) && a.contentDisposition !== 'inline')
+      .slice(0, PIECES_MAX)
+      .map(a => ({ nom: (a.filename || 'piece').replace(/[^\w.\-]/g, '_'), type: a.contentType, taille: a.size, contenu: a.content }))
     const dateEnveloppe = envelope?.date ? new Date(envelope.date) : null
     return {
       uid,
@@ -246,7 +256,28 @@ class Boite {
       text: propre(parsed?.text ?? ''),
       html: propre(typeof parsed?.html === 'string' ? parsed.html : ''),
       attachments: parsed?.attachments.length ?? 0,
+      pieces,
     }
+  }
+
+  /**
+   * Les pièces jointes vont dans le bucket `courrier`, sous
+   * {user}/{event}/{fichier}, et leur liste dans payload.files. Un échec ne
+   * bloque pas le mail : il est déjà en base, sans ses fichiers.
+   */
+  private async deposerPieces(db: ReturnType<typeof userClient>, userId: string, eventId: number, pieces: PieceJointe[]) {
+    if (pieces.length === 0) return
+    const fichiers: { name: string; path: string; size: number; type: string }[] = []
+    for (const pj of pieces) {
+      const chemin = `${userId}/${eventId}/${pj.nom}`
+      const { error } = await db.storage.from('courrier').upload(chemin, pj.contenu, { contentType: pj.type, upsert: true })
+      if (error) { log.warn(`[${this.nom}] pièce ${pj.nom} non déposée : ${error.message}`); continue }
+      fichiers.push({ name: pj.nom, path: chemin, size: pj.taille, type: pj.type })
+    }
+    if (fichiers.length === 0) return
+    const { error } = await db.rpc('merge_work_event_payload', { p_id: eventId, p_patch: { files: fichiers } })
+    if (error) log.warn(`[${this.nom}] liste des pièces non enregistrée : ${error.message}`)
+    else log.info(`[${this.nom}] ${fichiers.length} pièce(s) jointe(s) rangée(s) pour #${eventId}`)
   }
 }
 

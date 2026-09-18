@@ -20,6 +20,10 @@ export interface InboxItem {
   pieces: number
   /** La fiche de triage de Claude (payload.ai), quand il est passé. */
   ai: InboxTriage | null
+  /** Le mail entier (jusqu'à 3 000 caractères), quand nysa-mail l'a gardé. */
+  texte: string | null
+  /** Les pièces jointes rangées dans le bucket `courrier`. */
+  fichiers: { name: string; path: string; size: number; type: string }[] | null
   /** Présent seulement quand on affiche aussi les traités. */
   processed?: boolean
 }

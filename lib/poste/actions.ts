@@ -59,6 +59,7 @@ export function carteMail(item: InboxItem): string {
     `**Boîte :** ${item.boite ?? '?'} · reçu le ${new Date(item.occurred_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` +
       (item.pieces > 0 ? ` · ${item.pieces} pièce${item.pieces > 1 ? 's' : ''} jointe${item.pieces > 1 ? 's' : ''}` : ''),
   ]
+  if (item.fichiers?.length) lignes.push(`📎 ${item.fichiers.map(f => f.name).join(', ')}`)
   if (item.extrait) lignes.push(`> ${item.extrait.slice(0, 500).replace(/\n/g, ' ')}`)
   if (ai?.resume) lignes.push(`🧭 ${ai.resume}${ai.action && ai.action.toLowerCase() !== 'rien' ? ` — *${ai.action}*` : ''}`)
   return lignes.join('\n')
@@ -72,7 +73,8 @@ export function contexteMail(item: InboxItem) {
     from: item.expediteur ?? undefined,
     subject: item.title ?? undefined,
     mailbox: item.boite ?? undefined,
-    extrait: item.extrait ?? undefined,
+    extrait: item.texte?.slice(0, 1500) ?? item.extrait ?? undefined,
+    fichiers: item.fichiers?.map(f => f.name).join(', ') || undefined,
     recu_le: item.occurred_at,
     ...(item.ai?.resume ? { triage: item.ai.resume, action_proposee: item.ai.action } : {}),
   }

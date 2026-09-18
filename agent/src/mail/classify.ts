@@ -57,13 +57,24 @@ function dateLocale(y: number, mo: number, d: number, h: number, mi: number, zon
   return new Date(naive - (vuDansLaZone - naive)).toISOString()
 }
 
-/** Un extrait lisible pour la liste du poste : le texte, sinon le HTML dépouillé. */
+/** Le texte lisible du mail : le texte, sinon le HTML dépouillé. */
+function texteLisible(m: MailBrut): string {
+  return (m.text || m.html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' '))
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
+}
+
+/** Couper par points de code, pas par unités UTF-16 : un emoji tranché en
+ *  deux laisse un demi-surrogat, et PostgREST refuse alors tout le JSON. */
+const couper = (texte: string, n: number) => Array.from(texte).slice(0, n).join('')
+
+/** Un extrait pour la liste du poste. */
 function extrait(m: MailBrut): string {
-  const texte = (m.text || m.html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' '))
-    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
-  // Couper par points de code, pas par unités UTF-16 : un emoji tranché en
-  // deux laisse un demi-surrogat, et PostgREST refuse alors tout le JSON.
-  return Array.from(texte).slice(0, 280).join('')
+  return couper(texteLisible(m).replace(/\s+/g, ' '), 280)
+}
+
+/** Le mail entier pour la fenêtre du poste — plafonné, un mail n'est pas un livre. */
+function texteComplet(m: MailBrut): string {
+  return couper(texteLisible(m), 3000)
 }
 
 /** null = à ignorer (plus rien aujourd'hui ; conservé pour la signature). */
@@ -131,7 +142,7 @@ export function classer(m: MailBrut, marque: MarqueMail, zone = 'Europe/Brussels
     p_source: 'imap-ovh',
     p_title: objet || '(sans objet)',
     // `from` seul suffisait aux briefs ; le poste veut aussi lire de quoi il s'agit.
-    p_payload: { from: m.from, to: m.to, snippet: extrait(m), attachments: m.attachments, ...(boite ? { mailbox: boite } : {}) },
+    p_payload: { from: m.from, to: m.to, snippet: extrait(m), text: texteComplet(m), attachments: m.attachments, ...(boite ? { mailbox: boite } : {}) },
     p_urgency: urgent ? 1 : 3,
     p_external_id: String(mid).slice(0, 200),
   }

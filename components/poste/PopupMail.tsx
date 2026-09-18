@@ -1,6 +1,8 @@
 'use client'
 
-import { Send, Package, Calendar, Check, CheckSquare, Sparkles, PenLine, X, Loader2 } from '@/components/ui/icons'
+import { useCallback } from 'react'
+import { Send, Package, Calendar, Check, CheckSquare, Sparkles, PenLine, X, Loader2, Link2 } from '@/components/ui/icons'
+import { createClient } from '@/lib/supabase/client'
 import type { InboxItem } from '@/hooks/useInbox'
 import { brandColor, toneColor } from '@/lib/digestStyle'
 import { DF, WHEAT, bouton, boutonDiscret, depuis, BRAND_LABEL, BRAND_NAME } from './ui'
@@ -33,6 +35,13 @@ export function PopupMail({ item, reste, onFermer, onTraite, onTache, onDiscord,
   const urgent = item.urgency === 1
   const expediteur = (item.expediteur ?? '').replace(/\s*<[^>]*>\s*$/, '') || item.expediteur || '—'
   const adresse = item.expediteur?.match(/<([^>]+)>/)?.[1]
+  const fichiers = item.fichiers ?? []
+
+  // Le bucket est privé : une URL signée, valable dix minutes, ouverte dans un nouvel onglet.
+  const ouvrir = useCallback(async (path: string) => {
+    const { data } = await createClient().storage.from('courrier').createSignedUrl(path, 600)
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noopener')
+  }, [])
 
   return (
     <div onClick={onFermer} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -86,10 +95,21 @@ export function PopupMail({ item, reste, onFermer, onTraite, onTache, onDiscord,
             )}
           </div>
 
-          {item.extrait && (
+          {fichiers.length > 0 && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {fichiers.map(f => (
+                <button key={f.path} className="nb-press" onClick={() => ouvrir(f.path)} title={`${Math.round(f.size / 1024)} ko`}
+                  style={boutonDiscret({ textTransform: 'none', letterSpacing: 0, color: WHEAT })}>
+                  <Link2 size={11} /> {f.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {(item.texte || item.extrait) && (
             <div>
-              <span style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Extrait</span>
-              <p style={{ fontSize: 13.5, color: WHEAT, lineHeight: 1.55, opacity: 0.9, marginTop: 4, whiteSpace: 'pre-wrap' }}>{item.extrait}</p>
+              <span style={{ ...DF, fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>{item.texte ? 'Le message' : 'Extrait'}</span>
+              <p style={{ fontSize: 13.5, color: WHEAT, lineHeight: 1.55, opacity: 0.9, marginTop: 4, whiteSpace: 'pre-wrap' }}>{item.texte || item.extrait}</p>
             </div>
           )}
         </div>

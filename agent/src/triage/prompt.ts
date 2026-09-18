@@ -25,12 +25,19 @@ export function promptTriage(timezone: string): string {
     '  "categorie": "commande" | "fournisseur" | "client" | "facture" | "admin" | "rdv" | "pub" | "spam" | "autre",',
     '  "urgence": 1 | 2 | 3,',
     '  "action": "ce que tu proposes de faire, en une phrase — ou \\"rien\\"",',
-    '  "lien": "référence existante à laquelle ça se rattache (commande, tâche), ou null"',
+    '  "lien": "référence existante à laquelle ça se rattache (commande, tâche), ou null",',
+    '  "etiquettes": "la référence ET-… ou CMD-… de la commande d\'étiquettes concernée (vérifiée avec commandes_etiquettes), ou null",',
+    '  "document": "bl" | "bat" | "devis" | "facture" | null — la nature des pièces jointes si elles concernent une commande d\'étiquettes',
     '}',
     '',
     'Urgence : 1 = à traiter aujourd’hui (client qui attend, impayé, litige, BAT à valider, livraison',
     'bloquée) ; 2 = cette semaine ; 3 = quand il y aura le temps, ou jamais (pub, notification automatique).',
     'Une newsletter, une promotion, un mail automatique sans action = "pub" ou "spam", urgence 3.',
+    '',
+    "Étiquettes : les imprimeurs (Tompla, G9…) envoient BAT, bons de livraison, devis et factures pour des commandes",
+    "référencées ET-jj-mm-aaaa ou CMD-nnnnn. Si le mail en est un, retrouve la commande avec `commandes_etiquettes`",
+    '(la référence est souvent dans l\'objet ou le nom du fichier) et remplis "etiquettes" et "document" : les pièces',
+    "jointes y seront rattachées automatiquement. Sinon, laisse les deux à null.",
   ].join('\n')
 }
 
@@ -41,7 +48,12 @@ export type Fiche = {
   urgence: 1 | 2 | 3
   action: string
   lien: string | null
+  /** Commande d'étiquettes concernée, et nature des pièces : les fichiers y sont rattachés sans Claude. */
+  etiquettes: string | null
+  document: 'bl' | 'bat' | 'devis' | 'facture' | null
 }
+
+const DOCUMENTS = new Set(['bl', 'bat', 'devis', 'facture'])
 
 const CATEGORIES = new Set(['commande', 'fournisseur', 'client', 'facture', 'admin', 'rdv', 'pub', 'spam', 'autre'])
 
@@ -59,5 +71,7 @@ export function lireFiche(texte: string): Fiche | null {
   const urgence = (u === 1 || u === 2 || u === 3 ? u : 3) as Fiche['urgence']
   const action = typeof brut.action === 'string' ? brut.action.trim() : ''
   const lien = typeof brut.lien === 'string' && brut.lien.trim() ? brut.lien.trim() : null
-  return { resume: resume.slice(0, 300), categorie, urgence, action: action.slice(0, 300), lien }
+  const etiquettes = typeof brut.etiquettes === 'string' && /^(ET|CMD)-/i.test(brut.etiquettes.trim()) ? brut.etiquettes.trim().toUpperCase() : null
+  const document = typeof brut.document === 'string' && DOCUMENTS.has(brut.document.toLowerCase()) ? brut.document.toLowerCase() as Fiche['document'] : null
+  return { resume: resume.slice(0, 300), categorie, urgence, action: action.slice(0, 300), lien, etiquettes, document }
 }
