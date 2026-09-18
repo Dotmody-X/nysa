@@ -6,6 +6,7 @@ import { runNysaAgent } from '../agent/run.js'
 import { BRANDS, type Brand } from '../brands.js'
 import { envoyerPush } from '../push/envoyer.js'
 import { log } from '../log.js'
+import { alerter } from '../alertes.js'
 
 type Config = ReturnType<typeof bridgeConfig>
 
@@ -220,6 +221,7 @@ async function repondre(config: Config, session: Session, db: ReturnType<typeof 
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     log.error(`Demande #${d.id} : Claude Code a échoué`, message)
+    if (/session Claude Code a expiré|oauth|authenticate/i.test(message)) void alerter(`🔴 ${message.split('\n')[0]}\n${message.split('\n\n')[1] ?? ''}`, 'claude-session')
     if (salonId && livreur) await livreur.envoyer(salon!, `Erreur : ${message}`).catch(() => {})
     await db.rpc('agent_request_finish', { p_id: d.id, p_reply: null, p_error: message, p_session_id: null })
   }

@@ -10,6 +10,7 @@ import { classer, type MailBrut, type MarqueMail } from './classify.js'
 import { comptesMail } from './comptes.js'
 import { envoyerPush, pushActif } from '../push/envoyer.js'
 import { log } from '../log.js'
+import { alerter } from '../alertes.js'
 
 /**
  * nysa-mail : les boîtes OVH en écoute permanente (IMAP IDLE — c'est le
@@ -110,7 +111,10 @@ class Boite {
         await this.tenir()
         this.delaiReconnexion = 5_000
       } catch (e) {
-        log.error(`[${this.nom}] connexion perdue : ${detailImap(e)}`)
+        const detail = detailImap(e)
+        log.error(`[${this.nom}] connexion perdue : ${detail}`)
+        // Un mot de passe changé côté OVH ne se voit que dans le journal : on le dit dans Discord, une fois par six heures.
+        if (/identifiants refusés/.test(detail)) void alerter(`🟠 nysa-mail : ${this.adresse} — ${detail}`, `imap-${this.adresse}`, 6 * 3_600_000)
       }
       log.info(`[${this.nom}] reconnexion dans ${Math.round(this.delaiReconnexion / 1000)} s`)
       await new Promise(r => setTimeout(r, this.delaiReconnexion))
