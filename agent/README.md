@@ -176,6 +176,13 @@ forcer). En réponse à un mail reçu (`en_reponse_a`), le destinataire, l'objet
 l'inbox. Claude ne l'appelle que sur un « envoie » explicite de Nathan ; le triage
 n'y a pas accès.
 
+### Signature
+
+Déposer `agent/signatures/mixologue.png` et `agent/signatures/aeterna.png` sur le
+Pi (dossier ignoré par git). Quand le fichier existe, tout mail envoyé — par
+Claude ou par une action du poste — part en HTML avec l'image sous le texte ;
+sinon en texte simple, signé « Nathan ».
+
 ## Les notifications push
 
 Le Pi envoie aussi les notifications Web Push : `nysa-mail` à chaque mail déposé

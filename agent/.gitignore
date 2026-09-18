@@ -1,3 +1,5 @@
 node_modules/
 dist/
 .env
+# Signatures graphiques des marques : posées sur le Pi, jamais dans le dépôt.
+signatures/
