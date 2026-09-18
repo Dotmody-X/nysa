@@ -11,7 +11,9 @@ import { createClient } from '@/lib/supabase/client'
  * `onChange` doit être stable (useCallback), sinon l'abonnement se refait à
  * chaque rendu.
  */
-export function useRealtimeTable(table: string, onChange: () => void, schema = 'public') {
+export type EtatRealtime = 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR'
+
+export function useRealtimeTable(table: string, onChange: () => void, schema = 'public', onStatus?: (etat: EtatRealtime) => void) {
   // Un nom de canal par instance : deux hooks sur la même table dans la même
   // page se partageraient sinon le même canal, et le premier démonté
   // couperait l'autre.
@@ -21,7 +23,7 @@ export function useRealtimeTable(table: string, onChange: () => void, schema = '
     const channel = supabase
       .channel(`rt:${schema}.${table}:${suffixe.current}`)
       .on('postgres_changes', { event: '*', schema, table }, () => onChange())
-      .subscribe()
+      .subscribe(status => onStatus?.(status as EtatRealtime))
     // L'iPad met Safari en veille : au réveil, la socket peut avoir raté des
     // événements. On recharge quand la page redevient visible ou que le
     // réseau revient — c'est ce qui rend le poste fiable toute la journée.
@@ -33,5 +35,5 @@ export function useRealtimeTable(table: string, onChange: () => void, schema = '
       window.removeEventListener('online', reveil)
       supabase.removeChannel(channel)
     }
-  }, [table, schema, onChange])
+  }, [table, schema, onChange, onStatus])
 }
