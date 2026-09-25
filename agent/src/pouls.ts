@@ -26,20 +26,38 @@ async function etatService(nom: string): Promise<string> {
   }
 }
 
-/** Le jeton OAuth du compte Max, lu dans le HOME du Pi : seule sa date d'expiration nous intéresse. */
-async function sessionClaude(): Promise<string> {
+/**
+ * L'état de la session Claude Code (compte Max), lu dans le HOME du Pi.
+ *
+ * Trois cas d'échec, appris le 25 septembre 2026 : le jeton d'accès expire
+ * (normal, il se rafraîchit), le jeton de rafraîchissement expire (il faut se
+ * reconnecter), et — ce qui nous a échappé — Claude Code VIDE les deux jetons
+ * quand le rafraîchissement échoue. `expiresAt` disparaît alors, et lire ce
+ * seul champ faisait conclure « état inconnu » au lieu de « expirée ».
+ */
+async function sessionClaude(): Promise<{ texte: string; alerte: boolean }> {
+  const chemin = join(homedir(), '.claude', '.credentials.json')
+  let oauth: { accessToken?: string; refreshToken?: string; expiresAt?: number; refreshTokenExpiresAt?: number }
   try {
-    const brut = JSON.parse(await readFile(join(homedir(), '.claude', '.credentials.json'), 'utf8')) as { claudeAiOauth?: { expiresAt?: number } }
-    const exp = brut.claudeAiOauth?.expiresAt
-    if (!exp) return 'session Claude : état inconnu'
-    const restant = exp - Date.now()
-    const jours = Math.floor(restant / 86_400_000)
-    if (restant < 0) return '🔴 session Claude EXPIRÉE — `claude auth login --claudeai` sur le Pi puis `sudo systemctl restart nysa-agent`'
-    if (jours < 2) return `🟠 session Claude expire dans ${Math.max(1, Math.round(restant / 3_600_000))} h`
-    return `session Claude valide (${jours} j)`
+    oauth = (JSON.parse(await readFile(chemin, 'utf8')) as { claudeAiOauth?: typeof oauth }).claudeAiOauth ?? {}
   } catch {
-    return 'session Claude : fichier introuvable'
+    return { texte: '🔴 session Claude : aucun identifiant sur le Pi', alerte: true }
   }
+
+  const remede = '`claude auth login --claudeai` sur le Pi, puis `sudo systemctl restart nysa-agent`'
+  if (!oauth.accessToken || !oauth.refreshToken) {
+    return { texte: `🔴 session Claude VIDÉE (le rafraîchissement a échoué) — ${remede}`, alerte: true }
+  }
+  const finRefresh = oauth.refreshTokenExpiresAt ?? 0
+  if (finRefresh && finRefresh < Date.now()) {
+    return { texte: `🔴 session Claude EXPIRÉE — ${remede}`, alerte: true }
+  }
+  if (finRefresh) {
+    const jours = Math.floor((finRefresh - Date.now()) / 86_400_000)
+    if (jours <= 3) return { texte: `🟠 session Claude à renouveler sous ${jours <= 0 ? "moins d'un jour" : `${jours} j`} — ${remede}`, alerte: true }
+    return { texte: `session Claude valide (${jours} j)`, alerte: false }
+  }
+  return { texte: 'session Claude : connectée, échéance inconnue', alerte: false }
 }
 
 async function main() {
@@ -52,14 +70,17 @@ async function main() {
   const u = (usage.data ?? {}) as { demandes?: number; triages?: number }
   const dernier = p.last_mail_at ? Math.round((Date.now() - new Date(p.last_mail_at).getTime()) / 3_600_000) : null
 
+  const claude = await sessionClaude()
   const ok = (s: string) => (s === 'active' ? '🟢' : '🔴')
   const lignes = [
     `**Pouls Nysa** — ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}`,
     `${ok(mail)} nysa-mail ${mail} · ${ok(agent)} nysa-agent ${agent}`,
     `📨 dernier mail ${dernier === null ? 'jamais' : dernier < 1 ? "à l'instant" : `il y a ${dernier} h`} · ${p.unprocessed ?? '?'} à traiter`,
-    `🧭 Claude hier : ${u.demandes ?? 0} demande(s), ${u.triages ?? 0} triage(s) · ${await sessionClaude()}`,
+    `🧭 Claude hier : ${u.demandes ?? 0} demande(s), ${u.triages ?? 0} triage(s) · ${claude.texte}`,
   ]
   if (dernier !== null && dernier > 48) lignes.push('⚠️ Aucun mail depuis deux jours : vérifier `journalctl -u nysa-mail`.')
+  // Une session morte bloque triage, Discord et actions : le pouls le dit en tête.
+  if (claude.alerte) lignes.splice(1, 0, claude.texte)
   const envoye = await alerter(lignes.join('\n'))
   process.exit(envoye ? 0 : 1)
 }
