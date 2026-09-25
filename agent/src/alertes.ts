@@ -52,6 +52,8 @@ export async function alerter(message: string, cle?: string, toutesLesMs = 3_600
   try {
     const id = await trouverSalon()
     await discord(`/channels/${id}/messages`, { method: 'POST', body: JSON.stringify({ content: message.slice(0, 1900) }) })
+    // Tracée : après un incident, on veut savoir si l'alarme a sonné.
+    log.info(`Alerte envoyée dans #${SALON}${cle ? ` [${cle}]` : ''} : ${message.split('\n')[0]!.slice(0, 80)}`)
     return true
   } catch (e) {
     log.error(`Alerte non envoyée : ${e instanceof Error ? e.message : String(e)}`)
