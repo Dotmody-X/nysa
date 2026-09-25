@@ -5,7 +5,7 @@ import {
   Download, MoreVertical, ChevronDown, BarChart2, List, ArrowRight,
 } from '@/components/ui/icons'
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
-import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useTimeEntries, DEFAULT_TIME_CALENDAR } from '@/hooks/useTimeEntries'
 import { useProjects }    from '@/hooks/useProjects'
 import { useTimeCategories } from '@/hooks/useTimeCategories'
 import { readDefaultLabel } from '@/hooks/useDefaultLabel'
@@ -711,8 +711,8 @@ export default function TimeTrackerPage() {
                   <button
                     onClick={() => setShowLabelPicker(v => !v)} className="nb-press"
                     style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 40, padding: '5px 12px', borderRadius: 8, background: 'rgba(var(--text-rgb),0.12)', border: '1px solid rgba(var(--text-rgb),0.2)', cursor: 'pointer', color: 'var(--ink-dark)', fontSize: 10, fontWeight: 600, ...DF }}>
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[calendarLabel] ?? '#fff', flexShrink: 0 }} />
-                    {calendarLabel || 'Catégorie'}
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: LABEL_COLORS[calendarLabel || DEFAULT_TIME_CALENDAR] ?? '#fff', flexShrink: 0 }} />
+                    {calendarLabel || DEFAULT_TIME_CALENDAR}
                     <ChevronDown size={9} style={{ opacity: 0.7, transform: showLabelPicker ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
                   </button>
                   {showLabelPicker && (

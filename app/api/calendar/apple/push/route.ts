@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse }                   from 'next/server'
 import { createServerClient }                          from '@supabase/ssr'
 import { cookies }                                     from 'next/headers'
-import { buildICS, caldavRequest, findPrimaryCalendarUrl, findCalendarUrlByName, makeAuth, CALDAV_BASE } from '@/lib/caldav'
+import { buildICS, caldavRequest, findPrimaryCalendarUrl, findCalendarUrlByName, listCalendarsWithNames, makeAuth, CALDAV_BASE } from '@/lib/caldav'
 
 async function getCtx() {
   const cookieStore = await cookies()
@@ -100,7 +100,7 @@ export async function DELETE(req: NextRequest) {
   const { supabase, user } = await getCtx()
   if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
-  const { externalId } = await req.json().catch(() => ({} as { externalId?: string }))
+  const { externalId, category } = await req.json().catch(() => ({} as { externalId?: string; category?: string | null }))
   if (!externalId || !externalId.startsWith('nysa-')) {
     return NextResponse.json({ skipped: true })
   }
@@ -108,12 +108,26 @@ export async function DELETE(req: NextRequest) {
   const integ = await getIntegration(supabase, user.id)
   if (!integ) return NextResponse.json({ skipped: true })
 
-  const auth   = makeAuth(integ.metadata.email, integ.access_token)
-  const calUrl = integ.metadata?.primaryCalendarUrl as string | undefined
-  if (!calUrl) return NextResponse.json({ skipped: true })
+  const auth    = makeAuth(integ.metadata.email, integ.access_token)
+  const homeSet = integ.metadata?.homeSet as string | undefined
 
-  const eventUrl = `${calUrl.replace(/\/?$/, '/')}${externalId.replace(/@.*$/, '')}.ics`
-  const { status } = await caldavRequest('DELETE', eventUrl, auth)
+  // Le POST range l'événement dans le calendrier nommé comme sa catégorie :
+  // on le cherche là d'abord, puis dans le principal, puis dans les autres.
+  const candidates: string[] = []
+  if (category && homeSet) {
+    const byName = await findCalendarUrlByName(homeSet, category, auth)
+    if (byName) candidates.push(byName)
+  }
+  const primary = integ.metadata?.primaryCalendarUrl as string | undefined
+  if (primary) candidates.push(primary)
+  if (homeSet) candidates.push(...(await listCalendarsWithNames(homeSet, auth)).map(c => c.url))
 
-  return NextResponse.json({ success: [200, 204, 404].includes(status) })
+  const fileName = `${externalId.replace(/@.*$/, '')}.ics`
+  for (const calUrl of [...new Set(candidates)]) {
+    const { status } = await caldavRequest('DELETE', `${calUrl.replace(/\/?$/, '/')}${fileName}`, auth)
+    if (status === 200 || status === 204) return NextResponse.json({ success: true })
+  }
+
+  // Introuvable partout : déjà supprimé côté iCloud.
+  return NextResponse.json({ success: true, notFound: true })
 }

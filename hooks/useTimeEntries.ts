@@ -4,6 +4,12 @@ import { createClient } from '@/lib/supabase/client'
 import { useRealtimeTable } from './useRealtimeTable'
 import type { TimeEntry } from '@/types'
 
+// Calendrier iCloud qui reçoit une session quand aucun label n'est choisi.
+// Le nom du projet ne sert pas de repli : « [AE] Site Web » ne correspond à
+// aucun calendrier, et la route push retombait alors sur le premier
+// calendrier iCloud (Dou&Dou).
+export const DEFAULT_TIME_CALENDAR = 'Mixologue'
+
 export function useTimeEntries(fromDate?: string, toDate?: string) {
   const [entries,  setEntries]  = useState<TimeEntry[]>([])
   const [loading,  setLoading]  = useState(true)
@@ -80,10 +86,11 @@ export function useTimeEntries(fromDate?: string, toDate?: string) {
     // Création automatique d'un événement calendrier si demandé
     let calendarEvent = null
     if (!error && data && options?.addToCalendar) {
-      const entry = data as TimeEntry & { projects?: { name: string; color: string } }
+      const entry = data as TimeEntry
       const { data: { user } } = await supabase.auth.getUser()
-      // Label : priorité au choix utilisateur, sinon nom du projet, sinon "Mixologue"
-      const category = options.calendarLabel ?? entry.projects?.name ?? 'Mixologue'
+      // Label : choix utilisateur, sinon le calendrier par défaut. `||` et non
+      // `??` : le sélecteur transmet '' quand rien n'est choisi.
+      const category = options.calendarLabel?.trim() || DEFAULT_TIME_CALENDAR
       const { data: ev } = await supabase.from('events').insert({
         user_id:    user!.id,
         title:      entry.description || 'Session de travail',

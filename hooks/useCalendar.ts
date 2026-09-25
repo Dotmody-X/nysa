@@ -51,12 +51,12 @@ function pushToApple(event: CalendarEvent) {
 }
 
 // Suppression silencieuse depuis Apple Calendar
-function deleteFromApple(externalId: string | null | undefined) {
+function deleteFromApple(externalId: string | null | undefined, category?: string | null) {
   if (!externalId) return
   fetch('/api/calendar/apple/push', {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ externalId }),
+    body: JSON.stringify({ externalId, category }),
   }).catch(() => {})
 }
 
@@ -130,7 +130,7 @@ export function useCalendar(fromDate: Date, toDate: Date) {
     await supabase.from('events').delete().eq('id', id)
     setEvents(prev => prev.filter(e => e.id !== id))
     // Supprime depuis Apple Calendar si l'événement y avait été pushé
-    if (event?.external_id) deleteFromApple(event.external_id)
+    if (event?.external_id) deleteFromApple(event.external_id, event.category)
   }
 
   return { events, loading, addEvent, updateEvent, removeEvent, refetch: fetchEvents }

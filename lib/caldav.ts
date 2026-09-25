@@ -355,9 +355,20 @@ export async function runAppleSync(
   )
   const existingUids = new Set(existingMap.keys())
 
+  // Événements créés dans Nysa puis poussés vers iCloud (source 'synced') :
+  // leur UID revient dans iCloud, il ne faut pas les réimporter en doublon.
+  // Ils restent hors de existingUids pour ne jamais tomber dans les suppressions.
+  const { data: pushed } = await supabase
+    .from('events')
+    .select('external_id')
+    .eq('user_id', userId)
+    .eq('source', 'synced')
+    .not('external_id', 'is', null)
+  const pushedUids = new Set<string>((pushed ?? []).map((e: any) => e.external_id))
+
   // ── Ajouts ──────────────────────────────────────────────────────────────
   const toInsert = icloudEvents
-    .filter(e => !existingUids.has(e.uid))
+    .filter(e => !existingUids.has(e.uid) && !pushedUids.has(e.uid))
     .map(e => ({
       user_id: userId, title: e.summary,
       description: e.description ?? null,
