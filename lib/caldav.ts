@@ -279,6 +279,20 @@ export async function findCalendarUrlByName(
   return match?.url ?? null
 }
 
+/** Noms des fichiers .ics présents dans un calendrier (PROPFIND Depth 1), null si iCloud ne répond pas. */
+export async function listCalendarFiles(calendarUrl: string, auth: string): Promise<Set<string> | null> {
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:"><D:prop><D:getetag/></D:prop></D:propfind>`
+  const { status, text } = await caldavRequest('PROPFIND', toAbsolute(calendarUrl), auth, body, { Depth: '1' })
+  if (status !== 207) return null
+  const files = new Set<string>()
+  for (const m of text.matchAll(/<(?:[^>]*:)?href[^>]*>([\s\S]*?)<\/(?:[^>]*:)?href>/g)) {
+    const name = decodeURIComponent(m[1].trim().split('/').filter(Boolean).pop() ?? '')
+    if (name.endsWith('.ics')) files.add(name)
+  }
+  return files
+}
+
 // ── iCal builder ─────────────────────────────────────────────────────────────
 
 export function buildICS(uid: string, title: string, start: string, end: string, description?: string | null, location?: string | null): string {

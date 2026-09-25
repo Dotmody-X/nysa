@@ -5,7 +5,9 @@ import {
   Download, MoreVertical, ChevronDown, BarChart2, List, ArrowRight,
 } from '@/components/ui/icons'
 import { PageTitle, KpiGrid, KpiCard, SectionCard, StickerButton } from '@/components/ui/PageTitle'
-import { useTimeEntries, DEFAULT_TIME_CALENDAR } from '@/hooks/useTimeEntries'
+import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { DEFAULT_TIME_CALENDAR } from '@/lib/calendarDefaults'
+import { RelocateBanner } from '@/components/time-tracker/RelocateBanner'
 import { useProjects }    from '@/hooks/useProjects'
 import { useTimeCategories } from '@/hooks/useTimeCategories'
 import { readDefaultLabel } from '@/hooks/useDefaultLabel'
@@ -653,6 +655,8 @@ export default function TimeTrackerPage() {
           </StickerButton>
         }
       />
+
+      <RelocateBanner />
 
       {/* ─── KPI ──────────────────────────────────────────────────────────── */}
       <KpiGrid>

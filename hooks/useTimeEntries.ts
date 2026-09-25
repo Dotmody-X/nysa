@@ -3,12 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRealtimeTable } from './useRealtimeTable'
 import type { TimeEntry } from '@/types'
-
-// Calendrier iCloud qui reçoit une session quand aucun label n'est choisi.
-// Le nom du projet ne sert pas de repli : « [AE] Site Web » ne correspond à
-// aucun calendrier, et la route push retombait alors sur le premier
-// calendrier iCloud (Dou&Dou).
-export const DEFAULT_TIME_CALENDAR = 'Mixologue'
+import { DEFAULT_TIME_CALENDAR } from '@/lib/calendarDefaults'
 
 export function useTimeEntries(fromDate?: string, toDate?: string) {
   const [entries,  setEntries]  = useState<TimeEntry[]>([])
