@@ -1,4 +1,5 @@
 import { anonClient, serviceClient } from './supabase.js'
+import { alerter } from './alertes.js'
 import { log } from './log.js'
 
 export type Session = {
@@ -11,6 +12,26 @@ export type Session = {
 
 const cache = new Map<string, Session>()
 const REFRESH_MARGIN_MS = 60_000
+
+/**
+ * Un seul rafraîchissement en vol par identité.
+ *
+ * Supabase fait TOURNER les refresh tokens : le jeton servi est invalidé dès
+ * qu'il a servi. Trois consommateurs partagent l'identité Discord dans ce
+ * processus — la passerelle, le worker des demandes (toutes les 30 s) et
+ * celui du triage (toutes les 60 s). Quand le cache expirait, ils partaient
+ * ensemble avec le même jeton : le premier réussissait, les autres
+ * recevaient « Refresh Token Not Found », et la liaison était morte. C'est
+ * la panne du 27 septembre 2026, et elle était inévitable sans cette file.
+ */
+const enVol = new Map<string, Promise<Session | null>>()
+
+/**
+ * Une liaison cassée ne se répare pas toute seule : sans ce frein, les
+ * workers réessayaient toutes les 30 s — 3 671 erreurs en 21 heures.
+ */
+const RETENTATIVE_MS = 5 * 60_000
+const echecs = new Map<string, { quand: number; message: string }>()
 
 /**
  * Qui détient la session : un compte Discord, ou un service du Pi (nysa-mail)
@@ -33,6 +54,20 @@ export async function resolveSession(externalId: string, provider: Provider = 'd
   const cached = cache.get(cle)
   if (cached && cached.expiresAt - REFRESH_MARGIN_MS > Date.now()) return cached
 
+  // Liaison cassée récemment : on redit l'erreur sans marteler Supabase.
+  const echec = echecs.get(cle)
+  if (echec && Date.now() - echec.quand < RETENTATIVE_MS) throw new Error(echec.message)
+
+  const existante = enVol.get(cle)
+  if (existante) return existante
+
+  const promesse = rafraichir(cle, externalId, provider).finally(() => enVol.delete(cle))
+  enVol.set(cle, promesse)
+  return promesse
+}
+
+/** Le rafraîchissement lui-même — jamais appelé deux fois en parallèle pour la même identité. */
+async function rafraichir(cle: string, externalId: string, provider: Provider): Promise<Session | null> {
   const svc = serviceClient()
   const { data: identity, error } = await svc
     .from('bot_identities')
@@ -52,9 +87,14 @@ export async function resolveSession(externalId: string, provider: Provider = 'd
 
   if (refreshError || !refreshed.session) {
     cache.delete(cle)
-    throw new Error(
-      `Session expirée pour ce compte — relance /lier. (${refreshError?.message ?? 'aucune session'})`,
-    )
+    const remede = provider === 'discord'
+      ? 'relance `!lier ton@email.com` dans Discord.'
+      : `relance le service ${externalId} pour qu'il recrée sa session.`
+    const message = `Session expirée pour ce compte — ${remede} (${refreshError?.message ?? 'aucune session'})`
+    echecs.set(cle, { quand: Date.now(), message })
+    // Une liaison morte arrête le triage, les demandes et Discord : ça se crie.
+    void alerter(`🔴 Session Supabase perdue (${cle}) — ${remede}\n\`${refreshError?.message ?? 'aucune session'}\``, `session-${cle}`)
+    throw new Error(message)
   }
 
   const session = refreshed.session
@@ -72,6 +112,7 @@ export async function resolveSession(externalId: string, provider: Provider = 'd
     expiresAt: (session.expires_at ?? Math.floor(Date.now() / 1000) + 3600) * 1000,
   }
   cache.set(cle, entry)
+  echecs.delete(cle)
   return entry
 }
 
@@ -117,6 +158,7 @@ export async function linkAccount(externalId: string, email: string, provider: P
   if (upsertError) throw new Error(`Enregistrement de la liaison impossible : ${upsertError.message}`)
 
   cache.delete(`${provider}:${externalId}`)
+  echecs.delete(`${provider}:${externalId}`)
   log.info(`Compte lié : ${provider}:${externalId} -> ${verified.session.user.id}`)
   return verified.session.user.id
 }
