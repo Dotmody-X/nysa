@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { tool } from './types.js'
 import type { AgentContext } from '../context.js'
 import { audit } from '../audit.js'
+import { resoudreProjet } from '../memoire.js'
 import { formatDuration, localToISO, todayISO } from '../dates.js'
 
 const ENTRY_FIELDS = 'id, description, category, project_id, task_id, started_at, ended_at, duration_seconds'
@@ -136,10 +137,10 @@ async function findTask(ctx: AgentContext, texte: string): Promise<Task | null> 
   return (data?.[0] as unknown as Task | undefined) ?? null
 }
 
+/** Voir resoudreProjet (memoire.ts) : un projet incertain fait poser la question. */
 async function findProjectId(ctx: AgentContext, nom?: string): Promise<string | null> {
   if (!nom) return null
-  const { data } = await ctx.db.from('projects').select('id').ilike('name', `%${nom}%`).limit(1)
-  return (data?.[0]?.id as string | undefined) ?? null
+  return (await resoudreProjet(ctx, nom)).projet.id
 }
 
 export const timeTools = [
@@ -214,6 +215,9 @@ export const timeTools = [
         .describe('Crée la tâche si aucune ne correspond.'),
     }),
     run: async (input, ctx) => {
+      // Le projet se résout AVANT d'arrêter le chrono en cours : une question sur le
+      // projet ne doit pas laisser l'ancien arrêté et le nouveau jamais démarré.
+      const projetDemande = await findProjectId(ctx, input.projet ?? undefined)
       const closed = await closeRunning(ctx, input.precedente_terminee)
 
       let task: Task | null = null
@@ -229,7 +233,7 @@ export const timeTools = [
 
       let creee = false
       if (!task && input.creer_tache_si_absente) {
-        const projectId = await findProjectId(ctx, input.projet ?? undefined)
+        const projectId = projetDemande
         const { data, error } = await ctx.db
           .from('tasks')
           .insert({
@@ -253,7 +257,7 @@ export const timeTools = [
         await ctx.db.from('tasks').update({ status: 'in_progress' }).eq('id', task.id)
       }
 
-      const projectId = task?.project_id ?? (await findProjectId(ctx, input.projet ?? undefined))
+      const projectId = task?.project_id ?? projetDemande
 
       const { data: entry, error } = await ctx.db
         .from('time_entries')

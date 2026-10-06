@@ -9,6 +9,7 @@ import { noteTools } from './notes.js'
 import { etiquetteTools } from './etiquettes.js'
 import { mailTools } from './mail.js'
 import { macTools } from './mac.js'
+import { memoireTools } from './memoire.js'
 
 /**
  * Surface exposée à Claude Code. Volontairement courte : au-delà d'une
@@ -32,6 +33,7 @@ export function allTools(): ToolDef[] {
     ...noteTools,
     ...etiquetteTools,
     ...mailTools,
+    ...memoireTools,
     ...macTools(),
   ]
 }

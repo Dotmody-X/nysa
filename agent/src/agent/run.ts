@@ -4,6 +4,9 @@ import { systemPrompt, type Surface } from '../discord/prompt.js'
 import { brandFromChannel, type Brand } from '../brands.js'
 import { mcpConfigPath } from './mcpConfig.js'
 import type { Session } from '../identity.js'
+import { userClient } from '../supabase.js'
+import { blocMemoire, reglesVivantes, synchroniserLexique } from '../memoire.js'
+import { log } from '../log.js'
 
 type Config = ReturnType<typeof bridgeConfig>
 
@@ -38,8 +41,21 @@ export type RunAgentOptions = {
  * cloisonnés par son JWT. La passerelle Discord et le worker des demandes
  * passent tous deux par ici : même prompt système, même environnement.
  */
-export function runNysaAgent(o: RunAgentOptions): Promise<ClaudeRun> {
+export async function runNysaAgent(o: RunAgentOptions): Promise<ClaudeRun> {
   const { config, session } = o
+  // Lecture avant d'agir (§12 du cahier des charges du cerveau) : ses règles, et le
+  // lexique commun recopié au besoin. Une base muette ne bloque pas Nysa : elle
+  // répond sans sa mémoire plutôt que pas du tout. Le triage (prompt imposé) s'en passe.
+  let memoire: string | null = null
+  if (!o.systemPromptOverride) {
+    try {
+      const db = userClient(session.accessToken)
+      await synchroniserLexique(db, session.userId, config.OBSIDIAN_VAULT ?? null)
+      memoire = blocMemoire(await reglesVivantes(db))
+    } catch (e) {
+      log.warn(`Mémoire illisible, Nysa répond sans : ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
   const channelName = o.channelName ?? null
   const brand = o.brand ?? brandFromChannel(channelName)
   const macEnabled = o.allowMac && Boolean(config.MAC_SSH_HOST && config.MAC_SSH_USER)
@@ -61,6 +77,7 @@ export function runNysaAgent(o: RunAgentOptions): Promise<ClaudeRun> {
       timezone: config.AGENT_TIMEZONE,
       vaultPath: config.OBSIDIAN_VAULT ?? null,
       macEnabled,
+      memoire,
     }),
     env: {
       NYSA_ACCESS_TOKEN: session.accessToken,
