@@ -3,7 +3,7 @@ import { tool } from './types.js'
 import type { AgentContext } from '../context.js'
 import { audit } from '../audit.js'
 import { todayISO, addDaysISO } from '../dates.js'
-import { resoudreProjet } from '../memoire.js'
+import { noterRegleAppliquee, resoudreProjet } from '../memoire.js'
 
 const STATUTS = ['todo', 'in_progress', 'done', 'cancelled'] as const
 const PRIORITES = ['low', 'medium', 'high', 'urgent'] as const
@@ -86,6 +86,10 @@ export const taskTools = [
       titre: z.string().min(1),
       description: z.string().optional(),
       projet: z.string().optional().describe('Nom, même partiel, du projet à rattacher.'),
+      regle_appliquee: z
+        .string()
+        .optional()
+        .describe("Si tu as choisi le projet grâce à une règle apprise (« Ce que tu as appris »), sa clé : elle gagne en confiance."),
       priorite: z.enum(PRIORITES).default('medium'),
       echeance: z.string().optional().describe('AAAA-MM-JJ'),
       minutes_estimees: z.number().int().positive().optional(),
@@ -93,6 +97,7 @@ export const taskTools = [
     }),
     run: async (input, ctx) => {
       const project = await findProject(ctx, input.projet)
+      await noterRegleAppliquee(ctx, input.regle_appliquee)
 
       const { data, error } = await ctx.db
         .from('tasks')

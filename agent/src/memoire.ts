@@ -144,6 +144,18 @@ export async function resoudreProjet(ctx: AgentContext, nom: string): Promise<{ 
   throw question(nom, vivants, `Aucun projet ne correspond à « ${nom} ».`)
 }
 
+/**
+ * Une règle que le modèle dit avoir appliquée (champ `regle_appliquee` des outils
+ * qui rangent) : elle gagne en confiance. Les surnoms, eux, sont comptés par
+ * resoudreProjet ; les règles en phrase (« une tâche étiquettes va dans… ») ne
+ * peuvent l'être que par celui qui les applique. Clé inconnue : rien ne se passe.
+ */
+export async function noterRegleAppliquee(ctx: AgentContext, cle?: string | null): Promise<void> {
+  if (!cle) return
+  const regle = (await reglesVivantes(ctx.db)).find(r => normaliser(r.cle) === normaliser(cle))
+  if (regle) await noterUsage(ctx, regle)
+}
+
 /** La cible d'une valeur : un projet précis, ou une marque entière. */
 export async function cibleDe(db: SupabaseClient, valeur: string): Promise<{ cible_projet: string | null; cible_groupe: string | null }> {
   const tous = await projets(db)
@@ -216,7 +228,8 @@ export function blocMemoire(regles: Regle[]): string {
     'Quand Nathan te corrige (« non, c\'est X », « mixo c\'est Le Mixologue »), ou te dit comment il ' +
       'nomme une chose, appelle aussitôt `apprendre` : sa demande, ce que tu avais compris, ce qu\'il ' +
       'voulait. Une correction devient une règle tout de suite. Quand un outil te répond qu\'un projet est ' +
-      'incertain, ne devine jamais : pose la question, puis apprends la réponse.',
+      'incertain, ne devine jamais : pose la question, puis apprends la réponse. Quand tu ranges une tâche ' +
+      'ou du temps GRÂCE à une règle ci-dessus, donne sa clé dans `regle_appliquee` : elle gagne en confiance.',
     'Une règle ne t\'autorise jamais seule une action irréversible (supprimer, envoyer un message) : ' +
       'celles-là demandent toujours l\'accord de Nathan.',
   )
