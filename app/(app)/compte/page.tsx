@@ -5,7 +5,7 @@ import {
   Settings, Bell, Palette, Lock, Keyboard, Download,
   ChevronRight, Flame, Star, TrendingUp, Activity,
   CheckSquare, Wallet, Clock, Utensils, Zap, Shield,
-  ExternalLink, AlertTriangle, X, Check, User, Smartphone,
+  ExternalLink, AlertTriangle, X, Check, User, Smartphone, Sparkles,
 } from '@/components/ui/icons'
 import { PageTitle, SectionCard, StickerButton } from '@/components/ui/PageTitle'
 import { createClient } from '@/lib/supabase/client'
@@ -244,6 +244,7 @@ export default function ComptePage() {
   const prefItems = [
     { icon: Settings,  label:'Général',          sub:'Paramètres généraux du compte',  href:'/compte/general' },
     { icon: Bell,      label:'Notifications',    sub:'Gérer vos notifications',         href:'/compte/notifications' },
+    { icon: Sparkles,  label:'Ce que Nysa a appris', sub:'Ses règles, nées de tes corrections', href:'/compte/memoire' },
     { icon: Palette,   label:'Apparence',        sub:'Thème, couleurs, affichage',      href:'/reglages' },
     { icon: Lock,      label:'Confidentialité',  sub:'Données et confidentialité',      href:'/compte/confidentialite' },
     { icon: Keyboard,  label:'Raccourcis',       sub:'Gérer vos raccourcis clavier',    href:'/compte/raccourcis' },

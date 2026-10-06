@@ -3,6 +3,7 @@ import { tool } from './types.js'
 import type { AgentContext } from '../context.js'
 import { audit } from '../audit.js'
 import { todayISO, addDaysISO } from '../dates.js'
+import { resoudreProjet } from '../memoire.js'
 
 const STATUTS = ['todo', 'in_progress', 'done', 'cancelled'] as const
 const PRIORITES = ['low', 'medium', 'high', 'urgent'] as const
@@ -13,14 +14,14 @@ const TASK_FIELDS =
 
 type ProjectRow = { id: string; name: string; groupe: string | null }
 
+/**
+ * Le projet nommé : surnom appris, nom exact, ou correspondance unique (voir
+ * memoire.ts). Ambigu ou introuvable : lève une erreur qui fait poser la
+ * question — avant, `ilike` prenait le premier venu, ou rangeait sans projet.
+ */
 async function findProject(ctx: AgentContext, nom?: string): Promise<ProjectRow | null> {
   if (!nom) return null
-  const { data } = await ctx.db
-    .from('projects')
-    .select('id, name, groupe')
-    .ilike('name', `%${nom}%`)
-    .limit(1)
-  return (data?.[0] as ProjectRow | undefined) ?? null
+  return (await resoudreProjet(ctx, nom)).projet
 }
 
 export const taskTools = [

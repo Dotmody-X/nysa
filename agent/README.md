@@ -244,6 +244,33 @@ C'est le cœur de l'usage quotidien. Tu annonces ce que tu commences, le reste s
 La règle qui compte : dans le doute, l'agent ne coche pas. Une tâche non terminée ne
 doit jamais disparaître du radar.
 
+## La mémoire de Nysa (ce qu'elle apprend de ses erreurs)
+
+Cahier des charges du cerveau, §12, phase 9. L'exemple fondateur : « mets ça dans
+mixo ». Avant, `ilike '%mixo%'` prenait le premier projet venu (« Crm Mixo ») sans
+rien dire, et « Le Mixologue », qui est une marque, ne trouvait rien : la tâche
+partait sans projet.
+
+- **Deux tables** (migration `20261006130000_memoire_de_nysa.sql`, RLS sur
+  `auth.uid()`, aucun droit de suppression) : `memoire` (alias, règles,
+  préférences : clé → valeur, origine, confiance, utilisations, statut
+  `active` / `a_confirmer` / `retiree`) et `erreurs` (chaque correction brute).
+- **Résolution des projets** (`src/memoire.ts`, `resoudreProjet`), partagée par
+  les tâches et le temps : surnom appris, puis nom exact, puis correspondance
+  **unique**. Ambigu ou introuvable : l'outil ne crée rien et fait poser la
+  question. Un surnom ne sert que s'il vise un projet ou une marque (« condor »,
+  le Pi, ne détourne pas le projet Condor). `demarrer_activite` résout le projet
+  **avant** d'arrêter le chrono en cours.
+- **`apprendre`** : le tool qui retient une correction (règle active tout de
+  suite, confiance remise à 1) et garde la correction brute dans `erreurs`.
+- **Lecture avant d'agir** : `runNysaAgent` ajoute à la consigne les règles
+  vivantes. Une base muette ne bloque pas Nysa, elle répond sans sa mémoire.
+- **Lexique commun** : `99_Meta/Lexique.md` du vault est recopié dans `memoire`
+  (origine `lexique`) au plus toutes les 6 h ou quand il change. Une correction
+  de Nathan n'est jamais écrasée par le lexique.
+- **Dans l'app** : Compte → « Ce que Nysa a appris » (`/compte/memoire`), où une
+  règle se retire d'un geste (statut `retiree`) et se remet.
+
 ## Cerveau Obsidian
 
 Le vault est un dépôt Git privé, cloné sur le Pi5 dans `OBSIDIAN_VAULT`. **Aucun MCP

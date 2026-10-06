@@ -16,6 +16,8 @@ export function systemPrompt(args: {
   timezone: string
   vaultPath: string | null
   macEnabled: boolean
+  /** Ce que Nysa a appris de Nathan (memoire.ts, blocMemoire) : lu avant chaque demande. */
+  memoire?: string | null
 }): string {
   const lignes = [
     "Tu es l'assistant de travail de Nathan, entrepreneur solo, à l'intérieur de Nysa.",
@@ -185,6 +187,8 @@ export function systemPrompt(args: {
       `Salon « ${args.channelName} » : aucune marque implicite, reste sur l'ensemble de l'activité.`,
     )
   }
+
+  if (args.memoire) lignes.push(args.memoire)
 
   return lignes.join('\n')
 }
