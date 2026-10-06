@@ -31,7 +31,11 @@ export const memoireTools = [
       origine: z
         .enum(['correction', 'explicite'])
         .default('correction')
-        .describe("correction : il t'a corrigé. explicite : il te l'a dit sans que tu te sois trompé."),
+        .describe(
+          "correction : il t'a corrigé, OU il a répondu à une question que tu as dû lui poser parce que tu " +
+            "ne savais pas (projet incertain, mot inconnu) — c'est le cas le plus courant. explicite : il te " +
+            "l'a dit de lui-même, sans que tu aies hésité ni que tu te sois trompé.",
+        ),
       demande: z.string().optional().describe("Sa phrase d'origine, telle quelle."),
       compris: z.string().optional().describe("Ce que tu avais compris (ou « je n'ai pas su »)."),
     }),

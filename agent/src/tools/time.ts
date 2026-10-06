@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { tool } from './types.js'
 import type { AgentContext } from '../context.js'
 import { audit } from '../audit.js'
-import { resoudreProjet } from '../memoire.js'
+import { noterRegleAppliquee, resoudreProjet } from '../memoire.js'
 import { formatDuration, localToISO, todayISO } from '../dates.js'
 
 const ENTRY_FIELDS = 'id, description, category, project_id, task_id, started_at, ended_at, duration_seconds'
@@ -205,6 +205,10 @@ export const timeTools = [
         .optional()
         .describe('Si tu as déjà identifié la tâche via `chercher_tache`.'),
       projet: z.string().optional().describe('Nom, même partiel, du projet de rattachement.'),
+      regle_appliquee: z
+        .string()
+        .optional()
+        .describe("Si tu as choisi le projet grâce à une règle apprise (« Ce que tu as appris »), sa clé : elle gagne en confiance."),
       precedente_terminee: z
         .boolean()
         .default(false)
@@ -218,6 +222,7 @@ export const timeTools = [
       // Le projet se résout AVANT d'arrêter le chrono en cours : une question sur le
       // projet ne doit pas laisser l'ancien arrêté et le nouveau jamais démarré.
       const projetDemande = await findProjectId(ctx, input.projet ?? undefined)
+      await noterRegleAppliquee(ctx, input.regle_appliquee)
       const closed = await closeRunning(ctx, input.precedente_terminee)
 
       let task: Task | null = null
@@ -323,6 +328,10 @@ export const timeTools = [
       fin: z.string().describe('Heure de fin, format HH:MM (ex. 09:00).'),
       date: z.string().optional().describe("Date AAAA-MM-JJ. Par défaut aujourd'hui."),
       projet: z.string().optional().describe('Nom, même partiel, du projet.'),
+      regle_appliquee: z
+        .string()
+        .optional()
+        .describe("Si tu as choisi le projet grâce à une règle apprise (« Ce que tu as appris »), sa clé : elle gagne en confiance."),
       tache_id: z.string().uuid().optional().describe('Tâche à créditer du temps.'),
     }),
     run: async (input, ctx) => {
@@ -349,6 +358,7 @@ export const timeTools = [
       }
 
       const projectId = await findProjectId(ctx, input.projet ?? undefined)
+      await noterRegleAppliquee(ctx, input.regle_appliquee)
 
       const { data, error } = await ctx.db
         .from('time_entries')
