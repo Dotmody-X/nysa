@@ -24,6 +24,10 @@ type Evenement = {
 type Fichier = { name: string; path: string; size: number; type: string }
 
 const BALAYAGE_MS = 60_000
+/** Session Claude expirée : on ne retente pas avant ce délai, et on ne marque aucun mail. */
+const PAUSE_SESSION_MS = 5 * 60_000
+const SESSION_MORTE = /session Claude Code a expiré|oauth|authenticate/i
+let sessionMorteJusqua = 0
 /** Un triage à la fois par utilisateur ; les demandes du poste ont leur propre file. */
 const occupes = new Set<string>()
 const veilles = new Map<string, { client: SupabaseClient; token: string }>()
@@ -95,7 +99,7 @@ async function veiller(config: Config, userId: string) {
 }
 
 async function trierPour(config: Config, userId: string) {
-  if (occupes.has(userId)) return
+  if (occupes.has(userId) || Date.now() < sessionMorteJusqua) return
   occupes.add(userId)
   try {
     const session = await sessionPour(userId)
@@ -110,7 +114,10 @@ async function trierPour(config: Config, userId: string) {
       log.error(`Triage : lecture impossible (${error.message})`)
       return
     }
-    for (const ev of (data as Evenement[]) ?? []) await trier(config, session, db, ev)
+    for (const ev of (data as Evenement[]) ?? []) {
+      // Session expirée : le lot s'arrête là, les mails restent à trier pour le balayage suivant.
+      if (!(await trier(config, session, db, ev))) break
+    }
   } catch (e) {
     log.error('Triage : échec', e)
   } finally {
@@ -137,7 +144,8 @@ function decrire(ev: Evenement): string {
   return lignes.join('\n')
 }
 
-async function trier(config: Config, session: Session, db: SupabaseClient, ev: Evenement) {
+/** false = la session Claude a expiré : le mail n'a pas été touché, il faudra le retrier. */
+async function trier(config: Config, session: Session, db: SupabaseClient, ev: Evenement): Promise<boolean> {
   const debut = Date.now()
   try {
     const run = await runNysaAgent({
@@ -163,13 +171,21 @@ async function trier(config: Config, session: Session, db: SupabaseClient, ev: E
     // Les pièces d'un imprimeur rejoignent leur commande d'étiquettes — sans
     // passer par un outil d'écriture de Claude : c'est du code, sur sa fiche.
     if (fiche?.etiquettes && fiche.document && ev.payload.files?.length) await rattacherEtiquettes(db, session.userId, ev, fiche.etiquettes, fiche.document)
+    return true
   } catch (e) {
     // On marque l'échec pour ne pas retenter en boucle ; l'humain lira le mail tel quel.
     const message = e instanceof Error ? e.message : String(e)
     log.error(`Triage #${ev.id} : Claude Code a échoué`, message)
     // La panne qui bloque tout : la session du compte Max a expiré. Une fois par heure, pas par mail.
-    if (/session Claude Code a expiré|oauth|authenticate/i.test(message)) void alerter(`🔴 ${message.split('\n')[0]}\n${message.split('\n\n')[1] ?? ''}`, 'claude-session')
+    // Le mail n'est PAS marqué en échec : il n'y est pour rien, et il sera trié dès que la session revient
+    // (dans la fenêtre de deux jours de work_events_a_trier).
+    if (SESSION_MORTE.test(message)) {
+      void alerter(`🔴 ${message.split('\n')[0]}\n${message.split('\n\n')[1] ?? ''}`, 'claude-session')
+      sessionMorteJusqua = Date.now() + PAUSE_SESSION_MS
+      return false
+    }
     await db.rpc('annotate_work_event', { p_id: ev.id, p_ai: { echec: message.slice(0, 200), le: new Date().toISOString() }, p_urgency: null })
+    return true
   }
 }
 
